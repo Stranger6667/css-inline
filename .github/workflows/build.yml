@@ -68,40 +68,6 @@ jobs:
           command: test
           args: --no-fail-fast
 
-  test-nightly:
-    name: Test + Coverage (nightly)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: nightly
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clean
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-fail-fast
-        env:
-          CARGO_INCREMENTAL: '0'
-          RUSTFLAGS: '-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests'
-          RUSTDOCFLAGS: '-Cpanic=abort'
-      - id: coverage
-        uses: actions-rs/grcov@v0.1
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.0.5
-        with:
-          name: coverage
-          token: ${{ secrets.CODECOV_TOKEN }}
-          file: ${{ steps.coverage.outputs.report }}
-
   fmt:
     name: Rustfmt
     runs-on: ubuntu-latest
