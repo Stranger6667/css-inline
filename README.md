@@ -50,7 +50,7 @@ cssinline = "0.1"
 ## Example:
 
 ```rust
-use cssinline
+use css_inline;
 
 const HTML: &str = r#"<html>
 <head>
