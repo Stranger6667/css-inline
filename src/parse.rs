@@ -1,5 +1,5 @@
 pub struct CSSRuleListParser;
-struct CSSDeclarationListParser;
+pub(crate) struct CSSDeclarationListParser;
 
 pub type Declaration = (String, String);
 pub type QualifiedRule = (String, Vec<Declaration>);
