@@ -1,4 +1,5 @@
 //! Errors that may happen during inlining.
+use cssparser::ParseError;
 use std::io;
 
 /// Inlining error
@@ -13,5 +14,11 @@ pub enum InlineError {
 impl From<io::Error> for InlineError {
     fn from(error: io::Error) -> Self {
         InlineError::IO(error)
+    }
+}
+
+impl From<(ParseError<'_, ()>, &str)> for InlineError {
+    fn from(_: (ParseError<'_, ()>, &str)) -> Self {
+        InlineError::ParseError
     }
 }

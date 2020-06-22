@@ -105,6 +105,7 @@ pub mod error;
 mod parse;
 
 pub use error::InlineError;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 struct Rule {
@@ -151,14 +152,16 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
             .filter_map(|node| node.into_element_ref())
             .filter(|element| rule.selectors.matches(element));
         for matching_element in matching_elements {
-            let style = rule
-                .declarations
-                .iter()
-                .map(|&(ref key, ref value)| format!("{}:{};", key, value));
-            matching_element
-                .attributes
-                .borrow_mut()
-                .insert("style", style.collect());
+            let mut attributes = matching_element.attributes.borrow_mut();
+            let style = if let Some(existing_style) = attributes.get("style") {
+                merge_styles(existing_style, &rule.declarations)?
+            } else {
+                rule.declarations
+                    .iter()
+                    .map(|&(ref key, ref value)| format!("{}:{};", key, value))
+                    .collect()
+            };
+            attributes.insert("style", style);
         }
     }
 
@@ -171,6 +174,28 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
         .as_node()
         .serialize(&mut out)?;
     Ok(String::from_utf8_lossy(&out).to_string())
+}
+
+fn merge_styles(existing_style: &str, new_styles: &[Declaration]) -> Result<String, InlineError> {
+    // Parse existing declarations in "style" attribute
+    let mut input = cssparser::ParserInput::new(existing_style);
+    let mut parser = cssparser::Parser::new(&mut input);
+    let declarations =
+        cssparser::DeclarationListParser::new(&mut parser, parse::CSSDeclarationListParser);
+    // Merge existing with the new ones
+    let mut styles: HashMap<String, String> = HashMap::new();
+    for declaration in declarations.into_iter() {
+        let (property, value) = declaration?;
+        styles.insert(property.to_string(), value.to_string());
+    }
+    for (property, value) in new_styles.iter() {
+        styles.insert(property.to_string(), value.to_string());
+    }
+    // Create a new declarations list
+    Ok(styles
+        .iter()
+        .map(|(key, value)| format!("{}:{};", key, value))
+        .collect::<String>())
 }
 
 #[cfg(test)]
@@ -190,9 +215,9 @@ p.footer { font-size: 1px}
 </style>
 </head>
 <body>
-<h1>Hi!</h1>
+<h1>Big Text</h1>
 <p><strong>Yes!</strong></p>
-<p class="footer">Feetnuts</p>
+<p class="footer">Foot notes</p>
 </body>
 </html>"#;
 
@@ -213,12 +238,51 @@ p.footer { font-size: 1px}
 </style>
 </head>
 <body>
-<h1 style="color:red;">Hi!</h1>
+<h1 style="color:red;">Big Text</h1>
 <p style="font-size:2px ;"><strong style="text-decoration:none
   ;">Yes!</strong></p>
-<p class="footer" style="font-size: 1px;">Feetnuts</p>
+<p class="footer" style="font-size: 1px;">Foot notes</p>
 
 </body></html>"#
         )
+    }
+
+    #[test]
+    fn test_merge_styles() {
+        let html = r#"<html>
+<head>
+<title>Test</title>
+<style>
+h1 { color:red; }
+</style>
+</head>
+<body>
+<h1 style="font-size: 1px">Big Text</h1>
+</body>
+</html>"#;
+        let inlined = inline(html).expect("Should be valid");
+        let valid = (inlined
+            == r#"<html><head>
+<title>Test</title>
+<style>
+h1 { color:red; }
+</style>
+</head>
+<body>
+<h1 style="color:red;font-size: 1px;">Big Text</h1>
+
+</body></html>"#)
+            || (inlined
+                == r#"<html><head>
+<title>Test</title>
+<style>
+h1 { color:red; }
+</style>
+</head>
+<body>
+<h1 style="font-size: 1px;color:red;">Big Text</h1>
+
+</body></html>"#);
+        assert!(valid, inlined)
     }
 }
