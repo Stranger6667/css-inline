@@ -30,7 +30,7 @@ jobs:
           python-version: 3.7
 
       - run: pip install pre-commit
-      - run: pre-commit run --all-files
+      - run: SKIP=fmt,cargo-check,clippy pre-commit run --all-files
 
   check:
     name: Check
