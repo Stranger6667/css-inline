@@ -49,7 +49,7 @@ Will be turned into this:
 To use it in your project add the following line to your `dependencies` section in project's `Cargo.toml` file:
 
 ```toml
-cssinline = "0.1"
+css-inline = "0.1"
 ```
 
 ## Example:
