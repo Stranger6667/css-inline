@@ -8,7 +8,7 @@ readme = "README.md"
 description = "A crate for inlining CSS into HTML documents"
 repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["html", "css"]
-exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore"]
+exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore", "tests"]
 categories = ["web-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
