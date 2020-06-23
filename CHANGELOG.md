@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `CSSInliner` and customization options. [#9](https://github.com/Stranger6667/css-inline/issues/9)
+
 ### Changed
 
 - Improved error messages. [#27](https://github.com/Stranger6667/css-inline/issues/27)
