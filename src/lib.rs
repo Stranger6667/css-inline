@@ -174,7 +174,9 @@ fn merge_styles(existing_style: &str, new_styles: &[Declaration]) -> Result<Stri
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parse::CSSDeclarationListParser);
     // Merge existing with the new ones
-    let mut styles: HashMap<String, String> = HashMap::new();
+    // We know that at least one rule already exists, so we add 1
+    let mut styles: HashMap<String, String> =
+        HashMap::with_capacity(new_styles.len().saturating_add(1));
     for declaration in declarations.into_iter() {
         let (property, value) = declaration?;
         styles.insert(property, value);
