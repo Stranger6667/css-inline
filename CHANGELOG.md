@@ -6,6 +6,7 @@
 
 - `CSSInliner` and customization options. [#9](https://github.com/Stranger6667/css-inline/issues/9)
 - Option to remove "style" tags. [#11](https://github.com/Stranger6667/css-inline/issues/11)
+- `CSSInliner::compact()` constructor for producing smaller HTML output.
 
 ### Changed
 
