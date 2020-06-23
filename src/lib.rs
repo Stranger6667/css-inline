@@ -95,7 +95,7 @@
 //! </html>"#;
 //!
 //!fn main() -> Result<(), css_inline::InlineError> {
-//!    let options = css_inline::InlineOptions {};
+//!    let options = css_inline::InlineOptions { remove_style_tags: true };
 //!    let inliner = css_inline::CSSInliner::new(options);
 //!    let inlined = inliner.inline(HTML)?;
 //!    // Do something with inlined HTML, e.g. send an email
@@ -154,12 +154,17 @@ impl Rule {
 
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
-pub struct InlineOptions {}
+pub struct InlineOptions {
+    /// Remove "style" tags after inlining
+    pub remove_style_tags: bool,
+}
 
 impl Default for InlineOptions {
     #[inline]
     fn default() -> Self {
-        InlineOptions {}
+        InlineOptions {
+            remove_style_tags: false,
+        }
     }
 }
 
@@ -215,6 +220,9 @@ impl CSSInliner {
                         // Which means that they will fall into this category and will be ignored
                     }
                 }
+            }
+            if self.options.remove_style_tags {
+                style_tag.as_node().detach()
             }
         }
         let mut out = vec![];
