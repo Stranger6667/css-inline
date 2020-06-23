@@ -64,3 +64,14 @@ fn overloaded_styles() {
         expected = r#"<h1 id="test" style="color: blue;">Hello world!</h1>"#
     )
 }
+
+#[test]
+fn empty_style() {
+    // When the style tag is empty
+    assert_inlined!(
+        style = "",
+        body = r#"<h1>Hello world!</h1>"#,
+        // Then the body should remain the same
+        expected = r#"<h1>Hello world!</h1>"#
+    )
+}
