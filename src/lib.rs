@@ -127,7 +127,7 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
     let document = parse_html().one(html);
     for style_tag in document
         .select("style")
-        .map_err(|_| error::InlineError::ParseError)?
+        .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
     {
         if let Some(first_child) = style_tag.as_node().first_child() {
             if let Some(css_cell) = first_child.as_text() {
@@ -136,8 +136,9 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
                 let mut parser = parse::CSSParser::new(&mut parse_input);
                 for parsed in parser.parse() {
                     if let Ok((selector, declarations)) = parsed {
-                        let rule = Rule::new(&selector, declarations)
-                            .map_err(|_| error::InlineError::ParseError)?;
+                        let rule = Rule::new(&selector, declarations).map_err(|_| {
+                            error::InlineError::ParseError("Unknown error".to_string())
+                        })?;
                         let matching_elements = document
                             .inclusive_descendants()
                             .filter_map(|node| node.into_element_ref())

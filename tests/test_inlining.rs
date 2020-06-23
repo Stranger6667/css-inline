@@ -89,3 +89,14 @@ fn media_query_ignore() {
         expected = "<h1>Hello world!</h1>"
     )
 }
+
+#[test]
+fn invalid_rule() {
+    let html = html!(
+        "h1 {background-color: blue;}",
+        r#"<h1 style="@wrong { color: ---}">Hello world!</h1>"#
+    );
+    let result = inline(&html);
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "Invalid @ rule: wrong")
+}
