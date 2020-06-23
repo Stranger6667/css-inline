@@ -99,7 +99,7 @@
 )]
 use crate::parse::Declaration;
 use kuchiki::traits::TendrilSink;
-use kuchiki::{parse_html, ElementData, NodeDataRef, Selectors};
+use kuchiki::{parse_html, Selectors};
 
 pub mod error;
 mod parse;
@@ -122,57 +122,44 @@ impl Rule {
     }
 }
 
-fn process_style_node(node: &NodeDataRef<ElementData>) -> Vec<Rule> {
-    let css = node.text_contents();
-    let mut parse_input = cssparser::ParserInput::new(css.as_str());
-    let mut parser = parse::CSSParser::new(&mut parse_input);
-    parser
-        .parse()
-        .filter_map(|r| {
-            r.map(|(selector, declarations)| Rule::new(&selector, declarations))
-                .ok()
-        })
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|_| error::InlineError::ParseError)
-        .expect("Parsing error") // Should return Result instead
-}
-
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree.
 pub fn inline(html: &str) -> Result<String, InlineError> {
     let document = parse_html().one(html);
-    let rules = document
+    for style_tag in document
         .select("style")
         .map_err(|_| error::InlineError::ParseError)?
-        .map(|ref node| process_style_node(node))
-        .flatten();
-
-    for rule in rules {
-        let matching_elements = document
-            .inclusive_descendants()
-            .filter_map(|node| node.into_element_ref())
-            .filter(|element| rule.selectors.matches(element));
-        for matching_element in matching_elements {
-            let mut attributes = matching_element.attributes.borrow_mut();
-            let style = if let Some(existing_style) = attributes.get("style") {
-                merge_styles(existing_style, &rule.declarations)?
-            } else {
-                rule.declarations
-                    .iter()
-                    .map(|&(ref key, ref value)| format!("{}:{};", key, value))
-                    .collect()
-            };
-            attributes.insert("style", style);
+    {
+        if let Some(first_child) = style_tag.as_node().first_child() {
+            if let Some(css_cell) = first_child.as_text() {
+                let css = css_cell.borrow();
+                let mut parse_input = cssparser::ParserInput::new(css.as_str());
+                let mut parser = parse::CSSParser::new(&mut parse_input);
+                for parsed in parser.parse() {
+                    let (selector, declarations) = parsed?;
+                    let rule = Rule::new(&selector, declarations)
+                        .map_err(|_| error::InlineError::ParseError)?;
+                    let matching_elements = document
+                        .inclusive_descendants()
+                        .filter_map(|node| node.into_element_ref())
+                        .filter(|element| rule.selectors.matches(element));
+                    for matching_element in matching_elements {
+                        let mut attributes = matching_element.attributes.borrow_mut();
+                        let style = if let Some(existing_style) = attributes.get("style") {
+                            merge_styles(existing_style, &rule.declarations)?
+                        } else {
+                            rule.declarations
+                                .iter()
+                                .map(|&(ref key, ref value)| format!("{}:{};", key, value))
+                                .collect()
+                        };
+                        attributes.insert("style", style);
+                    }
+                }
+            }
         }
     }
-
     let mut out = vec![];
-    document
-        .select("html")
-        .map_err(|_| error::InlineError::ParseError)?
-        .next()
-        .expect("HTML tag should be present") // Should it?
-        .as_node()
-        .serialize(&mut out)?;
+    document.serialize(&mut out)?;
     Ok(String::from_utf8_lossy(&out).to_string())
 }
 
@@ -186,7 +173,7 @@ fn merge_styles(existing_style: &str, new_styles: &[Declaration]) -> Result<Stri
     let mut styles: HashMap<String, String> = HashMap::new();
     for declaration in declarations.into_iter() {
         let (property, value) = declaration?;
-        styles.insert(property.to_string(), value.to_string());
+        styles.insert(property, value);
     }
     for (property, value) in new_styles.iter() {
         styles.insert(property.to_string(), value.to_string());
