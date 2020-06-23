@@ -1,4 +1,4 @@
-use css_inline::{inline, CSSInliner, InlineOptions};
+use css_inline::{inline, CSSInliner};
 
 macro_rules! html {
     ($style: expr, $body: expr) => {
@@ -104,10 +104,7 @@ fn invalid_rule() {
 #[test]
 fn remove_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let options = InlineOptions {
-        remove_style_tags: true,
-    };
-    let inliner = CSSInliner::new(options);
+    let inliner = CSSInliner::compact();
     let result = inliner.inline(&html).unwrap();
     assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }

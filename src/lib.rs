@@ -95,8 +95,7 @@
 //! </html>"#;
 //!
 //!fn main() -> Result<(), css_inline::InlineError> {
-//!    let options = css_inline::InlineOptions { remove_style_tags: true };
-//!    let inliner = css_inline::CSSInliner::new(options);
+//!    let inliner = css_inline::CSSInliner::compact();
 //!    let inlined = inliner.inline(HTML)?;
 //!    // Do something with inlined HTML, e.g. send an email
 //!    Ok(())
@@ -159,6 +158,16 @@ pub struct InlineOptions {
     pub remove_style_tags: bool,
 }
 
+impl InlineOptions {
+    /// Options for "compact" HTML output
+    #[inline]
+    pub fn compact() -> Self {
+        InlineOptions {
+            remove_style_tags: true,
+        }
+    }
+}
+
 impl Default for InlineOptions {
     #[inline]
     fn default() -> Self {
@@ -179,6 +188,15 @@ impl CSSInliner {
     #[inline]
     pub fn new(options: InlineOptions) -> Self {
         CSSInliner { options }
+    }
+
+    /// Inliner, that will produce "compact" HTML.
+    /// For example, "style" tags will be removed.
+    #[inline]
+    pub fn compact() -> Self {
+        CSSInliner {
+            options: InlineOptions::compact(),
+        }
     }
 
     /// Inline CSS styles from <style> tags to matching elements in the HTML tree.
