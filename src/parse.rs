@@ -19,7 +19,6 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
         &mut self,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
-        let _ = input;
         Ok(exhaust(input))
     }
 
