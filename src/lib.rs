@@ -135,25 +135,28 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
                 let mut parse_input = cssparser::ParserInput::new(css.as_str());
                 let mut parser = parse::CSSParser::new(&mut parse_input);
                 for parsed in parser.parse() {
-                    let (selector, declarations) = parsed?;
-                    let rule = Rule::new(&selector, declarations)
-                        .map_err(|_| error::InlineError::ParseError)?;
-                    let matching_elements = document
-                        .inclusive_descendants()
-                        .filter_map(|node| node.into_element_ref())
-                        .filter(|element| rule.selectors.matches(element));
-                    for matching_element in matching_elements {
-                        let mut attributes = matching_element.attributes.borrow_mut();
-                        let style = if let Some(existing_style) = attributes.get("style") {
-                            merge_styles(existing_style, &rule.declarations)?
-                        } else {
-                            rule.declarations
-                                .iter()
-                                .map(|&(ref key, ref value)| format!("{}:{};", key, value))
-                                .collect()
-                        };
-                        attributes.insert("style", style);
+                    if let Ok((selector, declarations)) = parsed {
+                        let rule = Rule::new(&selector, declarations)
+                            .map_err(|_| error::InlineError::ParseError)?;
+                        let matching_elements = document
+                            .inclusive_descendants()
+                            .filter_map(|node| node.into_element_ref())
+                            .filter(|element| rule.selectors.matches(element));
+                        for matching_element in matching_elements {
+                            let mut attributes = matching_element.attributes.borrow_mut();
+                            let style = if let Some(existing_style) = attributes.get("style") {
+                                merge_styles(existing_style, &rule.declarations)?
+                            } else {
+                                rule.declarations
+                                    .iter()
+                                    .map(|&(ref key, ref value)| format!("{}:{};", key, value))
+                                    .collect()
+                            };
+                            attributes.insert("style", style);
+                        }
                     }
+                    // Ignore not parsable entries. E.g. there is no parser for @media queries
+                    // Which means that they will fall into this category and will be ignored
                 }
             }
         }

@@ -75,3 +75,17 @@ fn empty_style() {
         expected = r#"<h1>Hello world!</h1>"#
     )
 }
+
+#[test]
+fn media_query_ignore() {
+    // When the style value includes @media query
+    assert_inlined!(
+        style = r#"@media screen and (max-width: 992px) {
+  body {
+    background-color: blue;
+  }
+}"#,
+        body = "<h1>Hello world!</h1>",
+        expected = "<h1>Hello world!</h1>"
+    )
+}
