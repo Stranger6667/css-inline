@@ -16,3 +16,13 @@ categories = ["web-programming"]
 [dependencies]
 cssparser = "0"
 kuchiki = "0.8"
+
+[dev-dependencies]
+criterion = ">= 0.1"
+
+[[bench]]
+name = "inliner"
+harness = false
+
+[profile.release]
+debug = true
