@@ -8,6 +8,7 @@ Fast CSS inlining for Python implemented in Rust.
 Features:
 
 - Removing ``style`` tags after inlining;
+- Resolving external stylesheets (including local files);
 - ... more features will be available soon
 
 **NOTE**. This library is in active development and provides a small number of features at the moment, see ``Limitations`` sections below for more information.
@@ -89,7 +90,6 @@ Limitations
 
 Currently (as of ``0.1.0``) there are the following notable limitations:
 
-- External stylesheets are not resolved (`#8 <https://github.com/Stranger6667/css-inline/issues/8>`_)
 - Inlined CSS is not minimized (`#12 <https://github.com/Stranger6667/css-inline/issues/12>`_)
 - `class` and `id` attributes are not removed (`#13 <https://github.com/Stranger6667/css-inline/issues/13>`_)
 

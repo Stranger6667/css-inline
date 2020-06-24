@@ -58,6 +58,12 @@ jobs:
         with:
           python-version: 3.7
 
+      - name: Start background server
+        run: |
+          python -m pip install flask
+          # Starts the server in background
+          python ./tests/server.py &
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal

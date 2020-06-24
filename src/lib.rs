@@ -127,14 +127,15 @@
     variant_size_differences
 )]
 use kuchiki::traits::TendrilSink;
-use kuchiki::{parse_html, Selectors};
+use kuchiki::{parse_html, NodeRef, Selectors};
 
 pub mod error;
 mod parser;
 
 pub use error::InlineError;
 use std::collections::HashMap;
-use std::io::Write;
+use std::fs::File;
+use std::io::{Read, Write};
 
 #[derive(Debug)]
 struct Rule<'i> {
@@ -159,6 +160,8 @@ impl<'i> Rule<'i> {
 pub struct InlineOptions {
     /// Remove "style" tags after inlining
     pub remove_style_tags: bool,
+    /// Used for loading external stylesheets via relative URLs
+    pub base_url: Option<String>,
 }
 
 impl InlineOptions {
@@ -167,6 +170,7 @@ impl InlineOptions {
     pub fn compact() -> Self {
         InlineOptions {
             remove_style_tags: true,
+            base_url: None,
         }
     }
 }
@@ -176,6 +180,7 @@ impl Default for InlineOptions {
     fn default() -> Self {
         InlineOptions {
             remove_style_tags: false,
+            base_url: None,
         }
     }
 }
@@ -222,43 +227,88 @@ impl CSSInliner {
         {
             if let Some(first_child) = style_tag.as_node().first_child() {
                 if let Some(css_cell) = first_child.as_text() {
-                    let css = css_cell.borrow();
-                    let mut parse_input = cssparser::ParserInput::new(css.as_str());
-                    let mut parser = parser::CSSParser::new(&mut parse_input);
-                    for parsed in parser.parse() {
-                        if let Ok((selector, declarations)) = parsed {
-                            let rule = Rule::new(selector, declarations).map_err(|_| {
-                                error::InlineError::ParseError("Unknown error".to_string())
-                            })?;
-                            let matching_elements = document
-                                .inclusive_descendants()
-                                .filter_map(|node| node.into_element_ref())
-                                .filter(|element| rule.selectors.matches(element));
-                            for matching_element in matching_elements {
-                                let mut attributes = matching_element.attributes.borrow_mut();
-                                let style = if let Some(existing_style) = attributes.get("style") {
-                                    merge_styles(existing_style, &rule.declarations)?
-                                } else {
-                                    rule.declarations
-                                        .iter()
-                                        .map(|&(ref key, value)| format!("{}:{};", key, value))
-                                        .collect()
-                                };
-                                attributes.insert("style", style);
-                            }
-                        }
-                        // Ignore not parsable entries. E.g. there is no parser for @media queries
-                        // Which means that they will fall into this category and will be ignored
-                    }
+                    process_css(&document, css_cell.borrow().as_str())?;
                 }
             }
             if self.options.remove_style_tags {
                 style_tag.as_node().detach()
             }
         }
+        for link_tag in document
+            .select("link[rel~=stylesheet]")
+            .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+        {
+            if let Some(href) = &link_tag.attributes.borrow().get("href") {
+                let url = self.get_full_url(href);
+                let css = self.load_external(url.as_str())?;
+                process_css(&document, css.as_str())?;
+            }
+        }
         document.serialize(target)?;
         Ok(())
     }
+
+    fn get_full_url(&self, href: &str) -> String {
+        if href.starts_with("//") {
+            if let Some(base_url) = &self.options.base_url {
+                if base_url.starts_with("https://") {
+                    format!("https:{}", href)
+                } else {
+                    format!("http:{}", href)
+                }
+            } else {
+                format!("http:{}", href)
+            }
+        } else {
+            href.to_string()
+        }
+    }
+
+    fn load_external(&self, url: &str) -> Result<String, InlineError> {
+        if url.starts_with("http") | url.starts_with("https") {
+            let response = attohttpc::get(url).send()?;
+            Ok(response.text()?)
+        } else {
+            let mut file = File::open(url)?;
+            let mut css = String::new();
+            file.read_to_string(&mut css)?;
+            Ok(css)
+        }
+    }
+}
+
+fn process_css(document: &NodeRef, css: &str) -> Result<(), InlineError> {
+    let mut parse_input = cssparser::ParserInput::new(css);
+    let mut parser = parser::CSSParser::new(&mut parse_input);
+    for parsed in parser.parse() {
+        if let Ok((selector, declarations)) = parsed {
+            if let Ok(rule) = Rule::new(selector, declarations) {
+                let matching_elements = document
+                    .inclusive_descendants()
+                    .filter_map(|node| node.into_element_ref())
+                    .filter(|element| rule.selectors.matches(element));
+                for matching_element in matching_elements {
+                    // It can be borrowed if the current selector matches <link> tag, that is
+                    // already borrowed in `inline_to`. We can ignore such matches
+                    if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
+                        let style = if let Some(existing_style) = attributes.get("style") {
+                            merge_styles(existing_style, &rule.declarations)?
+                        } else {
+                            rule.declarations
+                                .iter()
+                                .map(|&(ref key, value)| format!("{}:{};", key, value))
+                                .collect()
+                        };
+                        attributes.insert("style", style);
+                    }
+                }
+            }
+            // Skip selectors that can't be parsed
+        }
+        // Ignore not parsable entries. E.g. there is no parser for @media queries
+        // Which means that they will fall into this category and will be ignored
+    }
+    Ok(())
 }
 
 impl Default for CSSInliner {
