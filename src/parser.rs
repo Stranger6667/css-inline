@@ -10,6 +10,9 @@ fn exhaust(input: &mut cssparser::Parser) -> String {
     input.slice_from(start).to_string()
 }
 
+/// Parser for qualified rules - a prelude + a simple {} block.
+///
+/// Usually these rules are a selector + list of declarations: `p { color: blue; font-size: 2px }`
 impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
     type Prelude = String;
     type QualifiedRule = QualifiedRule;
@@ -19,6 +22,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
         &mut self,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        // Proceed with parsing until the end of the prelude.
         Ok(exhaust(input))
     }
 
@@ -28,6 +32,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
         _: cssparser::SourceLocation,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
+        // Parse list of declarations
         let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
         let mut declarations = vec![];
 
@@ -41,6 +46,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
     }
 }
 
+/// Parse a declaration within {} block: `color: blue`
 impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
     type Declaration = Declaration;
     type Error = ();
@@ -61,6 +67,8 @@ impl cssparser::AtRuleParser<'_> for CSSRuleListParser {
     type Error = ();
 }
 
+/// Parsing for at-rules, e.g: `@charset "utf-8";`
+/// Since they are can not be inlined we use the default implementation, that rejects all at-rules.
 impl cssparser::AtRuleParser<'_> for CSSDeclarationListParser {
     type PreludeNoBlock = String;
     type PreludeBlock = String;

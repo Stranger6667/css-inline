@@ -126,12 +126,11 @@
     unused_qualifications,
     variant_size_differences
 )]
-use crate::parse::Declaration;
 use kuchiki::traits::TendrilSink;
 use kuchiki::{parse_html, Selectors};
 
 pub mod error;
-mod parse;
+mod parser;
 
 pub use error::InlineError;
 use std::collections::HashMap;
@@ -139,11 +138,11 @@ use std::collections::HashMap;
 #[derive(Debug)]
 struct Rule {
     selectors: Selectors,
-    declarations: Vec<Declaration>,
+    declarations: Vec<parser::Declaration>,
 }
 
 impl Rule {
-    pub fn new(selectors: &str, declarations: Vec<Declaration>) -> Result<Rule, ()> {
+    pub fn new(selectors: &str, declarations: Vec<parser::Declaration>) -> Result<Rule, ()> {
         Ok(Rule {
             selectors: Selectors::compile(selectors)?,
             declarations,
@@ -211,7 +210,7 @@ impl CSSInliner {
                 if let Some(css_cell) = first_child.as_text() {
                     let css = css_cell.borrow();
                     let mut parse_input = cssparser::ParserInput::new(css.as_str());
-                    let mut parser = parse::CSSParser::new(&mut parse_input);
+                    let mut parser = parser::CSSParser::new(&mut parse_input);
                     for parsed in parser.parse() {
                         if let Ok((selector, declarations)) = parsed {
                             let rule = Rule::new(&selector, declarations).map_err(|_| {
@@ -262,12 +261,15 @@ pub fn inline(html: &str) -> Result<String, InlineError> {
     CSSInliner::default().inline(html)
 }
 
-fn merge_styles(existing_style: &str, new_styles: &[Declaration]) -> Result<String, InlineError> {
+fn merge_styles(
+    existing_style: &str,
+    new_styles: &[parser::Declaration],
+) -> Result<String, InlineError> {
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
-        cssparser::DeclarationListParser::new(&mut parser, parse::CSSDeclarationListParser);
+        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // Merge existing with the new ones
     // We know that at least one rule already exists, so we add 1
     let mut styles: HashMap<String, String> =
