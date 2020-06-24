@@ -1,5 +1,6 @@
 //! Errors that may happen during inlining.
 use cssparser::{BasicParseErrorKind, ParseError, ParseErrorKind};
+use std::error::Error;
 use std::fmt::{Display, Formatter};
 use std::{fmt, io};
 
@@ -17,6 +18,8 @@ impl From<io::Error> for InlineError {
         InlineError::IO(error)
     }
 }
+
+impl Error for InlineError {}
 
 impl Display for InlineError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {

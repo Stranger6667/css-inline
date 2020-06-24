@@ -8,6 +8,7 @@
 - Option to remove "style" tags. [#11](https://github.com/Stranger6667/css-inline/issues/11)
 - `CSSInliner::compact()` constructor for producing smaller HTML output.
 - `CSSInliner.inline_to` that writes the output to a generic writer. [#24](https://github.com/Stranger6667/css-inline/issues/24)
+- Implement `Error` for `InlineError`.
 
 ### Changed
 
