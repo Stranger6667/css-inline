@@ -134,6 +134,7 @@ mod parser;
 
 pub use error::InlineError;
 use std::collections::HashMap;
+use std::io::Write;
 
 #[derive(Debug)]
 struct Rule<'i> {
@@ -201,9 +202,19 @@ impl CSSInliner {
         }
     }
 
-    /// Inline CSS styles from <style> tags to matching elements in the HTML tree.
+    /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
+    /// string.
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String, InlineError> {
+        let mut out = vec![];
+        self.inline_to(html, &mut out)?;
+        Ok(String::from_utf8_lossy(&out).to_string())
+    }
+
+    /// Inline CSS & write the result to a generic writer. Use it if you want to write
+    /// the inlined document to a file.
+    #[inline]
+    pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<(), InlineError> {
         let document = parse_html().one(html);
         for style_tag in document
             .select("style")
@@ -245,9 +256,8 @@ impl CSSInliner {
                 style_tag.as_node().detach()
             }
         }
-        let mut out = vec![];
-        document.serialize(&mut out)?;
-        Ok(String::from_utf8_lossy(&out).to_string())
+        document.serialize(target)?;
+        Ok(())
     }
 }
 
@@ -262,6 +272,12 @@ impl Default for CSSInliner {
 #[inline]
 pub fn inline(html: &str) -> Result<String, InlineError> {
     CSSInliner::default().inline(html)
+}
+
+/// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
+#[inline]
+pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<(), InlineError> {
+    CSSInliner::default().inline_to(html, target)
 }
 
 fn merge_styles(
