@@ -29,3 +29,15 @@ repos:
       - id: fmt
       - id: cargo-check
       - id: clippy
+
+  - repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+      - id: black
+        types: [python]
+
+  - repo: https://github.com/pre-commit/mirrors-isort
+    rev: v4.3.21
+    hooks:
+      - id: isort
+        additional_dependencies: ["isort[pyproject]"]
