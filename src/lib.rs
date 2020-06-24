@@ -136,13 +136,16 @@ pub use error::InlineError;
 use std::collections::HashMap;
 
 #[derive(Debug)]
-struct Rule {
+struct Rule<'i> {
     selectors: Selectors,
-    declarations: Vec<parser::Declaration>,
+    declarations: Vec<parser::Declaration<'i>>,
 }
 
-impl Rule {
-    pub fn new(selectors: &str, declarations: Vec<parser::Declaration>) -> Result<Rule, ()> {
+impl<'i> Rule<'i> {
+    pub fn new(
+        selectors: &str,
+        declarations: Vec<parser::Declaration<'i>>,
+    ) -> Result<Rule<'i>, ()> {
         Ok(Rule {
             selectors: Selectors::compile(selectors)?,
             declarations,
@@ -213,7 +216,7 @@ impl CSSInliner {
                     let mut parser = parser::CSSParser::new(&mut parse_input);
                     for parsed in parser.parse() {
                         if let Ok((selector, declarations)) = parsed {
-                            let rule = Rule::new(&selector, declarations).map_err(|_| {
+                            let rule = Rule::new(selector, declarations).map_err(|_| {
                                 error::InlineError::ParseError("Unknown error".to_string())
                             })?;
                             let matching_elements = document
@@ -227,7 +230,7 @@ impl CSSInliner {
                                 } else {
                                     rule.declarations
                                         .iter()
-                                        .map(|&(ref key, ref value)| format!("{}:{};", key, value))
+                                        .map(|&(ref key, value)| format!("{}:{};", key, value))
                                         .collect()
                                 };
                                 attributes.insert("style", style);
@@ -272,18 +275,18 @@ fn merge_styles(
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // Merge existing with the new ones
     // We know that at least one rule already exists, so we add 1
-    let mut styles: HashMap<String, String> =
+    let mut styles: HashMap<String, &str> =
         HashMap::with_capacity(new_styles.len().saturating_add(1));
-    for declaration in declarations.into_iter() {
+    for declaration in declarations {
         let (property, value) = declaration?;
-        styles.insert(property, value);
+        styles.insert(property.to_string(), value);
     }
-    for (property, value) in new_styles.iter() {
-        styles.insert(property.to_string(), value.to_string());
+    for (property, value) in new_styles {
+        styles.insert(property.to_string(), value);
     }
     // Create a new declarations list
     Ok(styles
-        .iter()
+        .into_iter()
         .map(|(key, value)| format!("{}:{};", key, value))
         .collect::<String>())
 }
