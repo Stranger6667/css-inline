@@ -90,3 +90,36 @@ fn main() -> Result<(), css_inline::InlineError> {
 - `remove_style_tags`. Remove "style" tags after inlining.
 - `base_url`. Base URL to resolve relative URLs
 - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not
+
+## Command Line Interface
+
+`css-inline` provides a command-line interface:
+
+```bash
+$ css-inline --help
+
+css-inline inlines CSS into HTML documents.
+
+USAGE:
+   css-inline [OPTIONS] [PATH ...]
+   command | css-inline [OPTIONS]
+
+ARGS:
+    <PATH>...
+        An HTML document to process. In each specified document "css-inline" will look for
+        all relevant "style" and "link" tags, will load CSS from them and then will inline it
+        to the HTML tags, according to the relevant CSS selectors.
+        When multiple documents are specified, they will be processed in parallel and each inlined
+        file will be saved with "inlined." prefix. E.g. for "example.html", there will be
+        "inlined.example.html".
+
+OPTIONS:
+    --remove-style-tags
+        Remove "style" tags after inlining.
+
+    --base-url
+        Used for loading external stylesheets via relative URLs.
+
+    --load-remote-stylesheets
+        Whether remote stylesheets should be loaded or not.
+```

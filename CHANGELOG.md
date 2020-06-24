@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Command Line Interface. [#33](https://github.com/Stranger6667/css-inline/issues/33)
+
 ## [0.2.0] - 2020-06-25
 
 ### Added
