@@ -1,0 +1,5 @@
+include Cargo.toml
+include build.rs
+include pyproject.toml
+include rust-toolchain
+recursive-include src *

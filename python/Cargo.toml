@@ -1,0 +1,24 @@
+[package]
+name = "css-inline-python"
+version = "0.1.0"
+authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "css_inline"
+crate-type = ["cdylib"]
+
+[build-dependencies]
+built = { version = "0.4", features = ["chrono"] }
+
+[dependencies]
+css-inline = { path = "..", version = "= 0.1.0" }
+rayon = "1"
+pyo3 = { version = ">= 0.10", features = ["extension-module"] }
+pyo3-built = "0.4"
+
+[profile.release]
+codegen-units = 1
+lto = "on"

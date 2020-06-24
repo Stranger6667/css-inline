@@ -25,4 +25,4 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/jsonschema-rs/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/v0.1.0...HEAD
