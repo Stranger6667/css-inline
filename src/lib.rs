@@ -62,14 +62,22 @@
 //! `css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
 //!
 //! ```rust
-//! use css_inline;
+//! const HTML: &str = r#"<html>
+//! <head>
+//!     <title>Test</title>
+//!     <style>h1 { color:blue; }</style>
+//! </head>
+//! <body>
+//!     <h1>Big Text</h1>
+//! </body>
+//! </html>"#;
 //!
 //! fn main() -> Result<(), css_inline::InlineError> {
 //!     let options = css_inline::InlineOptions {
 //!         load_remote_stylesheets: false,
 //!         ..Default::default()
 //!     };
-//!     let inliner = css_inline::CSSInliner(options);
+//!     let inliner = css_inline::CSSInliner::new(options);
 //!     let inlined = inliner.inline(HTML);
 //!     // Do something with inlined HTML, e.g. send an email
 //!     Ok(())

@@ -80,7 +80,7 @@ fn main() -> Result<(), css_inline::InlineError> {
         load_remote_stylesheets: false,
         ..Default::default()
     };
-    let inliner = css_inline::CSSInliner(options);
+    let inliner = css_inline::CSSInliner::new(options);
     let inlined = inliner.inline(HTML);
     // Do something with inlined HTML, e.g. send an email
     Ok(())
