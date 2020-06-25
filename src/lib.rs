@@ -9,19 +9,10 @@
 //! <html>
 //!     <head>
 //!         <title>Test</title>
-//!         <style>
-//!             h1, h2 { color:blue; }
-//!             strong { text-decoration:none }
-//!             p { font-size:2px }
-//!             p.footer { font-size: 1px}
-//!         </style>
+//!         <style>h1 { color:blue; }</style>
 //!     </head>
 //!     <body>
 //!         <h1>Big Text</h1>
-//!         <p>
-//!             <strong>Solid</strong>
-//!         </p>
-//!         <p class="footer">Foot notes</p>
 //!     </body>
 //! </html>
 //! ```
@@ -30,38 +21,23 @@
 //!
 //! ```html
 //! <html>
-//!     <head>
-//!         <title>Test</title>
-//!     </head>
+//!     <head><title>Test</title></head>
 //!     <body>
 //!         <h1 style="color:blue;">Big Text</h1>
-//!         <p style="font-size:2px;">
-//!             <strong style="text-decoration:none;">Solid</strong>
-//!         </p>
-//!         <p style="font-size:1px;">Foot notes</p>
 //!     </body>
 //! </html>
 //! ```
 //!
-//! ## Example:
+//! ## Usage
 //!
 //! ```rust
 //! const HTML: &str = r#"<html>
 //! <head>
 //!     <title>Test</title>
-//!     <style>
-//!         h1, h2 { color:blue; }
-//!         strong { text-decoration:none }
-//!         p { font-size:2px }
-//!         p.footer { font-size: 1px}
-//!     </style>
+//!     <style>h1 { color:blue; }</style>
 //! </head>
 //! <body>
 //!     <h1>Big Text</h1>
-//!     <p>
-//!         <strong>Solid</strong>
-//!     </p>
-//!     <p class="footer">Foot notes</p>
 //! </body>
 //! </html>"#;
 //!
@@ -72,35 +48,38 @@
 //! }
 //! ```
 //!
-//! Or if you need more control over inlining you could use `CSSInliner`:
+//! ### Features
+//!
+//! `css-inline` does minimum work by default:
+//!
+//! - No CSS transformation;
+//! - No "style" or "link" tags removal;
+//!
+//! It also loads external stylesheets via network or filesystem, but this behavior is configurable.
+//!
+//! ### Configuration
+//!
+//! `css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
 //!
 //! ```rust
-//! const HTML: &str = r#"<html>
-//! <head>
-//!     <title>Test</title>
-//!     <style>
-//!         h1, h2 { color:blue; }
-//!         strong { text-decoration:none }
-//!         p { font-size:2px }
-//!         p.footer { font-size: 1px}
-//!     </style>
-//! </head>
-//! <body>
-//!     <h1>Big Text</h1>
-//!     <p>
-//!         <strong>Solid</strong>
-//!     </p>
-//!     <p class="footer">Foot notes</p>
-//! </body>
-//! </html>"#;
+//! use css_inline;
 //!
-//!fn main() -> Result<(), css_inline::InlineError> {
-//!    let inliner = css_inline::CSSInliner::compact();
-//!    let inlined = inliner.inline(HTML)?;
-//!    // Do something with inlined HTML, e.g. send an email
-//!    Ok(())
+//! fn main() -> Result<(), css_inline::InlineError> {
+//!     let options = css_inline::InlineOptions {
+//!         load_remote_stylesheets: false,
+//!         ..Default::default()
+//!     };
+//!     let inliner = css_inline::CSSInliner(options);
+//!     let inlined = inliner.inline(HTML);
+//!     // Do something with inlined HTML, e.g. send an email
+//!     Ok(())
 //! }
-//!```
+//! ```
+//!
+//! - `remove_style_tags`. Remove "style" tags after inlining.
+//! - `base_url`. Base URL to resolve relative URLs
+//! - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not
+//!
 #![warn(
     clippy::doc_markdown,
     clippy::redundant_closure,
