@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2020-06-25
+
+### Changed
+
+- Fix links in docs
+
 ## [0.3.0] - 2020-06-25
 
 ### Added
@@ -38,6 +44,7 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.3.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.3.1...HEAD
+[0.3.1]: https://github.com/Stranger6667/css-inline/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/Stranger6667/css-inline/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/Stranger6667/css-inline/compare/0.1.0...0.2.0
