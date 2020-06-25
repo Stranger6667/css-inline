@@ -1,13 +1,13 @@
 [package]
 name = "css-inline"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2018"
 license = "MIT"
 readme = "README.md"
 description = "A crate for inlining CSS into HTML documents"
 repository = "https://github.com/Stranger6667/css-inline"
-keywords = ["html", "css"]
+keywords = ["html", "css", "css-inline"]
 exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore", "tests"]
 categories = ["web-programming"]
 
