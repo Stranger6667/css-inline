@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2020-06-25
+
 ### Added
 
 - `CSSInliner` and customization options. [#9](https://github.com/Stranger6667/css-inline/issues/9)
@@ -30,4 +32,5 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.2.0...HEAD
+[0.2.0]: https://github.com/Stranger6667/css-inline/compare/0.1.0...0.2.0
