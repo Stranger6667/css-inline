@@ -53,3 +53,8 @@ def test_no_existing_style(func, kwargs, expected):
 def test_inline_many_wrong_type():
     with pytest.raises(TypeError):
         css_inline.inline_many([1])
+
+
+def test_invalid_base_url():
+    with pytest.raises(ValueError):
+        css_inline.CSSInliner(base_url="foo")

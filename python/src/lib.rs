@@ -15,6 +15,22 @@ fn to_pyerr(error: rust_inline::InlineError) -> PyErr {
     }
 }
 
+struct UrlError(url::ParseError);
+
+impl From<UrlError> for PyErr {
+    fn from(error: UrlError) -> Self {
+        exceptions::ValueError::py_err(format!("{}", error.0))
+    }
+}
+
+fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
+    Ok(if let Some(url) = url {
+        Some(url::Url::parse(url.as_str()).map_err(UrlError)?)
+    } else {
+        None
+    })
+}
+
 /// Customizable CSS inliner.
 #[pyclass]
 #[text_signature = "(remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
@@ -29,15 +45,15 @@ impl CSSInliner {
         remove_style_tags: Option<bool>,
         base_url: Option<String>,
         load_remote_stylesheets: Option<bool>,
-    ) -> Self {
+    ) -> PyResult<Self> {
         let options = rust_inline::InlineOptions {
             remove_style_tags: remove_style_tags.unwrap_or(false),
-            base_url,
+            base_url: parse_url(base_url)?,
             load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         };
-        CSSInliner {
+        Ok(CSSInliner {
             inner: rust_inline::CSSInliner::new(options),
-        }
+        })
     }
 
     /// inline(html)
@@ -70,7 +86,7 @@ fn inline(
 ) -> PyResult<String> {
     let options = rust_inline::InlineOptions {
         remove_style_tags: remove_style_tags.unwrap_or(false),
-        base_url,
+        base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
     };
     let inliner = rust_inline::CSSInliner::new(options);
@@ -90,7 +106,7 @@ fn inline_many(
 ) -> PyResult<Vec<String>> {
     let options = rust_inline::InlineOptions {
         remove_style_tags: remove_style_tags.unwrap_or(false),
-        base_url,
+        base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
     };
     let inliner = rust_inline::CSSInliner::new(options);

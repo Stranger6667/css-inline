@@ -1,4 +1,4 @@
-use css_inline::{inline, CSSInliner, InlineOptions};
+use css_inline::{inline, CSSInliner, InlineOptions, Url};
 
 macro_rules! html {
     ($style: expr, $body: expr) => {
@@ -151,11 +151,6 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let options = InlineOptions {
-        remove_style_tags: false,
-        base_url: None,
-        load_remote_stylesheets: false,
-    };
     let result = inline(&html).unwrap();
     assert!(result.ends_with(
         r#"<body>
@@ -183,6 +178,68 @@ h2 { color: red; }
 </body>
 </html>"#;
     let result = inline(&html).unwrap();
+    assert!(result.ends_with(
+        r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"#
+    ))
+}
+
+#[test]
+fn remote_network_stylesheet_same_scheme() {
+    let html = r#"
+<html>
+<head>
+<link href="//127.0.0.1:5000/external.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>"#;
+    let options = InlineOptions {
+        base_url: Some(Url::parse("http://127.0.0.1:5000").unwrap()),
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert!(result.ends_with(
+        r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"#
+    ))
+}
+
+#[test]
+fn remote_network_relative_stylesheet() {
+    let html = r#"
+<html>
+<head>
+<link href="external.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>"#;
+    let options = InlineOptions {
+        base_url: Some(Url::parse("http://127.0.0.1:5000").unwrap()),
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
