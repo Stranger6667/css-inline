@@ -1,4 +1,4 @@
-use css_inline::{inline, CSSInliner};
+use css_inline::{inline, CSSInliner, InlineOptions};
 
 macro_rules! html {
     ($style: expr, $body: expr) => {
@@ -136,6 +136,37 @@ h2 { color: red; }
 }
 
 #[test]
+fn remote_file_stylesheet_disable() {
+    let html = r#"
+<html>
+<head>
+<link href="tests/external.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>"#;
+    let options = InlineOptions {
+        remove_style_tags: false,
+        base_url: None,
+        load_remote_stylesheets: false,
+    };
+    let result = inline(&html).unwrap();
+    assert!(result.ends_with(
+        r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"#
+    ))
+}
+
+#[test]
 fn remote_network_stylesheet() {
     let html = r#"
 <html>
@@ -159,4 +190,15 @@ h2 { color: red; }
 
 </body></html>"#
     ))
+}
+
+#[test]
+fn customize_inliner() {
+    let options = InlineOptions {
+        load_remote_stylesheets: false,
+        ..Default::default()
+    };
+    assert_eq!(options.load_remote_stylesheets, false);
+    assert_eq!(options.remove_style_tags, false);
+    assert_eq!(options.base_url, None);
 }

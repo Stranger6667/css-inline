@@ -5,11 +5,12 @@
 ### Added
 
 - `CSSInliner` and customization options. [#9](https://github.com/Stranger6667/css-inline/issues/9)
-- Option to remove "style" tags. [#11](https://github.com/Stranger6667/css-inline/issues/11)
+- Option to remove "style" tags (`remove_style_tags`). Disabled by default. [#11](https://github.com/Stranger6667/css-inline/issues/11)
 - `CSSInliner::compact()` constructor for producing smaller HTML output.
 - `CSSInliner.inline_to` that writes the output to a generic writer. [#24](https://github.com/Stranger6667/css-inline/issues/24)
 - Implement `Error` for `InlineError`.
 - Loading external stylesheets. [#8](https://github.com/Stranger6667/css-inline/issues/8)
+- Option to control whether remote stylesheets should be loaded (`load_remote_stylesheets`). Enabled by default.
 
 ### Changed
 

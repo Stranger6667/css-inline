@@ -17,7 +17,7 @@ fn to_pyerr(error: rust_inline::InlineError) -> PyErr {
 
 /// Customizable CSS inliner.
 #[pyclass]
-#[text_signature = "(remove_style_tags=False, base_url=None)"]
+#[text_signature = "(remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
 struct CSSInliner {
     inner: rust_inline::CSSInliner,
 }
@@ -25,10 +25,15 @@ struct CSSInliner {
 #[pymethods]
 impl CSSInliner {
     #[new]
-    fn new(remove_style_tags: Option<bool>, base_url: Option<String>) -> Self {
+    fn new(
+        remove_style_tags: Option<bool>,
+        base_url: Option<String>,
+        load_remote_stylesheets: Option<bool>,
+    ) -> Self {
         let options = rust_inline::InlineOptions {
             remove_style_tags: remove_style_tags.unwrap_or(false),
             base_url,
+            load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         };
         CSSInliner {
             inner: rust_inline::CSSInliner::new(options),
@@ -52,37 +57,41 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, remove_style_tags=False, base_url=None)
+/// inline(html, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
-#[text_signature = "(html, remove_style_tags=False, base_url=None)"]
+#[text_signature = "(html, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
 fn inline(
     html: &str,
     remove_style_tags: Option<bool>,
     base_url: Option<String>,
+    load_remote_stylesheets: Option<bool>,
 ) -> PyResult<String> {
     let options = rust_inline::InlineOptions {
         remove_style_tags: remove_style_tags.unwrap_or(false),
         base_url,
+        load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     Ok(inliner.inline(html).map_err(to_pyerr)?)
 }
 
-/// inline_many(htmls, remove_style_tags=False, base_url=None)
+/// inline_many(htmls, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
-#[text_signature = "(htmls, remove_style_tags=False, base_url=None)"]
+#[text_signature = "(htmls, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
 fn inline_many(
     htmls: &PyList,
     remove_style_tags: Option<bool>,
     base_url: Option<String>,
+    load_remote_stylesheets: Option<bool>,
 ) -> PyResult<Vec<String>> {
     let options = rust_inline::InlineOptions {
         remove_style_tags: remove_style_tags.unwrap_or(false),
         base_url,
+        load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     inline_many_impl(&inliner, htmls)
