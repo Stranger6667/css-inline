@@ -17,6 +17,7 @@ categories = ["web-programming"]
 cssparser = "0"
 kuchiki = "0.8"
 attohttpc = "0"
+url = "2"
 
 [dev-dependencies]
 criterion = ">= 0.1"

@@ -133,9 +133,11 @@ pub mod error;
 mod parser;
 
 pub use error::InlineError;
+use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
+pub use url::{ParseError, Url};
 
 #[derive(Debug)]
 struct Rule<'i> {
@@ -161,7 +163,7 @@ pub struct InlineOptions {
     /// Remove "style" tags after inlining
     pub remove_style_tags: bool,
     /// Used for loading external stylesheets via relative URLs
-    pub base_url: Option<String>,
+    pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not
     pub load_remote_stylesheets: bool,
 }
@@ -245,7 +247,7 @@ impl CSSInliner {
             {
                 if let Some(href) = &link_tag.attributes.borrow().get("href") {
                     let url = self.get_full_url(href);
-                    let css = self.load_external(url.as_str())?;
+                    let css = self.load_external(url.as_ref())?;
                     process_css(&document, css.as_str())?;
                 }
             }
@@ -254,20 +256,24 @@ impl CSSInliner {
         Ok(())
     }
 
-    fn get_full_url(&self, href: &str) -> String {
-        if href.starts_with("//") {
-            if let Some(base_url) = &self.options.base_url {
-                if base_url.starts_with("https://") {
-                    format!("https:{}", href)
-                } else {
-                    format!("http:{}", href)
-                }
+    fn get_full_url<'u>(&self, href: &'u str) -> Cow<'u, str> {
+        // Valid absolute URL
+        if Url::parse(href).is_ok() {
+            return Cow::Borrowed(href);
+        };
+        if let Some(base_url) = &self.options.base_url {
+            // Use the same scheme as the base URL
+            if href.starts_with("//") {
+                return Cow::Owned(format!("{}:{}", base_url.scheme(), href));
             } else {
-                format!("http:{}", href)
+                // Not a URL, then it is a relative URL
+                if let Ok(new_url) = base_url.join(href) {
+                    return Cow::Owned(new_url.to_string());
+                }
             }
-        } else {
-            href.to_string()
-        }
+        };
+        // If it is not a valid URL and there is no base URL specified, we assume a local path
+        Cow::Borrowed(href)
     }
 
     fn load_external(&self, url: &str) -> Result<String, InlineError> {
