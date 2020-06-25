@@ -1,4 +1,8 @@
+from contextlib import suppress
+
 import pytest
+from hypothesis import given, provisional, settings
+from hypothesis import strategies as st
 
 import css_inline
 
@@ -58,3 +62,18 @@ def test_inline_many_wrong_type():
 def test_invalid_base_url():
     with pytest.raises(ValueError):
         css_inline.CSSInliner(base_url="foo")
+
+
+@given(
+    document=st.text(),
+    remove_style_tags=st.booleans(),
+    base_url=provisional.urls(),
+    load_remote_stylesheets=st.booleans(),
+)
+@settings(max_examples=1000)
+def test_random_input(document, remove_style_tags, base_url, load_remote_stylesheets):
+    with suppress(ValueError):
+        inliner = css_inline.CSSInliner(
+            remove_style_tags=remove_style_tags, base_url=base_url, load_remote_stylesheets=load_remote_stylesheets
+        )
+        inliner.inline(document)
