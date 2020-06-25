@@ -5,6 +5,7 @@
 ### Added
 
 - Loading external stylesheets. [#8](https://github.com/Stranger6667/css-inline/issues/8)
+- Option to control whether remote stylesheets should be loaded (`load_remote_stylesheets`). Enabled by default.
 
 ### Changed
 

@@ -12,19 +12,10 @@ For example, this HTML:
 <html>
     <head>
         <title>Test</title>
-        <style>
-            h1, h2 { color:blue; }
-            strong { text-decoration:none }
-            p { font-size:2px }
-            p.footer { font-size: 1px}
-        </style>
+        <style>h1 { color:blue; }</style>
     </head>
     <body>
         <h1>Big Text</h1>
-        <p>
-            <strong>Solid</strong>
-        </p>
-        <p class="footer">Foot notes</p>
     </body>
 </html>
 ```
@@ -33,15 +24,9 @@ Will be turned into this:
 
 ```html
 <html>
-    <head>
-        <title>Test</title>
-    </head>
+    <head><title>Test</title></head>
     <body>
         <h1 style="color:blue;">Big Text</h1>
-        <p style="font-size:2px;">
-            <strong style="text-decoration:none;">Solid</strong>
-        </p>
-        <p style="font-size:1px;">Foot notes</p>
     </body>
 </html>
 ```
@@ -52,7 +37,7 @@ To use it in your project add the following line to your `dependencies` section 
 css-inline = "0.1"
 ```
 
-## Example:
+## Usage
 
 ```rust
 use css_inline;
@@ -60,25 +45,48 @@ use css_inline;
 const HTML: &str = r#"<html>
 <head>
     <title>Test</title>
-    <style>
-        h1, h2 { color:blue; }
-        strong { text-decoration:none }
-        p { font-size:2px }
-        p.footer { font-size: 1px}
-    </style>
+    <style>h1 { color:blue; }</style>
 </head>
 <body>
     <h1>Big Text</h1>
-    <p>
-        <strong>Solid</strong>
-    </p>
-    <p class="footer">Foot notes</p>
 </body>
 </html>"#;
 
 fn main() -> Result<(), css_inline::InlineError> {
-   let inlined = css_inline::inline(HTML)?;
-   // Do something with inlined HTML, e.g. send an email
-   Ok(())
+    let inlined = css_inline::inline(HTML)?;
+    // Do something with inlined HTML, e.g. send an email
+    Ok(())
 }
 ```
+
+### Features
+
+`css-inline` does minimum work by default:
+
+- No CSS transformation;
+- No "style" or "link" tags removal;
+
+It also loads external stylesheets via network or filesystem, but this behavior is configurable.
+
+### Configuration
+
+`css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
+
+```rust
+use css_inline;
+
+fn main() -> Result<(), css_inline::InlineError> {
+    let options = css_inline::InlineOptions {
+        load_remote_stylesheets: false,
+        ..Default::default()
+    };
+    let inliner = css_inline::CSSInliner(options);
+    let inlined = inliner.inline(HTML);
+    // Do something with inlined HTML, e.g. send an email
+    Ok(())
+}
+```
+
+- `remove_style_tags`. Remove "style" tags after inlining.
+- `base_url`. Base URL to resolve relative URLs
+- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not

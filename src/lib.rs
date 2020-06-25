@@ -162,6 +162,8 @@ pub struct InlineOptions {
     pub remove_style_tags: bool,
     /// Used for loading external stylesheets via relative URLs
     pub base_url: Option<String>,
+    /// Whether remote stylesheets should be loaded or not
+    pub load_remote_stylesheets: bool,
 }
 
 impl InlineOptions {
@@ -171,6 +173,7 @@ impl InlineOptions {
         InlineOptions {
             remove_style_tags: true,
             base_url: None,
+            load_remote_stylesheets: true,
         }
     }
 }
@@ -181,6 +184,7 @@ impl Default for InlineOptions {
         InlineOptions {
             remove_style_tags: false,
             base_url: None,
+            load_remote_stylesheets: true,
         }
     }
 }
@@ -234,14 +238,16 @@ impl CSSInliner {
                 style_tag.as_node().detach()
             }
         }
-        for link_tag in document
-            .select("link[rel~=stylesheet]")
-            .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
-        {
-            if let Some(href) = &link_tag.attributes.borrow().get("href") {
-                let url = self.get_full_url(href);
-                let css = self.load_external(url.as_str())?;
-                process_css(&document, css.as_str())?;
+        if self.options.load_remote_stylesheets {
+            for link_tag in document
+                .select("link[rel~=stylesheet]")
+                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+            {
+                if let Some(href) = &link_tag.attributes.borrow().get("href") {
+                    let url = self.get_full_url(href);
+                    let css = self.load_external(url.as_str())?;
+                    process_css(&document, css.as_str())?;
+                }
             }
         }
         document.serialize(target)?;
