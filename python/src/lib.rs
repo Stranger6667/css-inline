@@ -7,11 +7,15 @@ const INLINE_ERROR_DOCSTRING: &str = "An error that can occur during CSS inlinin
 
 create_exception!(css_inline, InlineError, exceptions::ValueError);
 
-fn to_pyerr(error: rust_inline::InlineError) -> PyErr {
-    match error {
-        rust_inline::InlineError::IO(error) => InlineError::py_err(format!("{}", error)),
-        rust_inline::InlineError::Network(error) => InlineError::py_err(format!("{}", error)),
-        rust_inline::InlineError::ParseError(message) => InlineError::py_err(message),
+struct InlineErrorWrapper(rust_inline::InlineError);
+
+impl From<InlineErrorWrapper> for PyErr {
+    fn from(error: InlineErrorWrapper) -> Self {
+        match error.0 {
+            rust_inline::InlineError::IO(error) => InlineError::py_err(format!("{}", error)),
+            rust_inline::InlineError::Network(error) => InlineError::py_err(format!("{}", error)),
+            rust_inline::InlineError::ParseError(message) => InlineError::py_err(message),
+        }
     }
 }
 
@@ -61,7 +65,7 @@ impl CSSInliner {
     /// Inline CSS in the given HTML document
     #[text_signature = "(html)"]
     fn inline(&self, html: &str) -> PyResult<String> {
-        Ok(self.inner.inline(html).map_err(to_pyerr)?)
+        Ok(self.inner.inline(html).map_err(InlineErrorWrapper)?)
     }
 
     /// inline_many(htmls)
@@ -90,7 +94,7 @@ fn inline(
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
     };
     let inliner = rust_inline::CSSInliner::new(options);
-    Ok(inliner.inline(html).map_err(to_pyerr)?)
+    Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
 /// inline_many(htmls, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
@@ -120,7 +124,7 @@ fn inline_many_impl(inliner: &rust_inline::CSSInliner, htmls: &PyList) -> PyResu
         .par_iter()
         .map(|html| inliner.inline(html))
         .collect();
-    Ok(inlined.map_err(to_pyerr)?)
+    Ok(inlined.map_err(InlineErrorWrapper)?)
 }
 
 #[allow(dead_code)]
