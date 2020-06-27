@@ -279,7 +279,7 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                             merge_styles(existing_style, &rule.declarations)?
                         } else {
                             let mut final_styles = String::with_capacity(32);
-                            for (name, value) in rule.declarations.iter() {
+                            for (name, value) in &rule.declarations {
                                 final_styles.push_str(name);
                                 final_styles.push(':');
                                 final_styles.push_str(value);

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Remove debug symbols from the release build
+
 ### Performance
 
 - Reduce the number of `String` allocations.

@@ -32,6 +32,3 @@ criterion = ">= 0.1"
 [[bench]]
 name = "inliner"
 harness = false
-
-[profile.release]
-debug = true

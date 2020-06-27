@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Remove debug symbols from the release build
+
 ## [0.2.0] - 2020-06-25
 
 ### Added
