@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2020-06-27
+
 ### Changed
 
 - Remove debug symbols from the release build
@@ -30,5 +32,6 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.2.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.0...HEAD
+[0.3.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.2.0...python-v0.3.0
 [0.2.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.1.0...python-v0.2.0
