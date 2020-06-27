@@ -275,8 +275,8 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                     // It can be borrowed if the current selector matches <link> tag, that is
                     // already borrowed in `inline_to`. We can ignore such matches
                     if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
-                        let style = if let Some(existing_style) = attributes.get("style") {
-                            merge_styles(existing_style, &rule.declarations)?
+                        if let Some(existing_style) = attributes.get_mut("style") {
+                            *existing_style = merge_styles(existing_style, &rule.declarations)?
                         } else {
                             let mut final_styles = String::with_capacity(32);
                             for (name, value) in &rule.declarations {
@@ -285,9 +285,8 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                                 final_styles.push_str(value);
                                 final_styles.push(';');
                             }
-                            final_styles
+                            attributes.insert("style", final_styles);
                         };
-                        attributes.insert("style", style);
                     }
                 }
             }

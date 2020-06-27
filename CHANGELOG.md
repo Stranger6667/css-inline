@@ -9,6 +9,7 @@
 ### Performance
 
 - Reduce the number of `String` allocations.
+- Avoid `BTreeMap::insert` when `style` attribute already exists
 
 ## [0.3.1] - 2020-06-25
 
