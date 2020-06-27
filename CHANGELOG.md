@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.2] - 2020-06-27
+
 ### Changed
 
 - Remove debug symbols from the release build
@@ -53,7 +55,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.3.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.3.2...HEAD
+[0.3.2]: https://github.com/Stranger6667/css-inline/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/Stranger6667/css-inline/compare/0.3.0...0.3.1
 [0.3.0]: https://github.com/Stranger6667/css-inline/compare/0.2.0...0.3.0
 [0.2.0]: https://github.com/Stranger6667/css-inline/compare/0.1.0...0.2.0
