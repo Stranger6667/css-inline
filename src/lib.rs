@@ -278,10 +278,14 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                         let style = if let Some(existing_style) = attributes.get("style") {
                             merge_styles(existing_style, &rule.declarations)?
                         } else {
-                            rule.declarations
-                                .iter()
-                                .map(|&(ref key, value)| format!("{}:{};", key, value))
-                                .collect()
+                            let mut final_styles = String::with_capacity(32);
+                            for (name, value) in rule.declarations.iter() {
+                                final_styles.push_str(name);
+                                final_styles.push(':');
+                                final_styles.push_str(value);
+                                final_styles.push(';');
+                            }
+                            final_styles
                         };
                         attributes.insert("style", style);
                     }
@@ -332,8 +336,12 @@ fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Res
         styles.insert(property.to_string(), value);
     }
     // Create a new declarations list
-    Ok(styles
-        .into_iter()
-        .map(|(key, value)| format!("{}:{};", key, value))
-        .collect::<String>())
+    let mut final_styles = String::with_capacity(32);
+    for (name, value) in &styles {
+        final_styles.push_str(name.as_str());
+        final_styles.push(':');
+        final_styles.push_str(value);
+        final_styles.push(';');
+    }
+    Ok(final_styles)
 }

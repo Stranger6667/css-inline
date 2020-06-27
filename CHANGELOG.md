@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Reduce the number of `String` allocations.
+
 ## [0.3.1] - 2020-06-25
 
 ### Changed
