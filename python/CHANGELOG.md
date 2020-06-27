@@ -6,6 +6,10 @@
 
 - Remove debug symbols from the release build
 
+### Performance
+
+- Various performance improvements
+
 ## [0.2.0] - 2020-06-25
 
 ### Added
