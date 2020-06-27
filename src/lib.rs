@@ -114,35 +114,18 @@
     variant_size_differences
 )]
 use kuchiki::traits::TendrilSink;
-use kuchiki::{parse_html, NodeRef, Selectors};
+use kuchiki::{parse_html, NodeRef};
 
 pub mod error;
 mod parser;
 
 pub use error::InlineError;
+use parser::Rule;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
 pub use url::{ParseError, Url};
-
-#[derive(Debug)]
-struct Rule<'i> {
-    selectors: Selectors,
-    declarations: Vec<parser::Declaration<'i>>,
-}
-
-impl<'i> Rule<'i> {
-    pub fn new(
-        selectors: &str,
-        declarations: Vec<parser::Declaration<'i>>,
-    ) -> Result<Rule<'i>, ()> {
-        Ok(Rule {
-            selectors: Selectors::compile(selectors)?,
-            declarations,
-        })
-    }
-}
 
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
@@ -178,6 +161,8 @@ impl Default for InlineOptions {
     }
 }
 
+type Result<T> = std::result::Result<T, InlineError>;
+
 /// Customizable CSS inliner.
 #[derive(Debug)]
 pub struct CSSInliner {
@@ -203,7 +188,7 @@ impl CSSInliner {
     /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
     /// string.
     #[inline]
-    pub fn inline(&self, html: &str) -> Result<String, InlineError> {
+    pub fn inline(&self, html: &str) -> Result<String> {
         let mut out = vec![];
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
@@ -212,7 +197,7 @@ impl CSSInliner {
     /// Inline CSS & write the result to a generic writer. Use it if you want to write
     /// the inlined document to a file.
     #[inline]
-    pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<(), InlineError> {
+    pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document = parse_html().one(html);
         for style_tag in document
             .select("style")
@@ -263,7 +248,7 @@ impl CSSInliner {
         Cow::Borrowed(href)
     }
 
-    fn load_external(&self, url: &str) -> Result<String, InlineError> {
+    fn load_external(&self, url: &str) -> Result<String> {
         if url.starts_with("http") | url.starts_with("https") {
             let response = attohttpc::get(url).send()?;
             Ok(response.text()?)
@@ -276,7 +261,7 @@ impl CSSInliner {
     }
 }
 
-fn process_css(document: &NodeRef, css: &str) -> Result<(), InlineError> {
+fn process_css(document: &NodeRef, css: &str) -> Result<()> {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = parser::CSSParser::new(&mut parse_input);
     for parsed in parser.parse() {
@@ -319,20 +304,17 @@ impl Default for CSSInliner {
 
 /// Shortcut for inlining CSS with default parameters.
 #[inline]
-pub fn inline(html: &str) -> Result<String, InlineError> {
+pub fn inline(html: &str) -> Result<String> {
     CSSInliner::default().inline(html)
 }
 
 /// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
 #[inline]
-pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<(), InlineError> {
+pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
 }
 
-fn merge_styles(
-    existing_style: &str,
-    new_styles: &[parser::Declaration],
-) -> Result<String, InlineError> {
+fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Result<String> {
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
