@@ -5,6 +5,7 @@
 ### Performance
 
 - Pre-allocate the output vector.
+- Minor improvement for creating new files via CLI.
 
 ## [0.3.2] - 2020-06-27
 
