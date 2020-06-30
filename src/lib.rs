@@ -189,7 +189,10 @@ impl CSSInliner {
     /// string.
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
-        let mut out = vec![];
+        // Allocating the same amount of memory as the input HTML helps to avoid
+        // some allocations, but most probably the output size will be different than
+        // the original HTML
+        let mut out = Vec::with_capacity(html.len());
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
     }

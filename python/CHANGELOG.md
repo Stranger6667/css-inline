@@ -6,6 +6,10 @@
 
 - Upgrade `Pyo3` to `0.11`. [#40](https://github.com/Stranger6667/css-inline/issues/40)
 
+### Performance
+
+- Pre-allocate the output vector.
+
 ## [0.3.0] - 2020-06-27
 
 ### Changed

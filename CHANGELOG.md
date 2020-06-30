@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Pre-allocate the output vector.
+
 ## [0.3.2] - 2020-06-27
 
 ### Changed
