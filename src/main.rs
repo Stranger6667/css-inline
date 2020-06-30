@@ -88,7 +88,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     File::open(filename)
                         .and_then(read_file)
                         .and_then(|contents| {
-                            let new_filename = format!("inlined.{}", filename);
+                            let mut new_filename =
+                                String::with_capacity(filename.len().saturating_add(8));
+                            new_filename.push_str("inlined.");
+                            new_filename.push_str(filename);
                             File::create(new_filename).and_then(|file| Ok((file, contents)))
                         })
                         .and_then(|(mut file, contents)| {
