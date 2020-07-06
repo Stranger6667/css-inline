@@ -6,6 +6,7 @@
 
 - Pre-allocate the output vector.
 - Minor improvement for creating new files via CLI.
+- Reduce the average number of allocations during styles merge by a factor of 2.4x.
 
 ## [0.3.2] - 2020-06-27
 
