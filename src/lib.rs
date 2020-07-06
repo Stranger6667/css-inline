@@ -281,7 +281,7 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                         if let Some(existing_style) = attributes.get_mut("style") {
                             *existing_style = merge_styles(existing_style, &rule.declarations)?
                         } else {
-                            let mut final_styles = String::with_capacity(32);
+                            let mut final_styles = String::with_capacity(64);
                             for (name, value) in &rule.declarations {
                                 final_styles.push_str(name);
                                 final_styles.push(':');
@@ -327,20 +327,18 @@ fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Res
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // Merge existing with the new ones
-    // We know that at least one rule already exists, so we add 1
-    let mut styles: HashMap<String, &str> =
-        HashMap::with_capacity(new_styles.len().saturating_add(1));
-    for declaration in declarations {
-        let (property, value) = declaration?;
-        styles.insert(property.to_string(), value);
-    }
-    for (property, value) in new_styles {
-        styles.insert(property.to_string(), value);
-    }
+    let mut styles = declarations.collect::<std::result::Result<HashMap<_, _>, _>>()?;
     // Create a new declarations list
-    let mut final_styles = String::with_capacity(32);
+    let mut final_styles = String::with_capacity(256);
+    for (property, value) in new_styles {
+        final_styles.push_str(property);
+        final_styles.push(':');
+        final_styles.push_str(value);
+        final_styles.push(';');
+        styles.remove(property);
+    }
     for (name, value) in &styles {
-        final_styles.push_str(name.as_str());
+        final_styles.push_str(name);
         final_styles.push(':');
         final_styles.push_str(value);
         final_styles.push(';');
