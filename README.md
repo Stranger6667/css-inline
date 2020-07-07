@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
 [![Crates.io](https://img.shields.io/crates/v/css-inline.svg)](https://crates.io/crates/css-inline)
-[![docs.rs](https://docs.rs/css-inline/badge.svg?version=0.3.2)](https://docs.rs/css-inline/0.3.2/css_inline/)
+[![docs.rs](https://docs.rs/css-inline/badge.svg?version=0.3.3)](https://docs.rs/css-inline/0.3.3/css_inline/)
 
 A crate for inlining CSS into HTML documents. When you send HTML emails you need to use "style" attributes instead of "style" tags.
 
