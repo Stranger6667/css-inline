@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.3.1] - 2020-07-07
+
 ### Changed
 
 - Upgrade `Pyo3` to `0.11`. [#40](https://github.com/Stranger6667/css-inline/issues/40)
@@ -41,6 +43,7 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.1...HEAD
+[0.3.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.0...python-v0.3.1
 [0.3.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.2.0...python-v0.3.0
 [0.2.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.1.0...python-v0.2.0
