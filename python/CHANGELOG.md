@@ -9,7 +9,7 @@
 ### Performance
 
 - Pre-allocate the output vector.
-- Reduce the average number of allocations during styles merge by a factor of 2.7x.
+- Reduce the average number of allocations during styles merge by a factor of 5.5x.
 
 ## [0.3.0] - 2020-06-27
 

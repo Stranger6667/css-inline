@@ -23,6 +23,7 @@ cssparser = "0"
 kuchiki = "0.8"
 attohttpc = "0"
 url = "2"
+smallvec = "1"
 pico-args = { version = "0.3.2", optional = true }
 rayon = { version = "1.3.1", optional = true }
 
