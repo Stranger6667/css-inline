@@ -119,10 +119,11 @@ use kuchiki::{parse_html, NodeRef};
 pub mod error;
 mod parser;
 
+use cssparser::CowRcStr;
 pub use error::InlineError;
 use parser::Rule;
+use smallvec::{smallvec, SmallVec};
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::fs::File;
 use std::io::{Read, Write};
 pub use url::{ParseError, Url};
@@ -326,22 +327,24 @@ fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Res
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
-    // Merge existing with the new ones
-    let mut styles = declarations.collect::<std::result::Result<HashMap<_, _>, _>>()?;
-    // Create a new declarations list
+    // New rules override old ones and we store selectors inline to check the old rules later
+    let mut buffer: SmallVec<[&CowRcStr; 8]> = smallvec![];
     let mut final_styles = String::with_capacity(256);
     for (property, value) in new_styles {
         final_styles.push_str(property);
         final_styles.push(':');
         final_styles.push_str(value);
         final_styles.push(';');
-        styles.remove(property);
+        buffer.push(property);
     }
-    for (name, value) in &styles {
-        final_styles.push_str(name);
-        final_styles.push(':');
-        final_styles.push_str(value);
-        final_styles.push(';');
+    for declaration in declarations {
+        let (name, value) = declaration?;
+        if !buffer.contains(&&name) {
+            final_styles.push_str(&name);
+            final_styles.push(':');
+            final_styles.push_str(value);
+            final_styles.push(';');
+        }
     }
     Ok(final_styles)
 }
