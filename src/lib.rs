@@ -335,10 +335,12 @@ fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Res
         final_styles.push(':');
         final_styles.push_str(value);
         final_styles.push(';');
+        // This property won't be taken from existing styles. i.e. it is overridden by new styles
         buffer.push(property);
     }
     for declaration in declarations {
         let (name, value) = declaration?;
+        // Usually this buffer is small and it is faster than checking a {Hash,BTree}Map
         if !buffer.contains(&&name) {
             final_styles.push_str(&name);
             final_styles.push(':');
