@@ -35,6 +35,8 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
     })
 }
 
+/// CSSInliner(remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
+///
 /// Customizable CSS inliner.
 #[pyclass]
 #[text_signature = "(remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]

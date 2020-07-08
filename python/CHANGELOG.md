@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `CSSInliner` signature detection in PyCharm.
+
 ## [0.3.1] - 2020-07-07
 
 ### Changed
