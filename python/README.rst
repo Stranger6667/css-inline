@@ -68,14 +68,14 @@ library has good performance characteristics. In comparison with other Python pr
 
 For inlining CSS in the html document from the ``Usage`` section above we have the following breakdown in our benchmarks:
 
-- ``css_inline 0.3.1`` - 23.31 us
+- ``css_inline 0.3.2`` - 23.31 us
 - ``premailer 3.7.0`` - 335 us (**x14.37**)
 - ``inlinestyler 0.2.4`` - 2.48 ms (**x106.64**)
 - ``pynliner 0.8.0`` - 2.82 ms (**x121.27**)
 
 And for a more realistic email:
 
-- ``css_inline 0.3.1`` - 482.79 us
+- ``css_inline 0.3.2`` - 482.79 us
 - ``premailer 3.7.0`` - 3.38 ms (**x7**)
 - ``inlinestyler 0.2.4`` - 62.64 ms (**x129.75**)
 - ``pynliner 0.8.0`` - 92.18 ms (**x190.94**)
@@ -86,7 +86,7 @@ The results above were measured with ``rustc 1.46``, ``Python 3.8`` on i8700K, a
 Limitations
 -----------
 
-Currently (as of ``0.3.0``) there are the following notable limitations:
+Currently (as of ``0.3.2``) there are the following notable limitations:
 
 - Inlined CSS is not minimized (`#12 <https://github.com/Stranger6667/css-inline/issues/12>`_)
 - `class` and `id` attributes are not removed (`#13 <https://github.com/Stranger6667/css-inline/issues/13>`_)
