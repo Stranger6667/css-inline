@@ -7,6 +7,10 @@
 - Option to disable processing of "style" tags. [#45](https://github.com/Stranger6667/css-inline/issues/45)
 - Option to inline additional CSS. [#45](https://github.com/Stranger6667/css-inline/issues/45)
 
+### Changed
+
+- Switch from `openssl` to `rustls` in `attohttpc` dependency. [#49](https://github.com/Stranger6667/css-inline/issues/49)
+
 ## [0.3.3] - 2020-07-07
 
 ### Performance
