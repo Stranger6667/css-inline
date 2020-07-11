@@ -1,6 +1,7 @@
 use css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
+use std::borrow::Cow;
 
 const MODULE_DOCSTRING: &str = "Fast CSS inlining written in Rust";
 const INLINE_ERROR_DOCSTRING: &str = "An error that can occur during CSS inlining";
@@ -35,13 +36,13 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
     })
 }
 
-/// CSSInliner(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
+/// CSSInliner(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
-#[text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
+#[text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
 struct CSSInliner {
-    inner: rust_inline::CSSInliner,
+    inner: rust_inline::CSSInliner<'static>,
 }
 
 #[pymethods]
@@ -52,12 +53,14 @@ impl CSSInliner {
         remove_style_tags: Option<bool>,
         base_url: Option<String>,
         load_remote_stylesheets: Option<bool>,
+        extra_css: Option<String>,
     ) -> PyResult<Self> {
         let options = rust_inline::InlineOptions {
             inline_style_tags: inline_style_tags.unwrap_or(true),
             remove_style_tags: remove_style_tags.unwrap_or(false),
             base_url: parse_url(base_url)?,
             load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
+            extra_css: extra_css.map(Cow::Owned),
         };
         Ok(CSSInliner {
             inner: rust_inline::CSSInliner::new(options),
@@ -81,45 +84,49 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
+/// inline(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
-#[text_signature = "(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
+#[text_signature = "(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
 fn inline(
     html: &str,
     inline_style_tags: Option<bool>,
     remove_style_tags: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
+    extra_css: Option<&str>,
 ) -> PyResult<String> {
     let options = rust_inline::InlineOptions {
         inline_style_tags: inline_style_tags.unwrap_or(true),
         remove_style_tags: remove_style_tags.unwrap_or(false),
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
+        extra_css: extra_css.map(Cow::Borrowed),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)
+/// inline_many(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
-#[text_signature = "(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True)"]
+#[text_signature = "(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
 fn inline_many(
     htmls: &PyList,
     inline_style_tags: Option<bool>,
     remove_style_tags: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
+    extra_css: Option<&str>,
 ) -> PyResult<Vec<String>> {
     let options = rust_inline::InlineOptions {
         inline_style_tags: inline_style_tags.unwrap_or(true),
         remove_style_tags: remove_style_tags.unwrap_or(false),
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
+        extra_css: extra_css.map(Cow::Borrowed),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     inline_many_impl(&inliner, htmls)
