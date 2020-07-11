@@ -1,5 +1,6 @@
 use css_inline::{CSSInliner, InlineOptions};
 use rayon::prelude::*;
+use std::borrow::Cow;
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, Read};
@@ -38,7 +39,10 @@ OPTIONS:
         Used for loading external stylesheets via relative URLs.
 
     --load-remote-stylesheets
-        Whether remote stylesheets should be loaded or not."#
+        Whether remote stylesheets should be loaded or not.
+
+    --extra-css
+        Additional CSS to inline."#
 );
 
 struct Args {
@@ -47,6 +51,7 @@ struct Args {
     inline_style_tags: bool,
     remove_style_tags: bool,
     base_url: Option<String>,
+    extra_css: Option<String>,
     load_remote_stylesheets: bool,
     files: Vec<String>,
 }
@@ -69,6 +74,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             .unwrap_or(true),
         remove_style_tags: args.contains("--remove-style-tags"),
         base_url: args.opt_value_from_str("--base-url")?,
+        extra_css: args.opt_value_from_str("--extra-css")?,
         load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
         files: args.free()?,
     };
@@ -83,6 +89,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             remove_style_tags: args.remove_style_tags,
             base_url: parse_url(args.base_url)?,
             load_remote_stylesheets: args.load_remote_stylesheets,
+            extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

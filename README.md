@@ -114,6 +114,10 @@ ARGS:
         "inlined.example.html".
 
 OPTIONS:
+    --inline-style-tags
+        Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
+        from "style" tags use `-inline-style-tags=false`.
+
     --remove-style-tags
         Remove "style" tags after inlining.
 
@@ -122,4 +126,7 @@ OPTIONS:
 
     --load-remote-stylesheets
         Whether remote stylesheets should be loaded or not.
+
+    --extra-css
+        Additional CSS to inline.
 ```

@@ -141,6 +141,22 @@ fn do_not_process_style_tag_and_remove() {
 }
 
 #[test]
+fn extra_css() {
+    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        inline_style_tags: false,
+        extra_css: Some("h1 {background-color: green;}".into()),
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
+    )
+}
+
+#[test]
 fn remote_file_stylesheet() {
     let html = r#"
 <html>

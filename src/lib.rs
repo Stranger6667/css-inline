@@ -130,7 +130,7 @@ pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
-pub struct InlineOptions {
+pub struct InlineOptions<'a> {
     /// Whether to inline CSS from "style" tags
     pub inline_style_tags: bool,
     /// Remove "style" tags after inlining
@@ -139,9 +139,14 @@ pub struct InlineOptions {
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not
     pub load_remote_stylesheets: bool,
+    // The point of using `Cow` here is Python bindings, where it is problematic to pass a reference
+    // without dealing with memory leaks & unsafe. With `Cow` we can use moved values as `String` in
+    // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
+    /// Additional CSS to inline
+    pub extra_css: Option<Cow<'a, str>>,
 }
 
-impl InlineOptions {
+impl InlineOptions<'_> {
     /// Options for "compact" HTML output
     #[inline]
     pub fn compact() -> Self {
@@ -150,11 +155,12 @@ impl InlineOptions {
             remove_style_tags: true,
             base_url: None,
             load_remote_stylesheets: true,
+            extra_css: None,
         }
     }
 }
 
-impl Default for InlineOptions {
+impl Default for InlineOptions<'_> {
     #[inline]
     fn default() -> Self {
         InlineOptions {
@@ -162,6 +168,7 @@ impl Default for InlineOptions {
             remove_style_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
+            extra_css: None,
         }
     }
 }
@@ -170,14 +177,14 @@ type Result<T> = std::result::Result<T, InlineError>;
 
 /// Customizable CSS inliner.
 #[derive(Debug)]
-pub struct CSSInliner {
-    options: InlineOptions,
+pub struct CSSInliner<'a> {
+    options: InlineOptions<'a>,
 }
 
-impl CSSInliner {
+impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
     #[inline]
-    pub fn new(options: InlineOptions) -> Self {
+    pub fn new(options: InlineOptions<'a>) -> Self {
         CSSInliner { options }
     }
 
@@ -240,6 +247,9 @@ impl CSSInliner {
                     process_css(&document, css.as_str())?;
                 }
             }
+        }
+        if let Some(extra_css) = &self.options.extra_css {
+            process_css(&document, extra_css)?;
         }
         document.serialize(target)?;
         Ok(())
@@ -315,7 +325,7 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
     Ok(())
 }
 
-impl Default for CSSInliner {
+impl Default for CSSInliner<'_> {
     #[inline]
     fn default() -> Self {
         CSSInliner::new(Default::default())
