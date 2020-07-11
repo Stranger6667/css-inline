@@ -13,6 +13,7 @@ pub(crate) struct Rule<'i> {
 }
 
 impl<'i> Rule<'i> {
+    #[inline]
     pub fn new(selectors: &str, declarations: Vec<Declaration<'i>>) -> Result<Rule<'i>, ()> {
         Ok(Rule {
             selectors: Selectors::compile(selectors)?,

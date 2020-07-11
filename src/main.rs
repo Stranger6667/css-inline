@@ -27,6 +27,10 @@ ARGS:
         "inlined.example.html".
 
 OPTIONS:
+    --inline-style-tags
+        Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
+        from "style" tags use `-inline-style-tags=false`.
+
     --remove-style-tags
         Remove "style" tags after inlining.
 
@@ -40,6 +44,7 @@ OPTIONS:
 struct Args {
     help: bool,
     version: bool,
+    inline_style_tags: bool,
     remove_style_tags: bool,
     base_url: Option<String>,
     load_remote_stylesheets: bool,
@@ -59,6 +64,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args {
         help: args.contains(["-h", "--help"]),
         version: args.contains(["-v", "--version"]),
+        inline_style_tags: args
+            .opt_value_from_str("--inline-style-tags")?
+            .unwrap_or(true),
         remove_style_tags: args.contains("--remove-style-tags"),
         base_url: args.opt_value_from_str("--base-url")?,
         load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
@@ -71,6 +79,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("css-inline {}", VERSION)
     } else {
         let options = InlineOptions {
+            inline_style_tags: args.inline_style_tags,
             remove_style_tags: args.remove_style_tags,
             base_url: parse_url(args.base_url)?,
             load_remote_stylesheets: args.load_remote_stylesheets,

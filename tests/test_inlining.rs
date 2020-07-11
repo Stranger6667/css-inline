@@ -110,6 +110,37 @@ fn remove_style_tag() {
 }
 
 #[test]
+fn do_not_process_style_tag() {
+    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        inline_style_tags: false,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
+    )
+}
+
+#[test]
+fn do_not_process_style_tag_and_remove() {
+    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        remove_style_tags: true,
+        inline_style_tags: false,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><title>Test</title></head><body><h1>Hello world!</h1></body></html>"
+    )
+}
+
+#[test]
 fn remote_file_stylesheet() {
     let html = r#"
 <html>

@@ -131,6 +131,8 @@ pub use url::{ParseError, Url};
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
 pub struct InlineOptions {
+    /// Whether to inline CSS from "style" tags
+    pub inline_style_tags: bool,
     /// Remove "style" tags after inlining
     pub remove_style_tags: bool,
     /// Used for loading external stylesheets via relative URLs
@@ -144,6 +146,7 @@ impl InlineOptions {
     #[inline]
     pub fn compact() -> Self {
         InlineOptions {
+            inline_style_tags: true,
             remove_style_tags: true,
             base_url: None,
             load_remote_stylesheets: true,
@@ -155,6 +158,7 @@ impl Default for InlineOptions {
     #[inline]
     fn default() -> Self {
         InlineOptions {
+            inline_style_tags: true,
             remove_style_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
@@ -203,16 +207,25 @@ impl CSSInliner {
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document = parse_html().one(html);
-        for style_tag in document
-            .select("style")
-            .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
-        {
-            if let Some(first_child) = style_tag.as_node().first_child() {
-                if let Some(css_cell) = first_child.as_text() {
-                    process_css(&document, css_cell.borrow().as_str())?;
+        if self.options.inline_style_tags {
+            for style_tag in document
+                .select("style")
+                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+            {
+                if let Some(first_child) = style_tag.as_node().first_child() {
+                    if let Some(css_cell) = first_child.as_text() {
+                        process_css(&document, css_cell.borrow().as_str())?;
+                    }
+                }
+                if self.options.remove_style_tags {
+                    style_tag.as_node().detach()
                 }
             }
-            if self.options.remove_style_tags {
+        } else if self.options.remove_style_tags {
+            for style_tag in document
+                .select("style")
+                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+            {
                 style_tag.as_node().detach()
             }
         }
