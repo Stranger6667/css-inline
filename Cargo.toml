@@ -21,7 +21,7 @@ cli = ["pico-args", "rayon"]
 [dependencies]
 cssparser = "0"
 kuchiki = "0.8"
-attohttpc = "0"
+attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"] }
 url = "2"
 smallvec = "1"
 pico-args = { version = "0.3.2", optional = true }
