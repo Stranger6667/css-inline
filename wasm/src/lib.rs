@@ -76,7 +76,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
     }
 }
 
-#[wasm_bindgen]
+#[wasm_bindgen(skip_typescript)]
 pub fn inline(
     html: &str,
     options: &JsValue,
@@ -89,3 +89,16 @@ pub fn inline(
     let inliner = rust_inline::CSSInliner::new(options.try_into()?);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
+
+#[wasm_bindgen(typescript_custom_section)]
+const INLINE: &'static str = r#"
+interface InlineOptions {
+    inline_style_tags?: boolean,
+    remove_style_tags?: boolean,
+    base_url?: string,
+    load_remote_stylesheets?: boolean,
+    extra_css?: string,
+}
+
+export function inline(html: string, options?: InlineOptions): string;
+"#;
