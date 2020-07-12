@@ -1,6 +1,8 @@
 use css_inline as rust_inline;
 use wasm_bindgen::prelude::*;
 use std::borrow::Cow;
+use std::convert::TryFrom;
+use std::convert::TryInto;
 
 struct InlineErrorWrapper(rust_inline::InlineError);
 
@@ -26,22 +28,63 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
     })
 }
 
+#[macro_use]
+extern crate serde_derive;
+
+#[derive(Deserialize)]
+#[serde(default)]
+pub struct Options {
+    inline_style_tags: bool,
+    remove_style_tags: bool,
+    base_url: Option<String>,
+    load_remote_stylesheets: bool,
+    extra_css: Option<String>,
+}
+
+impl Default for Options {
+    fn default() -> Self {
+        Options {
+            inline_style_tags: true,
+            remove_style_tags: false,
+            base_url: None,
+            load_remote_stylesheets: true,
+            extra_css: None,
+        }
+    }
+}
+
+struct SerdeError(serde_json::Error);
+
+impl From<SerdeError> for JsValue {
+    fn from(error: SerdeError) -> Self {
+        JsValue::from_str(error.0.to_string().as_str())
+    }
+}
+
+impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
+    type Error = JsValue;
+
+    fn try_from(value: Options) -> Result<Self, Self::Error> {
+        Ok(rust_inline::InlineOptions {
+            inline_style_tags: value.inline_style_tags,
+            remove_style_tags: value.remove_style_tags,
+            base_url: parse_url(value.base_url)?,
+            load_remote_stylesheets: value.load_remote_stylesheets,
+            extra_css: value.extra_css.map(Cow::Owned),
+        })
+    }
+}
+
 #[wasm_bindgen]
 pub fn inline(
     html: &str,
-    inline_style_tags: Option<bool>,
-    remove_style_tags: Option<bool>,
-    base_url: Option<String>,
-    load_remote_stylesheets: Option<bool>,
-    extra_css: Option<String>,
+    options: JsValue,
 ) -> Result<String, JsValue> {
-    let options = rust_inline::InlineOptions {
-        inline_style_tags: inline_style_tags.unwrap_or(true),
-        remove_style_tags: remove_style_tags.unwrap_or(false),
-        base_url: parse_url(base_url)?,
-        load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
-        extra_css: extra_css.map(Cow::Owned),
+    let options: Options = if !options.is_undefined() {
+        options.into_serde().map_err(SerdeError)?
+    } else {
+        Options::default()
     };
-    let inliner = rust_inline::CSSInliner::new(options);
+    let inliner = rust_inline::CSSInliner::new(options.try_into()?);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
