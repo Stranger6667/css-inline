@@ -15,6 +15,7 @@
 
 - Use `codegen-units=1` and `lto=fat`.
 - Reduce the number of allocations in CLI.
+- Avoid CLI output formatting when it is not needed.
 
 ## [0.3.3] - 2020-07-07
 
