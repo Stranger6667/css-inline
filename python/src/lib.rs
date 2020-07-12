@@ -13,8 +13,8 @@ struct InlineErrorWrapper(rust_inline::InlineError);
 impl From<InlineErrorWrapper> for PyErr {
     fn from(error: InlineErrorWrapper) -> Self {
         match error.0 {
-            rust_inline::InlineError::IO(error) => InlineError::py_err(format!("{}", error)),
-            rust_inline::InlineError::Network(error) => InlineError::py_err(format!("{}", error)),
+            rust_inline::InlineError::IO(error) => InlineError::py_err(error.to_string()),
+            rust_inline::InlineError::Network(error) => InlineError::py_err(error.to_string()),
             rust_inline::InlineError::ParseError(message) => InlineError::py_err(message),
         }
     }
@@ -24,7 +24,7 @@ struct UrlError(url::ParseError);
 
 impl From<UrlError> for PyErr {
     fn from(error: UrlError) -> Self {
-        exceptions::ValueError::py_err(format!("{}", error.0))
+        exceptions::ValueError::py_err(error.0.to_string())
     }
 }
 

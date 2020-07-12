@@ -11,6 +11,11 @@
 
 - Switch from `openssl` to `rustls` in `attohttpc` dependency. [#49](https://github.com/Stranger6667/css-inline/issues/49)
 
+
+### Performance
+
+- Use `ToString` trait during error handling to avoid using a formatter.
+
 ## [0.3.2] - 2020-07-09
 
 ### Fixed

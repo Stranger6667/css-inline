@@ -1,4 +1,5 @@
 import multiprocessing
+from contextlib import suppress
 
 import inlinestyler.utils
 import premailer
@@ -204,3 +205,12 @@ def test_realistic(benchmark, func):
 @pytest.mark.benchmark(group="realistic many")
 def test_realistic_many(benchmark, func):
     benchmark(func, REALISTIC_HTMLS)
+
+
+@pytest.mark.benchmark(group="exception")
+def test_exception(benchmark):
+    def func():
+        with suppress(ValueError):
+            css_inline.inline("", base_url="!wrong!")
+
+    benchmark(func)
