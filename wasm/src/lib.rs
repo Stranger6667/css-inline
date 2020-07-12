@@ -17,7 +17,7 @@ struct UrlError(url::ParseError);
 
 impl From<UrlError> for JsValue {
     fn from(error: UrlError) -> Self {
-        wasm_bindgen::throw_str(&error.0.to_string())
+        JsValue::from_str(&error.0.to_string().as_str())
     }
 }
 
@@ -34,7 +34,7 @@ extern crate serde_derive;
 
 #[derive(Deserialize)]
 #[serde(default)]
-pub struct Options {
+struct Options {
     inline_style_tags: bool,
     remove_style_tags: bool,
     base_url: Option<String>,
@@ -79,7 +79,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
 #[wasm_bindgen]
 pub fn inline(
     html: &str,
-    options: JsValue,
+    options: &JsValue,
 ) -> Result<String, JsValue> {
     let options: Options = if !options.is_undefined() {
         options.into_serde().map_err(SerdeError)?
