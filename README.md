@@ -59,16 +59,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
-### Features
-
-`css-inline` does minimum work by default:
-
-- No CSS transformation;
-- No "style" or "link" tags removal;
-
-It also loads external stylesheets via network or filesystem, but this behavior is configurable.
-
-### Configuration
+### Features & Configuration
 
 `css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
 
@@ -87,9 +78,11 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
-- `remove_style_tags`. Remove "style" tags after inlining.
-- `base_url`. Base URL to resolve relative URLs
-- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not
+- `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `true`
+- `remove_style_tags`. Remove "style" tags after inlining. Default: `false`
+- `base_url`. Base URL to resolve relative URLs. Default: `None`
+- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
+- `extra_css`. Additional CSS to inline. Default: `None`
 
 ## Command Line Interface
 

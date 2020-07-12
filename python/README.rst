@@ -9,9 +9,8 @@ Features:
 
 - Removing ``style`` tags after inlining;
 - Resolving external stylesheets (including local files);
-- ... more features will be available soon
-
-**NOTE**. This library is in active development and provides a small number of features at the moment, see ``Limitations`` sections below for more information.
+- Control if ``style`` tags should be processed;
+- Additional CSS to inline;
 
 Installation
 ------------
@@ -82,14 +81,6 @@ And for a more realistic email:
 
 You can take a look at the benchmarks' code at ``benches/bench.py`` file.
 The results above were measured with ``rustc 1.46``, ``Python 3.8`` on i8700K, and 32GB RAM.
-
-Limitations
------------
-
-Currently (as of ``0.3.2``) there are the following notable limitations:
-
-- Inlined CSS is not minimized (`#12 <https://github.com/Stranger6667/css-inline/issues/12>`_)
-- `class` and `id` attributes are not removed (`#13 <https://github.com/Stranger6667/css-inline/issues/13>`_)
 
 Python support
 --------------
