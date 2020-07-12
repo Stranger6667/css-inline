@@ -1,8 +1,9 @@
 use css_inline as rust_inline;
 use wasm_bindgen::prelude::*;
-use std::borrow::Cow;
-use std::convert::TryFrom;
-use std::convert::TryInto;
+use std::{
+    borrow::Cow,
+    convert::{TryFrom, TryInto},
+};
 
 struct InlineErrorWrapper(rust_inline::InlineError);
 
