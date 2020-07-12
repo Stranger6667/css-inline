@@ -3,10 +3,10 @@ use rayon::prelude::*;
 use std::borrow::Cow;
 use std::error::Error;
 use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Read, Write};
 
-const VERSION: &str = env!("CARGO_PKG_VERSION");
-const HELP_MESSAGE: &str = concat!(
+const VERSION_MESSAGE: &[u8] = concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
+const HELP_MESSAGE: &[u8] = concat!(
     "css-inline ",
     env!("CARGO_PKG_VERSION"),
     r#"
@@ -42,12 +42,12 @@ OPTIONS:
         Whether remote stylesheets should be loaded or not.
 
     --extra-css
-        Additional CSS to inline."#
-);
+        Additional CSS to inline.
+"#
+)
+.as_bytes();
 
 struct Args {
-    help: bool,
-    version: bool,
     inline_style_tags: bool,
     remove_style_tags: bool,
     base_url: Option<String>,
@@ -66,24 +66,21 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = pico_args::Arguments::from_env();
-    let args = Args {
-        help: args.contains(["-h", "--help"]),
-        version: args.contains(["-v", "--version"]),
-        inline_style_tags: args
-            .opt_value_from_str("--inline-style-tags")?
-            .unwrap_or(true),
-        remove_style_tags: args.contains("--remove-style-tags"),
-        base_url: args.opt_value_from_str("--base-url")?,
-        extra_css: args.opt_value_from_str("--extra-css")?,
-        load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
-        files: args.free()?,
-    };
-
-    if args.help {
-        println!("{}", HELP_MESSAGE)
-    } else if args.version {
-        println!("css-inline {}", VERSION)
+    if args.contains(["-h", "--help"]) {
+        io::stdout().write_all(HELP_MESSAGE)?;
+    } else if args.contains(["-v", "--version"]) {
+        io::stdout().write_all(VERSION_MESSAGE)?;
     } else {
+        let args = Args {
+            inline_style_tags: args
+                .opt_value_from_str("--inline-style-tags")?
+                .unwrap_or(true),
+            remove_style_tags: args.contains("--remove-style-tags"),
+            base_url: args.opt_value_from_str("--base-url")?,
+            extra_css: args.opt_value_from_str("--extra-css")?,
+            load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
+            files: args.free()?,
+        };
         let options = InlineOptions {
             inline_style_tags: args.inline_style_tags,
             remove_style_tags: args.remove_style_tags,
