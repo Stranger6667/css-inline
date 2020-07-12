@@ -13,7 +13,8 @@
 
 ### Performance
 
-- Use `codegen-units=1` and `lto=fat`
+- Use `codegen-units=1` and `lto=fat`.
+- Reduce the number of allocations in CLI.
 
 ## [0.3.3] - 2020-07-07
 
