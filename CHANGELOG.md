@@ -11,6 +11,10 @@
 
 - Switch from `openssl` to `rustls` in `attohttpc` dependency. [#49](https://github.com/Stranger6667/css-inline/issues/49)
 
+### Performance
+
+- Use `codegen-units=1` and `lto=fat`
+
 ## [0.3.3] - 2020-07-07
 
 ### Performance

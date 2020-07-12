@@ -33,3 +33,7 @@ criterion = ">= 0.1"
 [[bench]]
 name = "inliner"
 harness = false
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
