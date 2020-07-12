@@ -97,8 +97,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             io::stdin().read_to_string(&mut buffer)?;
             inliner.inline_to(buffer.as_str().trim(), &mut io::stdout())?;
         } else {
-            let results: Vec<_> = args
-                .files
+            args.files
                 .par_iter()
                 .map(|filename| {
                     File::open(filename)
@@ -115,22 +114,19 @@ fn main() -> Result<(), Box<dyn Error>> {
                         })
                         .map_err(|error| (filename, error))
                 })
-                .collect();
-            for result in results {
-                match result {
+                .for_each(|result| match result {
                     Ok((filename, result)) => match result {
                         Ok(_) => println!("{}: SUCCESS", filename),
                         Err(error) => println!("{}: FAILURE ({})", filename, error),
                     },
                     Err((filename, error)) => println!("{}: FAILURE ({})", filename, error),
-                }
-            }
+                });
         }
     }
     Ok(())
 }
 
 fn read_file(mut file: File) -> io::Result<String> {
-    let mut contents = String::new();
+    let mut contents = String::with_capacity(1024);
     file.read_to_string(&mut contents).and(Ok(contents))
 }
