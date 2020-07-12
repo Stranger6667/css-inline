@@ -21,3 +21,7 @@ wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_derive = "1"
 serde_json = "1"
+
+[profile.release]
+codegen-units = 1
+lto = "fat"
