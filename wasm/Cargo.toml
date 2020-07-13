@@ -1,8 +1,13 @@
 [package]
 name = "css-inline-wasm"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2018"
+readme = "README.md"
+description = "A WASM package for inlining CSS into HTML documents"
+repository = "https://github.com/Stranger6667/css-inline"
+keywords = ["html", "css", "css-inline"]
+categories = ["web-programming"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -28,3 +33,6 @@ wasm-bindgen-test = "0.3.0"
 [profile.release]
 codegen-units = 1
 lto = "fat"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O4']
