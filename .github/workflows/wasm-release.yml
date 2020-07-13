@@ -1,0 +1,34 @@
+name: Rust Release
+
+on:
+  push:
+    tags:
+      - wasm-v*
+
+jobs:
+  rust-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+      - name: Build package
+        run: wasm-pack build --scope stranger6667
+      - name: Set up Node.js
+        uses: actions/setup-node@master
+        with:
+          node-version: 10.0.0
+      - name: Publish to npm
+        uses: pascalgn/npm-publish-action@1.2.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        working-directory: ./pkg
