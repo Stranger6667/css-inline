@@ -1,0 +1,30 @@
+name: WASM Release
+
+on:
+  push:
+    tags:
+      - wasm-v*
+
+jobs:
+  wasm-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+      - name: Build package
+        run: wasm-pack build --release --scope stranger6667
+        working-directory: ./wasm
+      - run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_AUTH_TOKEN}"
+        env:
+          NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+      - run: npm publish --access public
+        working-directory: ./wasm/pkg

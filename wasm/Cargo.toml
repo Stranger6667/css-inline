@@ -8,6 +8,7 @@ description = "A WASM package for inlining CSS into HTML documents"
 repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["html", "css", "css-inline"]
 categories = ["web-programming"]
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
