@@ -136,3 +136,51 @@ jobs:
       - name: Run ${{ matrix.python }} tox job
         run: tox -e py
         working-directory: ./python
+
+  test-wasm:
+    name: Tests for WASM crate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+      - name: Run tests
+        run: wasm-pack test --node
+        working-directory: ./wasm
+
+  test-wasm-typescript:
+    name: TypeScript tests for WASM crate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+      - name: Build package
+        run: wasm-pack build -t nodejs
+        working-directory: ./wasm
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./wasm
+      - name: Run tests
+        run: npm run test
+        working-directory: ./wasm

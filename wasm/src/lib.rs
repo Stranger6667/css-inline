@@ -58,7 +58,7 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
 #[macro_use]
 extern crate serde_derive;
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 #[serde(default)]
 struct Options {
     inline_style_tags: bool,
@@ -126,3 +126,26 @@ interface InlineOptions {
 
 export function inline(html: string, options?: InlineOptions): string;
 "#;
+
+#[cfg(test)]
+pub mod tests {
+    use super::*;
+    use wasm_bindgen_test::*;
+
+    #[wasm_bindgen_test]
+    fn default_config() {
+        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &JsValue::undefined()).unwrap();
+        assert_eq!(result, "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+    }
+
+    #[wasm_bindgen_test]
+    fn remove_style_tags() {
+        let options = Options {
+            remove_style_tags: true,
+            ..Default::default()
+        };
+        let options = JsValue::from_serde(&options).unwrap();
+        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &options).unwrap();
+        assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+    }
+}
