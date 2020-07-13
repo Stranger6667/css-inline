@@ -1,9 +1,35 @@
+//! WASM bindings for css-inline
+#![warn(
+    clippy::doc_markdown,
+    clippy::redundant_closure,
+    clippy::explicit_iter_loop,
+    clippy::match_same_arms,
+    clippy::needless_borrow,
+    clippy::print_stdout,
+    clippy::integer_arithmetic,
+    clippy::cast_possible_truncation,
+    clippy::result_unwrap_used,
+    clippy::result_map_unwrap_or_else,
+    clippy::option_unwrap_used,
+    clippy::option_map_unwrap_or_else,
+    clippy::option_map_unwrap_or,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    missing_docs,
+    missing_debug_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications,
+    variant_size_differences
+)]
 use css_inline as rust_inline;
-use wasm_bindgen::prelude::*;
 use std::{
     borrow::Cow,
     convert::{TryFrom, TryInto},
 };
+use wasm_bindgen::prelude::*;
 
 struct InlineErrorWrapper(rust_inline::InlineError);
 
@@ -17,7 +43,7 @@ struct UrlError(url::ParseError);
 
 impl From<UrlError> for JsValue {
     fn from(error: UrlError) -> Self {
-        JsValue::from_str(&error.0.to_string().as_str())
+        JsValue::from_str(error.0.to_string().as_str())
     }
 }
 
@@ -76,11 +102,9 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
     }
 }
 
+/// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
 #[wasm_bindgen(skip_typescript)]
-pub fn inline(
-    html: &str,
-    options: &JsValue,
-) -> Result<String, JsValue> {
+pub fn inline(html: &str, options: &JsValue) -> Result<String, JsValue> {
     let options: Options = if !options.is_undefined() {
         options.into_serde().map_err(SerdeError)?
     } else {
