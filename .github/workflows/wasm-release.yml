@@ -21,7 +21,7 @@ jobs:
           command: install
           args: wasm-pack
       - name: Build package
-        run: wasm-pack build --release --scope stranger6667
+        run: wasm-pack build --release --scope stranger6667 --target nodejs
         working-directory: ./wasm
       - run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_AUTH_TOKEN}"
         env:
