@@ -104,10 +104,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                                 String::with_capacity(filename.len().saturating_add(8));
                             new_filename.push_str("inlined.");
                             new_filename.push_str(filename);
-                            File::create(new_filename).and_then(|file| Ok((file, contents)))
+                            File::create(new_filename).map(|file| (file, contents))
                         })
-                        .and_then(|(mut file, contents)| {
-                            Ok((filename, inliner.inline_to(contents.as_str(), &mut file)))
+                        .map(|(mut file, contents)| {
+                            (filename, inliner.inline_to(contents.as_str(), &mut file))
                         })
                         .map_err(|error| (filename, error))
                 })

@@ -1,3 +1,25 @@
+//! Python bindings for css-inline
+#![warn(
+    clippy::doc_markdown,
+    clippy::redundant_closure,
+    clippy::explicit_iter_loop,
+    clippy::match_same_arms,
+    clippy::needless_borrow,
+    clippy::print_stdout,
+    clippy::integer_arithmetic,
+    clippy::cast_possible_truncation,
+    clippy::unwrap_used,
+    clippy::map_unwrap_or,
+    clippy::trivially_copy_pass_by_ref,
+    clippy::needless_pass_by_value,
+    missing_debug_implementations,
+    trivial_casts,
+    trivial_numeric_casts,
+    unused_extern_crates,
+    unused_import_braces,
+    unused_qualifications,
+    variant_size_differences
+)]
 use css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
