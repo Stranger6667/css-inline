@@ -260,7 +260,7 @@ impl<'a> CSSInliner<'a> {
             } else {
                 // Not a URL, then it is a relative URL
                 if let Ok(new_url) = base_url.join(href) {
-                    return Cow::Owned(new_url.to_string());
+                    return Cow::Owned(new_url.into_string());
                 }
             }
         };
