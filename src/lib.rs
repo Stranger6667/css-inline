@@ -234,7 +234,7 @@ impl<'a> CSSInliner<'a> {
                 .select("link[rel~=stylesheet]")
                 .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
             {
-                if let Some(href) = &link_tag.attributes.borrow().get("href") {
+                if let Some(href) = link_tag.attributes.borrow().get("href") {
                     let url = self.get_full_url(href);
                     let css = self.load_external(url.as_ref())?;
                     process_css(&document, css.as_str())?;
