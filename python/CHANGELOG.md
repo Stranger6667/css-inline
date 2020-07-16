@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Avoid string allocation in `get_full_url`
+
 ## [0.4.0] - 2020-07-13
 
 ### Added
