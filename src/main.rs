@@ -1,9 +1,11 @@
 use css_inline::{CSSInliner, InlineOptions};
 use rayon::prelude::*;
-use std::borrow::Cow;
-use std::error::Error;
-use std::fs::File;
-use std::io::{self, Read, Write};
+use std::{
+    borrow::Cow,
+    error::Error,
+    fs::File,
+    io::{self, Read, Write},
+};
 
 const VERSION_MESSAGE: &[u8] = concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
 const HELP_MESSAGE: &[u8] = concat!(

@@ -103,8 +103,7 @@
     unused_qualifications,
     variant_size_differences
 )]
-use kuchiki::traits::TendrilSink;
-use kuchiki::{parse_html, NodeRef};
+use kuchiki::{parse_html, traits::TendrilSink, NodeRef};
 
 pub mod error;
 mod parser;
@@ -113,9 +112,11 @@ use cssparser::CowRcStr;
 pub use error::InlineError;
 use parser::Rule;
 use smallvec::{smallvec, SmallVec};
-use std::borrow::Cow;
-use std::fs::File;
-use std::io::{Read, Write};
+use std::{
+    borrow::Cow,
+    fs::File,
+    io::{Read, Write},
+};
 pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.

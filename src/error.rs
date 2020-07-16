@@ -1,8 +1,11 @@
 //! Errors that may happen during inlining.
 use cssparser::{BasicParseErrorKind, ParseError, ParseErrorKind};
-use std::error::Error;
-use std::fmt::{Display, Formatter};
-use std::{fmt, io};
+use std::{
+    error::Error,
+    fmt,
+    fmt::{Display, Formatter},
+    io,
+};
 
 /// Inlining error
 #[derive(Debug)]
