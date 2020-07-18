@@ -1,10 +1,10 @@
 use kuchiki::Selectors;
 
-pub struct CSSRuleListParser;
+pub(crate) struct CSSRuleListParser;
 pub(crate) struct CSSDeclarationListParser;
 
-pub type Declaration<'i> = (cssparser::CowRcStr<'i>, &'i str);
-pub type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
+pub(crate) type Declaration<'i> = (cssparser::CowRcStr<'i>, &'i str);
+pub(crate) type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
 
 #[derive(Debug)]
 pub(crate) struct Rule<'i> {
@@ -14,7 +14,7 @@ pub(crate) struct Rule<'i> {
 
 impl<'i> Rule<'i> {
     #[inline]
-    pub fn new(selectors: &str, declarations: Vec<Declaration<'i>>) -> Result<Rule<'i>, ()> {
+    pub(crate) fn new(selectors: &str, declarations: Vec<Declaration<'i>>) -> Result<Rule<'i>, ()> {
         Ok(Rule {
             selectors: Selectors::compile(selectors)?,
             declarations,
@@ -94,20 +94,22 @@ impl<'i> cssparser::AtRuleParser<'i> for CSSDeclarationListParser {
     type Error = ();
 }
 
-pub struct CSSParser<'i, 't> {
+pub(crate) struct CSSParser<'i, 't> {
     input: cssparser::Parser<'i, 't>,
 }
 
 impl<'i: 't, 't> CSSParser<'i, 't> {
     #[inline]
-    pub fn new(css: &'t mut cssparser::ParserInput<'i>) -> CSSParser<'i, 't> {
+    pub(crate) fn new(css: &'t mut cssparser::ParserInput<'i>) -> CSSParser<'i, 't> {
         CSSParser {
             input: cssparser::Parser::new(css),
         }
     }
 
     #[inline]
-    pub fn parse<'a>(&'a mut self) -> cssparser::RuleListParser<'i, 't, 'a, CSSRuleListParser> {
+    pub(crate) fn parse<'a>(
+        &'a mut self,
+    ) -> cssparser::RuleListParser<'i, 't, 'a, CSSRuleListParser> {
         cssparser::RuleListParser::new_for_stylesheet(&mut self.input, CSSRuleListParser)
     }
 }
