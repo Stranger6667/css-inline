@@ -50,7 +50,7 @@
 //!
 //! ### Features & Configuration
 //!
-//! `css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
+//! `css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:
 //!
 //! ```rust
 //! const HTML: &str = r#"<html>
@@ -64,11 +64,9 @@
 //! </html>"#;
 //!
 //! fn main() -> Result<(), css_inline::InlineError> {
-//!     let options = css_inline::InlineOptions {
-//!         load_remote_stylesheets: false,
-//!         ..Default::default()
-//!     };
-//!     let inliner = css_inline::CSSInliner::new(options);
+//!     let inliner = css_inline::CSSInliner::options()
+//!         .load_remote_stylesheets(false)
+//!         .build();
 //!     let inlined = inliner.inline(HTML);
 //!     // Do something with inlined HTML, e.g. send an email
 //!     Ok(())
@@ -122,23 +120,23 @@ pub use url::{ParseError, Url};
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
 pub struct InlineOptions<'a> {
-    /// Whether to inline CSS from "style" tags
+    /// Whether to inline CSS from "style" tags.
     pub inline_style_tags: bool,
-    /// Remove "style" tags after inlining
+    /// Remove "style" tags after inlining.
     pub remove_style_tags: bool,
-    /// Used for loading external stylesheets via relative URLs
+    /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
-    /// Whether remote stylesheets should be loaded or not
+    /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
     // The point of using `Cow` here is Python bindings, where it is problematic to pass a reference
     // without dealing with memory leaks & unsafe. With `Cow` we can use moved values as `String` in
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
-    /// Additional CSS to inline
+    /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
 }
 
-impl InlineOptions<'_> {
-    /// Options for "compact" HTML output
+impl<'a> InlineOptions<'a> {
+    /// Options for "compact" HTML output.
     #[inline]
     pub fn compact() -> Self {
         InlineOptions {
@@ -148,6 +146,41 @@ impl InlineOptions<'_> {
             load_remote_stylesheets: true,
             extra_css: None,
         }
+    }
+
+    /// Override whether "style" tags should be inlined.
+    pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
+        self.inline_style_tags = inline_style_tags;
+        self
+    }
+
+    /// Override whether "style" tags should be removed after processing.
+    pub fn remove_style_tags(mut self, remove_style_tags: bool) -> Self {
+        self.remove_style_tags = remove_style_tags;
+        self
+    }
+
+    /// Set base url that will be used for loading external stylesheets via relative URLs.
+    pub fn base_url(mut self, base_url: Option<Url>) -> Self {
+        self.base_url = base_url;
+        self
+    }
+
+    /// Override whether remote stylesheets should be loaded.
+    pub fn load_remote_stylesheets(mut self, load_remote_stylesheets: bool) -> Self {
+        self.load_remote_stylesheets = load_remote_stylesheets;
+        self
+    }
+
+    /// Set additional CSS to inline.
+    pub fn extra_css(mut self, extra_css: Option<Cow<'a, str>>) -> Self {
+        self.extra_css = extra_css;
+        self
+    }
+
+    /// Create a new `CSSInliner` instance from this options.
+    pub fn build(self) -> CSSInliner<'a> {
+        CSSInliner::new(self)
     }
 }
 
@@ -177,6 +210,30 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn new(options: InlineOptions<'a>) -> Self {
         CSSInliner { options }
+    }
+
+    /// Return a default `InlineOptions` that can fully configure the CSS inliner.
+    ///
+    /// # Examples
+    ///
+    /// Get default `InlineOptions`, then change base url
+    ///
+    /// ```rust
+    /// use url::Url;
+    /// use css_inline::CSSInliner;
+    /// # use url::ParseError;
+    /// # fn run() -> Result<(), ParseError> {
+    /// let url = Url::parse("https://api.example.com")?;
+    /// let inliner = CSSInliner::options()
+    ///     .base_url(Some(url))
+    ///     .build();
+    /// # Ok(())
+    /// # }
+    /// # run().unwrap();
+    /// ```
+    #[inline]
+    pub fn options() -> InlineOptions<'a> {
+        InlineOptions::default()
     }
 
     /// Inliner, that will produce "compact" HTML.

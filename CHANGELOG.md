@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `CSSInliner::options()` that implements the Builder pattern. [#71](https://github.com/Stranger6667/css-inline/issues/71)
+
 ### Performance
 
 - Avoid string allocation in `get_full_url`

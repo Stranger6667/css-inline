@@ -306,3 +306,15 @@ fn customize_inliner() {
     assert_eq!(options.remove_style_tags, false);
     assert_eq!(options.base_url, None);
 }
+
+#[test]
+fn use_builder() {
+    let url = Url::parse("https://api.example.com").unwrap();
+    let _ = CSSInliner::options()
+        .inline_style_tags(false)
+        .remove_style_tags(false)
+        .base_url(Some(url))
+        .load_remote_stylesheets(false)
+        .extra_css(Some("h1 {color: green}".into()))
+        .build();
+}

@@ -61,17 +61,15 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 ### Features & Configuration
 
-`css-inline` can be configured by using `InlineOptions` and `CSSInliner`:
+`css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:
 
 ```rust
 use css_inline;
 
 fn main() -> Result<(), css_inline::InlineError> {
-    let options = css_inline::InlineOptions {
-        load_remote_stylesheets: false,
-        ..Default::default()
-    };
-    let inliner = css_inline::CSSInliner::new(options);
+    let inliner = css_inline::CSSInliner::options()
+        .load_remote_stylesheets(false)
+        .build();
     let inlined = inliner.inline(HTML);
     // Do something with inlined HTML, e.g. send an email
     Ok(())
