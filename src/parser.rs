@@ -79,8 +79,8 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
 }
 
 impl<'i> cssparser::AtRuleParser<'i> for CSSRuleListParser {
-    type PreludeNoBlock = String;
-    type PreludeBlock = String;
+    type PreludeNoBlock = &'i str;
+    type PreludeBlock = &'i str;
     type AtRule = QualifiedRule<'i>;
     type Error = ();
 }
@@ -92,24 +92,4 @@ impl<'i> cssparser::AtRuleParser<'i> for CSSDeclarationListParser {
     type PreludeBlock = String;
     type AtRule = Declaration<'i>;
     type Error = ();
-}
-
-pub(crate) struct CSSParser<'i, 't> {
-    input: cssparser::Parser<'i, 't>,
-}
-
-impl<'i: 't, 't> CSSParser<'i, 't> {
-    #[inline]
-    pub(crate) fn new(css: &'t mut cssparser::ParserInput<'i>) -> CSSParser<'i, 't> {
-        CSSParser {
-            input: cssparser::Parser::new(css),
-        }
-    }
-
-    #[inline]
-    pub(crate) fn parse<'a>(
-        &'a mut self,
-    ) -> cssparser::RuleListParser<'i, 't, 'a, CSSRuleListParser> {
-        cssparser::RuleListParser::new_for_stylesheet(&mut self.input, CSSRuleListParser)
-    }
 }
