@@ -339,8 +339,10 @@ impl<'a> CSSInliner<'a> {
 
 fn process_css(document: &NodeRef, css: &str) -> Result<()> {
     let mut parse_input = cssparser::ParserInput::new(css);
-    let mut parser = parser::CSSParser::new(&mut parse_input);
-    for parsed in parser.parse() {
+    let mut parser = cssparser::Parser::new(&mut parse_input);
+    let rule_list =
+        cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser);
+    for parsed in rule_list {
         if let Ok((selector, declarations)) = parsed {
             if let Ok(rule) = Rule::new(selector, declarations) {
                 let matching_elements = document
