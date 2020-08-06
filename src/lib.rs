@@ -109,7 +109,6 @@ mod parser;
 
 use cssparser::CowRcStr;
 pub use error::InlineError;
-use parser::Rule;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
@@ -344,20 +343,16 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
         cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser);
     for parsed in rule_list {
         if let Ok((selector, declarations)) = parsed {
-            if let Ok(rule) = Rule::new(selector, declarations) {
-                let matching_elements = document
-                    .inclusive_descendants()
-                    .filter_map(|node| node.into_element_ref())
-                    .filter(|element| rule.selectors.matches(element));
+            if let Ok(matching_elements) = document.select(selector) {
                 for matching_element in matching_elements {
                     // It can be borrowed if the current selector matches <link> tag, that is
                     // already borrowed in `inline_to`. We can ignore such matches
                     if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
                         if let Some(existing_style) = attributes.get_mut("style") {
-                            *existing_style = merge_styles(existing_style, &rule.declarations)?
+                            *existing_style = merge_styles(existing_style, &declarations)?
                         } else {
                             let mut final_styles = String::with_capacity(64);
-                            for (name, value) in &rule.declarations {
+                            for (name, value) in &declarations {
                                 final_styles.push_str(name);
                                 final_styles.push(':');
                                 final_styles.push_str(value);

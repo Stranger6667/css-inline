@@ -1,26 +1,8 @@
-use kuchiki::Selectors;
-
 pub(crate) struct CSSRuleListParser;
 pub(crate) struct CSSDeclarationListParser;
 
 pub(crate) type Declaration<'i> = (cssparser::CowRcStr<'i>, &'i str);
 pub(crate) type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
-
-#[derive(Debug)]
-pub(crate) struct Rule<'i> {
-    pub(crate) selectors: Selectors,
-    pub(crate) declarations: Vec<Declaration<'i>>,
-}
-
-impl<'i> Rule<'i> {
-    #[inline]
-    pub(crate) fn new(selectors: &str, declarations: Vec<Declaration<'i>>) -> Result<Rule<'i>, ()> {
-        Ok(Rule {
-            selectors: Selectors::compile(selectors)?,
-            declarations,
-        })
-    }
-}
 
 fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
     let start = input.position();
