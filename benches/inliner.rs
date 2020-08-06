@@ -25,6 +25,45 @@ fn simple(c: &mut Criterion) {
     c.bench_function("simple HTML", |b| b.iter(|| inline(html).unwrap()));
 }
 
+fn many_matched_tags(c: &mut Criterion) {
+    let html = black_box(
+        r#"<html>
+<head>
+    <title>Test</title>
+    <style>
+        h1 { color:blue; }
+    </style>
+</head>
+<body>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+    <h1>Big Text</h1>
+</body>
+</html>"#,
+    );
+    c.bench_function("many matched tags HTML", |b| {
+        b.iter(|| inline(html).unwrap())
+    });
+}
+
 fn merging(c: &mut Criterion) {
     let html = black_box(
         r#"<html>
@@ -156,5 +195,5 @@ BEGIN FOOTER
     c.bench_function("big email", |b| b.iter(|| inline(html).unwrap()));
 }
 
-criterion_group!(benches, simple, merging, big_email);
+criterion_group!(benches, simple, many_matched_tags, merging, big_email);
 criterion_main!(benches);

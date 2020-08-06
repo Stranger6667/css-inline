@@ -12,7 +12,8 @@
 
 ### Performance
 
-- Avoid string allocation in `get_full_url`
+- Avoid string allocation in `get_full_url`.
+- Parse declarations only when they are merged, otherwise copy as they are.
 
 ## [0.4.0] - 2020-07-13
 

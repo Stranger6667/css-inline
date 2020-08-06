@@ -349,16 +349,9 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
                     // already borrowed in `inline_to`. We can ignore such matches
                     if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
                         if let Some(existing_style) = attributes.get_mut("style") {
-                            *existing_style = merge_styles(existing_style, &declarations)?
+                            *existing_style = merge_styles(existing_style, declarations)?
                         } else {
-                            let mut final_styles = String::with_capacity(64);
-                            for (name, value) in &declarations {
-                                final_styles.push_str(name);
-                                final_styles.push(':');
-                                final_styles.push_str(value);
-                                final_styles.push(';');
-                            }
-                            attributes.insert("style", final_styles);
+                            attributes.insert("style", declarations.to_string());
                         };
                     }
                 }
@@ -390,27 +383,31 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
 }
 
-fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Result<String> {
+fn merge_styles(existing_style: &str, new_styles: &str) -> Result<String> {
+    // New rules override old ones and we store selectors inline to check the old rules later
+    let mut buffer: SmallVec<[CowRcStr; 8]> = smallvec![];
+    let mut final_styles = new_styles.to_string();
+
+    let mut input = cssparser::ParserInput::new(existing_style);
+    let mut parser = cssparser::Parser::new(&mut input);
+    for declaration in
+        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser)
+    {
+        if let Ok((property, _)) = declaration {
+            // This property won't be taken from existing styles. i.e. it is overridden by new styles
+            buffer.push(property);
+        }
+    }
+
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
-    let declarations =
-        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
-    // New rules override old ones and we store selectors inline to check the old rules later
-    let mut buffer: SmallVec<[&CowRcStr; 8]> = smallvec![];
-    let mut final_styles = String::with_capacity(256);
-    for (property, value) in new_styles {
-        final_styles.push_str(property);
-        final_styles.push(':');
-        final_styles.push_str(value);
-        final_styles.push(';');
-        // This property won't be taken from existing styles. i.e. it is overridden by new styles
-        buffer.push(property);
-    }
-    for declaration in declarations {
+    for declaration in
+        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser)
+    {
         let (name, value) = declaration?;
         // Usually this buffer is small and it is faster than checking a {Hash,BTree}Map
-        if !buffer.contains(&&name) {
+        if !buffer.contains(&name) {
             final_styles.push_str(&name);
             final_styles.push(':');
             final_styles.push_str(value);

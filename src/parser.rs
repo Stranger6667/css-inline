@@ -2,7 +2,7 @@ pub(crate) struct CSSRuleListParser;
 pub(crate) struct CSSDeclarationListParser;
 
 pub(crate) type Declaration<'i> = (cssparser::CowRcStr<'i>, &'i str);
-pub(crate) type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
+pub(crate) type QualifiedRule<'i> = (&'i str, &'i str);
 
 fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
     let start = input.position();
@@ -33,16 +33,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
-        let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
-        let mut declarations = Vec::with_capacity(8);
-
-        for item in parser {
-            if let Ok(declaration) = item {
-                declarations.push(declaration);
-            }
-        }
-
-        Ok((prelude, declarations))
+        Ok((prelude, exhaust(input)))
     }
 }
 
