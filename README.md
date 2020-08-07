@@ -2,7 +2,7 @@
 
 [![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
 [![Crates.io](https://img.shields.io/crates/v/css-inline.svg)](https://crates.io/crates/css-inline)
-[![docs.rs](https://docs.rs/css-inline/badge.svg?version=0.4.0)](https://docs.rs/css-inline/0.4.0/css_inline/)
+[![docs.rs](https://docs.rs/css-inline/badge.svg?version=0.5.0)](https://docs.rs/css-inline/0.5.0/css_inline/)
 
 A crate for inlining CSS into HTML documents. When you send HTML emails you need to use "style" attributes instead of "style" tags.
 
@@ -34,7 +34,7 @@ Will be turned into this:
 To use it in your project add the following line to your `dependencies` section in project's `Cargo.toml` file:
 
 ```toml
-css-inline = "0.4"
+css-inline = "0.5"
 ```
 
 ## Usage
