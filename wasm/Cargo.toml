@@ -25,6 +25,7 @@ default-features = false
 url = "2"
 wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
 serde = { version = "1.0", features = ["derive"] }
+wee_alloc = "0.4"
 serde_derive = "1"
 serde_json = "1"
 
