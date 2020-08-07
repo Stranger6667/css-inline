@@ -94,9 +94,9 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/0.5.0...HEAD
-[0.5.0]: https://github.com/Stranger6667/css-inline/compare/0.4.0...0.5.0
-[0.4.0]: https://github.com/Stranger6667/css-inline/compare/0.3.3...0.4.0
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.5.0...HEAD
+[0.5.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.4.0...rust-v0.5.0
+[0.4.0]: https://github.com/Stranger6667/css-inline/compare/0.3.3...rust-v0.4.0
 [0.3.3]: https://github.com/Stranger6667/css-inline/compare/0.3.2...0.3.3
 [0.3.2]: https://github.com/Stranger6667/css-inline/compare/0.3.1...0.3.2
 [0.3.1]: https://github.com/Stranger6667/css-inline/compare/0.3.0...0.3.1
