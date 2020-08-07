@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-wasm"
-version = "0.4.1"
+version = "0.5.0"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2018"
 readme = "README.md"
