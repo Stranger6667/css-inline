@@ -1,6 +1,6 @@
 //! # css-inline
 //!
-//! A crate for inlining CSS into HTML documents. When you send HTML emails you need to use "style"
+//! A crate for inlining CSS into HTML documents. When you send HTML emails, you need to use "style"
 //! attributes instead of "style" tags.
 //!
 //! For example, this HTML:
@@ -160,7 +160,7 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
-    /// Set base url that will be used for loading external stylesheets via relative URLs.
+    /// Set base URL that will be used for loading external stylesheets via relative URLs.
     pub fn base_url(mut self, base_url: Option<Url>) -> Self {
         self.base_url = base_url;
         self

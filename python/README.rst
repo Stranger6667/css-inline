@@ -42,7 +42,7 @@ To inline CSS in a HTML document:
 
     inlined = css_inline.inline(HTML)
 
-If you want to inline many HTML documents then you can utilize ``inline_many`` that processes the input in parallel.
+If you want to inline many HTML documents, you can utilize ``inline_many`` that processes the input in parallel.
 
 .. code:: python
 

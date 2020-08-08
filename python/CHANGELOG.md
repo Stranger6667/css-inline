@@ -59,7 +59,7 @@
 
 ### Changed
 
-- Skip selectors, that can't be parsed.
+- Skip selectors that can't be parsed.
 - Validate `base_url` to be a valid URL.
 
 ### Fixed

@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/css-inline.svg)](https://crates.io/crates/css-inline)
 [![docs.rs](https://docs.rs/css-inline/badge.svg?version=0.5.0)](https://docs.rs/css-inline/0.5.0/css_inline/)
 
-A crate for inlining CSS into HTML documents. When you send HTML emails you need to use "style" attributes instead of "style" tags.
+A crate for inlining CSS into HTML documents. When you send HTML emails, you need to use "style" attributes instead of "style" tags.
 
 For example, this HTML:
 
@@ -31,7 +31,7 @@ Will be turned into this:
 </html>
 ```
 
-To use it in your project add the following line to your `dependencies` section in project's `Cargo.toml` file:
+To use it in your project add the following line to your `dependencies` section in the project's `Cargo.toml` file:
 
 ```toml
 css-inline = "0.5"
@@ -98,10 +98,10 @@ USAGE:
 ARGS:
     <PATH>...
         An HTML document to process. In each specified document "css-inline" will look for
-        all relevant "style" and "link" tags, will load CSS from them and then will inline it
-        to the HTML tags, according to the relevant CSS selectors.
-        When multiple documents are specified, they will be processed in parallel and each inlined
-        file will be saved with "inlined." prefix. E.g. for "example.html", there will be
+        all relevant "style" and "link" tags, will load CSS from them and then inline it
+        to the HTML tags, according to the corresponding CSS selectors.
+        When multiple documents are specified, they will be processed in parallel, and each inlined
+        file will be saved with "inlined." prefix. E.g., for "example.html", there will be
         "inlined.example.html".
 
 OPTIONS:

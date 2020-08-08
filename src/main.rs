@@ -23,10 +23,10 @@ USAGE:
 ARGS:
     <PATH>...
         An HTML document to process. In each specified document "css-inline" will look for
-        all relevant "style" and "link" tags, will load CSS from them and then will inline it
-        to the HTML tags, according to the relevant CSS selectors.
-        When multiple documents are specified, they will be processed in parallel and each inlined
-        file will be saved with "inlined." prefix. E.g. for "example.html", there will be
+        all relevant "style" and "link" tags, will load CSS from them and then inline it
+        to the HTML tags, according to the corresponding CSS selectors.
+        When multiple documents are specified, they will be processed in parallel, and each inlined
+        file will be saved with "inlined." prefix. E.g., for "example.html", there will be
         "inlined.example.html".
 
 OPTIONS:
