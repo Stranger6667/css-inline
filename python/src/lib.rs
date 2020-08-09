@@ -25,7 +25,6 @@ use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunct
 use rayon::prelude::*;
 use std::borrow::Cow;
 
-const MODULE_DOCSTRING: &str = "Fast CSS inlining written in Rust";
 const INLINE_ERROR_DOCSTRING: &str = "An error that can occur during CSS inlining";
 
 create_exception!(css_inline, InlineError, exceptions::ValueError);
@@ -169,6 +168,7 @@ mod build {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
 
+/// Fast CSS inlining written in Rust
 #[pymodule]
 fn css_inline(py: Python, module: &PyModule) -> PyResult<()> {
     module.add_class::<CSSInliner>()?;
@@ -177,7 +177,6 @@ fn css_inline(py: Python, module: &PyModule) -> PyResult<()> {
     let inline_error = py.get_type::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
-    module.add("__doc__", MODULE_DOCSTRING)?;
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
     Ok(())
 }
