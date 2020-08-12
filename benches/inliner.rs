@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use css_inline::inline;
+use css_inline::{inline, InlineError};
 
 fn simple(c: &mut Criterion) {
     let html = black_box(
@@ -23,6 +23,11 @@ fn simple(c: &mut Criterion) {
 </html>"#,
     );
     c.bench_function("simple HTML", |b| b.iter(|| inline(html).unwrap()));
+}
+
+fn error_formatting(c: &mut Criterion) {
+    let error = black_box(InlineError::ParseError("Error description".to_string()));
+    c.bench_function("error formatting", |b| b.iter(|| format!("{}", error)));
 }
 
 fn merging(c: &mut Criterion) {
@@ -156,5 +161,5 @@ BEGIN FOOTER
     c.bench_function("big email", |b| b.iter(|| inline(html).unwrap()));
 }
 
-criterion_group!(benches, simple, merging, big_email);
+criterion_group!(benches, simple, merging, big_email, error_formatting);
 criterion_main!(benches);
