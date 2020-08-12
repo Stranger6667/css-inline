@@ -150,8 +150,8 @@ BEGIN FOOTER
 REALISTIC_HTMLS = [REALISTIC_HTML] * 100
 
 
-def parametrize_functions(*funcs):
-    return pytest.mark.parametrize("func", funcs, ids=["css_inline", "premailer", "pynliner", "inlinestyler"])
+def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler")):
+    return pytest.mark.parametrize("func", funcs, ids=ids)
 
 
 all_functions = parametrize_functions(
@@ -165,9 +165,11 @@ def parallel(func):
 
 all_many_functions = parametrize_functions(
     css_inline.inline_many,
+    parallel(css_inline.inline),
     parallel(premailer.transform),
     parallel(pynliner.fromString),
     parallel(inlinestyler.utils.inline_css),
+    ids=("css_inline", "css_inline_pyprocess", "premailer", "pynliner", "inlinestyler"),
 )
 
 
