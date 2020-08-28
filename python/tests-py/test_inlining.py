@@ -73,7 +73,14 @@ def test_invalid_base_url():
     extra_css=st.text() | st.none(),
 )
 @settings(max_examples=1000)
-def test_random_input(document, inline_style_tags, remove_style_tags, base_url, load_remote_stylesheets, extra_css):
+def test_random_input(
+    document,
+    inline_style_tags,
+    remove_style_tags,
+    base_url,
+    load_remote_stylesheets,
+    extra_css,
+):
     with suppress(ValueError):
         inliner = css_inline.CSSInliner(
             inline_style_tags=inline_style_tags,

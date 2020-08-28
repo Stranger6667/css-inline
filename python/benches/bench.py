@@ -155,7 +155,10 @@ def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "i
 
 
 all_functions = parametrize_functions(
-    css_inline.inline, premailer.transform, pynliner.fromString, inlinestyler.utils.inline_css
+    css_inline.inline,
+    premailer.transform,
+    pynliner.fromString,
+    inlinestyler.utils.inline_css,
 )
 
 
