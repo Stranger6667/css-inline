@@ -150,7 +150,9 @@ BEGIN FOOTER
 REALISTIC_HTMLS = [REALISTIC_HTML] * 100
 
 
-def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler")):
+def parametrize_functions(
+    *funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler")
+):
     return pytest.mark.parametrize("func", funcs, ids=ids)
 
 
