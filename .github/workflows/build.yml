@@ -32,20 +32,6 @@ jobs:
       - run: pip install pre-commit
       - run: SKIP=fmt,cargo-check,clippy pre-commit run --all-files
 
-  check:
-    name: Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: check
-
   test-stable:
     name: Test (stable)
     runs-on: ubuntu-latest
