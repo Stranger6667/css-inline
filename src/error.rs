@@ -1,6 +1,7 @@
 //! Errors that may happen during inlining.
 use cssparser::{BasicParseErrorKind, ParseError, ParseErrorKind};
 use std::{
+    borrow::Cow,
     error::Error,
     fmt,
     fmt::{Display, Formatter},
@@ -15,7 +16,7 @@ pub enum InlineError {
     /// Network-related problem. E.g. resource is not available.
     Network(attohttpc::Error),
     /// Syntax errors or unsupported selectors.
-    ParseError(String),
+    ParseError(Cow<'static, str>),
 }
 
 impl From<io::Error> for InlineError {
@@ -36,7 +37,7 @@ impl Display for InlineError {
         match self {
             InlineError::IO(error) => f.write_str(error.to_string().as_str()),
             InlineError::Network(error) => f.write_str(error.to_string().as_str()),
-            InlineError::ParseError(error) => f.write_str(error.as_str()),
+            InlineError::ParseError(error) => f.write_str(error),
         }
     }
 }
@@ -55,6 +56,6 @@ impl From<(ParseError<'_, ()>, &str)> for InlineError {
             },
             ParseErrorKind::Custom(_) => "Unknown error".to_string(),
         };
-        InlineError::ParseError(message)
+        InlineError::ParseError(Cow::from(message))
     }
 }
