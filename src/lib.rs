@@ -265,7 +265,7 @@ impl<'a> CSSInliner<'a> {
         if self.options.inline_style_tags {
             for style_tag in document
                 .select("style")
-                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
             {
                 if let Some(first_child) = style_tag.as_node().first_child() {
                     if let Some(css_cell) = first_child.as_text() {
@@ -279,7 +279,7 @@ impl<'a> CSSInliner<'a> {
         } else if self.options.remove_style_tags {
             for style_tag in document
                 .select("style")
-                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
             {
                 style_tag.as_node().detach()
             }
@@ -287,7 +287,7 @@ impl<'a> CSSInliner<'a> {
         if self.options.load_remote_stylesheets {
             for link_tag in document
                 .select("link[rel~=stylesheet]")
-                .map_err(|_| error::InlineError::ParseError("Unknown error".to_string()))?
+                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
             {
                 if let Some(href) = link_tag.attributes.borrow().get("href") {
                     let url = self.get_full_url(href);
