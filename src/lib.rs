@@ -296,12 +296,12 @@ impl<'a> CSSInliner<'a> {
                         .as_ref()
                         .unwrap()
                         .to_string()
-                        .clone()
+                        
                 })
                 .collect::<Vec<String>>();
             links.sort();
             links.dedup();
-            for href in links.iter() {
+            for href in &links {
                 let url = self.get_full_url(href);
                 let css = self.load_external(url.as_ref())?;
                 process_css(&document, css.as_str())?;
