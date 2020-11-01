@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Links to remote stylesheets are deduplicated now.
+
 ### Fixed
 
 - Wrong inlined file prefixes handling in CLI. [#89](https://github.com/Stranger6667/css-inline/issues/89)
