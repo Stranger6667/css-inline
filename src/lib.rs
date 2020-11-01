@@ -288,17 +288,9 @@ impl<'a> CSSInliner<'a> {
             let mut links = document
                 .select("link[rel~=stylesheet]")
                 .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
-                .map(|link_tag| {
-                    link_tag
-                        .attributes
-                        .borrow()
-                        .get("href")
-                        .as_ref()
-                        .unwrap_or_else(|| &"")
-                        .to_string()
-                })
+                .filter_map(|link_tag| link_tag.attributes.borrow().get("href").map(str::to_string))
                 .collect::<Vec<String>>();
-            links.sort();
+            links.sort_unstable();
             links.dedup();
             for href in &links {
                 if !href.is_empty() {
