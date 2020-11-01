@@ -13,6 +13,7 @@
 ### Performance
 
 - Use `Formatter.write_str` instead of `write!` macro in the `Display` trait implementation for `InlineError`. [#85](https://github.com/Stranger6667/css-inline/issues/85)
+- Use `Cow` for error messages. [#87](https://github.com/Stranger6667/css-inline/issues/87)
 
 ## [0.5.0] - 2020-08-07
 

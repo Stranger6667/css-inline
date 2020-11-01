@@ -2,9 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Links to remote stylesheets are deduplicated now.
+
 ### Performance
 
 - Avoid setting module docstring twice
+- Use `Cow` for error messages. [#87](https://github.com/Stranger6667/css-inline/issues/87)
 
 ## [0.5.0] - 2020-08-07
 
