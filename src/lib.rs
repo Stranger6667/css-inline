@@ -294,17 +294,18 @@ impl<'a> CSSInliner<'a> {
                         .borrow()
                         .get("href")
                         .as_ref()
-                        .unwrap()
+                        .unwrap_or_else(|| &"")
                         .to_string()
-                        
                 })
                 .collect::<Vec<String>>();
             links.sort();
             links.dedup();
             for href in &links {
-                let url = self.get_full_url(href);
-                let css = self.load_external(url.as_ref())?;
-                process_css(&document, css.as_str())?;
+                if !href.is_empty() {
+                    let url = self.get_full_url(href);
+                    let css = self.load_external(url.as_ref())?;
+                    process_css(&document, css.as_str())?;
+                }
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
