@@ -5,6 +5,7 @@
 ### Changed
 
 - Links to remote stylesheets are deduplicated now.
+- Upgrade `Pyo3` to `0.12`.
 
 ### Performance
 
