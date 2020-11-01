@@ -18,7 +18,7 @@ crate-type = ["cdylib"]
 
 [dependencies.css-inline]
 path = ".."
-version = "= 0.5.0"
+version = "*"
 default-features = false
 
 [dependencies]
