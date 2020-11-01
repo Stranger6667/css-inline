@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Wrong inlined file prefixes handling in CLI. [#89](https://github.com/Stranger6667/css-inline/issues/89)
+
 ### Performance
 
 - Use `Formatter.write_str` instead of `write!` macro in the `Display` trait implementation for `InlineError`. [#85](https://github.com/Stranger6667/css-inline/issues/85)

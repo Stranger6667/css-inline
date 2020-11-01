@@ -1,5 +1,7 @@
 use css_inline::{CSSInliner, InlineOptions};
 use rayon::prelude::*;
+use std::ffi::OsString;
+use std::path::Path;
 use std::{
     borrow::Cow,
     error::Error,
@@ -98,20 +100,24 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else {
             args.files
                 .par_iter()
-                .map(|filename| {
-                    File::open(filename)
+                .map(|file_path| {
+                    File::open(file_path)
                         .and_then(read_file)
                         .and_then(|contents| {
-                            let mut new_filename =
-                                String::with_capacity(filename.len().saturating_add(8));
-                            new_filename.push_str("inlined.");
-                            new_filename.push_str(filename);
-                            File::create(new_filename).map(|file| (file, contents))
+                            let path = Path::new(file_path);
+                            let mut new_filename = OsString::from("inlined.");
+                            new_filename.push(
+                                path.to_path_buf()
+                                    .file_name()
+                                    .expect("It is already read, therefore it is a file"),
+                            );
+                            let new_path = path.with_file_name(new_filename);
+                            File::create(new_path).map(|file| (file, contents))
                         })
                         .map(|(mut file, contents)| {
-                            (filename, inliner.inline_to(contents.as_str(), &mut file))
+                            (file_path, inliner.inline_to(contents.as_str(), &mut file))
                         })
-                        .map_err(|error| (filename, error))
+                        .map_err(|error| (file_path, error))
                 })
                 .for_each(|result| match result {
                     Ok((filename, result)) => match result {
