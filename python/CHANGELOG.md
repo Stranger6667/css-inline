@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Python 3.9 support.
+
 ### Changed
 
 - Links to remote stylesheets are deduplicated now.
