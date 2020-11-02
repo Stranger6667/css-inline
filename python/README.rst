@@ -85,7 +85,7 @@ The results above were measured with stable ``rustc 1.47.0``, ``Python 3.8.6`` o
 Python support
 --------------
 
-``css_inline`` supports Python 3.5, 3.6, 3.7, and 3.8.
+``css_inline`` supports Python 3.5, 3.6, 3.7, 3.8, and 3.9.
 
 License
 -------
