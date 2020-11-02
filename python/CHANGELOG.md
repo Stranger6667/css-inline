@@ -6,6 +6,8 @@
 
 - Python 3.9 support.
 
+## [0.6.0] - 2020-11-02
+
 ### Changed
 
 - Links to remote stylesheets are deduplicated now.
@@ -84,7 +86,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.5.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.0...HEAD
+[0.6.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.5.0...python-v0.6.0
 [0.5.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.4.0...python-v0.5.0
 [0.4.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.2...python-v0.4.0
 [0.3.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.3.1...python-v0.3.2
