@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.0] - 2020-11-02
+
 ### Changed
 
 - Links to remote stylesheets are deduplicated now.
@@ -21,6 +23,7 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.5.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.6.0...HEAD
+[0.6.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.5.0...wasm-v0.6.0
 [0.5.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.4.1...wasm-v0.5.0
 [0.4.1]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.4.0...wasm-v0.4.1
