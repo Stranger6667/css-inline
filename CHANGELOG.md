@@ -6,6 +6,10 @@
 
 - Compatibility with the new `cssparser` crate version.
 
+### Performance
+
+- Avoid string allocations during converting `ParseError` to `InlineError`.
+
 ## [0.6.0] - 2020-11-02
 
 ### Changed

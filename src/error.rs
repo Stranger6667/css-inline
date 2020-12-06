@@ -44,18 +44,25 @@ impl Display for InlineError {
 
 impl From<(ParseError<'_, ()>, &str)> for InlineError {
     fn from(error: (ParseError<'_, ()>, &str)) -> Self {
-        let message = match error.0.kind {
+        return match error.0.kind {
             ParseErrorKind::Basic(kind) => match kind {
                 BasicParseErrorKind::UnexpectedToken(token) => {
-                    format!("Unexpected token: {:?}", token)
+                    InlineError::ParseError(Cow::Owned(format!("Unexpected token: {:?}", token)))
                 }
-                BasicParseErrorKind::EndOfInput => "End of input".to_string(),
-                BasicParseErrorKind::AtRuleInvalid(value) => format!("Invalid @ rule: {}", value),
-                BasicParseErrorKind::AtRuleBodyInvalid => "Invalid @ rule body".to_string(),
-                BasicParseErrorKind::QualifiedRuleInvalid => "Invalid qualified rule".to_string(),
+                BasicParseErrorKind::EndOfInput => {
+                    InlineError::ParseError(Cow::Borrowed("End of input"))
+                }
+                BasicParseErrorKind::AtRuleInvalid(value) => {
+                    InlineError::ParseError(Cow::Owned(format!("Invalid @ rule: {}", value)))
+                }
+                BasicParseErrorKind::AtRuleBodyInvalid => {
+                    InlineError::ParseError(Cow::Borrowed("Invalid @ rule body"))
+                }
+                BasicParseErrorKind::QualifiedRuleInvalid => {
+                    InlineError::ParseError(Cow::Borrowed("Invalid qualified rule"))
+                }
             },
-            ParseErrorKind::Custom(_) => "Unknown error".to_string(),
+            ParseErrorKind::Custom(_) => InlineError::ParseError(Cow::Borrowed("Unknown error")),
         };
-        InlineError::ParseError(Cow::from(message))
     }
 }
