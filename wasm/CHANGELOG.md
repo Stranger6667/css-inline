@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Compatibility with the new `cssparser` crate version.
+
 ## [0.6.0] - 2020-11-02
 
 ### Changed

@@ -29,7 +29,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
     fn parse_block<'t>(
         &mut self,
         prelude: Self::Prelude,
-        _: cssparser::SourceLocation,
+        _: &cssparser::ParserState,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
