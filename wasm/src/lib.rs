@@ -35,7 +35,11 @@ struct InlineErrorWrapper(rust_inline::InlineError);
 
 impl From<InlineErrorWrapper> for JsValue {
     fn from(error: InlineErrorWrapper) -> Self {
-        JsValue::from_str(error.0.to_string().as_str())
+        if let rust_inline::InlineError::ParseError(e) = error.0 {
+            JsValue::from_str(&e)
+        } else {
+            JsValue::from_str(error.0.to_string().as_str())
+        }
     }
 }
 
