@@ -6,6 +6,10 @@
 
 - Python 3.9 support.
 
+### Fixed
+
+- Compatibility with the new `cssparser` crate version.
+
 ## [0.6.0] - 2020-11-02
 
 ### Changed
