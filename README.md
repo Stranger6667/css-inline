@@ -87,7 +87,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 `css-inline` provides a command-line interface:
 
-```bash
+```
 $ css-inline --help
 
 css-inline inlines CSS into HTML documents.
