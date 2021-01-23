@@ -1,5 +1,6 @@
 //! WASM bindings for css-inline
 #![warn(
+    clippy::pedantic,
     clippy::doc_markdown,
     clippy::redundant_closure,
     clippy::explicit_iter_loop,
@@ -19,7 +20,9 @@
     unused_extern_crates,
     unused_import_braces,
     unused_qualifications,
-    variant_size_differences
+    variant_size_differences,
+    rust_2018_idioms,
+    rust_2018_compatibility
 )]
 use css_inline as rust_inline;
 use std::{
@@ -29,7 +32,7 @@ use std::{
 use wasm_bindgen::prelude::*;
 
 #[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+static ALLOC: wee_alloc::WeeAlloc<'_> = wee_alloc::WeeAlloc::INIT;
 
 struct InlineErrorWrapper(rust_inline::InlineError);
 
@@ -109,10 +112,10 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
 #[wasm_bindgen(skip_typescript)]
 pub fn inline(html: &str, options: &JsValue) -> Result<String, JsValue> {
-    let options: Options = if !options.is_undefined() {
-        options.into_serde().map_err(SerdeError)?
-    } else {
+    let options: Options = if options.is_undefined() {
         Options::default()
+    } else {
+        options.into_serde().map_err(SerdeError)?
     };
     let inliner = rust_inline::CSSInliner::new(options.try_into()?);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)

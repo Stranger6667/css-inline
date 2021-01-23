@@ -100,7 +100,9 @@
     unused_extern_crates,
     unused_import_braces,
     unused_qualifications,
-    variant_size_differences
+    variant_size_differences,
+    rust_2018_idioms,
+    rust_2018_compatibility
 )]
 use kuchiki::{parse_html, traits::TendrilSink, NodeRef};
 
@@ -138,7 +140,7 @@ pub struct InlineOptions<'a> {
 impl<'a> InlineOptions<'a> {
     /// Options for "compact" HTML output.
     #[inline]
-    pub fn compact() -> Self {
+    pub const fn compact() -> Self {
         InlineOptions {
             inline_style_tags: true,
             remove_style_tags: true,
@@ -179,7 +181,7 @@ impl<'a> InlineOptions<'a> {
     }
 
     /// Create a new `CSSInliner` instance from this options.
-    pub fn build(self) -> CSSInliner<'a> {
+    pub const fn build(self) -> CSSInliner<'a> {
         CSSInliner::new(self)
     }
 }
@@ -208,7 +210,7 @@ pub struct CSSInliner<'a> {
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
     #[inline]
-    pub fn new(options: InlineOptions<'a>) -> Self {
+    pub const fn new(options: InlineOptions<'a>) -> Self {
         CSSInliner { options }
     }
 
@@ -295,7 +297,7 @@ impl<'a> CSSInliner<'a> {
             for href in &links {
                 if !href.is_empty() {
                     let url = self.get_full_url(href);
-                    let css = self.load_external(url.as_ref())?;
+                    let css = load_external(url.as_ref())?;
                     process_css(&document, css.as_str())?;
                 }
             }
@@ -326,17 +328,17 @@ impl<'a> CSSInliner<'a> {
         // If it is not a valid URL and there is no base URL specified, we assume a local path
         Cow::Borrowed(href)
     }
+}
 
-    fn load_external(&self, url: &str) -> Result<String> {
-        if url.starts_with("http") | url.starts_with("https") {
-            let response = attohttpc::get(url).send()?;
-            Ok(response.text()?)
-        } else {
-            let mut file = File::open(url)?;
-            let mut css = String::new();
-            file.read_to_string(&mut css)?;
-            Ok(css)
-        }
+fn load_external(url: &str) -> Result<String> {
+    if url.starts_with("http") | url.starts_with("https") {
+        let response = attohttpc::get(url).send()?;
+        Ok(response.text()?)
+    } else {
+        let mut file = File::open(url)?;
+        let mut css = String::new();
+        file.read_to_string(&mut css)?;
+        Ok(css)
     }
 }
 
@@ -378,7 +380,7 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
 impl Default for CSSInliner<'_> {
     #[inline]
     fn default() -> Self {
-        CSSInliner::new(Default::default())
+        CSSInliner::new(InlineOptions::default())
     }
 }
 
@@ -394,14 +396,14 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
 }
 
-fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration]) -> Result<String> {
+fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration<'_>]) -> Result<String> {
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // New rules override old ones and we store selectors inline to check the old rules later
-    let mut buffer: SmallVec<[&CowRcStr; 8]> = smallvec![];
+    let mut buffer: SmallVec<[&CowRcStr<'_>; 8]> = smallvec![];
     let mut final_styles = String::with_capacity(256);
     for (property, value) in new_styles {
         final_styles.push_str(property);
