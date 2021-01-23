@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Upgrade `Pyo3` to `0.13`.
+
 ## [0.6.2] - 2021-01-28
 
 ### Fixed
