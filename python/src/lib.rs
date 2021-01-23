@@ -1,5 +1,6 @@
 //! Python bindings for css-inline
 #![warn(
+    clippy::pedantic,
     clippy::doc_markdown,
     clippy::redundant_closure,
     clippy::explicit_iter_loop,
@@ -18,7 +19,9 @@
     unused_extern_crates,
     unused_import_braces,
     unused_qualifications,
-    variant_size_differences
+    variant_size_differences,
+    rust_2018_idioms,
+    rust_2018_compatibility
 )]
 use css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
@@ -155,14 +158,17 @@ fn inline_many(
     inline_many_impl(&inliner, htmls)
 }
 
-fn inline_many_impl(inliner: &rust_inline::CSSInliner, htmls: &PyList) -> PyResult<Vec<String>> {
+fn inline_many_impl(
+    inliner: &rust_inline::CSSInliner<'_>,
+    htmls: &PyList,
+) -> PyResult<Vec<String>> {
     // Extract strings from the list. It will fail if there is any non-string value
-    let extracted: Result<Vec<_>, _> = htmls.iter().map(|item| item.extract::<&str>()).collect();
-    let inlined: Result<Vec<_>, _> = extracted?
+    let extracted: Result<Vec<_>, _> = htmls.iter().map(pyo3::PyAny::extract::<&str>).collect();
+    let output: Result<Vec<_>, _> = extracted?
         .par_iter()
         .map(|html| inliner.inline(html))
         .collect();
-    Ok(inlined.map_err(InlineErrorWrapper)?)
+    Ok(output.map_err(InlineErrorWrapper)?)
 }
 
 #[allow(dead_code)]
@@ -172,7 +178,7 @@ mod build {
 
 /// Fast CSS inlining written in Rust
 #[pymodule]
-fn css_inline(py: Python, module: &PyModule) -> PyResult<()> {
+fn css_inline(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<CSSInliner>()?;
     module.add_wrapped(wrap_pyfunction!(inline))?;
     module.add_wrapped(wrap_pyfunction!(inline_many))?;

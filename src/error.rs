@@ -21,23 +21,23 @@ pub enum InlineError {
 
 impl From<io::Error> for InlineError {
     fn from(error: io::Error) -> Self {
-        InlineError::IO(error)
+        Self::IO(error)
     }
 }
 impl From<attohttpc::Error> for InlineError {
     fn from(error: attohttpc::Error) -> Self {
-        InlineError::Network(error)
+        Self::Network(error)
     }
 }
 
 impl Error for InlineError {}
 
 impl Display for InlineError {
-    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
-            InlineError::IO(error) => f.write_str(error.to_string().as_str()),
-            InlineError::Network(error) => f.write_str(error.to_string().as_str()),
-            InlineError::ParseError(error) => f.write_str(error),
+            Self::IO(error) => f.write_str(error.to_string().as_str()),
+            Self::Network(error) => f.write_str(error.to_string().as_str()),
+            Self::ParseError(error) => f.write_str(error),
         }
     }
 }
@@ -47,22 +47,20 @@ impl From<(ParseError<'_, ()>, &str)> for InlineError {
         return match error.0.kind {
             ParseErrorKind::Basic(kind) => match kind {
                 BasicParseErrorKind::UnexpectedToken(token) => {
-                    InlineError::ParseError(Cow::Owned(format!("Unexpected token: {:?}", token)))
+                    Self::ParseError(Cow::Owned(format!("Unexpected token: {:?}", token)))
                 }
-                BasicParseErrorKind::EndOfInput => {
-                    InlineError::ParseError(Cow::Borrowed("End of input"))
-                }
+                BasicParseErrorKind::EndOfInput => Self::ParseError(Cow::Borrowed("End of input")),
                 BasicParseErrorKind::AtRuleInvalid(value) => {
-                    InlineError::ParseError(Cow::Owned(format!("Invalid @ rule: {}", value)))
+                    Self::ParseError(Cow::Owned(format!("Invalid @ rule: {}", value)))
                 }
                 BasicParseErrorKind::AtRuleBodyInvalid => {
-                    InlineError::ParseError(Cow::Borrowed("Invalid @ rule body"))
+                    Self::ParseError(Cow::Borrowed("Invalid @ rule body"))
                 }
                 BasicParseErrorKind::QualifiedRuleInvalid => {
-                    InlineError::ParseError(Cow::Borrowed("Invalid qualified rule"))
+                    Self::ParseError(Cow::Borrowed("Invalid qualified rule"))
                 }
             },
-            ParseErrorKind::Custom(_) => InlineError::ParseError(Cow::Borrowed("Unknown error")),
+            ParseErrorKind::Custom(_) => Self::ParseError(Cow::Borrowed("Unknown error")),
         };
     }
 }
