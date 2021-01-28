@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Source code distribution. It was missing the source code for the underlying Rust crate and were leading to
+  a build error during `pip install css-inline` on platforms that we don't have wheels for.
+  [#99](https://github.com/Stranger6667/css-inline/issues/99)
+
 ## [0.6.1] - 2020-12-07
 
 ### Added

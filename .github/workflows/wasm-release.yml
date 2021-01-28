@@ -22,15 +22,15 @@ jobs:
           args: wasm-pack
       - name: Build package
         run: wasm-pack build --release --target nodejs
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm
       - name: Fix package name
         # wasm-pack generates the package name from the crate name.
         # Since the original Rust crate has this name (`css-inline`), the WASM crate has `css-inline-wasm` to
         # avoid conflicts during the build. The easiest way to handle it is to rename it inside the package.json file.
         run: sed -i 's/css-inline-wasm/css-inline/' pkg/package.json
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm
       - run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_AUTH_TOKEN}"
         env:
           NPM_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
       - run: npm publish --access public
-        working-directory: ./wasm/pkg
+        working-directory: ./bindings/wasm/pkg

@@ -17,7 +17,7 @@ name = "css_inline"
 crate-type = ["cdylib"]
 
 [dependencies.css-inline]
-path = ".."
+path = "../../css-inline"
 version = "*"
 default-features = false
 
@@ -35,7 +35,6 @@ wasm-bindgen-test = "0.3.0"
 [profile.release]
 opt-level = "z"
 codegen-units = 1
-lto = "fat"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = ["-Oz", "--enable-mutable-globals"]
