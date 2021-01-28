@@ -48,17 +48,15 @@ jobs:
         run: |
           python -m pip install flask
           # Starts the server in background
-          python ./tests/server.py &
+          python ./css-inline/tests/server.py &
 
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --no-fail-fast
+      - run: cargo test --no-fail-fast
+        working-directory: ./css-inline
 
   fmt:
     name: Rustfmt
@@ -71,10 +69,8 @@ jobs:
           toolchain: stable
           override: true
       - run: rustup component add rustfmt
-      - uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - run: cargo fmt --all -- --check
+        working-directory: ./css-inline
 
   clippy:
     name: Clippy
@@ -87,10 +83,8 @@ jobs:
           toolchain: stable
           override: true
       - run: rustup component add clippy
-      - uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: -- -D warnings
+      - run: cargo clippy -- -D warnings
+        working-directory: ./css-inline
 
   test-python:
     strategy:
@@ -111,7 +105,7 @@ jobs:
           architecture: x64
 
       - run: python -m pip install tox
-        working-directory: ./python
+        working-directory: ./bindings/python
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -120,7 +114,34 @@ jobs:
 
       - name: Run ${{ matrix.python }} tox job
         run: tox -e py
-        working-directory: ./python
+        working-directory: ./bindings/python
+
+  test-python-sdist:
+    runs-on: ubuntu-latest
+    name: Testing Python source code distribution
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          architecture: x64
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - run: python -m pip install tox
+        working-directory: ./bindings/python
+
+      - run: tox -e build-sdist
+        working-directory: ./bindings/python
+
+      - name: Installing sdist
+        run: pip install dist/*
+        working-directory: ./bindings/python
 
   test-wasm:
     name: Tests for WASM crate
@@ -144,7 +165,7 @@ jobs:
         # Weird wasm-pack error: https://github.com/rustwasm/wasm-pack/issues/743
         # It works locally with the same wasm-pack & dependencies versions
         continue-on-error: true
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm
 
   test-wasm-typescript:
     name: TypeScript tests for WASM crate
@@ -165,10 +186,10 @@ jobs:
           args: wasm-pack
       - name: Build package
         run: wasm-pack build -t nodejs
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm
       - name: Install dependencies
         run: npm install
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm
       - name: Run tests
         run: npm run test
-        working-directory: ./wasm
+        working-directory: ./bindings/wasm

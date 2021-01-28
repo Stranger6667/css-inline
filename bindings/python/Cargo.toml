@@ -14,7 +14,7 @@ crate-type = ["cdylib"]
 built = { version = "0.4", features = ["chrono"] }
 
 [dependencies.css-inline]
-path = ".."
+path = "../../css-inline"
 version = "*"
 default-features = false
 
@@ -26,4 +26,4 @@ pyo3-built = "0.4"
 
 [profile.release]
 codegen-units = 1
-lto = "on"
+lto = "fat"
