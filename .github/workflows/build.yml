@@ -68,7 +68,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add rustfmt
+          components: rustfmt
       - run: cargo fmt --all -- --check
         working-directory: ./css-inline
 
@@ -82,7 +82,7 @@ jobs:
           profile: minimal
           toolchain: stable
           override: true
-      - run: rustup component add clippy
+          components: clippy
       - run: cargo clippy -- -D warnings
         working-directory: ./css-inline
 
