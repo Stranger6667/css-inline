@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.6.2] - 2021-01-28
+
 ### Fixed
 
 - Source code distribution. It was missing the source code for the underlying Rust crate and were leading to
@@ -102,7 +104,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.2...HEAD
+[0.6.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.1...python-v0.6.2
 [0.6.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.0...python-v0.6.1
 [0.6.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.5.0...python-v0.6.0
 [0.5.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.4.0...python-v0.5.0
