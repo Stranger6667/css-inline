@@ -196,3 +196,73 @@ jobs:
         # Which is caused by `parking_lot` and should be fixed by https://github.com/Amanieu/parking_lot/pull/302
         continue-on-error: true
         working-directory: ./bindings/wasm
+
+  build_wheels:
+    name: Build wheels on ${{ matrix.os }}  - ${{ matrix.vers }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - vers: i686
+            os: ubuntu-20.04
+          - vers: aarch64
+            os: ubuntu-20.04
+          - vers: auto64
+            os: ubuntu-20.04
+          - vers: auto64
+            os: macos-10.15
+          - vers: auto64
+            os: windows-2019
+
+    env:
+      SCCACHE_VERSION: 0.2.13
+      CIBW_BEFORE_ALL_LINUX: "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -y && yum install -y openssl-devel"
+      CIBW_BUILD_VERBOSITY: "1"
+      CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
+      CIBW_SKIP: "cp27-* cp34-* cp35-* pp* *-win32"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: "3.8"
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: all
+
+      - name: wheels Linux ${{ matrix.vers }}
+        if: runner.os == 'Linux'
+        uses: joerick/cibuildwheel@v2.3.1
+        env:
+          CIBW_ARCHS_LINUX: ${{ matrix.vers }}
+        with:
+          package-dir: bindings/python
+
+      - name: wheels Macos ${{ matrix.vers }}
+        if: runner.os == 'Macos'
+        uses: joerick/cibuildwheel@v2.3.1
+        env:
+          ARCHFLAGS: "x86_64 arm64"
+          CIBW_BEFORE_ALL: "rustup target add aarch64-apple-darwin"
+          CIBW_SKIP: "cp27-* cp34-* cp35-* cp36-* cp37-* pp* *-win32"
+          CIBW_ARCHS_MACOS: ${{ matrix.vers }}
+        with:
+          package-dir: bindings/python
+
+      - name: wheels Windows ${{ matrix.vers }}
+        if: runner.os == 'Windows'
+        uses: joerick/cibuildwheel@v2.3.1
+        env:
+          CIBW_ARCHS_WINDOWS: ${{ matrix.vers }}
+        with:
+          package-dir: bindings/python
+
+      - uses: actions/upload-artifact@v2
+        with:
+          path: ./wheelhouse/*.whl
