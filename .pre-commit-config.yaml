@@ -23,13 +23,6 @@ repos:
     hooks:
       - id: yamllint
 
-  - repo: https://github.com/doublify/pre-commit-rust
-    rev: 14b3e118cfc36fb87d8d9cbd1305a2238fd85868
-    hooks:
-      - id: fmt
-      - id: cargo-check
-      - id: clippy
-
   - repo: https://github.com/ambv/black
     rev: 20.8b1
     hooks:
