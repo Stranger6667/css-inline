@@ -34,14 +34,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
         let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
-        let mut declarations = Vec::with_capacity(8);
-
-        for item in parser {
-            if let Ok(declaration) = item {
-                declarations.push(declaration);
-            }
-        }
-
+        let declarations: Vec<_> = parser.flatten().collect();
         Ok((prelude, declarations))
     }
 }

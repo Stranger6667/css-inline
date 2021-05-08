@@ -321,7 +321,7 @@ impl<'a> CSSInliner<'a> {
             } else {
                 // Not a URL, then it is a relative URL
                 if let Ok(new_url) = base_url.join(href) {
-                    return Cow::Owned(new_url.into_string());
+                    return Cow::Owned(new_url.into());
                 }
             }
         };
@@ -347,30 +347,28 @@ fn process_css(document: &NodeRef, css: &str) -> Result<()> {
     let mut parser = cssparser::Parser::new(&mut parse_input);
     let rule_list =
         cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser);
-    for parsed in rule_list {
-        if let Ok((selector, declarations)) = parsed {
-            if let Ok(matching_elements) = document.select(selector) {
-                for matching_element in matching_elements {
-                    // It can be borrowed if the current selector matches <link> tag, that is
-                    // already borrowed in `inline_to`. We can ignore such matches
-                    if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
-                        if let Some(existing_style) = attributes.get_mut("style") {
-                            *existing_style = merge_styles(existing_style, &declarations)?
-                        } else {
-                            let mut final_styles = String::with_capacity(64);
-                            for (name, value) in &declarations {
-                                final_styles.push_str(name);
-                                final_styles.push(':');
-                                final_styles.push_str(value);
-                                final_styles.push(';');
-                            }
-                            attributes.insert("style", final_styles);
-                        };
-                    }
+    for (selector, declarations) in rule_list.flatten() {
+        if let Ok(matching_elements) = document.select(selector) {
+            for matching_element in matching_elements {
+                // It can be borrowed if the current selector matches <link> tag, that is
+                // already borrowed in `inline_to`. We can ignore such matches
+                if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
+                    if let Some(existing_style) = attributes.get_mut("style") {
+                        *existing_style = merge_styles(existing_style, &declarations)?
+                    } else {
+                        let mut final_styles = String::with_capacity(64);
+                        for (name, value) in &declarations {
+                            final_styles.push_str(name);
+                            final_styles.push(':');
+                            final_styles.push_str(value);
+                            final_styles.push(';');
+                        }
+                        attributes.insert("style", final_styles);
+                    };
                 }
             }
-            // Skip selectors that can't be parsed
         }
+        // Skip selectors that can't be parsed
         // Ignore not parsable entries. E.g. there is no parser for @media queries
         // Which means that they will fall into this category and will be ignored
     }
