@@ -51,7 +51,7 @@ fn simple_merge() {
         r#"<h1 style="color:red;font-size: 1px;">Big Text</h1>"#
     );
     let valid = (inlined == option_1) || (inlined == option_2);
-    assert!(valid, inlined);
+    assert!(valid, "{}", inlined);
 }
 
 #[test]
