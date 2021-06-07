@@ -26,7 +26,7 @@ fn simple(c: &mut Criterion) {
 }
 
 fn error_formatting(c: &mut Criterion) {
-    let error = black_box(InlineError::ParseError("Error description".to_string()));
+    let error = black_box(InlineError::ParseError("Error description".into()));
     c.bench_function("error formatting", |b| b.iter(|| format!("{}", error)));
 }
 
