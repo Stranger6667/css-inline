@@ -1,12 +1,12 @@
 use css_inline::{CSSInliner, InlineOptions};
 use rayon::prelude::*;
-use std::ffi::OsString;
-use std::path::Path;
 use std::{
     borrow::Cow,
     error::Error,
+    ffi::OsString,
     fs::File,
     io::{self, Read, Write},
+    path::Path,
 };
 
 const VERSION_MESSAGE: &[u8] = concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
