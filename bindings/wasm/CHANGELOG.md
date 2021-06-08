@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Ignored selectors specificity. [#108](https://github.com/Stranger6667/css-inline/issues/108)
+
 ## [0.6.1] - 2020-12-07
 
 ### Fixed

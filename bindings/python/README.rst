@@ -67,17 +67,17 @@ library has good performance characteristics. In comparison with other Python pr
 
 For inlining CSS in the html document from the ``Usage`` section above we have the following breakdown in our benchmarks:
 
-- ``css_inline 0.6.0`` - 23.01 us
-- ``premailer 3.7.0`` - 340.89 us (**x14.81**)
-- ``inlinestyler 0.2.4`` - 2.44 ms (**x106.35**)
-- ``pynliner 0.8.0`` - 2.78 ms (**x121.04**)
+- ``css_inline 0.7.0`` - 25.21 us
+- ``premailer 3.7.0`` - 340.89 us (**x13.52**)
+- ``inlinestyler 0.2.4`` - 2.44 ms (**x96.78**)
+- ``pynliner 0.8.0`` - 2.78 ms (**x110.27**)
 
 And for a more realistic email:
 
-- ``css_inline 0.6.0`` - 483.3 us
-- ``premailer 3.7.0`` - 3.38 ms (**x7**)
-- ``inlinestyler 0.2.4`` - 64.41 ms (**x133.28**)
-- ``pynliner 0.8.0`` - 93.11 ms (**x192.65**)
+- ``css_inline 0.6.0`` - 529.1 us
+- ``premailer 3.7.0`` - 3.38 ms (**x6.38**)
+- ``inlinestyler 0.2.4`` - 64.41 ms (**x121.73**)
+- ``pynliner 0.8.0`` - 93.11 ms (**x175.97**)
 
 You can take a look at the benchmarks' code at ``benches/bench.py`` file.
 The results above were measured with stable ``rustc 1.47.0``, ``Python 3.8.6`` on i8700K, and 32GB RAM.

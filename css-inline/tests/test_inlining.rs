@@ -36,6 +36,24 @@ p.footer { font-size: 1px}"#,
 }
 
 #[test]
+fn overlap_styles() {
+    // When two selectors match the same element
+    assert_inlined!(
+        style = r#"
+.test-class {
+    color: #ffffff;
+}
+a {
+    color: #17bebb;
+}"#,
+        body = r#"<a class="test-class" href="https://example.com">Test</a>"#,
+        // Then the final style should come from the more specific selector
+        expected =
+            r#"<a class="test-class" href="https://example.com" style="color: #ffffff;">Test</a>"#
+    )
+}
+
+#[test]
 fn simple_merge() {
     // When "style" attributes exist and collides with values defined in "style" tag
     let style = "h1 { color:red; }";
