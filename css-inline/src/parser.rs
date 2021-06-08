@@ -1,7 +1,8 @@
 pub(crate) struct CSSRuleListParser;
 pub(crate) struct CSSDeclarationListParser;
 
-pub(crate) type Declaration<'i> = (cssparser::CowRcStr<'i>, &'i str);
+pub(crate) type Name<'i> = cssparser::CowRcStr<'i>;
+pub(crate) type Declaration<'i> = (Name<'i>, &'i str);
 pub(crate) type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
 
 fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
@@ -46,7 +47,7 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
 
     fn parse_value<'t>(
         &mut self,
-        name: cssparser::CowRcStr<'i>,
+        name: Name<'i>,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
         Ok((name, exhaust(input)))

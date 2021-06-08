@@ -104,18 +104,19 @@
     rust_2018_idioms,
     rust_2018_compatibility
 )]
-use kuchiki::{parse_html, traits::TendrilSink, NodeRef};
+use kuchiki::{parse_html, traits::TendrilSink, Node, NodeRef, Specificity};
 
 pub mod error;
 mod parser;
 
-use cssparser::CowRcStr;
 pub use error::InlineError;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
+    collections::{hash_map::Entry, HashMap},
     fs::File,
     io::{Read, Write},
+    ops::Deref,
 };
 pub use url::{ParseError, Url};
 
@@ -264,6 +265,19 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document = parse_html().one(html);
+        // CSS rules may overlap, and the final set of rules applied to an element depend on
+        // selectors' specificity - selectors with higher specificity have more priority.
+        // Inlining happens in two major steps:
+        //   1. All available styles are mapped to respective elements together with their
+        //      selector's specificity. When two rules overlap on the same declaration, then
+        //      the one with higher specificity replaces another.
+        //   2. Resulting styles are merged into existing "style" tags.
+        #[allow(clippy::mutable_key_type)]
+        // Each matched element is identified by their raw pointers - they are evaluated once
+        // and then reused, which allows O(1) access to find them.
+        // Internally, their raw pointers are used to implement `Eq`, which seems like the only
+        // reasonable approach to compare them (performance-wise).
+        let mut styles = HashMap::with_capacity(128);
         if self.options.inline_style_tags {
             for style_tag in document
                 .select("style")
@@ -271,7 +285,7 @@ impl<'a> CSSInliner<'a> {
             {
                 if let Some(first_child) = style_tag.as_node().first_child() {
                     if let Some(css_cell) = first_child.as_text() {
-                        process_css(&document, css_cell.borrow().as_str())?;
+                        process_css(&document, css_cell.borrow().as_str(), &mut styles)?;
                     }
                 }
                 if self.options.remove_style_tags {
@@ -298,12 +312,39 @@ impl<'a> CSSInliner<'a> {
                 if !href.is_empty() {
                     let url = self.get_full_url(href);
                     let css = load_external(url.as_ref())?;
-                    process_css(&document, css.as_str())?;
+                    process_css(&document, css.as_str(), &mut styles)?;
                 }
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            process_css(&document, extra_css)?;
+            process_css(&document, extra_css, &mut styles)?;
+        }
+        for (node_id, styles) in styles {
+            // SAFETY: All nodes are alive as long as `document` is in scope.
+            // Therefore, any `document` children should be alive and it is safe to dereference
+            // pointers to them
+            let node = unsafe { &*node_id };
+            // It can be borrowed if the current selector matches <link> tag, that is
+            // already borrowed in `inline_to`. We can ignore such matches
+            if let Ok(mut attributes) = node
+                .as_element()
+                .expect("Element is expected")
+                .attributes
+                .try_borrow_mut()
+            {
+                if let Some(existing_style) = attributes.get_mut("style") {
+                    *existing_style = merge_styles(existing_style, &styles)?
+                } else {
+                    let mut final_styles = String::with_capacity(128);
+                    for (name, (_, value)) in styles {
+                        final_styles.push_str(name.as_str());
+                        final_styles.push(':');
+                        final_styles.push_str(value.as_str());
+                        final_styles.push(';');
+                    }
+                    attributes.insert("style", final_styles);
+                };
+            }
         }
         document.serialize(target)?;
         Ok(())
@@ -342,35 +383,47 @@ fn load_external(url: &str) -> Result<String> {
     }
 }
 
-fn process_css(document: &NodeRef, css: &str) -> Result<()> {
+type NodeId = *const Node;
+
+#[allow(clippy::mutable_key_type)]
+fn process_css(
+    document: &NodeRef,
+    css: &str,
+    styles: &mut HashMap<NodeId, HashMap<String, (Specificity, String)>>,
+) -> Result<()> {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = cssparser::Parser::new(&mut parse_input);
     let rule_list =
         cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser);
-    for (selector, declarations) in rule_list.flatten() {
-        if let Ok(matching_elements) = document.select(selector) {
-            for matching_element in matching_elements {
-                // It can be borrowed if the current selector matches <link> tag, that is
-                // already borrowed in `inline_to`. We can ignore such matches
-                if let Ok(mut attributes) = matching_element.attributes.try_borrow_mut() {
-                    if let Some(existing_style) = attributes.get_mut("style") {
-                        *existing_style = merge_styles(existing_style, &declarations)?
-                    } else {
-                        let mut final_styles = String::with_capacity(64);
-                        for (name, value) in &declarations {
-                            final_styles.push_str(name);
-                            final_styles.push(':');
-                            final_styles.push_str(value);
-                            final_styles.push(';');
+    for (selectors, declarations) in rule_list.flatten() {
+        // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
+        // With `is` or `where` selectors (Level 4) this split should be done on the parser level
+        for selector in selectors.split(',') {
+            if let Ok(matching_elements) = document.select(selector) {
+                // There is always only one selector applied
+                let specificity = matching_elements.selectors.0[0].specificity();
+                for matching_element in matching_elements {
+                    let element_styles = styles
+                        .entry(matching_element.as_node().deref())
+                        .or_insert_with(|| HashMap::with_capacity(16));
+                    for (name, value) in &declarations {
+                        match element_styles.entry(name.to_string()) {
+                            Entry::Occupied(mut entry) => {
+                                if entry.get().0 <= specificity {
+                                    entry.insert((specificity, value.to_string()));
+                                }
+                            }
+                            Entry::Vacant(entry) => {
+                                entry.insert((specificity, value.to_string()));
+                            }
                         }
-                        attributes.insert("style", final_styles);
-                    };
+                    }
                 }
             }
+            // Skip selectors that can't be parsed
+            // Ignore not parsable entries. E.g. there is no parser for @media queries
+            // Which means that they will fall into this category and will be ignored
         }
-        // Skip selectors that can't be parsed
-        // Ignore not parsable entries. E.g. there is no parser for @media queries
-        // Which means that they will fall into this category and will be ignored
     }
     Ok(())
 }
@@ -394,16 +447,19 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
 }
 
-fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration<'_>]) -> Result<String> {
+fn merge_styles(
+    existing_style: &str,
+    new_styles: &HashMap<String, (Specificity, String)>,
+) -> Result<String> {
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // New rules override old ones and we store selectors inline to check the old rules later
-    let mut buffer: SmallVec<[&CowRcStr<'_>; 8]> = smallvec![];
+    let mut buffer: SmallVec<[&str; 8]> = smallvec![];
     let mut final_styles = String::with_capacity(256);
-    for (property, value) in new_styles {
+    for (property, (_, value)) in new_styles {
         final_styles.push_str(property);
         final_styles.push(':');
         final_styles.push_str(value);
@@ -414,7 +470,7 @@ fn merge_styles(existing_style: &str, new_styles: &[parser::Declaration<'_>]) ->
     for declaration in declarations {
         let (name, value) = declaration?;
         // Usually this buffer is small and it is faster than checking a {Hash,BTree}Map
-        if !buffer.contains(&&name) {
+        if !buffer.contains(&name.as_ref()) {
             final_styles.push_str(&name);
             final_styles.push(':');
             final_styles.push_str(value);

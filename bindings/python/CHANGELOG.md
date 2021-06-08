@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Ignored selectors specificity. [#108](https://github.com/Stranger6667/css-inline/issues/108)
+
+### Changed
+
 - Upgrade `Pyo3` to `0.13`.
 
 ## [0.6.2] - 2021-01-28
