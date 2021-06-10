@@ -104,7 +104,9 @@
     rust_2018_idioms,
     rust_2018_compatibility
 )]
-use kuchiki::{parse_html, traits::TendrilSink, Node, NodeRef, Specificity};
+use kuchiki::{
+    parse_html, traits::TendrilSink, ElementData, Node, NodeDataRef, NodeRef, Specificity,
+};
 
 pub mod error;
 mod parser;
@@ -278,7 +280,7 @@ impl<'a> CSSInliner<'a> {
         // Internally, their raw pointers are used to implement `Eq`, which seems like the only
         // reasonable approach to compare them (performance-wise).
         let mut styles = HashMap::with_capacity(128);
-        let mut style_tags = Vec::with_capacity(4);
+        let mut style_tags: SmallVec<[NodeDataRef<ElementData>; 4]> = smallvec![];
         if self.options.inline_style_tags {
             for style_tag in document
                 .select("style")
