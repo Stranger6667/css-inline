@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.1] - 2021-06-10
+
 ### Fixed
 
 - Ignored `style` tags when the document contains multiple of them and the `remove_style_tags: true` config option is used. [#110](https://github.com/Stranger6667/css-inline/issues/110)
@@ -129,7 +131,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.1...HEAD
+[0.7.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.0...rust-v0.7.1
 [0.7.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.6.1...rust-v0.7.0
 [0.6.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.6.0...rust-v0.6.1
 [0.6.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.5.0...rust-v0.6.0
