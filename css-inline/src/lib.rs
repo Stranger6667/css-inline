@@ -278,6 +278,7 @@ impl<'a> CSSInliner<'a> {
         // Internally, their raw pointers are used to implement `Eq`, which seems like the only
         // reasonable approach to compare them (performance-wise).
         let mut styles = HashMap::with_capacity(128);
+        let mut style_tags = Vec::with_capacity(4);
         if self.options.inline_style_tags {
             for style_tag in document
                 .select("style")
@@ -289,14 +290,19 @@ impl<'a> CSSInliner<'a> {
                     }
                 }
                 if self.options.remove_style_tags {
-                    style_tag.as_node().detach()
+                    style_tags.push(style_tag)
                 }
             }
-        } else if self.options.remove_style_tags {
-            for style_tag in document
-                .select("style")
-                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
-            {
+        }
+        if self.options.remove_style_tags {
+            if !self.options.inline_style_tags {
+                style_tags.extend(
+                    document
+                        .select("style")
+                        .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?,
+                )
+            }
+            for style_tag in &style_tags {
                 style_tag.as_node().detach()
             }
         }

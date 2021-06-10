@@ -1,5 +1,5 @@
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use css_inline::{inline, InlineError};
+use css_inline::{inline, CSSInliner, InlineError};
 
 fn simple(c: &mut Criterion) {
     let html = black_box(
@@ -52,6 +52,36 @@ fn merging(c: &mut Criterion) {
 </html>"#,
     );
     c.bench_function("merging styles", |b| b.iter(|| inline(html).unwrap()));
+}
+
+fn removing_tags(c: &mut Criterion) {
+    let html = black_box(
+        r#"<html>
+<head>
+<style>
+h1 {
+    text-decoration: none;
+}
+</style>
+<style>
+.test-class {
+        color: #ffffff;
+}
+a {
+        color: #17bebb;
+}
+</style>
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+</body>
+</html>"#,
+    );
+    let inliner = CSSInliner::compact();
+    c.bench_function("removing tags", |b| {
+        b.iter(|| inliner.inline(html).unwrap())
+    });
 }
 
 fn big_email(c: &mut Criterion) {
@@ -161,5 +191,12 @@ BEGIN FOOTER
     c.bench_function("big email", |b| b.iter(|| inline(html).unwrap()));
 }
 
-criterion_group!(benches, simple, merging, big_email, error_formatting);
+criterion_group!(
+    benches,
+    simple,
+    merging,
+    removing_tags,
+    big_email,
+    error_formatting
+);
 criterion_main!(benches);
