@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Ignored `style` tags when the document contains multiple of them and the `remove_style_tags: true` config option is used. [#110](https://github.com/Stranger6667/css-inline/issues/110)
+
 ## [0.7.0] - 2021-06-09
 
 ### Fixed

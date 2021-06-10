@@ -128,6 +128,93 @@ fn remove_style_tag() {
 }
 
 #[test]
+fn remove_multiple_style_tags() {
+    let html = r#"
+<html>
+<head>
+<style>
+h1 {
+    text-decoration: none;
+}
+</style>
+<style>
+.test-class {
+        color: #ffffff;
+}
+a {
+        color: #17bebb;
+}
+</style>
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+</body>
+</html>
+    "#;
+    let inliner = CSSInliner::compact();
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head>
+
+
+</head>
+<body>
+<a class="test-class" href="https://example.com" style="color: #ffffff;">Test</a>
+<h1 style="text-decoration: none;">Test</h1>
+
+
+    </body></html>"#
+    )
+}
+
+#[test]
+fn remove_multiple_style_tags_without_inlining() {
+    let html = r#"
+<html>
+<head>
+<style>
+h1 {
+    text-decoration: none;
+}
+</style>
+<style>
+.test-class {
+        color: #ffffff;
+}
+a {
+        color: #17bebb;
+}
+</style>
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+</body>
+</html>
+    "#;
+    let inliner = CSSInliner::options()
+        .remove_style_tags(true)
+        .inline_style_tags(false)
+        .build();
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head>
+
+
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+
+
+    </body></html>"#
+    )
+}
+
+#[test]
 fn do_not_process_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
