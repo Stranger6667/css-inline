@@ -111,11 +111,12 @@ use kuchiki::{
 pub mod error;
 mod parser;
 
+use ahash::AHashMap;
 pub use error::InlineError;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
-    collections::{hash_map::Entry, HashMap},
+    collections::hash_map::Entry,
     fs::File,
     io::{Read, Write},
 };
@@ -288,7 +289,7 @@ impl<'a> CSSInliner<'a> {
         // and then reused, which allows O(1) access to find them.
         // Internally, their raw pointers are used to implement `Eq`, which seems like the only
         // reasonable approach to compare them (performance-wise).
-        let mut styles = HashMap::with_capacity(128);
+        let mut styles = AHashMap::with_capacity(128);
         let mut style_tags: SmallVec<[NodeDataRef<ElementData>; 4]> = smallvec![];
         if self.options.inline_style_tags {
             for style_tag in document
@@ -405,7 +406,7 @@ type NodeId = *const Node;
 fn process_css(
     document: &NodeRef,
     css: &str,
-    styles: &mut HashMap<NodeId, HashMap<String, (Specificity, String)>>,
+    styles: &mut AHashMap<NodeId, AHashMap<String, (Specificity, String)>>,
 ) {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = cssparser::Parser::new(&mut parse_input);
@@ -421,7 +422,7 @@ fn process_css(
                 for matching_element in matching_elements {
                     let element_styles = styles
                         .entry(&**matching_element.as_node())
-                        .or_insert_with(|| HashMap::with_capacity(16));
+                        .or_insert_with(|| AHashMap::with_capacity(8));
                     for (name, value) in &declarations {
                         match element_styles.entry(name.to_string()) {
                             Entry::Occupied(mut entry) => {
@@ -464,7 +465,7 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
 
 fn merge_styles(
     existing_style: &str,
-    new_styles: &HashMap<String, (Specificity, String)>,
+    new_styles: &AHashMap<String, (Specificity, String)>,
 ) -> Result<String> {
     // Parse existing declarations in "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);

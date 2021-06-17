@@ -5,6 +5,7 @@
 ### Performance
 
 - Use specialized `to_string` implementation on `&&str`.
+- Use `ahash`.
 
 ## [0.7.1] - 2021-06-10
 
