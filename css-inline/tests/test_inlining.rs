@@ -153,7 +153,7 @@ a {
 </html>
     "#;
     let inliner = CSSInliner::compact();
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(html).unwrap();
     assert_eq!(
         result,
         r#"<html><head>
@@ -198,7 +198,7 @@ a {
         .remove_style_tags(true)
         .inline_style_tags(false)
         .build();
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(html).unwrap();
     assert_eq!(
         result,
         r#"<html><head>
@@ -277,7 +277,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(&html).unwrap();
+    let result = inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
@@ -303,7 +303,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(&html).unwrap();
+    let result = inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
@@ -329,7 +329,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(&html).unwrap();
+    let result = inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
@@ -360,7 +360,7 @@ h2 { color: red; }
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
@@ -391,7 +391,7 @@ h2 { color: red; }
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
@@ -407,8 +407,8 @@ fn customize_inliner() {
         load_remote_stylesheets: false,
         ..Default::default()
     };
-    assert_eq!(options.load_remote_stylesheets, false);
-    assert_eq!(options.remove_style_tags, false);
+    assert!(!options.load_remote_stylesheets);
+    assert!(!options.remove_style_tags);
     assert_eq!(options.base_url, None);
 }
 
