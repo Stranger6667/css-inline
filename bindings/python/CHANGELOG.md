@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Minor performance improvements
+
 ## [0.7.1] - 2021-06-10
 
 ### Fixed

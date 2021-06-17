@@ -118,7 +118,6 @@ use std::{
     collections::{hash_map::Entry, HashMap},
     fs::File,
     io::{Read, Write},
-    ops::Deref,
 };
 pub use url::{ParseError, Url};
 
@@ -142,6 +141,7 @@ pub struct InlineOptions<'a> {
 
 impl<'a> InlineOptions<'a> {
     /// Options for "compact" HTML output.
+    #[must_use]
     #[inline]
     pub const fn compact() -> Self {
         InlineOptions {
@@ -154,36 +154,42 @@ impl<'a> InlineOptions<'a> {
     }
 
     /// Override whether "style" tags should be inlined.
+    #[must_use]
     pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
         self.inline_style_tags = inline_style_tags;
         self
     }
 
     /// Override whether "style" tags should be removed after processing.
+    #[must_use]
     pub fn remove_style_tags(mut self, remove_style_tags: bool) -> Self {
         self.remove_style_tags = remove_style_tags;
         self
     }
 
     /// Set base URL that will be used for loading external stylesheets via relative URLs.
+    #[must_use]
     pub fn base_url(mut self, base_url: Option<Url>) -> Self {
         self.base_url = base_url;
         self
     }
 
     /// Override whether remote stylesheets should be loaded.
+    #[must_use]
     pub fn load_remote_stylesheets(mut self, load_remote_stylesheets: bool) -> Self {
         self.load_remote_stylesheets = load_remote_stylesheets;
         self
     }
 
     /// Set additional CSS to inline.
+    #[must_use]
     pub fn extra_css(mut self, extra_css: Option<Cow<'a, str>>) -> Self {
         self.extra_css = extra_css;
         self
     }
 
     /// Create a new `CSSInliner` instance from this options.
+    #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
         CSSInliner::new(self)
     }
@@ -212,6 +218,7 @@ pub struct CSSInliner<'a> {
 
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
+    #[must_use]
     #[inline]
     pub const fn new(options: InlineOptions<'a>) -> Self {
         CSSInliner { options }
@@ -236,6 +243,7 @@ impl<'a> CSSInliner<'a> {
     /// # }
     /// # run().unwrap();
     /// ```
+    #[must_use]
     #[inline]
     pub fn options() -> InlineOptions<'a> {
         InlineOptions::default()
@@ -243,8 +251,9 @@ impl<'a> CSSInliner<'a> {
 
     /// Inliner, that will produce "compact" HTML.
     /// For example, "style" tags will be removed.
+    #[must_use]
     #[inline]
-    pub fn compact() -> Self {
+    pub const fn compact() -> Self {
         CSSInliner {
             options: InlineOptions::compact(),
         }
@@ -288,11 +297,11 @@ impl<'a> CSSInliner<'a> {
             {
                 if let Some(first_child) = style_tag.as_node().first_child() {
                     if let Some(css_cell) = first_child.as_text() {
-                        process_css(&document, css_cell.borrow().as_str(), &mut styles)?;
+                        process_css(&document, css_cell.borrow().as_str(), &mut styles);
                     }
                 }
                 if self.options.remove_style_tags {
-                    style_tags.push(style_tag)
+                    style_tags.push(style_tag);
                 }
             }
         }
@@ -302,10 +311,10 @@ impl<'a> CSSInliner<'a> {
                     document
                         .select("style")
                         .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?,
-                )
+                );
             }
             for style_tag in &style_tags {
-                style_tag.as_node().detach()
+                style_tag.as_node().detach();
             }
         }
         if self.options.load_remote_stylesheets {
@@ -320,12 +329,12 @@ impl<'a> CSSInliner<'a> {
                 if !href.is_empty() {
                     let url = self.get_full_url(href);
                     let css = load_external(url.as_ref())?;
-                    process_css(&document, css.as_str(), &mut styles)?;
+                    process_css(&document, css.as_str(), &mut styles);
                 }
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            process_css(&document, extra_css, &mut styles)?;
+            process_css(&document, extra_css, &mut styles);
         }
         for (node_id, styles) in styles {
             // SAFETY: All nodes are alive as long as `document` is in scope.
@@ -341,7 +350,7 @@ impl<'a> CSSInliner<'a> {
                 .try_borrow_mut()
             {
                 if let Some(existing_style) = attributes.get_mut("style") {
-                    *existing_style = merge_styles(existing_style, &styles)?
+                    *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
                     let mut final_styles = String::with_capacity(128);
                     for (name, (_, value)) in styles {
@@ -367,11 +376,10 @@ impl<'a> CSSInliner<'a> {
             // Use the same scheme as the base URL
             if href.starts_with("//") {
                 return Cow::Owned(format!("{}:{}", base_url.scheme(), href));
-            } else {
-                // Not a URL, then it is a relative URL
-                if let Ok(new_url) = base_url.join(href) {
-                    return Cow::Owned(new_url.into());
-                }
+            }
+            // Not a URL, then it is a relative URL
+            if let Ok(new_url) = base_url.join(href) {
+                return Cow::Owned(new_url.into());
             }
         };
         // If it is not a valid URL and there is no base URL specified, we assume a local path
@@ -398,7 +406,7 @@ fn process_css(
     document: &NodeRef,
     css: &str,
     styles: &mut HashMap<NodeId, HashMap<String, (Specificity, String)>>,
-) -> Result<()> {
+) {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = cssparser::Parser::new(&mut parse_input);
     let rule_list =
@@ -412,17 +420,17 @@ fn process_css(
                 let specificity = matching_elements.selectors.0[0].specificity();
                 for matching_element in matching_elements {
                     let element_styles = styles
-                        .entry(matching_element.as_node().deref())
+                        .entry(&**matching_element.as_node())
                         .or_insert_with(|| HashMap::with_capacity(16));
                     for (name, value) in &declarations {
                         match element_styles.entry(name.to_string()) {
                             Entry::Occupied(mut entry) => {
                                 if entry.get().0 <= specificity {
-                                    entry.insert((specificity, value.to_string()));
+                                    entry.insert((specificity, (*value).to_string()));
                                 }
                             }
                             Entry::Vacant(entry) => {
-                                entry.insert((specificity, value.to_string()));
+                                entry.insert((specificity, (*value).to_string()));
                             }
                         }
                     }
@@ -433,7 +441,6 @@ fn process_css(
             // Which means that they will fall into this category and will be ignored
         }
     }
-    Ok(())
 }
 
 impl Default for CSSInliner<'_> {

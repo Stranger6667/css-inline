@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Use specialized `to_string` implementation on `&&str`.
+
 ## [0.7.1] - 2021-06-10
 
 ### Fixed
