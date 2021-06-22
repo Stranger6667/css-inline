@@ -467,27 +467,26 @@ fn merge_styles(
     existing_style: &str,
     new_styles: &AHashMap<String, (Specificity, String)>,
 ) -> Result<String> {
-    // Parse existing declarations in "style" attribute
+    // Parse existing declarations in the "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
-    // New rules override old ones and we store selectors inline to check the old rules later
-    let mut buffer: SmallVec<[&str; 8]> = smallvec![];
+    // New rules should not override old ones and we store selectors inline to check the old rules later
+    let mut buffer: SmallVec<[String; 8]> = smallvec![];
     let mut final_styles = String::with_capacity(256);
-    for (property, (_, value)) in new_styles {
-        final_styles.push_str(property);
+    for declaration in declarations {
+        let (name, value) = declaration?;
+        final_styles.push_str(&name);
         final_styles.push(':');
         final_styles.push_str(value);
         final_styles.push(';');
-        // This property won't be taken from existing styles. i.e. it is overridden by new styles
-        buffer.push(property);
+        // This property won't be taken from new styles
+        buffer.push(name.to_string())
     }
-    for declaration in declarations {
-        let (name, value) = declaration?;
-        // Usually this buffer is small and it is faster than checking a {Hash,BTree}Map
-        if !buffer.contains(&name.as_ref()) {
-            final_styles.push_str(&name);
+    for (property, (_, value)) in new_styles {
+        if !buffer.contains(property) {
+            final_styles.push_str(property);
             final_styles.push(':');
             final_styles.push_str(value);
             final_styles.push(';');
