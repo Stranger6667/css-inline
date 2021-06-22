@@ -25,7 +25,7 @@ attohttpc = { version = "0", default-features = false, features = ["compress", "
 url = "2"
 smallvec = "1"
 ahash = "0.7"
-pico-args = { version = "0.3.2", optional = true }
+pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.3.1", optional = true }
 
 [dev-dependencies]
