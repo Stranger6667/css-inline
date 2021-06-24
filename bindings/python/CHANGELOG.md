@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.3] - 2021-06-24
+
 ### Performance
 
 - Improve performance for error handling.
@@ -134,7 +136,9 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.3...HEAD
+[0.7.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.2...python-v0.7.3
+[0.7.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.1...python-v0.7.2
 [0.7.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.0...python-v0.7.1
 [0.7.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.2...python-v0.7.0
 [0.6.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.6.1...python-v0.6.2
