@@ -27,7 +27,35 @@ fn simple(c: &mut Criterion) {
 
 fn error_formatting(c: &mut Criterion) {
     let error = black_box(InlineError::ParseError("Error description".into()));
-    c.bench_function("error formatting", |b| b.iter(|| format!("{}", error)));
+    c.bench_function("parse error formatting", |b| b.iter(|| error.to_string()));
+}
+
+fn io_error_formatting(c: &mut Criterion) {
+    let error = black_box(
+        inline(
+            r#"
+<html>
+<head><link href="unknown.css" rel="stylesheet" type="text/css"></head>
+<body></body>
+</html>"#,
+        )
+        .expect_err("It is an error"),
+    );
+    c.bench_function("io error formatting", |b| b.iter(|| error.to_string()));
+}
+
+fn network_error_formatting(c: &mut Criterion) {
+    let error = black_box(
+        inline(
+            r#"
+<html>
+<head><link href="http://127.0.0.1:0/unknown.css" rel="stylesheet" type="text/css"></head>
+<body></body>
+</html>"#,
+        )
+        .expect_err("It is an error"),
+    );
+    c.bench_function("network error formatting", |b| b.iter(|| error.to_string()));
 }
 
 fn merging(c: &mut Criterion) {
@@ -197,6 +225,8 @@ criterion_group!(
     merging,
     removing_tags,
     big_email,
-    error_formatting
+    error_formatting,
+    io_error_formatting,
+    network_error_formatting,
 );
 criterion_main!(benches);

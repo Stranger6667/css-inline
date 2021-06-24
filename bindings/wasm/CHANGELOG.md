@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Improve performance for error handling.
+
 ## [0.7.2] - 2021-06-22
 
 ### Fixed
