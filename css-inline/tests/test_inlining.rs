@@ -1,21 +1,6 @@
+#[macro_use]
+mod utils;
 use css_inline::{inline, CSSInliner, InlineOptions, Url};
-
-macro_rules! html {
-    ($style: expr, $body: expr) => {
-        format!(
-            r#"<html><head><title>Test</title><style>{}</style></head><body>{}</body></html>"#,
-            $style, $body
-        )
-    };
-}
-
-macro_rules! assert_inlined {
-    (style = $style: expr, body = $body: expr, expected = $expected: expr) => {{
-        let html = html!($style, $body);
-        let inlined = inline(&html).unwrap();
-        assert_eq!(inlined, html!($style, $expected))
-    }};
-}
 
 #[test]
 fn no_existing_style() {
