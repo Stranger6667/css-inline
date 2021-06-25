@@ -114,12 +114,7 @@ mod parser;
 use ahash::AHashMap;
 pub use error::InlineError;
 use smallvec::{smallvec, SmallVec};
-use std::{
-    borrow::Cow,
-    collections::hash_map::Entry,
-    fs::File,
-    io::{Read, Write},
-};
+use std::{borrow::Cow, collections::hash_map::Entry, fs, io::Write};
 pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.
@@ -393,10 +388,7 @@ fn load_external(url: &str) -> Result<String> {
         let response = attohttpc::get(url).send()?;
         Ok(response.text()?)
     } else {
-        let mut file = File::open(url)?;
-        let mut css = String::new();
-        file.read_to_string(&mut css)?;
-        Ok(css)
+        fs::read_to_string(url).map_err(InlineError::IO)
     }
 }
 
