@@ -5,9 +5,9 @@
 [![docs.rs](https://docs.rs/css-inline/badge.svg)](https://docs.rs/css-inline/)
 [![gitter](https://img.shields.io/gitter/room/Stranger6667/css-inline.svg)](https://gitter.im/Stranger6667/css-inline)
 
-A crate for inlining CSS into HTML documents. When you send HTML emails, you need to use "style" attributes instead of "style" tags.
+A crate for inlining CSS into HTML documents. It is built with Mozilla's Servo project components. 
 
-For example, this HTML:
+When you send HTML emails, you need to use "style" attributes instead of "style" tags. For example, this HTML:
 
 ```html
 <html>

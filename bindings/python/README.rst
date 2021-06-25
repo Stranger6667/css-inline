@@ -3,7 +3,7 @@ css_inline
 
 |Build| |Version| |Python versions| |License|
 
-Fast CSS inlining for Python implemented in Rust.
+Blazing-fast CSS inlining for Python implemented with Mozilla's Servo project components.
 
 Features:
 
@@ -11,6 +11,9 @@ Features:
 - Resolving external stylesheets (including local files);
 - Control if ``style`` tags should be processed;
 - Additional CSS to inline;
+- Inlining multiple documents in parallel (via Rust-level threads)
+
+The project supports CSS Syntax Level 3.
 
 Installation
 ------------
@@ -41,6 +44,17 @@ To inline CSS in a HTML document:
     </html>"""
 
     inlined = css_inline.inline(HTML)
+    # HTML becomes this:
+    #
+    # <html>
+    # <head>
+    #    <title>Test</title>
+    #    <style>h1 { color:blue; }</style>
+    # </head>
+    # <body>
+    #     <h1 style="color:blue;">Big Text</h1>
+    # </body>
+    # </html>
 
 If you want to inline many HTML documents, you can utilize ``inline_many`` that processes the input in parallel.
 
@@ -48,9 +62,11 @@ If you want to inline many HTML documents, you can utilize ``inline_many`` that 
 
     import css_inline
 
-    css_inline.inline_many(["...", "..."])
+    css_inline.inline_many(["<...>", "<...>"])
 
-For customization options use ``CSSInliner`` class:
+``inline_many`` will use Rust-level threads; thus, you can expect it's running faster than ``css_inline.inline`` via Python's ``multiprocessing`` or ``threading`` modules.
+
+For customization options use the ``CSSInliner`` class:
 
 .. code:: python
 
@@ -63,7 +79,7 @@ Performance
 -----------
 
 Due to the usage of efficient tooling from Mozilla's Servo project (``html5ever``, ``rust-cssparser`` and others) this
-library has good performance characteristics. In comparison with other Python projects, it is ~7-15x faster than the nearest competitor.
+library has excellent performance characteristics. In comparison with other Python projects, it is ~6-15x faster than the nearest alternative.
 
 For inlining CSS in the html document from the ``Usage`` section above we have the following breakdown in our benchmarks:
 
