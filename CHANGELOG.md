@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Optimize loading of external files.
+
 ## [0.7.3] - 2021-06-24
 
 ### Performance

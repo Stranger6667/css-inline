@@ -25,6 +25,22 @@ fn simple(c: &mut Criterion) {
     c.bench_function("simple HTML", |b| b.iter(|| inline(html).unwrap()));
 }
 
+fn external(c: &mut Criterion) {
+    let html = black_box(
+        r#"<html>
+<head><link href="benches/styles.css" rel="stylesheet" type="text/css"></head>
+<body>
+    <h1>Big Text</h1>
+    <p>
+        <strong>Solid</strong>
+    </p>
+    <p class="footer">Foot notes</p>
+</body>
+</html>"#,
+    );
+    c.bench_function("External CSS", |b| b.iter(|| inline(html).unwrap()));
+}
+
 fn error_formatting(c: &mut Criterion) {
     let error = black_box(InlineError::ParseError("Error description".into()));
     c.bench_function("parse error formatting", |b| b.iter(|| error.to_string()));
@@ -222,6 +238,7 @@ BEGIN FOOTER
 criterion_group!(
     benches,
     simple,
+    external,
     merging,
     removing_tags,
     big_email,
