@@ -384,7 +384,7 @@ impl<'a> CSSInliner<'a> {
 }
 
 fn load_external(url: &str) -> Result<String> {
-    if url.starts_with("http") | url.starts_with("https") {
+    if url.starts_with("https") | url.starts_with("http") {
         let response = attohttpc::get(url).send()?;
         Ok(response.text()?)
     } else {
