@@ -318,15 +318,14 @@ impl<'a> CSSInliner<'a> {
                 .select("link[rel~=stylesheet]")
                 .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
                 .filter_map(|link_tag| link_tag.attributes.borrow().get("href").map(str::to_string))
+                .filter(|link| !link.is_empty())
                 .collect::<Vec<String>>();
             links.sort_unstable();
             links.dedup();
             for href in &links {
-                if !href.is_empty() {
-                    let url = self.get_full_url(href);
-                    let css = load_external(url.as_ref())?;
-                    process_css(&document, css.as_str(), &mut styles);
-                }
+                let url = self.get_full_url(href);
+                let css = load_external(url.as_ref())?;
+                process_css(&document, css.as_str(), &mut styles);
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
