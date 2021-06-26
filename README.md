@@ -83,6 +83,10 @@ fn main() -> Result<(), css_inline::InlineError> {
 - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
 - `extra_css`. Additional CSS to inline. Default: `None`
 
+## Bindings
+
+There are bindings for Python and WebAssembly in the `bindings` directory.
+
 ## Command Line Interface
 
 `css-inline` provides a command-line interface:
