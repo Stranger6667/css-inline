@@ -1,6 +1,7 @@
 # css-inline
 
 [![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
+[![npm version](https://badge.fury.io/js/css-inline.svg)](https://badge.fury.io/js/css-inline)
 
 Blazing-fast WASM package for inlining CSS into HTML documents.
 
