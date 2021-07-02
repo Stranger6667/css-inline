@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `rayon` to `1.5`.
+
 ### Performance
 
 - Optimize loading of external files.

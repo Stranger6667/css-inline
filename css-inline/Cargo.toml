@@ -5,9 +5,9 @@ authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2018"
 license = "MIT"
 readme = "../README.md"
-description = "A crate for inlining CSS into HTML documents"
+description = "A crate for inlining CSS into 'style' HTML attributes."
 repository = "https://github.com/Stranger6667/css-inline"
-keywords = ["html", "css", "css-inline"]
+keywords = ["html", "css", "css-inline", "email"]
 exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore", "tests"]
 categories = ["web-programming"]
 
@@ -26,7 +26,7 @@ url = "2"
 smallvec = "1"
 ahash = "0.7"
 pico-args = { version = "0.3", optional = true }
-rayon = { version = "1.3.1", optional = true }
+rayon = { version = "1.5", optional = true }
 
 [dev-dependencies]
 criterion = ">= 0.1"
