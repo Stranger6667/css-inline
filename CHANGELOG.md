@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.4] - 2021-07-06
+
 ### Changed
 
 - Update `rayon` to `1.5`.
@@ -156,7 +158,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.4...HEAD
+[0.7.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.3...rust-v0.7.4
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.2...rust-v0.7.3
 [0.7.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.1...rust-v0.7.2
 [0.7.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.0...rust-v0.7.1
