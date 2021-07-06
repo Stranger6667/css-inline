@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `PyO3` to `0.14.1`.
+
 ### Performance
 
 - Optimize loading of external files.
