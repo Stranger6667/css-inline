@@ -66,7 +66,9 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
 ///
 /// Customizable CSS inliner.
 #[pyclass]
-#[text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
+#[pyo3(
+    text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"
+)]
 struct CSSInliner {
     inner: rust_inline::CSSInliner<'static>,
 }
@@ -96,7 +98,7 @@ impl CSSInliner {
     /// inline(html)
     ///
     /// Inline CSS in the given HTML document
-    #[text_signature = "(html)"]
+    #[pyo3(text_signature = "(html)")]
     fn inline(&self, html: &str) -> PyResult<String> {
         Ok(self.inner.inline(html).map_err(InlineErrorWrapper)?)
     }
@@ -104,7 +106,7 @@ impl CSSInliner {
     /// inline_many(htmls)
     ///
     /// Inline CSS in multiple HTML documents
-    #[text_signature = "(htmls)"]
+    #[pyo3(text_signature = "(htmls)")]
     fn inline_many(&self, htmls: &PyList) -> PyResult<Vec<String>> {
         inline_many_impl(&self.inner, htmls)
     }
@@ -114,7 +116,9 @@ impl CSSInliner {
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
-#[text_signature = "(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
+#[pyo3(
+    text_signature = "(html, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"
+)]
 fn inline(
     html: &str,
     inline_style_tags: Option<bool>,
@@ -138,7 +142,9 @@ fn inline(
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
-#[text_signature = "(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"]
+#[pyo3(
+    text_signature = "(htmls, inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"
+)]
 fn inline_many(
     htmls: &PyList,
     inline_style_tags: Option<bool>,
@@ -185,6 +191,8 @@ fn css_inline(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     let inline_error = py.get_type::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
+    // Wait until `pyo3_built` is updated
+    #[allow(deprecated)]
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
     Ok(())
 }
