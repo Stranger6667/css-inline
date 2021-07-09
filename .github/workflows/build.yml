@@ -193,3 +193,44 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./bindings/wasm
+
+  apple-silicon-wheels:
+    name: dist (aarch64-apple-darwin)
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        os: [ macos-latest]
+        python-version: [ '3.5', '3.6', '3.7', '3.8', '3.9' ]
+    env:
+      SELECT_XCODE: /Applications/Xcode_12.2.app
+
+    steps:
+      - name: Select XCode version
+        run: sudo xcode-select -s "${SELECT_XCODE}"
+
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          target: aarch64-apple-darwin
+          profile: minimal
+          override: true
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: 'x64'
+      - name: Install Tox & auditwheel
+        run: pip install tox auditwheel
+      - name: Dist
+        run: tox -e build-wheel
+        working-directory: ./bindings/python
+      - run: unzip -u dist/*.whl
+        working-directory: ./bindings/python
+      - run: cat *.dist-info/WHEEL
+        working-directory: ./bindings/python
+      - run: pip install dist/*
+        working-directory: ./bindings/python
