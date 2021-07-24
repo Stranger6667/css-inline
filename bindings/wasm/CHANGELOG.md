@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.5] - 2021-07-24
+
 ### Fixed
 
 - Panic on invalid URLs for remote stylesheets.
@@ -71,8 +73,9 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.4...HEAD
-[0.7.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.3...wasm-v0.7.4
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.5...HEAD
+[0.7.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.4...wasm-v0.7.5
+[0.7.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.3...wasm-v0.7.3
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.2...wasm-v0.7.3
 [0.7.2]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.1...wasm-v0.7.2
 [0.7.1]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.0...wasm-v0.7.1
