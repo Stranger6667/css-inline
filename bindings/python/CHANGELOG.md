@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.5] - 2021-07-24
+
 ### Fixed
 
 - Panic on invalid URLs for remote stylesheets.
@@ -150,7 +152,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.5...HEAD
+[0.7.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.4...python-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.3...python-v0.7.4
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.2...python-v0.7.3
 [0.7.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.1...python-v0.7.2
