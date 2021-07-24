@@ -351,6 +351,19 @@ h2 { color: red; }
 }
 
 #[test]
+fn remote_network_stylesheet_invalid_url() {
+    let html = r#"
+<html>
+<head>
+<link href="http:" rel="stylesheet" type="text/css">
+</head>
+<body>
+</body>
+</html>"#;
+    assert!(inline(html).is_err());
+}
+
+#[test]
 fn remote_network_stylesheet_same_scheme() {
     let html = r#"
 <html>

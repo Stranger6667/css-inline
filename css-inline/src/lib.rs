@@ -104,6 +104,7 @@
     rust_2018_idioms,
     rust_2018_compatibility
 )]
+use attohttpc::{Method, RequestBuilder};
 use kuchiki::{
     parse_html, traits::TendrilSink, ElementData, Node, NodeDataRef, NodeRef, Specificity,
 };
@@ -382,12 +383,13 @@ impl<'a> CSSInliner<'a> {
     }
 }
 
-fn load_external(url: &str) -> Result<String> {
-    if url.starts_with("https") | url.starts_with("http") {
-        let response = attohttpc::get(url).send()?;
+fn load_external(location: &str) -> Result<String> {
+    if location.starts_with("https") | location.starts_with("http") {
+        let request = RequestBuilder::try_new(Method::GET, location)?;
+        let response = request.send()?;
         Ok(response.text()?)
     } else {
-        fs::read_to_string(url).map_err(InlineError::IO)
+        fs::read_to_string(location).map_err(InlineError::IO)
     }
 }
 

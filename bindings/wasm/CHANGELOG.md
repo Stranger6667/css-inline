@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Panic on invalid URLs for remote stylesheets.
+
 ## [0.7.4] - 2021-07-06
 
 ### Performance
