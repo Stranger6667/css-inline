@@ -30,7 +30,7 @@ def call_setup():
         maintainer="Dmitry Dygalo",
         maintainer_email="dadygalo@gmail.com",
         python_requires=">=3.6",
-        url="https://github.com/Stranger6667/css-inline/tree/master/python",
+        url="https://github.com/Stranger6667/css-inline",
         license="MIT",
         rust_extensions=[RustExtension("css_inline", binding=Binding.PyO3)],
         classifiers=[
