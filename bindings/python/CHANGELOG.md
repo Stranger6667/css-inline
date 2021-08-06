@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.7.6] - 2021-08-06
+
+### Fixed
+
+- Docs: Link to the project homepage in `setup.py`.
+
 ## [0.7.5] - 2021-07-24
 
 ### Fixed
@@ -152,7 +158,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.6...HEAD
+[0.7.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.5...python-v0.7.6
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.4...python-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.3...python-v0.7.4
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.2...python-v0.7.3
