@@ -127,6 +127,13 @@ OPTIONS:
         Additional CSS to inline.
 ```
 
+## Extra materials
+
+If you want to know how this library was created & how it works internally, you could take a look at these articles:
+
+- [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
+- [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
+
 ## Support
 
 If you have anything to discuss regarding this library, please, join our [gitter](https://gitter.im/Stranger6667/css-inline)!
