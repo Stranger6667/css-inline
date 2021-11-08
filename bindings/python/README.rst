@@ -103,6 +103,14 @@ Python support
 
 ``css_inline`` supports Python 3.6, 3.7, 3.8, and 3.9.
 
+Extra materials
+---------------
+
+If you want to know how this library was created & how it works internally, you could take a look at these articles:
+
+- `Rust crate <https://dygalo.dev/blog/rust-for-a-pythonista-2/>`_
+- `Python bindings <https://dygalo.dev/blog/rust-for-a-pythonista-3/>`_
+
 License
 -------
 
