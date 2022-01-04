@@ -55,8 +55,7 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
 }
 
 impl<'i> cssparser::AtRuleParser<'i> for CSSRuleListParser {
-    type PreludeNoBlock = &'i str;
-    type PreludeBlock = &'i str;
+    type Prelude = &'i str;
     type AtRule = QualifiedRule<'i>;
     type Error = ();
 }
@@ -64,8 +63,7 @@ impl<'i> cssparser::AtRuleParser<'i> for CSSRuleListParser {
 /// Parsing for at-rules, e.g: `@charset "utf-8";`
 /// Since they are can not be inlined we use the default implementation, that rejects all at-rules.
 impl<'i> cssparser::AtRuleParser<'i> for CSSDeclarationListParser {
-    type PreludeNoBlock = String;
-    type PreludeBlock = String;
+    type Prelude = String;
     type AtRule = Declaration<'i>;
     type Error = ();
 }
