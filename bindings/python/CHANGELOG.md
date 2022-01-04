@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `PyO3` to `0.15.1`.
+
 ## [0.7.6] - 2021-08-06
 
 ### Fixed
