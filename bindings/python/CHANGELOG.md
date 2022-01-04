@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Python 3.10 builds.
+
 ### Changed
 
 - Update `PyO3` to `0.15.1`.
