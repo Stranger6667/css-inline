@@ -19,7 +19,7 @@ default = ["cli"]
 cli = ["pico-args", "rayon"]
 
 [dependencies]
-cssparser = "0.28"
+cssparser = "0.29"
 kuchiki = "0.8"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"] }
 url = "2"
