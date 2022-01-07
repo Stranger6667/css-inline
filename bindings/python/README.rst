@@ -79,24 +79,24 @@ Performance
 -----------
 
 Due to the usage of efficient tooling from Mozilla's Servo project (``html5ever``, ``rust-cssparser`` and others) this
-library has excellent performance characteristics. In comparison with other Python projects, it is ~6-15x faster than the nearest alternative.
+library has excellent performance characteristics. In comparison with other Python projects, it is ~9-18x faster than the nearest alternative.
 
 For inlining CSS in the html document from the ``Usage`` section above we have the following breakdown in our benchmarks:
 
-- ``css_inline 0.7.0`` - 25.21 us
-- ``premailer 3.7.0`` - 340.89 us (**x13.52**)
-- ``inlinestyler 0.2.4`` - 2.44 ms (**x96.78**)
-- ``pynliner 0.8.0`` - 2.78 ms (**x110.27**)
+- ``css_inline 0.7.0`` - 21.94 us
+- ``premailer 3.7.0`` - 403.48 us (**x18.39**)
+- ``inlinestyler 0.2.4`` - 2.84 ms (**x129.44**)
+- ``pynliner 0.8.0`` - 3.34 ms (**x152.23**)
 
 And for a more realistic email:
 
-- ``css_inline 0.6.0`` - 529.1 us
-- ``premailer 3.7.0`` - 3.38 ms (**x6.38**)
-- ``inlinestyler 0.2.4`` - 64.41 ms (**x121.73**)
-- ``pynliner 0.8.0`` - 93.11 ms (**x175.97**)
+- ``css_inline 0.7.7`` - 446.8 us
+- ``premailer 3.7.0`` - 4.10 ms (**x9.18**)
+- ``inlinestyler 0.2.4`` - 75.71 ms (**x169.43**)
+- ``pynliner 0.8.0`` - 124.13 ms (**x277.78**)
 
 You can take a look at the benchmarks' code at ``benches/bench.py`` file.
-The results above were measured with stable ``rustc 1.47.0``, ``Python 3.8.6`` on i8700K, and 32GB RAM.
+The results above were measured with stable ``rustc 1.57.0``, ``Python 3.9.9`` on i8700K, and 32GB RAM.
 
 Python support
 --------------
