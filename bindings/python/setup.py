@@ -20,7 +20,7 @@ except ImportError:
 def call_setup():
     setup(
         name="css_inline",
-        version="0.7.6",
+        version="0.7.7",
         description="Fast CSS inlining written in Rust",
         long_description=open("README.rst", encoding="utf-8").read(),
         long_description_content_type="text/x-rst",

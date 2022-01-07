@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.7] - 2022-01-07
+
 ### Added
 
 - Python 3.10 builds.
@@ -166,7 +168,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.6...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.7...HEAD
+[0.7.7]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.6...python-v0.7.7
 [0.7.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.5...python-v0.7.6
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.4...python-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.3...python-v0.7.4
