@@ -4,7 +4,7 @@ use std::{
     borrow::Cow,
     error::Error,
     ffi::OsString,
-    fs::File,
+    fs::{read_to_string, File},
     io::{self, Read, Write},
     path::Path,
 };
@@ -101,8 +101,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             args.files
                 .par_iter()
                 .map(|file_path| {
-                    File::open(file_path)
-                        .and_then(read_file)
+                    read_to_string(file_path)
                         .and_then(|contents| {
                             let path = Path::new(file_path);
                             let mut new_filename = OsString::from("inlined.");
@@ -129,9 +128,4 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
     }
     Ok(())
-}
-
-fn read_file(mut file: File) -> io::Result<String> {
-    let mut contents = String::with_capacity(1024);
-    file.read_to_string(&mut contents).and(Ok(contents))
 }

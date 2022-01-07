@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Use `std::fs::read_to_string` in CLI to avoid over/under allocating of the input buffer.
+
 ## [0.7.5] - 2021-07-24
 
 ### Fixed
