@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Invalid handling of double-quoted property values like in `font-family: "Open Sans"`. [#129](https://github.com/Stranger6667/css-inline/issues/129)
+
 ### Performance
 
 - Use `std::fs::read_to_string` in CLI to avoid over/under allocating of the input buffer.

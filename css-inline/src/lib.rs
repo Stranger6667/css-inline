@@ -118,6 +118,21 @@ use smallvec::{smallvec, SmallVec};
 use std::{borrow::Cow, collections::hash_map::Entry, fs, io::Write};
 pub use url::{ParseError, Url};
 
+/// Replace double quotes in property values.
+///
+/// This implementation is deliberately simplistic and covers only `font-family`, but escaping
+/// might be needed in other properties that accept strings.
+macro_rules! replace_double_quotes {
+    ($target:expr, $name:expr, $value:expr) => {
+        // Avoid allocation if there is no double quote in the input string
+        if $name.starts_with("font-family") && memchr::memchr(b'"', $value.as_bytes()).is_some() {
+            $target.push_str(&$value.replace('"', "\'"))
+        } else {
+            $target.push_str($value)
+        };
+    };
+}
+
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
 pub struct InlineOptions<'a> {
@@ -352,7 +367,7 @@ impl<'a> CSSInliner<'a> {
                     for (name, (_, value)) in styles {
                         final_styles.push_str(name.as_str());
                         final_styles.push(':');
-                        final_styles.push_str(value.as_str());
+                        replace_double_quotes!(final_styles, name, &value);
                         final_styles.push(';');
                     }
                     attributes.insert("style", final_styles);
@@ -472,7 +487,7 @@ fn merge_styles(
         let (name, value) = declaration?;
         final_styles.push_str(&name);
         final_styles.push(':');
-        final_styles.push_str(value);
+        replace_double_quotes!(final_styles, name, value);
         final_styles.push(';');
         // This property won't be taken from new styles
         buffer.push(name.to_string())
@@ -481,7 +496,7 @@ fn merge_styles(
         if !buffer.contains(property) {
             final_styles.push_str(property);
             final_styles.push(':');
-            final_styles.push_str(value);
+            replace_double_quotes!(final_styles, property, value);
             final_styles.push(';');
         }
     }
