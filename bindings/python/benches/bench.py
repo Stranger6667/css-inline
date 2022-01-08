@@ -5,6 +5,7 @@ import inlinestyler.utils
 import premailer
 import pynliner
 import pytest
+import toronado
 
 import css_inline
 
@@ -151,7 +152,7 @@ REALISTIC_HTMLS = [REALISTIC_HTML] * 100
 
 
 def parametrize_functions(
-    *funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler")
+    *funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler", "toronado")
 ):
     return pytest.mark.parametrize("func", funcs, ids=ids)
 
@@ -161,6 +162,7 @@ all_functions = parametrize_functions(
     premailer.transform,
     pynliner.fromString,
     inlinestyler.utils.inline_css,
+    toronado.from_string,
 )
 
 
@@ -174,7 +176,15 @@ all_many_functions = parametrize_functions(
     parallel(premailer.transform),
     parallel(pynliner.fromString),
     parallel(inlinestyler.utils.inline_css),
-    ids=("css_inline", "css_inline_pyprocess", "premailer", "pynliner", "inlinestyler"),
+    parallel(toronado.from_string),
+    ids=(
+        "css_inline",
+        "css_inline_pyprocess",
+        "premailer",
+        "pynliner",
+        "inlinestyler",
+        "toronado",
+    ),
 )
 
 
