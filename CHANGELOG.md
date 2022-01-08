@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.7.6] - 2022-01-08
+
 ### Fixed
 
 - Invalid handling of double-quoted property values like in `font-family: "Open Sans"`. [#129](https://github.com/Stranger6667/css-inline/issues/129)
@@ -172,7 +174,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.6...HEAD
+[0.7.6]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.5...rust-v0.7.6
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.4...rust-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.3...rust-v0.7.4
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.2...rust-v0.7.3
