@@ -5,6 +5,7 @@
 ### Fixed
 
 - Invalid handling of double-quoted property values like in `font-family: "Open Sans"`. [#129](https://github.com/Stranger6667/css-inline/issues/129)
+- An error about missing `env` dependency.
 
 ## [0.7.5] - 2021-07-24
 

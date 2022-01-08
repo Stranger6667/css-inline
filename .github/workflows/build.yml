@@ -161,10 +161,7 @@ jobs:
           command: install
           args: wasm-pack
       - name: Run tests
-        run: wasm-pack test --node
-        # Weird wasm-pack error: https://github.com/rustwasm/wasm-pack/issues/743
-        # It works locally with the same wasm-pack & dependencies versions
-        continue-on-error: true
+        run: wasm-pack test --node --release
         working-directory: ./bindings/wasm
 
   test-wasm-typescript:
@@ -192,7 +189,4 @@ jobs:
         working-directory: ./bindings/wasm
       - name: Run tests
         run: npm run test
-        # Affected by https://github.com/rustwasm/wasm-pack/issues/743
-        # Which is caused by `parking_lot` and should be fixed by https://github.com/Amanieu/parking_lot/pull/302
-        continue-on-error: true
         working-directory: ./bindings/wasm
