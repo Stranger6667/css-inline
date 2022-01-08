@@ -69,6 +69,17 @@ fn overloaded_styles() {
 }
 
 #[test]
+fn font_family_quoted() {
+    // When property value contains double quotes
+    assert_inlined!(
+        style = r#"h1 { font-family: "Open Sans", sans-serif; }"#,
+        body = r#"<h1>Hello world!</h1>"#,
+        // Then it should be replaced with single quotes
+        expected = r#"<h1 style="font-family: 'Open Sans', sans-serif;">Hello world!</h1>"#
+    )
+}
+
+#[test]
 fn existing_styles() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag
