@@ -20,7 +20,7 @@ except ImportError:
 def call_setup():
     setup(
         name="css_inline",
-        version="0.7.7",
+        version="0.7.8",
         description="Fast CSS inlining written in Rust",
         long_description=open("README.rst", encoding="utf-8").read(),
         long_description_content_type="text/x-rst",
@@ -34,7 +34,7 @@ def call_setup():
         license="MIT",
         rust_extensions=[RustExtension("css_inline", binding=Binding.PyO3)],
         classifiers=[
-            "Development Status :: 3 - Alpha",
+            "Development Status :: 4 - Beta",
             "Intended Audience :: Developers",
             "License :: OSI Approved :: MIT License",
             "Operating System :: OS Independent",
