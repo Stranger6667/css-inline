@@ -28,7 +28,7 @@ pip install css_inline
 ```
 
 Pre-compiled wheels for most popular platforms are provided. If your platform is not in the support table below, you will need
-a Rust compiler to build this package from source. The minimum supported Rust version is 1.53.
+a Rust compiler to build this package from source. The minimum supported Rust version is 1.54.
 
 Usage
 -----

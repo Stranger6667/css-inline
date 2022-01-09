@@ -43,7 +43,7 @@ def call_setup():
                     if platform.python_implementation() == "PyPy"
                     else ["pyo3/abi3-py36"]
                 ),
-                rust_version=">=1.53.0",
+                rust_version=">=1.54.0",
             )
         ],
         classifiers=[

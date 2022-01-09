@@ -38,13 +38,11 @@ To use it in your project add the following line to your `dependencies` section 
 css-inline = "0.7"
 ```
 
-Minimum Supported Rust Version is 1.53.
+Minimum Supported Rust Version is 1.54.
 
 ## Usage
 
 ```rust
-use css_inline;
-
 const HTML: &str = r#"<html>
 <head>
     <title>Test</title>
@@ -67,7 +65,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 `css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:
 
 ```rust
-use css_inline;
+const HTML: &str = "...";
 
 fn main() -> Result<(), css_inline::InlineError> {
     let inliner = css_inline::CSSInliner::options()
@@ -93,8 +91,8 @@ There are bindings for Python and WebAssembly in the `bindings` directory.
 
 `css-inline` provides a command-line interface:
 
-```
-$ css-inline --help
+```text
+css-inline --help
 
 css-inline inlines CSS into HTML documents.
 
@@ -104,17 +102,20 @@ USAGE:
 
 ARGS:
     <PATH>...
-        An HTML document to process. In each specified document "css-inline" will look for
-        all relevant "style" and "link" tags, will load CSS from them and then inline it
-        to the HTML tags, according to the corresponding CSS selectors.
-        When multiple documents are specified, they will be processed in parallel, and each inlined
-        file will be saved with "inlined." prefix. E.g., for "example.html", there will be
-        "inlined.example.html".
+        An HTML document to process. In each specified document
+        "css-inline" will look for all relevant "style" and "link"
+        tags, will load CSS from them and then inline it to the
+        HTML tags, according to the corresponding CSS selectors.
+        When multiple documents are specified, they will be
+        processed in parallel, and each inlined file will be saved
+        with "inlined." prefix. E.g., for "example.html", there
+        will be "inlined.example.html".
 
 OPTIONS:
     --inline-style-tags
-        Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
-        from "style" tags use `--inline-style-tags=false`.
+        Whether to inline CSS from "style" tags. The default
+        value is `true`. To disable inlining from "style" tags
+        use `--inline-style-tags=false`.
 
     --remove-style-tags
         Remove "style" tags after inlining.
