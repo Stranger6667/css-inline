@@ -198,6 +198,14 @@ impl<'a> CSSInliner<'a> {
 
     /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
     /// string.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
         // Allocating the same amount of memory as the input HTML helps to avoid
@@ -210,6 +218,14 @@ impl<'a> CSSInliner<'a> {
 
     /// Inline CSS & write the result to a generic writer. Use it if you want to write
     /// the inlined document to a file.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document = parse_html().one(html);
@@ -390,12 +406,27 @@ impl Default for CSSInliner<'_> {
 }
 
 /// Shortcut for inlining CSS with default parameters.
+///
+/// # Errors
+///
+/// Inlining might fail for the following reasons:
+///   - Missing stylesheet file;
+///   - Remote stylesheet is not available;
+///   - IO errors;
+///   - Internal CSS selector parsing error;
 #[inline]
 pub fn inline(html: &str) -> Result<String> {
     CSSInliner::default().inline(html)
 }
 
 /// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
+/// # Errors
+///
+/// Inlining might fail for the following reasons:
+///   - Missing stylesheet file;
+///   - Remote stylesheet is not available;
+///   - IO errors;
+///   - Internal CSS selector parsing error;
 #[inline]
 pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
@@ -420,7 +451,7 @@ fn merge_styles(
         replace_double_quotes!(final_styles, name, value);
         final_styles.push(';');
         // This property won't be taken from new styles
-        buffer.push(name.to_string())
+        buffer.push(name.to_string());
     }
     for (property, (_, value)) in new_styles {
         if !buffer.contains(property) {
