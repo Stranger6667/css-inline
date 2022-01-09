@@ -115,7 +115,12 @@ mod parser;
 use ahash::AHashMap;
 pub use error::InlineError;
 use smallvec::{smallvec, SmallVec};
-use std::{borrow::Cow, collections::hash_map::Entry, fs, io::Write};
+use std::{
+    borrow::Cow,
+    collections::hash_map::Entry,
+    fs,
+    io::{ErrorKind, Write},
+};
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -404,7 +409,12 @@ fn load_external(location: &str) -> Result<String> {
         let response = request.send()?;
         Ok(response.text()?)
     } else {
-        fs::read_to_string(location).map_err(InlineError::IO)
+        fs::read_to_string(location).map_err(|error| match error.kind() {
+            ErrorKind::NotFound => InlineError::MissingStyleSheet {
+                path: location.to_string(),
+            },
+            _ => InlineError::IO(error),
+        })
     }
 }
 
