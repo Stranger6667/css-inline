@@ -11,6 +11,11 @@ use std::{
 /// Inlining error
 #[derive(Debug)]
 pub enum InlineError {
+    /// Missing stylesheet file.
+    MissingStyleSheet {
+        /// Path to the missing file.
+        path: String,
+    },
     /// Input-output error. May happen during writing the resulting HTML.
     IO(io::Error),
     /// Network-related problem. E.g. resource is not available.
@@ -38,6 +43,9 @@ impl Display for InlineError {
             Self::IO(error) => error.fmt(f),
             Self::Network(error) => error.fmt(f),
             Self::ParseError(error) => f.write_str(error),
+            Self::MissingStyleSheet { path } => {
+                f.write_fmt(format_args!("Missing stylesheet file: {}", path))
+            }
         }
     }
 }

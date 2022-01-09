@@ -1,6 +1,6 @@
 #[macro_use]
 mod utils;
-use css_inline::{inline, CSSInliner, InlineOptions, Url};
+use css_inline::{inline, CSSInliner, InlineError, InlineOptions, Url};
 
 #[test]
 fn no_existing_style() {
@@ -307,6 +307,25 @@ h2 { color: red; }
 
 </body></html>"#
     ))
+}
+
+#[test]
+fn missing_stylesheet() {
+    let html = r#"
+<html>
+<head>
+<link href="tests/missing.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"#;
+    match inline(html).expect_err("Should be an error") {
+        InlineError::MissingStyleSheet { path } => {
+            assert_eq!(path, String::from("tests/missing.css"))
+        }
+        _ => panic!("Invalid error type"),
+    }
 }
 
 #[test]

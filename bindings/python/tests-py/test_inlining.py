@@ -61,6 +61,22 @@ def test_inline_many_wrong_type():
         css_inline.inline_many([1])
 
 
+def test_missing_stylesheet():
+    with pytest.raises(
+        css_inline.InlineError, match="Missing stylesheet file: tests/missing.css"
+    ):
+        css_inline.inline(
+            """<html>
+<head>
+<link href="tests/missing.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"""
+        )
+
+
 def test_invalid_base_url():
     with pytest.raises(ValueError):
         css_inline.CSSInliner(base_url="foo")

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Include missing stylesheet path to `InlineError` message. [#124](https://github.com/Stranger6667/css-inline/issues/124)
+
 ## [0.7.8] - 2022-01-08
 
 ### Fixed
