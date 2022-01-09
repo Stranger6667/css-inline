@@ -49,7 +49,6 @@ jobs:
           python -m pip install flask
           # Starts the server in background
           python ./css-inline/tests/server.py &
-
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal

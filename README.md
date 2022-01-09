@@ -38,6 +38,8 @@ To use it in your project add the following line to your `dependencies` section 
 css-inline = "0.7"
 ```
 
+Minimum Supported Rust Version is 1.53.
+
 ## Usage
 
 ```rust

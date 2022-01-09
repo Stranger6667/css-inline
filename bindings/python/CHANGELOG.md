@@ -5,6 +5,7 @@
 ### Added
 
 - Include missing stylesheet path to `InlineError` message. [#124](https://github.com/Stranger6667/css-inline/issues/124)
+- Build wheels for more platforms, including CPython on Apple Silicon, and PyPy on x86_64. [#102](https://github.com/Stranger6667/css-inline/issues/102), [#131](https://github.com/Stranger6667/css-inline/issues/131)
 
 ## [0.7.8] - 2022-01-08
 
