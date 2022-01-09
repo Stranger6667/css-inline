@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2022-01-09
+
 ### Added
 
 - Separate `InlineError::MissingStyleSheet` error variant to improve debugging experience. [#124](https://github.com/Stranger6667/css-inline/issues/124)
@@ -178,7 +180,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.6...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.0...HEAD
+[0.8.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.6...rust-v0.8.0
 [0.7.6]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.5...rust-v0.7.6
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.4...rust-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.3...rust-v0.7.4

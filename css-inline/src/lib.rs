@@ -1,4 +1,4 @@
-#![doc = include_str!("../../README.md")]
+#![doc = include_str!("../README.md")]
 #![warn(
     clippy::doc_markdown,
     clippy::redundant_closure,

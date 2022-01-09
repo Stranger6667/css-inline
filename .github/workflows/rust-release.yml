@@ -18,5 +18,4 @@ jobs:
       - run: cargo login ${CRATES_IO_TOKEN}
         env:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
-      - run: cargo publish
-        working-directory: ./css-inline
+      - run: cargo publish --manifest-path css-inline/Cargo.toml
