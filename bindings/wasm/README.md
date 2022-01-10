@@ -8,10 +8,8 @@ Blazing-fast WASM package for inlining CSS into HTML documents.
 Features:
 
 - Removing ``style`` tags after inlining;
-- Resolving external stylesheets (including local files);
 - Control if ``style`` tags should be processed;
-- Additional CSS to inline;
-- Inlining multiple documents in parallel (via Rust-level threads)
+- Out-of-document CSS to inline;
 
 The project supports CSS Syntax Level 3 implemented with Mozilla's Servo project components.
 

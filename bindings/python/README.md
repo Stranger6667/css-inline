@@ -13,7 +13,7 @@ Features:
 - Removing `style` tags after inlining;
 - Resolving external stylesheets (including local files);
 - Control if `style` tags should be processed;
-- Additional CSS to inline;
+- Out-of-document CSS to inline;
 - Inlining multiple documents in parallel (via Rust-level threads)
 
 The project supports CSS Syntax Level 3.
