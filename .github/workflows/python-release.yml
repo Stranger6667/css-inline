@@ -105,7 +105,7 @@ jobs:
         name: Download Artifacts
         path: wheelhouse/
     - name: Publish distribution package to PyPI
-      uses: pypa/gh-action-pypi-publish@v1
+      uses: pypa/gh-action-pypi-publish@v1.5.0
       with:
         user: ${{ secrets.PYPI_USERNAME }}
         password: ${{ secrets.PYPI_PASSWORD }}
