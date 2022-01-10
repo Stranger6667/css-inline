@@ -102,7 +102,7 @@ jobs:
     steps:
     - uses: actions/download-artifact@v2
       with:
-        name: Download Artifacts
+        name: Distribution Artifacts
         path: wheelhouse/
     - name: Publish distribution package to PyPI
       uses: pypa/gh-action-pypi-publish@v1.5.0
