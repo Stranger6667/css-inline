@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.0] - 2022-01-10
+
 ### Fixed
 
 - Invalid handling of double-quoted property values like in `font-family: "Open Sans"`. [#129](https://github.com/Stranger6667/css-inline/issues/129)
@@ -78,7 +80,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.0...HEAD
+[0.8.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.5...wasm-v0.8.0
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.4...wasm-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.3...wasm-v0.7.3
 [0.7.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.2...wasm-v0.7.3
