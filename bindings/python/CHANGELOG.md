@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Universal macOS wheels supporting CPython 3.6 & 3.7 on Apple Silicon.
+
 ## [0.8.0] - 2022-01-10
 
 ### Added
