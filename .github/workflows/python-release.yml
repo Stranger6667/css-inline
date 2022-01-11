@@ -7,7 +7,7 @@ on:
 
 jobs:
   wheels:
-    name: "Create wheels for ${{ matrix.BUILD.NAME }}"
+    name: "Wheels for ${{ matrix.BUILD.NAME }}"
     runs-on: ${{ matrix.BUILD.OS }}
     strategy:
       fail-fast: false
@@ -75,7 +75,7 @@ jobs:
           path: wheelhouse/*.whl
 
   sdist:
-    name: Create sdist package
+    name: Sdist package
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2

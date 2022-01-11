@@ -8,184 +8,42 @@ on:
 
 jobs:
 
-  commitsar:
-    name: Verify commit messages
-    runs-on: ubuntu-latest
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-      - name: Run commitsar
-        uses: docker://commitsar/commitsar
-
-  pre-commit:
-    name: Generic pre-commit checks
-    runs-on: ubuntu-latest
+  wheels-macos-universal:
+    # `cibuildwheel` does not support building CPython 3.6/3.7 wheels for macOS ARM64
+    # This job build universal wheel that covers these versions.
+    # Non-universal wheels are also in place, because they have smaller size & will be used in Python 3.8+ installations
+    name: "Wheels for macOS universal2"
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 1
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.9
-
-      - run: pip install pre-commit
-      - run: SKIP=fmt,cargo-check,clippy pre-commit run --all-files
-
-  test-stable:
-    name: Test (stable)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      - uses: actions/setup-python@v2
-        with:
-          python-version: 3.7
-
-      - name: Start background server
+      - name: Setup python
         run: |
-          python -m pip install flask
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+          curl "$PYTHON_DOWNLOAD_URL" -o python.pkg
+          sudo installer -pkg python.pkg -target /
+        env:
+          PYTHON_DOWNLOAD_URL: 'https://www.python.org/ftp/python/3.10.0/python-3.10.0post2-macos11.pkg'
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
-      - run: cargo test --no-fail-fast
-        working-directory: ./css-inline
-
-  fmt:
-    name: Rustfmt
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+          default: true
+          target: aarch64-apple-darwin
+      - run: /Library/Frameworks/Python.framework/Versions/3.10/bin/python3 -m venv venv
+      - run: venv/bin/pip install -U pip wheel setuptools-rust
+      - run: mkdir wheelhouse
+      - name: Build the wheel
+        run: |
+          cd bindings/python && \
+          ../../venv/bin/python setup.py bdist_wheel --py-limited-api=cp36 && \
+          mv dist/css_inline*.whl ../../wheelhouse
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '10.10'
+          ARCHFLAGS: '-arch x86_64 -arch arm64'
+          _PYTHON_HOST_PLATFORM: 'macosx-10.9-universal2'
+      - run: venv/bin/pip install -f wheelhouse --no-index css_inline
+      - run: find venv/lib/*/site-packages/ -name 'css_inline*.so' -exec vtool -show {} \;
+      - uses: actions/upload-artifact@v2
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: rustfmt
-      - run: cargo fmt --all -- --check
-        working-directory: ./css-inline
-
-  clippy:
-    name: Clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          components: clippy
-      - run: cargo clippy -- -D warnings
-        working-directory: ./css-inline
-
-  test-python:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.6', '3.7', '3.8', '3.9', '3.10']
-
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-          architecture: x64
-
-      - run: python -m pip install tox
-        working-directory: ./bindings/python
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      - name: Run ${{ matrix.python }} tox job
-        run: tox -e py
-        working-directory: ./bindings/python
-
-  test-python-sdist:
-    runs-on: ubuntu-latest
-    name: Testing Python source code distribution
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions/setup-python@v2
-        with:
-          python-version: '3.8'
-          architecture: x64
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-
-      - run: python -m pip install tox
-        working-directory: ./bindings/python
-
-      - run: tox -e build-sdist
-        working-directory: ./bindings/python
-
-      - name: Installing sdist
-        run: pip install dist/*
-        working-directory: ./bindings/python
-
-  test-wasm:
-    name: Tests for WASM crate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - name: Install wasm-pack
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
-      - name: Run tests
-        run: wasm-pack test --node --release
-        working-directory: ./bindings/wasm
-
-  test-wasm-typescript:
-    name: TypeScript tests for WASM crate
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: true
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-      - name: Install wasm-pack
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
-      - name: Build package
-        run: wasm-pack build -t nodejs
-        working-directory: ./bindings/wasm
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./bindings/wasm
-      - name: Run tests
-        run: npm run test
-        working-directory: ./bindings/wasm
+          name: Distribution Artifacts
+          path: wheelhouse/*.whl

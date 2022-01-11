@@ -115,8 +115,8 @@ The following wheels are available:
 
 |                | manylinux<br/>musllinux<br/>x86_64 | manylinux<br/>musllinux<br/>aarch64 | macOS Intel | macOS ARM64 | Windows 64bit | Windows 32bit |
 |----------------|:----------------:|:-----------------:|:-----------:|:-----------:|:-------------:|:-------------:|
-| CPython 3.6    |        ✔         |         ✔         |      ✔️      |     N/A     |       ✔️       |       ✔️       |
-| CPython 3.7    |        ✔         |         ✔         |      ✔️      |     N/A     |       ✔️       |       ✔️       |
+| CPython 3.6    |        ✔         |         ✔         |      ✔️      |      ✔ ️     |       ✔️       |       ✔️       |
+| CPython 3.7    |        ✔         |         ✔         |      ✔️      |      ✔      |       ✔️       |       ✔️       |
 | CPython 3.8    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
 | CPython 3.9    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
 | CPython 3.10   |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
