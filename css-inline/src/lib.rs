@@ -208,10 +208,8 @@ impl<'a> CSSInliner<'a> {
     ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
-        // Allocating the same amount of memory as the input HTML helps to avoid
-        // some allocations, but most probably the output size will be different than
-        // the original HTML
-        let mut out = Vec::with_capacity(html.len());
+        // Allocating more memory than the input HTML, as the inlined version is usually bigger
+        let mut out = Vec::with_capacity(html.len() * 2);
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
     }

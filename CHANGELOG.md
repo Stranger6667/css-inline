@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Pre-allocate more memory for output HTML to avoid resizing.
+
 ## [0.8.0] - 2022-01-09
 
 ### Added
