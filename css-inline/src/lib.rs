@@ -209,7 +209,7 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
         // Allocating more memory than the input HTML, as the inlined version is usually bigger
-        let mut out = Vec::with_capacity(html.len() * 2);
+        let mut out = Vec::with_capacity(html.len().saturating_mul(2));
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
     }
