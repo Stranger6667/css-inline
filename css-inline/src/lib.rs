@@ -128,6 +128,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Insert styles as properties
+    #[must_use]
+    pub fn styles_as_properties(mut self, styles_as_props: bool) -> Self {
+        self.styles_as_props = styles_as_props;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -288,7 +295,7 @@ impl<'a> CSSInliner<'a> {
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            process_css(&document, extra_css, &mut styles);
+            process_css(&document, extra_css.as_ref(), &mut styles);
         }
         for (node_id, styles) in styles {
             // SAFETY: All nodes are alive as long as `document` is in scope.
