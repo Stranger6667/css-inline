@@ -74,6 +74,8 @@ pub struct InlineOptions<'a> {
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
     /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
+    /// Whether to break down styles into property tags
+    pub styles_as_props: bool,
 }
 
 impl<'a> InlineOptions<'a> {
@@ -87,6 +89,7 @@ impl<'a> InlineOptions<'a> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            styles_as_props: false,
         }
     }
 
@@ -141,6 +144,7 @@ impl Default for InlineOptions<'_> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            styles_as_props: false,
         }
     }
 }
