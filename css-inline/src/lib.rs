@@ -303,7 +303,9 @@ impl<'a> CSSInliner<'a> {
                 .attributes
                 .try_borrow_mut()
             {
-                if let Some(existing_style) = attributes.get_mut("style") {
+                if self.options.styles_as_props {
+                    // TODO
+                } else if let Some(existing_style) = attributes.get_mut("style") {
                     *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
                     let mut final_styles = String::with_capacity(128);
