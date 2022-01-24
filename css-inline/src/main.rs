@@ -48,8 +48,8 @@ OPTIONS:
     --extra-css
         Additional CSS to inline.
 
-    --styles-as-props
-        Will insert styles as properties
+    --styles-as-attributes
+        Will insert styles as attributes
 "#
 )
 .as_bytes();
@@ -61,7 +61,7 @@ struct Args {
     extra_css: Option<String>,
     load_remote_stylesheets: bool,
     files: Vec<String>,
-    styles_as_props: bool,
+    styles_as_attributes: bool,
 }
 
 fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
@@ -87,7 +87,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             base_url: args.opt_value_from_str("--base-url")?,
             extra_css: args.opt_value_from_str("--extra-css")?,
             load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
-            styles_as_props: args.opt_value_from_str("--styles-as-props")?.unwrap_or(false),
+            styles_as_attributes: args.opt_value_from_str("--styles-as-attributes")?.unwrap_or(false),
             files: args.free()?,
         };
         let options = InlineOptions {
@@ -96,7 +96,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             base_url: parse_url(args.base_url)?,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
-            styles_as_props: args.styles_as_props,
+            styles_as_attributes: args.styles_as_attributes,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

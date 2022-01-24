@@ -75,7 +75,7 @@ pub struct InlineOptions<'a> {
     /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
     /// Whether to break down styles into property tags
-    pub styles_as_props: bool,
+    pub styles_as_attributes: bool,
 }
 
 impl<'a> InlineOptions<'a> {
@@ -89,7 +89,7 @@ impl<'a> InlineOptions<'a> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
-            styles_as_props: false,
+            styles_as_attributes: false,
         }
     }
 
@@ -128,10 +128,10 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
-    /// Insert styles as properties
+    /// Insert styles as attributes
     #[must_use]
-    pub fn styles_as_properties(mut self, styles_as_props: bool) -> Self {
-        self.styles_as_props = styles_as_props;
+    pub fn styles_as_attributes(mut self, styles_as_attributes: bool) -> Self {
+        self.styles_as_attributes = styles_as_attributes;
         self
     }
 
@@ -151,7 +151,7 @@ impl Default for InlineOptions<'_> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
-            styles_as_props: false,
+            styles_as_attributes: false,
         }
     }
 }
@@ -310,7 +310,7 @@ impl<'a> CSSInliner<'a> {
                 .attributes
                 .try_borrow_mut()
             {
-                if self.options.styles_as_props {
+                if self.options.styles_as_attributes {
                     // TODO
                 } else if let Some(existing_style) = attributes.get_mut("style") {
                     *existing_style = merge_styles(existing_style, &styles)?;
