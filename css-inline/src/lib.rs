@@ -74,7 +74,7 @@ pub struct InlineOptions<'a> {
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
     /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
-    /// Whether to break down styles into property tags
+    /// Whether to break down styles into separate attributes
     pub styles_as_attributes: bool,
 }
 
