@@ -49,7 +49,7 @@ OPTIONS:
         Additional CSS to inline.
 
     --styles-as-attributes
-        Will insert styles as attributes
+        Will insert styles as separate attributes.
 "#
 )
 .as_bytes();
