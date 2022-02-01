@@ -311,7 +311,13 @@ impl<'a> CSSInliner<'a> {
                 .try_borrow_mut()
             {
                 if self.options.styles_as_attributes {
-                    // TODO
+                    if let Some(_existing_style) = attributes.get_mut("style") {
+                        // TODO
+                    } else {
+                        for (name, (_, value)) in styles {
+                            attributes.insert(name, value);
+                        }
+                    }
                 } else if let Some(existing_style) = attributes.get_mut("style") {
                     *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
