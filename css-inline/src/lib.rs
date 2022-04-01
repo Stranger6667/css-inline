@@ -32,12 +32,11 @@ use kuchiki::{
 pub mod error;
 mod parser;
 
-use ahash::AHashMap;
+use indexmap::IndexMap;
 pub use error::InlineError;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
-    collections::hash_map::Entry,
     fs,
     io::{ErrorKind, Write},
 };
@@ -239,7 +238,7 @@ impl<'a> CSSInliner<'a> {
         // and then reused, which allows O(1) access to find them.
         // Internally, their raw pointers are used to implement `Eq`, which seems like the only
         // reasonable approach to compare them (performance-wise).
-        let mut styles = AHashMap::with_capacity(128);
+        let mut styles = IndexMap::with_capacity(128);
         let mut style_tags: SmallVec<[NodeDataRef<ElementData>; 4]> = smallvec![];
         if self.options.inline_style_tags {
             for style_tag in document
@@ -358,7 +357,7 @@ type NodeId = *const Node;
 fn process_css(
     document: &NodeRef,
     css: &str,
-    styles: &mut AHashMap<NodeId, AHashMap<String, (Specificity, String)>>,
+    styles: &mut IndexMap<NodeId, IndexMap<String, (Specificity, String)>>,
 ) {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = cssparser::Parser::new(&mut parse_input);
@@ -374,15 +373,15 @@ fn process_css(
                 for matching_element in matching_elements {
                     let element_styles = styles
                         .entry(&**matching_element.as_node())
-                        .or_insert_with(|| AHashMap::with_capacity(8));
+                        .or_insert_with(|| IndexMap::with_capacity(8));
                     for (name, value) in &declarations {
                         match element_styles.entry(name.to_string()) {
-                            Entry::Occupied(mut entry) => {
+                            indexmap::map::Entry::Occupied(mut entry) => {
                                 if entry.get().0 <= specificity {
                                     entry.insert((specificity, (*value).to_string()));
                                 }
                             }
-                            Entry::Vacant(entry) => {
+                            indexmap::map::Entry::Vacant(entry) => {
                                 entry.insert((specificity, (*value).to_string()));
                             }
                         }
@@ -432,7 +431,7 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
 
 fn merge_styles(
     existing_style: &str,
-    new_styles: &AHashMap<String, (Specificity, String)>,
+    new_styles: &IndexMap<String, (Specificity, String)>,
 ) -> Result<String> {
     // Parse existing declarations in the "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);

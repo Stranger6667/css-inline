@@ -25,7 +25,7 @@ memchr = "2.4"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"] }
 url = "2"
 smallvec = "1"
-ahash = "0.7"
+indexmap = "1.8.1"
 pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.5", optional = true }
 
