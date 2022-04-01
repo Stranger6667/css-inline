@@ -21,6 +21,22 @@ p.footer { font-size: 1px}"#,
 }
 
 #[test]
+fn maintain_rules_order() {
+    assert_inlined!(
+        style = r#"
+.test-class {
+    padding-top: 15px;
+    padding: 10px;
+    padding-left: 12px;
+}"#,
+        body = r#"<a class="test-class" href="https://example.com">Test</a>"#,
+        // Then the final style should come from the more specific selector
+        expected =
+            r#"<a class="test-class" href="https://example.com" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
+    )
+}
+
+#[test]
 fn overlap_styles() {
     // When two selectors match the same element
     assert_inlined!(
