@@ -31,8 +31,7 @@ fn maintain_rules_order() {
 }"#,
         body = r#"<a class="test-class" href="https://example.com">Test</a>"#,
         // Then the final style should come from the more specific selector
-        expected =
-            r#"<a class="test-class" href="https://example.com" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
+        expected = r#"<a class="test-class" href="https://example.com" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
     )
 }
 

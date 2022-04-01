@@ -32,8 +32,8 @@ use kuchiki::{
 pub mod error;
 mod parser;
 
-use indexmap::IndexMap;
 pub use error::InlineError;
+use indexmap::IndexMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
