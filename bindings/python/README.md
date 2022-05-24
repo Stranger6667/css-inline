@@ -85,26 +85,26 @@ Performance
 -----------
 
 Due to the usage of efficient tooling from Mozilla's Servo project (`html5ever`, `rust-cssparser` and others) this
-library has excellent performance characteristics. In comparison with other Python projects, it is ~9-21x faster than the nearest alternative.
+library has excellent performance characteristics. In comparison with other Python projects, it is ~7-15x faster than the nearest alternative.
 
 For inlining CSS in the html document from the `Usage` section above there is the following breakdown in the benchmarks:
 
-- `css_inline 0.7.8` - 21.76 us
-- `premailer 3.10.0` - 461.54 us (**x21.21**)
-- `toronado 0.1.0` - 1.87 ms (**x85.93**)
-- `inlinestyler 0.2.4` - 2.85 ms (**x130.97**)
-- `pynliner 0.8.0` - 3.34 ms (**x153.49**)
+- `css_inline 0.8.2` - 21.75 us
+- `premailer 3.10.0` - 329.51 us (**x15.14**)
+- `toronado 0.1.0` - 1.59 ms (**x73.28**)
+- `inlinestyler 0.2.5` - 2.37 ms (**x109.27**)
+- `pynliner 0.8.0` - 2.78 ms (**x127.89**)
 
 And for a more realistic email:
 
-- `css_inline 0.7.8` - 433.39 us
-- `premailer 3.10.0` - 3.9 ms (**x9.01**)
-- `toronado 0.1.0` - 43.89 ms (**x101.27**)
-- `inlinestyler 0.2.4` - 75.77 ms (**x174.83**)
-- `pynliner 0.8.0` - 123.6 ms (**x285.19**)
+- `css_inline 0.8.2` - 443.83 us
+- `premailer 3.10.0` - 3.25 ms (**x7.33**)
+- `toronado 0.1.0` - 35.35 ms (**x79.65**)
+- `inlinestyler 0.2.5` - 61.08 ms (**x137.62**)
+- `pynliner 0.8.0` - 99.52 ms (**x224.24**)
 
 You can take a look at the benchmarks' code at `benches/bench.py` file.
-The results above were measured with stable `rustc 1.57.0`, `Python 3.9.9`, `Linux x86_64` on i8700K, and 32GB RAM.
+The results above were measured with stable `rustc 1.61.0`, `Python 3.10.4`, `Linux x86_64` on i8700K, and 32GB RAM.
 
 Python support
 --------------
