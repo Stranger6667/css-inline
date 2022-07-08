@@ -40,7 +40,6 @@ use indexmap::IndexMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
-    fs,
     io::{ErrorKind, Write},
 };
 
@@ -358,12 +357,22 @@ fn load_external(location: &str) -> Result<String> {
             )))
         }
     } else {
-        fs::read_to_string(location).map_err(|error| match error.kind() {
-            ErrorKind::NotFound => InlineError::MissingStyleSheet {
-                path: location.to_string(),
-            },
-            _ => InlineError::IO(error),
-        })
+        #[cfg(feature = "file")]
+        {
+            std::fs::read_to_string(location).map_err(|error| match error.kind() {
+                ErrorKind::NotFound => InlineError::MissingStyleSheet {
+                    path: location.to_string(),
+                },
+                _ => InlineError::IO(error),
+            })
+        }
+        #[cfg(not(feature = "file"))]
+        {
+            Err(InlineError::IO(std::io::Error::new(
+                ErrorKind::Unsupported,
+                "Loading local files requires the `file` feature",
+            )))
+        }
     }
 }
 

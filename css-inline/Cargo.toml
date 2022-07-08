@@ -15,9 +15,10 @@ categories = ["web-programming"]
 name = "css-inline"
 
 [features]
-default = ["cli", "http"]
+default = ["cli", "http", "file"]
 cli = ["pico-args", "rayon"]
 http = ["attohttpc"]
+file = []
 
 [dependencies]
 cssparser = "0.29"
