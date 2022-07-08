@@ -27,6 +27,8 @@ use css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
 use std::borrow::Cow;
+#[macro_use]
+extern crate pyo3_built;
 
 const INLINE_ERROR_DOCSTRING: &str = "An error that can occur during CSS inlining";
 
@@ -194,8 +196,6 @@ fn css_inline(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     let inline_error = py.get_type::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
-    // Wait until `pyo3_built` is updated
-    #[allow(deprecated)]
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
     Ok(())
 }
