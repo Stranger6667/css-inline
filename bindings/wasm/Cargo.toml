@@ -20,6 +20,7 @@ crate-type = ["cdylib"]
 path = "../../css-inline"
 version = "*"
 default-features = false
+features = ["http"]
 
 [dependencies]
 url = "2"

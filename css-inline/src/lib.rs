@@ -24,7 +24,10 @@
     rust_2018_idioms,
     rust_2018_compatibility
 )]
+
+#[cfg(feature = "http")]
 use attohttpc::{Method, RequestBuilder};
+
 use kuchiki::{
     parse_html, traits::TendrilSink, ElementData, Node, NodeDataRef, NodeRef, Specificity,
 };
@@ -40,6 +43,7 @@ use std::{
     fs,
     io::{ErrorKind, Write},
 };
+
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -267,6 +271,7 @@ impl<'a> CSSInliner<'a> {
                 style_tag.as_node().detach();
             }
         }
+
         if self.options.load_remote_stylesheets {
             let mut links = document
                 .select("link[rel~=stylesheet]")
@@ -338,9 +343,20 @@ impl<'a> CSSInliner<'a> {
 
 fn load_external(location: &str) -> Result<String> {
     if location.starts_with("https") | location.starts_with("http") {
-        let request = RequestBuilder::try_new(Method::GET, location)?;
-        let response = request.send()?;
-        Ok(response.text()?)
+        #[cfg(feature = "http")]
+        {
+            let request = RequestBuilder::try_new(Method::GET, location)?;
+            let response = request.send()?;
+            Ok(response.text()?)
+        }
+
+        #[cfg(not(feature = "http"))]
+        {
+            Err(InlineError::IO(std::io::Error::new(
+                ErrorKind::Unsupported,
+                "Loading external URLs requires the `http` feature",
+            )))
+        }
     } else {
         fs::read_to_string(location).map_err(|error| match error.kind() {
             ErrorKind::NotFound => InlineError::MissingStyleSheet {

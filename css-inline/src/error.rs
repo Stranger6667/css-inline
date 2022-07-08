@@ -19,6 +19,7 @@ pub enum InlineError {
     /// Input-output error. May happen during writing the resulting HTML.
     IO(io::Error),
     /// Network-related problem. E.g. resource is not available.
+    #[cfg(feature = "http")]
     Network(attohttpc::Error),
     /// Syntax errors or unsupported selectors.
     ParseError(Cow<'static, str>),
@@ -29,6 +30,8 @@ impl From<io::Error> for InlineError {
         Self::IO(error)
     }
 }
+
+#[cfg(feature = "http")]
 impl From<attohttpc::Error> for InlineError {
     fn from(error: attohttpc::Error) -> Self {
         Self::Network(error)
@@ -41,6 +44,7 @@ impl Display for InlineError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::IO(error) => error.fmt(f),
+            #[cfg(feature = "http")]
             Self::Network(error) => error.fmt(f),
             Self::ParseError(error) => f.write_str(error),
             Self::MissingStyleSheet { path } => {
