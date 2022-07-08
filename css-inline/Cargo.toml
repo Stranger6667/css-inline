@@ -15,14 +15,15 @@ categories = ["web-programming"]
 name = "css-inline"
 
 [features]
-default = ["cli"]
+default = ["cli", "http"]
 cli = ["pico-args", "rayon"]
+http = ["attohttpc"]
 
 [dependencies]
 cssparser = "0.29"
 kuchiki = "0.8"
 memchr = "2.4"
-attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"] }
+attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
 url = "2"
 smallvec = "1"
 indexmap = "1.8.1"
