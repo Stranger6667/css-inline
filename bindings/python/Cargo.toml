@@ -17,6 +17,7 @@ built = { version = "0.5", features = ["chrono"] }
 path = "../../css-inline"
 version = "*"
 default-features = false
+features = ["http"]
 
 [dependencies]
 url = "2"
