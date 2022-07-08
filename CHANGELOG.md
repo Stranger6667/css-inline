@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- New `http` & `file` features which give a way to disable resolving external stylesheets and reduce the compiled artifacts size.
+
 ## [0.8.1] - 2022-04-01
 
 ### Fixed
