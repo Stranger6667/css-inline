@@ -477,7 +477,7 @@ fn merge_styles(
         buffer.push(name.to_string());
     }
     for (property, (_, value)) in new_styles {
-        let index = buffer.iter().position(|&r| r == property);
+        let index = buffer.iter().position(|r| r == property);
         let is_important = value.ends_with("!important");
         if index == None || is_important {
             let mut style = String::with_capacity(256);
