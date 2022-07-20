@@ -463,25 +463,36 @@ fn merge_styles(
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
-    // New rules should not override old ones and we store selectors inline to check the old rules later
+    // New rules should not override old ones unless !important and we store selectors inline to check the old rules later
     let mut buffer: SmallVec<[String; 8]> = smallvec![];
-    let mut final_styles = String::with_capacity(256);
+    let mut final_styles: Vec<String> = Vec::new();
     for declaration in declarations {
         let (name, value) = declaration?;
-        final_styles.push_str(&name);
-        final_styles.push(':');
-        replace_double_quotes!(final_styles, name, value);
-        final_styles.push(';');
-        // This property won't be taken from new styles
+        let mut style = String::with_capacity(256);
+        style.push_str(&name);
+        style.push(':');
+        replace_double_quotes!(style, name, value);
+        final_styles.push(style);
+        // This property won't be taken from new styles unless it's !important
         buffer.push(name.to_string());
     }
     for (property, (_, value)) in new_styles {
-        if !buffer.contains(property) {
-            final_styles.push_str(property);
-            final_styles.push(':');
-            replace_double_quotes!(final_styles, property, value);
-            final_styles.push(';');
+        let index = buffer.iter().position(|r| r == property);
+        let is_important = value.ends_with("!important");
+        if index == None || is_important {
+            let mut style = String::with_capacity(256);
+            style.push_str(&property);
+            style.push(':');
+            replace_double_quotes!(style, property, value);
+            // Strip !important so additional styles with !important can override this
+            style = style.replace("!important", "");
+            style = style.trim().to_string();
+            if index != None {
+                final_styles[index.unwrap()] = style;
+            } else {
+                final_styles.push(style);
+            }
         }
     }
-    Ok(final_styles)
+    Ok(final_styles.join(";"))
 }
