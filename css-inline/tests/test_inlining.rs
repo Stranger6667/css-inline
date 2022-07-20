@@ -62,11 +62,11 @@ fn simple_merge() {
     // Then new styles should be merged with the existing ones
     let option_1 = html!(
         style,
-        r#"<h1 style="font-size: 1px;color:red;">Big Text</h1>"#
+        r#"<h1 style="font-size: 1px;color: red">Big Text</h1>"#
     );
     let option_2 = html!(
         style,
-        r#"<h1 style="color:red;font-size: 1px;">Big Text</h1>"#
+        r#"<h1 style="color: red;font-size: 1px">Big Text</h1>"#
     );
     let valid = (inlined == option_1) || (inlined == option_2);
     assert!(valid, "{}", inlined);
@@ -80,6 +80,16 @@ fn overloaded_styles() {
         body = r#"<h1 id="test">Hello world!</h1>"#,
         // Then it should be preferred over a more generic style
         expected = r#"<h1 id="test" style="color: blue;">Hello world!</h1>"#
+    )
+}
+
+#[test]
+fn important() {
+    // `!important` rules should override existing inline styles
+    assert_inlined!(
+        style = "h1 { color: blue !important; }",
+        body = r#"<h1 style="color: red;">Big Text</h1>"#,
+        expected = r#"<h1 style="color: blue">Big Text</h1>"#
     )
 }
 
@@ -102,7 +112,7 @@ fn existing_styles() {
         style = "h1 { color: red; }",
         body = r#"<h1 style="color: blue">Hello world!</h1>"#,
         // Then the existing rule should be preferred
-        expected = r#"<h1 style="color: blue;">Hello world!</h1>"#
+        expected = r#"<h1 style="color: blue">Hello world!</h1>"#
     )
 }
 
@@ -116,7 +126,7 @@ fn existing_styles_with_merge() {
         body = r#"<h1 style="color: blue">Hello world!</h1>"#,
         // Then the existing rule should be preferred
         // And the new style should be merged
-        expected = r#"<h1 style="color: blue;font-size:14px;">Hello world!</h1>"#
+        expected = r#"<h1 style="color: blue;font-size: 14px">Hello world!</h1>"#
     )
 }
 

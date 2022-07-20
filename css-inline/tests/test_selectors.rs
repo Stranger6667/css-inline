@@ -356,6 +356,6 @@ fn overwrite_comma() {
     assert_inlined!(
         style = r#"h1,h2,h3 {color: #000;}"#,
         body = r#"<h1 style="color: #fff">Foo</h1><h3 style="color: #fff">Foo</h3>"#,
-        expected = r#"<h1 style="color: #fff;">Foo</h1><h3 style="color: #fff;">Foo</h3>"#
+        expected = r#"<h1 style="color: #fff">Foo</h1><h3 style="color: #fff">Foo</h3>"#
     )
 }
