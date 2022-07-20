@@ -484,6 +484,7 @@ fn merge_styles(
             style.push_str(&property);
             style.push(':');
             replace_double_quotes!(style, property, value);
+            // Strip !important so additional styles with !important can override this
             style = style.replace("!important", "");
             style = style.trim().to_string();
             if index != None {
