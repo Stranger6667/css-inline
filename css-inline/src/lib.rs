@@ -470,28 +470,35 @@ fn merge_styles(
         let (name, value) = declaration?;
         let mut style = String::with_capacity(256);
         style.push_str(&name);
-        style.push(':');
-        replace_double_quotes!(style, name, value);
+        style.push_str(": ");
+        replace_double_quotes!(style, name, value.trim());
         final_styles.push(style);
         // This property won't be taken from new styles unless it's !important
         buffer.push(name.to_string());
     }
     for (property, (_, value)) in new_styles {
-        let index = buffer.iter().position(|r| r == property);
-        let is_important = value.ends_with("!important");
-        if index == None || is_important {
-            let mut style = String::with_capacity(256);
-            style.push_str(&property);
-            style.push(':');
-            replace_double_quotes!(style, property, value);
-            // Strip !important so additional styles with !important can override this
-            style = style.replace("!important", "");
-            style = style.trim().to_string();
-            if index != None {
-                final_styles[index.unwrap()] = style;
-            } else {
-                final_styles.push(style);
+        match (
+            value.strip_suffix("!important"),
+            buffer.iter().position(|r| r == property),
+        ) {
+            // The new rule is `!important` and there is already one in existing styles:
+            // override with the new one.
+            #[allow(clippy::integer_arithmetic)]
+            (Some(value), Some(index)) => {
+                // Reuse existing allocation
+                let target = &mut final_styles[index];
+                // Keep '<rule>: ` (with a space at the end)
+                // NOTE: There will be no overflow as the new len is always smaller than the old one
+                target.truncate(property.len() + 2);
+                // And push the value
+                target.push_str(value.trim())
             }
+            // No such rules exist - push the version with `!important` trimmed
+            (Some(value), None) => final_styles.push(format!("{}: {}", property, value.trim())),
+            // Completely new rule - write it
+            (None, None) => final_styles.push(format!("{}: {}", property, value.trim())),
+            // Rule exists and the new one is not `!important` - keep the original one
+            (None, Some(_)) => {}
         }
     }
     Ok(final_styles.join(";"))

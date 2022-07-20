@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `!important` rules not overriding inlined styles. [#152](https://github.com/Stranger6667/css-inline/issues/152)
+
 ## [0.8.2] - 2022-04-01
 
 ### Fixed
