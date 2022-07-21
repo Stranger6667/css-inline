@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-python"
-version = "0.8.2"
+version = "0.8.3"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2018"
 

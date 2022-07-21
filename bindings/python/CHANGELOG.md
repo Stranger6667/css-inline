@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.3] - 2022-07-21
+
 ### Fixed
 
 - `!important` rules not overriding inlined styles. [#152](https://github.com/Stranger6667/css-inline/issues/152)
@@ -197,7 +199,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.3...HEAD
+[0.8.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.2...python-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.1...python-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.0...python-v0.8.1
 [0.8.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.7.8...python-v0.8.0
