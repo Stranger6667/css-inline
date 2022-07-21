@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.1] - 2022-07-21
+
 ### Fixed
 
 - Not respecting specificity in case of inlining overlapping rules like `padding` and `padding-top`. [#142](https://github.com/Stranger6667/css-inline/issues/142)
@@ -85,7 +87,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.1...HEAD
+[0.8.1]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.0...wasm-v0.8.1
 [0.8.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.5...wasm-v0.8.0
 [0.7.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.4...wasm-v0.7.5
 [0.7.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.7.3...wasm-v0.7.3
