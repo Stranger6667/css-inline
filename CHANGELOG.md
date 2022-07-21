@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.2] - 2022-07-21
+
 ### Added
 
 - New `http` & `file` features which give a way to disable resolving external stylesheets and reduce the compiled artifacts size.
@@ -198,7 +200,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.2...HEAD
+[0.8.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.1...rust-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.0...rust-v0.8.1
 [0.8.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.6...rust-v0.8.0
 [0.7.6]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.5...rust-v0.7.6
