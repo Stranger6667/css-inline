@@ -1,22 +1,7 @@
 import platform
 
 from setuptools import setup
-
-try:
-    from setuptools_rust import Binding, RustExtension
-except ImportError:
-    from textwrap import dedent
-
-    raise ImportError(
-        dedent(
-            """
-            `setuptools-rust` is a required dependency to run `setup.py`.
-            This should not happen if you're using `pip>=10` as it honors `pyproject.toml`.
-            This usually (at least on our workflows) might happen while
-            building source-distribution.
-            """
-        )
-    )
+from setuptools_rust import Binding, RustExtension
 
 
 def call_setup():
@@ -31,7 +16,7 @@ def call_setup():
         author_email="dadygalo@gmail.com",
         maintainer="Dmitry Dygalo",
         maintainer_email="dadygalo@gmail.com",
-        python_requires=">=3.6",
+        python_requires=">=3.7",
         url="https://github.com/Stranger6667/css-inline/tree/master/bindings/python",
         license="MIT",
         rust_extensions=[
@@ -39,9 +24,7 @@ def call_setup():
                 "css_inline",
                 py_limited_api=True,
                 features=(
-                    []
-                    if platform.python_implementation() == "PyPy"
-                    else ["pyo3/abi3-py36"]
+                    [] if platform.python_implementation() == "PyPy" else ["pyo3/abi3"]
                 ),
                 rust_version=">=1.54.0",
             )
@@ -54,7 +37,6 @@ def call_setup():
             "Operating System :: Microsoft :: Windows",
             "Operating System :: POSIX",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
