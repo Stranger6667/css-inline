@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `PyO3` to `0.17.1`.
+
+### Removed
+
+- Python 3.6 support.
+
 ## [0.8.3] - 2022-07-21
 
 ### Fixed

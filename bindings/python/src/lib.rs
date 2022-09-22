@@ -23,7 +23,7 @@
     rust_2018_idioms,
     rust_2018_compatibility
 )]
-use css_inline as rust_inline;
+use ::css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
 use std::borrow::Cow;

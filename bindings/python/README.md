@@ -109,13 +109,12 @@ The results above were measured with stable `rustc 1.61.0`, `Python 3.10.4`, `Li
 Python support
 --------------
 
-`css_inline` supports CPython 3.6, 3.7, 3.8, 3.9, 3.10, and PyPy 3.7 and 3.8.
+`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, and PyPy 3.7 and 3.8.
 
 The following wheels are available:
 
 |                | manylinux<br/>musllinux<br/>x86_64 | manylinux<br/>musllinux<br/>aarch64 | macOS Intel | macOS ARM64 | Windows 64bit | Windows 32bit |
 |----------------|:----------------:|:-----------------:|:-----------:|:-----------:|:-------------:|:-------------:|
-| CPython 3.6    |        ✔         |         ✔         |      ✔️      |      ✔ ️     |       ✔️       |       ✔️       |
 | CPython 3.7    |        ✔         |         ✔         |      ✔️      |      ✔      |       ✔️       |       ✔️       |
 | CPython 3.8    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
 | CPython 3.9    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |

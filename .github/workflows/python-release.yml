@@ -75,7 +75,7 @@ jobs:
           path: wheelhouse/*.whl
 
   wheels-macos-universal:
-    # `cibuildwheel` does not support building CPython 3.6/3.7 wheels for macOS ARM64
+    # `cibuildwheel` does not support building CPython 3.7 wheels for macOS ARM64
     # This job build universal wheel that covers these versions.
     # Non-universal wheels are also in place, because they have smaller size & will be used in Python 3.8+ installations
     name: "Wheels for macOS universal2"
@@ -101,7 +101,7 @@ jobs:
       - name: Build the wheel
         run: |
           cd bindings/python && \
-          ../../venv/bin/python setup.py bdist_wheel --py-limited-api=cp36 && \
+          ../../venv/bin/python setup.py bdist_wheel --py-limited-api=cp37 && \
           mv dist/css_inline*.whl ../../wheelhouse
         env:
           MACOSX_DEPLOYMENT_TARGET: '10.10'
