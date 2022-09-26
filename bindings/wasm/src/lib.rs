@@ -31,9 +31,6 @@ use std::{
 };
 use wasm_bindgen::prelude::*;
 
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc<'_> = wee_alloc::WeeAlloc::INIT;
-
 struct InlineErrorWrapper(rust_inline::InlineError);
 
 impl From<InlineErrorWrapper> for JsValue {
