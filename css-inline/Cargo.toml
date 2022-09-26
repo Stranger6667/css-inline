@@ -2,7 +2,7 @@
 name = "css-inline"
 version = "0.8.2"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "../README.md"
 description = "A crate for inlining CSS into 'style' HTML attributes."
