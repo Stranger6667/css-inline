@@ -10,11 +10,16 @@ keywords = ["html", "css", "css-inline"]
 categories = ["web-programming"]
 license = "MIT"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
 name = "css_inline"
 crate-type = ["cdylib"]
+
+[dependencies]
+serde = { version = "1.0.145", features = ["derive"], default-features = false }
+serde_json = "1.0.85"
+url = "2.3.1"
+wasm-bindgen = { version = "0.2.83", features = ["serde-serialize"] }
+wee_alloc = "0.4"
 
 [dependencies.css-inline]
 path = "../../css-inline"
@@ -22,16 +27,8 @@ version = "*"
 default-features = false
 features = ["http", "file"]
 
-[dependencies]
-url = "2"
-wasm-bindgen = { version = "0.2", features = ["serde-serialize"] }
-serde = { version = "1.0", features = ["derive"] }
-wee_alloc = "0.4"
-serde_derive = "1"
-serde_json = "1"
-
 [dev-dependencies]
-wasm-bindgen-test = "0.3.0"
+wasm-bindgen-test = "0.3.33"
 
 [profile.release]
 opt-level = "z"

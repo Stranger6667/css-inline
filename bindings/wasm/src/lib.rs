@@ -62,10 +62,7 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
     })
 }
 
-#[macro_use]
-extern crate serde_derive;
-
-#[derive(Serialize, Deserialize)]
+#[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct Options {
     inline_style_tags: bool,
