@@ -2,7 +2,7 @@
 name = "css-inline-wasm"
 version = "0.8.1"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
-edition = "2018"
+edition = "2021"
 readme = "README.md"
 description = "A WASM package for inlining CSS into HTML documents"
 repository = "https://github.com/Stranger6667/css-inline"
