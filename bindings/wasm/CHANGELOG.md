@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Unpin `parking_lot_core`.
+
 ## [0.8.1] - 2022-07-21
 
 ### Fixed
