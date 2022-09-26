@@ -19,7 +19,6 @@ serde = { version = "1.0.145", features = ["derive"], default-features = false }
 serde_json = "1.0.85"
 url = "2.3.1"
 wasm-bindgen = { version = "0.2.83", features = ["serde-serialize"] }
-wee_alloc = "0.4"
 
 [dependencies.css-inline]
 path = "../../css-inline"

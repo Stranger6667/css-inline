@@ -5,6 +5,7 @@
 ### Changed
 
 - Unpin `parking_lot_core`.
+- Remove deprecated `wee_alloc`.
 
 ## [0.8.1] - 2022-07-21
 
