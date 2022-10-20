@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.3] - 2022-10-20
+
 ### Fixed
 
 - Ignoring selectors' specificity when applying declarations from different qualified rules. [#148](https://github.com/Stranger6667/css-inline/issues/148)
@@ -204,7 +206,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.3...HEAD
+[0.8.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.2...rust-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.1...rust-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.0...rust-v0.8.1
 [0.8.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.7.6...rust-v0.8.0
