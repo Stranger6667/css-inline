@@ -8,7 +8,7 @@
 
 ### Changed
 
-- Update `PyO3` to `0.17.1`.
+- Update `PyO3` to `0.17.2`.
 
 ### Removed
 
