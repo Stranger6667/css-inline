@@ -306,10 +306,12 @@ impl<'a> CSSInliner<'a> {
                     *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
                     let mut final_styles = String::with_capacity(128);
+                    let mut styles = styles.iter().collect::<Vec<_>>();
+                    styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
                     for (name, (_, value)) in styles {
                         final_styles.push_str(name.as_str());
                         final_styles.push(':');
-                        replace_double_quotes!(final_styles, name, &value);
+                        replace_double_quotes!(final_styles, name, value);
                         final_styles.push(';');
                     }
                     attributes.insert("style", final_styles);
@@ -399,6 +401,8 @@ fn process_css(
                     let element_styles = styles
                         .entry(&**matching_element.as_node())
                         .or_insert_with(|| IndexMap::with_capacity(8));
+                    // Iterate over pairs of property name & value
+                    // Example: `padding`, `0`
                     for (name, value) in &declarations {
                         match element_styles.entry(name.to_string()) {
                             indexmap::map::Entry::Occupied(mut entry) => {
@@ -476,6 +480,8 @@ fn merge_styles(
         // This property won't be taken from new styles unless it's !important
         buffer.push(name.to_string());
     }
+    let mut new_styles = new_styles.iter().collect::<Vec<_>>();
+    new_styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
     for (property, (_, value)) in new_styles {
         match (
             value.strip_suffix("!important"),
