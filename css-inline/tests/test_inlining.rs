@@ -21,7 +21,7 @@ p.footer { font-size: 1px}"#,
 }
 
 #[test]
-fn maintain_rules_order() {
+fn specificity_same_selector() {
     assert_inlined!(
         style = r#"
 .test-class {
@@ -32,6 +32,28 @@ fn maintain_rules_order() {
         body = r#"<a class="test-class" href="https://example.com">Test</a>"#,
         // Then the final style should come from the more specific selector
         expected = r#"<a class="test-class" href="https://example.com" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
+    )
+}
+
+#[test]
+fn specificity_different_selectors() {
+    assert_inlined!(
+        style = r#"
+.test { padding-left: 16px; }
+h1 { padding: 0; }"#,
+        body = r#"<h1 class="test"></h1>"#,
+        expected = r#"<h1 class="test" style="padding: 0;padding-left: 16px;"></h1>"#
+    )
+}
+
+#[test]
+fn specificity_different_selectors_existing_style() {
+    assert_inlined!(
+        style = r#"
+.test { padding-left: 16px; }
+h1 { padding: 0; }"#,
+        body = r#"<h1 class="test" style="color: blue;"></h1>"#,
+        expected = r#"<h1 class="test" style="color: blue;padding: 0;padding-left: 16px"></h1>"#
     )
 }
 
