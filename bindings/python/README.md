@@ -113,14 +113,14 @@ Python support
 
 The following wheels are available:
 
-|                | manylinux<br/>musllinux<br/>x86_64 | manylinux<br/>musllinux<br/>aarch64 | macOS Intel | macOS ARM64 | Windows 64bit | Windows 32bit |
-|----------------|:----------------:|:-----------------:|:-----------:|:-----------:|:-------------:|:-------------:|
-| CPython 3.7    |        ✔         |         ✔         |      ✔️      |      ✔      |       ✔️       |       ✔️       |
-| CPython 3.8    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| CPython 3.9    |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| CPython 3.10   |        ✔         |         ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| PyPy 3.7 v7.3  |        ✔¹        |         ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
-| PyPy 3.8 v7.3  |        ✔¹        |         ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
+|                | manylinux<br/>musllinux<br/>x86_64 | macOS Intel | macOS ARM64 | Windows 64bit | Windows 32bit |
+|----------------|:----------------:|:-----------:|:-----------:|:-------------:|:-------------:|
+| CPython 3.7    |        ✔         |      ✔️      |      ✔      |       ✔️       |       ✔️       |
+| CPython 3.8    |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
+| CPython 3.9    |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
+| CPython 3.10   |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
+| PyPy 3.7 v7.3  |        ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
+| PyPy 3.8 v7.3  |        ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
 
 <sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
 

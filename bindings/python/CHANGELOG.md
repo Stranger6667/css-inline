@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.4] - 2022-10-20
+
 ### Fixed
 
 - Ignoring selectors' specificity when applying declarations from different qualified rules. [#148](https://github.com/Stranger6667/css-inline/issues/148)
@@ -211,7 +213,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.4...HEAD
+[0.8.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.3...python-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.2...python-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.1...python-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.0...python-v0.8.1
