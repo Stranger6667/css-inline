@@ -76,6 +76,8 @@ pub struct InlineOptions<'a> {
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
     /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
+    /// Whether to break down styles into separate attributes
+    pub styles_as_attributes: bool,
 }
 
 impl<'a> InlineOptions<'a> {
@@ -89,6 +91,7 @@ impl<'a> InlineOptions<'a> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            styles_as_attributes: false,
         }
     }
 
@@ -127,6 +130,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Insert styles as attributes
+    #[must_use]
+    pub fn styles_as_attributes(mut self, styles_as_attributes: bool) -> Self {
+        self.styles_as_attributes = styles_as_attributes;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -143,6 +153,7 @@ impl Default for InlineOptions<'_> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            styles_as_attributes: false,
         }
     }
 }
@@ -287,7 +298,7 @@ impl<'a> CSSInliner<'a> {
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            process_css(&document, extra_css, &mut styles);
+            process_css(&document, extra_css.as_ref(), &mut styles);
         }
         for (node_id, styles) in styles {
             // SAFETY: All nodes are alive as long as `document` is in scope.
@@ -302,7 +313,15 @@ impl<'a> CSSInliner<'a> {
                 .attributes
                 .try_borrow_mut()
             {
-                if let Some(existing_style) = attributes.get_mut("style") {
+                if self.options.styles_as_attributes {
+                    if let Some(_existing_style) = attributes.get_mut("style") {
+                        // TODO
+                    } else {
+                        for (name, (_, value)) in styles {
+                            attributes.insert(name, value);
+                        }
+                    }
+                } else if let Some(existing_style) = attributes.get_mut("style") {
                     *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
                     let mut final_styles = String::with_capacity(128);

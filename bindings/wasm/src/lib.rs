@@ -67,6 +67,7 @@ struct Options {
     base_url: Option<String>,
     load_remote_stylesheets: bool,
     extra_css: Option<String>,
+    styles_as_attributes: bool,
 }
 
 impl Default for Options {
@@ -77,6 +78,7 @@ impl Default for Options {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            styles_as_attributes: false,
         }
     }
 }
@@ -99,6 +101,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: value.extra_css.map(Cow::Owned),
+            styles_as_attributes: value.styles_as_attributes,
         })
     }
 }
@@ -123,6 +126,7 @@ interface InlineOptions {
     base_url?: string,
     load_remote_stylesheets?: boolean,
     extra_css?: string,
+    styles_as_attributes?: boolean,
 }
 
 export function inline(html: string, options?: InlineOptions): string;

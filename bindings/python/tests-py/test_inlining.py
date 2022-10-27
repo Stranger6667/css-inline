@@ -89,6 +89,7 @@ def test_invalid_base_url():
     base_url=provisional.urls() | st.none(),
     load_remote_stylesheets=st.booleans() | st.none(),
     extra_css=st.text() | st.none(),
+    styles_as_attributes=st.booleans() | st.none(),
 )
 @settings(max_examples=1000)
 def test_random_input(
@@ -98,6 +99,7 @@ def test_random_input(
     base_url,
     load_remote_stylesheets,
     extra_css,
+    styles_as_attributes,
 ):
     with suppress(ValueError):
         inliner = css_inline.CSSInliner(
@@ -106,5 +108,6 @@ def test_random_input(
             base_url=base_url,
             load_remote_stylesheets=load_remote_stylesheets,
             extra_css=extra_css,
+            styles_as_attributes=styles_as_attributes,
         )
         inliner.inline(document)
