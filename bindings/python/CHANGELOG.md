@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `data-css-inline="ignore"` attribute to ignore CSS inlining. [#10](https://github.com/Stranger6667/css-inline/issues/10)
+
 ## [0.8.4] - 2022-10-20
 
 ### Fixed
