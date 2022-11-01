@@ -47,7 +47,7 @@ MERGE_HTML = """<html>
 </body>
 </html>"""
 MERGE_HTMLS = [MERGE_HTML] * 5000
-REALISTIC_HTML = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+REALISTIC_HTML_1 = """<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
         <title> Newsletter</title>
@@ -148,7 +148,324 @@ BEGIN FOOTER
 </table>
 </body>
 </html>"""
-REALISTIC_HTMLS = [REALISTIC_HTML] * 100
+REALISTIC_HTMLS_1 = [REALISTIC_HTML_1] * 100
+REALISTIC_HTML_2 = """<style>
+blockquote {
+  background: #f9f9f9;
+  border-left: 10px solid #ccc;
+  margin: 1.5em 10px;
+  padding: 0.5em;
+  text-align: center;
+}
+
+blockquote:before {
+  color: #ccc;
+  font-size: 4em;
+  line-height: 0.1em;
+  margin-right: 0.25em;
+  vertical-align: -0.4em;
+}
+
+blockquote p {
+  display: inline;
+}
+
+.message-text {
+  font-family: Arial;
+  font-size: 16px;
+  line-height: 22px;
+  letter-spacing: 0;
+  padding-left: 40px;
+  padding-top: 20px;
+}
+
+.display-block {
+  display: block;
+}
+
+.message-container {
+  width: 70%;
+  position: fixed;
+  text-align: center;
+}
+
+.centered {
+  margin-left: 25%;
+  margin-right: 25%;
+}
+
+p {
+  all: unset;
+}
+
+table, td {
+  width: 100%;
+}
+
+.link {
+  color: #767C84;
+}
+
+.secondary-link {
+  text-decoration: underline;
+  color: #2169D3;
+}
+
+.button {
+  display: inline-block;
+  text-decoration: none;
+  max-height: 48px;
+  border: 1px solid #37139F;
+  border-radius: 4px;
+  padding: 16px 40px;
+  line-height: 16px;
+  color: #37139F;
+}
+
+.button.primary {
+  background-color: #37139F;
+  color: #FFFFFF;
+}
+
+.email {
+  font-family: "Public Sans", sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+.header {
+  padding: 16px 32px;
+  background-color: #F8F6F3;
+  background-image: url("http://localhost:8000/static/pattern-bg.png");
+  background-size: 100%;
+  background-repeat: no-repeat;
+  max-height: 82px;
+}
+
+.header-image {
+  display: inline;
+}
+
+.header-heading {
+  line-height: 50px;
+  vertical-align: bottom;
+  margin-left: 12px;
+  color: #1D215E;
+  font-size: 15px;
+}
+
+.table-body td {
+  padding: 0  calc((100% - 500px) / 2);
+}
+
+.table-body tr:not(:last-child) {
+  height: 30px;
+}
+
+.table-body tr:first-child td {
+  padding-top: 40px;
+  padding-bottom: 32px;
+}
+
+.table-body tr:last-child td {
+  padding-bottom: 40px;
+}
+
+.heading {
+  color: #1D215E;
+  font-weight: 600;
+  font-size: 24px;
+  line-height: 30px;
+}
+
+.sub-heading {
+  font-size: 16px;
+  line-height: 24px;
+}
+
+.comment {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 32px;
+  padding-left: 16px;
+  border-left: 2px solid #B9C0C8;
+}
+
+.payment {
+  border-bottom: 1px solid #E1E3E6;
+  padding: 12px 0;
+}
+
+.payment-service, .payment-fee {
+  display: inline-block;
+}
+
+.payment-service {
+  width: 85%;
+}
+
+.payment-fee {
+  text-align: left;
+  vertical-align: top;
+  float: right;
+}
+
+.actions {
+  padding-top: 40px !important;
+  padding-bottom: 52px !important;
+  text-align: center;
+}
+
+.actions .button:first-child {
+  margin-right: 16px;
+}
+
+.action-link {
+  display: block;
+  font-size: 12px;
+  color: #767C84;
+}
+
+.action-link:not(:last-child) {
+  padding-bottom: 8px;
+}
+
+.footer {
+  background-color: #F8F6F3;
+  padding: 24px 32px;
+  text-align: center;
+  font-size: 12px;
+  color: #767C84;
+  max-height: 66px;
+}
+
+.comment-row {
+  padding-top: 32px !important;
+}
+
+.sub-table-row {
+  color: #343A41;
+}
+
+.sub-table-row:not(:first-child) {
+  margin-top: 16px;
+}
+
+.sub-table-main {
+  color: #767C84;
+  width: 25%;
+  display: inline-block;
+}
+</style>
+
+<table role=presentation aria-hidden=true class="email">
+<thead>
+  <tr>
+  <td class="header">
+      <div class="header-image">
+        <img height="50" width="auto" src="https://storage.googleapis.com/testtest/media/public/organization/test-company/test_company_color_GatI1E3.png" alt="logo Default Company" />
+      </div>
+      <p class="header-heading">Default Company</p>
+    </td>
+  </tr>
+</thead>
+
+<tbody class="table-body">
+  <tr>
+    <td>
+
+        <p class="heading">Default Company has updated payment details for the services related to your project.</p>
+
+    </td>
+  </tr>
+
+
+    <tr>
+      <td>
+        <p class="sub-heading"><b>Default Company's comment:</b></p>
+        <p class="comment">test comment</p>
+      </td>
+    </tr>
+
+
+  <tr>
+    <td>
+      <p class="sub-heading"><b>Fees included:</b></p>
+    </td>
+  </tr>
+
+
+    <tr>
+      <td>
+        <div class="payment">
+          <p class="payment-service">Fee 1</p>
+          <p class="payment-fee">
+            $120.00
+          </p>
+        </div>
+      </td>
+    </tr>
+
+    <tr>
+      <td>
+        <div class="payment">
+          <p class="payment-service">Fee 2</p>
+          <p class="payment-fee">
+            $130.00
+          </p>
+        </div>
+      </td>
+    </tr>
+
+
+  <tr>
+    <td>
+      <div class="payment-service"></div>
+      <div class="payment-fee">
+        <b>Total: $250.00</b>
+      </div>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="actions">
+      <a href="" class="button primary">Proceed with the payment</a>
+      <a href="http://localhost:8000/test-company/projects/78/guide/634/" class="button">Request changes</a>
+    </td>
+  </tr>
+
+  <tr>
+    <td>
+      <p class="action-link">
+        Or click the link to proceed with the payment:
+        <br>
+        <a href="" class="link"></a>
+      </p>
+      <p class="action-link">
+        And request changes to your request:
+        <br>
+        <a href="http://localhost:8000/test-company/projects/78/guide/634/" class="link">http://localhost:8000/test-company/projects/78/guide/634/</a>
+      </p>
+    </td>
+  </tr>
+
+  <tr>
+    <td></td>
+  </tr>
+</tbody>
+
+<tfoot>
+  <tr>
+    <td class="footer">
+      <p>
+        If you've received this email in error, please contact
+        <a href="mailto:support+dev@test.co" class="link">support+dev@test.co</a>
+      </p>
+    </td>
+  </tr>
+</tfoot>
+</table>"""
+REALISTIC_HTMLS_2 = [REALISTIC_HTML_2] * 100
 
 
 def parametrize_functions(
@@ -213,15 +530,27 @@ def test_merge_many(benchmark, func):
 
 
 @all_functions
-@pytest.mark.benchmark(group="realistic")
-def test_realistic(benchmark, func):
-    benchmark(func, REALISTIC_HTML)
+@pytest.mark.benchmark(group="realistic_1")
+def test_realistic_1(benchmark, func):
+    benchmark(func, REALISTIC_HTML_1)
 
 
 @all_many_functions
-@pytest.mark.benchmark(group="realistic many")
-def test_realistic_many(benchmark, func):
-    benchmark(func, REALISTIC_HTMLS)
+@pytest.mark.benchmark(group="realistic_1 many")
+def test_realistic_1_many(benchmark, func):
+    benchmark(func, REALISTIC_HTMLS_1)
+
+
+@all_functions
+@pytest.mark.benchmark(group="realistic_2")
+def test_realistic_2(benchmark, func):
+    benchmark(func, REALISTIC_HTML_2)
+
+
+@all_many_functions
+@pytest.mark.benchmark(group="realistic_2 many")
+def test_realistic_2_many(benchmark, func):
+    benchmark(func, REALISTIC_HTMLS_2)
 
 
 @pytest.mark.benchmark(group="exception")

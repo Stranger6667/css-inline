@@ -113,26 +113,45 @@ Performance
 -----------
 
 Due to the usage of efficient tooling from Mozilla's Servo project (`html5ever`, `rust-cssparser` and others) this
-library has excellent performance characteristics. In comparison with other Python projects, it is ~7-15x faster than the nearest alternative.
+library has excellent performance characteristics. In comparison with other Python projects, it is usually >10x faster than the nearest alternative.
 
 For inlining CSS in the html document from the `Usage` section above there is the following breakdown in the benchmarks:
 
-- `css_inline 0.8.2` - 21.75 us
-- `premailer 3.10.0` - 329.51 us (**x15.14**)
-- `toronado 0.1.0` - 1.59 ms (**x73.28**)
-- `inlinestyler 0.2.5` - 2.37 ms (**x109.27**)
-- `pynliner 0.8.0` - 2.78 ms (**x127.89**)
+- `css_inline 0.8.2` - 22.42 us
+- `premailer 3.10.0` - 332.02 us (**x14.81**)
+- `toronado 0.1.0` - 1.59 ms (**x71.17**)
+- `inlinestyler 0.2.5` - 2.35 ms (**x105.07**)
+- `pynliner 0.8.0` - 2.79 ms (**x124.80**)
 
-And for a more realistic email:
+Realistic email 1:
 
-- `css_inline 0.8.2` - 443.83 us
-- `premailer 3.10.0` - 3.25 ms (**x7.33**)
-- `toronado 0.1.0` - 35.35 ms (**x79.65**)
-- `inlinestyler 0.2.5` - 61.08 ms (**x137.62**)
-- `pynliner 0.8.0` - 99.52 ms (**x224.24**)
+- `css_inline 0.8.2` - 487.75 us
+- `premailer 3.10.0` - 3.92 ms (**x8.05**)
+- `toronado 0.1.0` - 52.09 ms (**x106.81**)
+- `inlinestyler 0.2.5` - 81.17 ms (**x166.43**)
+- `pynliner 0.8.0` - 128.81 ms (**x264.1**)
+
+Realistic email 2:
+
+- `css_inline 0.8.2` - 386.64 us
+- `premailer 3.10.0` - 4.82 ms (**x12.47**)
+- `toronado 0.1.0` - `Error: Pseudo-elements are not supported`
+- `inlinestyler 0.2.5` - 40.80 ms (**x105.54**)
+- `pynliner 0.8.0` - `Error: No match was found`
 
 You can take a look at the benchmarks' code at `benches/bench.py` file.
-The results above were measured with stable `rustc 1.61.0`, `Python 3.10.4`, `Linux x86_64` on i8700K, and 32GB RAM.
+The results above were measured with stable `rustc 1.64.0`, `Python 3.10.4`, `Linux x86_64` on i8700K, and 32GB RAM.
+
+Comparison with other libraries
+-------------------------------
+
+Besides performance, `css-inline` differs from other Python libraries for CSS inlining.
+
+- Generally supports more CSS features than other libraries (for example, `toronado` and `pynliner` do not support pseudo-elements);
+- It has fewer configuration options and not as flexible as `premailer`;
+- Works on fewer platforms than LXML-based libraries (`premailer`, `inlinestyler`, `toronado`, and optionally `pynliner`);
+- Does not have debug logs yet;
+- Supports only HTML 5.
 
 Python support
 --------------
