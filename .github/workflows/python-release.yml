@@ -1,11 +1,12 @@
 name: "[css-inline] Release"
 
 on:
-  create:
-    tags:
-      - python-v*
+  # create:
+  #   tags:
+  #     - python-v*
   # TODO: remove before merging
-  push: 
+  push:
+  pull_request: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
