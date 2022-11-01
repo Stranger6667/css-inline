@@ -189,3 +189,19 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./bindings/wasm
+
+  features:
+    name: Check features
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
+      - uses: taiki-e/install-action@cargo-hack
+      - run: cargo hack check --feature-powerset --lib
+        working-directory: ./css-inline
