@@ -12,11 +12,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-    working-directory: bindings/python
-
 env:
   PACKAGE_NAME: css-inline
   PYTHON_VERSION: "3.7" # to build abi3 wheels
@@ -40,7 +35,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: x86_64
-          args: --release --out dist --sdist
+          args: --release -m bindings/python/Cargo.toml --out dist --sdist
           maturin-version: "v0.13.0"
       - name: Install built wheel - x86_64
         run: |
@@ -67,7 +62,7 @@ jobs:
       - name: Build wheels - universal2
         uses: messense/maturin-action@v1
         with:
-          args: --release --universal2 --out dist
+          args: --release -m bindings/python/Cargo.toml --universal2 --out dist
           maturin-version: "v0.13.0"
       - name: Install built wheel - universal2
         run: |
@@ -99,7 +94,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          args: --release --out dist
+          args: --release -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.0"
       - name: Install built wheel
         shell: bash
@@ -127,7 +122,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release --out dist
+          args: --release -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.0"
       - name: Install built wheel
         if: matrix.target == 'x86_64'
@@ -193,7 +188,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: musllinux_1_2
-          args: --release --out dist
+          args: --release -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.0"
       - name: Install built wheel
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -229,7 +224,7 @@ jobs:
         with:
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
-          args: --release --out dist
+          args: --release -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.0"
       - uses: uraimo/run-on-arch-action@master
         name: Install built wheel
@@ -271,7 +266,7 @@ jobs:
           maturin-version: "v0.13.0"
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release --out dist -i pypy${{ matrix.python-version }}
+          args: --release -m bindings/python/Cargo.toml --out dist -i pypy${{ matrix.python-version }}
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
