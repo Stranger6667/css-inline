@@ -149,7 +149,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --no-default-features --release --out dist
+          args: --release -m bindings/python/Cargo.toml  --no-default-features --out dist
           maturin-version: "v0.13.0"
       - uses: uraimo/run-on-arch-action@v2.0.5
         if: matrix.target != 'ppc64'
