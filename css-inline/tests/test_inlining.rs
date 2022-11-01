@@ -173,6 +173,16 @@ fn important() {
 }
 
 #[test]
+fn important_no_rule_exists() {
+    // `!important` rules should override existing inline styles
+    assert_inlined!(
+        style = "h1 { color: blue !important; }",
+        body = r#"<h1 style="margin:0">Big Text</h1>"#,
+        expected = r#"<h1 style="margin: 0;color: blue">Big Text</h1>"#
+    )
+}
+
+#[test]
 fn font_family_quoted() {
     // When property value contains double quotes
     assert_inlined!(
@@ -580,4 +590,12 @@ fn use_builder() {
         .load_remote_stylesheets(false)
         .extra_css(Some("h1 {color: green}".into()))
         .build();
+}
+
+#[test]
+fn inline_to() {
+    let html = html!("h1 { color: blue }", r#"<h1>Big Text</h1>"#);
+    let mut out = Vec::new();
+    css_inline::inline_to(&html, &mut out).unwrap();
+    assert_eq!(String::from_utf8_lossy(&out), "<html><head><title>Test</title><style>h1 { color: blue }</style></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>")
 }
