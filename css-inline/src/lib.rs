@@ -148,6 +148,7 @@ impl Default for InlineOptions<'_> {
 }
 
 type Result<T> = std::result::Result<T, InlineError>;
+const CSS_INLINE_ATTRIBUTE: &str = "data-css-inline";
 
 /// Customizable CSS inliner.
 #[derive(Debug)]
@@ -246,8 +247,11 @@ impl<'a> CSSInliner<'a> {
         if self.options.inline_style_tags {
             for style_tag in document
                 .select("style")
-                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
+                .map_err(|_| InlineError::ParseError(Cow::from("Unknown error")))?
             {
+                if let Some("ignore") = style_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) {
+                    continue;
+                }
                 if let Some(first_child) = style_tag.as_node().first_child() {
                     if let Some(css_cell) = first_child.as_text() {
                         process_css(&document, css_cell.borrow().as_str(), &mut styles);
@@ -275,7 +279,13 @@ impl<'a> CSSInliner<'a> {
             let mut links = document
                 .select("link[rel~=stylesheet]")
                 .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
-                .filter_map(|link_tag| link_tag.attributes.borrow().get("href").map(str::to_string))
+                .filter_map(|link_tag| {
+                    if let Some("ignore") = link_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) {
+                        None
+                    } else {
+                        link_tag.attributes.borrow().get("href").map(str::to_string)
+                    }
+                })
                 .filter(|link| !link.is_empty())
                 .collect::<Vec<String>>();
             links.sort_unstable();
@@ -302,6 +312,10 @@ impl<'a> CSSInliner<'a> {
                 .attributes
                 .try_borrow_mut()
             {
+                // Skip inlining for tags that have `data-css-inline="ignore"` attribute
+                if let Some("ignore") = attributes.get(CSS_INLINE_ATTRIBUTE) {
+                    continue;
+                }
                 if let Some(existing_style) = attributes.get_mut("style") {
                     *existing_style = merge_styles(existing_style, &styles)?;
                 } else {
@@ -497,7 +511,7 @@ fn merge_styles(
                 // NOTE: There will be no overflow as the new len is always smaller than the old one
                 target.truncate(property.len() + 2);
                 // And push the value
-                target.push_str(value.trim())
+                target.push_str(value.trim());
             }
             // No such rules exist - push the version with `!important` trimmed
             (Some(value), None) => final_styles.push(format!("{}: {}", property, value.trim())),

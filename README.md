@@ -83,6 +83,34 @@ fn main() -> Result<(), css_inline::InlineError> {
 - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
 - `extra_css`. Additional CSS to inline. Default: `None`
 
+If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
+
+```html
+<head>
+    <title>Test</title>
+    <style>h1 { color:blue; }</style>
+</head>
+<body>
+    <!-- The tag below won't receive additional styles -->
+    <h1 data-css-inline="ignore">Big Text</h1>
+</body>
+</html>
+```
+
+This attribute also allows you to skip `link` and `style` tags:
+
+```html
+<head>
+    <title>Test</title>
+    <!-- Styles below are ignored -->
+    <style data-css-inline="ignore">h1 { color:blue; }</style>
+</head>
+<body>
+    <h1>Big Text</h1>
+</body>
+</html>
+```
+
 ## Bindings
 
 There are bindings for Python and WebAssembly in the `bindings` directory.

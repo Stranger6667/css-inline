@@ -21,6 +21,63 @@ p.footer { font-size: 1px}"#,
 }
 
 #[test]
+fn ignore_inlining_attribute_tag() {
+    // When an HTML tag contains `data-css-inline="ignore"`
+    assert_inlined!(
+        style = "h1 { color:blue; }",
+        body = r#"<h1 data-css-inline="ignore">Big Text</h1>"#,
+        // Then it should be skipped
+        expected = r#"<h1 data-css-inline="ignore">Big Text</h1>"#
+    )
+}
+
+#[test]
+fn ignore_inlining_attribute_style() {
+    // When a `style` tag contains `data-css-inline="ignore"`
+    let html = r#"
+<html>
+<head>
+<style type="text/css" data-css-inline="ignore">
+h1 { color: blue; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"#;
+    let result = inline(html).unwrap();
+    // Then it should be skipped
+    assert!(result.ends_with(
+        r#"<body>
+<h1>Big Text</h1>
+
+</body></html>"#
+    ))
+}
+
+#[test]
+fn ignore_inlining_attribute_link() {
+    // When a `link` tag contains `data-css-inline="ignore"`
+    let html = r#"
+<html>
+<head>
+<link href="tests/external.css" rel="stylesheet" type="text/css" data-css-inline="ignore">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"#;
+    let result = inline(html).unwrap();
+    // Then it should be skipped
+    assert!(result.ends_with(
+        r#"<body>
+<h1>Big Text</h1>
+
+</body></html>"#
+    ))
+}
+
+#[test]
 fn specificity_same_selector() {
     assert_inlined!(
         style = r#"

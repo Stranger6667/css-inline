@@ -81,6 +81,34 @@ inliner = css_inline.CSSInliner(remove_style_tags=True)
 inliner.inline("...")
 ```
 
+If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
+
+```html
+<head>
+    <title>Test</title>
+    <style>h1 { color:blue; }</style>
+</head>
+<body>
+    <!-- The tag below won't receive additional styles -->
+    <h1 data-css-inline="ignore">Big Text</h1>
+</body>
+</html>
+```
+
+This attribute also allows you to skip `link` and `style` tags:
+
+```html
+<head>
+    <title>Test</title>
+    <!-- Styles below are ignored -->
+    <style data-css-inline="ignore">h1 { color:blue; }</style>
+</head>
+<body>
+    <h1>Big Text</h1>
+</body>
+</html>
+```
+
 Performance
 -----------
 
