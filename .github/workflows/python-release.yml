@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PACKAGE_NAME: css-inline
+  PACKAGE_NAME: css_inline
   PYTHON_VERSION: "3.7" # to build abi3 wheels
 
 jobs:
