@@ -25,9 +25,6 @@
     rust_2018_compatibility
 )]
 
-#[cfg(feature = "http")]
-use attohttpc::{Method, RequestBuilder};
-
 use kuchiki::{
     parse_html, traits::TendrilSink, ElementData, Node, NodeDataRef, NodeRef, Specificity,
 };
@@ -360,7 +357,7 @@ fn load_external(location: &str) -> Result<String> {
     if location.starts_with("https") | location.starts_with("http") {
         #[cfg(feature = "http")]
         {
-            let request = RequestBuilder::try_new(Method::GET, location)?;
+            let request = attohttpc::RequestBuilder::try_new(attohttpc::Method::GET, location)?;
             let response = request.send()?;
             Ok(response.text()?)
         }
