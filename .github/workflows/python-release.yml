@@ -21,6 +21,35 @@ env:
   PYTHON_VERSION: "3.7" # to build abi3 wheels
 
 jobs:
+  sdist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build sdist
+        uses: messense/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release -m bindings/python/Cargo.toml --out dist --sdist
+          maturin-version: "v0.13.7"
+      - name: Install sdist
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*.tar.gz --force-reinstall
+      - name: Upload sdist
+        uses: actions/upload-artifact@v2
+        with:
+          name: sdist
+          path: dist
+
   macos-x86_64:
     runs-on: macos-latest
     steps:
@@ -39,8 +68,8 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: x86_64
-          args: --release -m bindings/python/Cargo.toml --out dist --sdist
-          maturin-version: "v0.13.0"
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
       - name: Install built wheel - x86_64
         run: |
           pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
@@ -49,6 +78,7 @@ jobs:
         with:
           name: wheels
           path: dist
+
   macos-universal:
     runs-on: macos-latest
     steps:
@@ -67,7 +97,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           args: --release -m bindings/python/Cargo.toml --universal2 --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - name: Install built wheel - universal2
         run: |
           pip install dist/${{ env.PACKAGE_NAME }}-*universal2.whl --force-reinstall
@@ -99,7 +129,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           args: --release -m bindings/python/Cargo.toml --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - name: Install built wheel
         shell: bash
         run: |
@@ -127,7 +157,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           args: --release -m bindings/python/Cargo.toml --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
@@ -154,7 +184,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: auto
           args: --release -m bindings/python/Cargo.toml  --no-default-features --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - uses: uraimo/run-on-arch-action@v2.0.5
         name: Install built wheel
         with:
@@ -191,7 +221,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: musllinux_1_2
           args: --release -m bindings/python/Cargo.toml --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - name: Install built wheel
         uses: addnab/docker-run-action@v3
         with:
@@ -226,7 +256,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
           args: --release -m bindings/python/Cargo.toml --out dist
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
       - uses: uraimo/run-on-arch-action@master
         name: Install built wheel
         with:
@@ -264,7 +294,7 @@ jobs:
       - name: Build wheels
         uses: messense/maturin-action@v1
         with:
-          maturin-version: "v0.13.0"
+          maturin-version: "v0.13.7"
           target: ${{ matrix.target }}
           manylinux: auto
           args: --release -m bindings/python/Cargo.toml --out dist -i pypy${{ matrix.python-version }}
