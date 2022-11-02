@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [aarch64, armv7, s390x, ppc64le, ppc64]
+        target: [aarch64, armv7, s390x]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -156,7 +156,6 @@ jobs:
           args: --release -m bindings/python/Cargo.toml  --no-default-features --out dist
           maturin-version: "v0.13.0"
       - uses: uraimo/run-on-arch-action@v2.0.5
-        if: matrix.target != 'ppc64'
         name: Install built wheel
         with:
           arch: ${{ matrix.target }}
