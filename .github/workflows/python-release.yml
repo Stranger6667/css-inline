@@ -1,143 +1,333 @@
-name: Python Release
+name: "[css-inline] Release"
 
 on:
   push:
     tags:
       - python-v*
 
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PACKAGE_NAME: css_inline
+  PYTHON_VERSION: "3.7" # to build abi3 wheels
+
 jobs:
-  wheels:
-    name: "Wheels for ${{ matrix.BUILD.NAME }}"
-    runs-on: ${{ matrix.BUILD.OS }}
-    strategy:
-      fail-fast: false
-      matrix:
-        BUILD:
-          - NAME: "Linux x86_64 manylinux"
-            OS: "ubuntu-20.04"
-            ARCH: "x86_64"
-            CIBW_BUILD: "*-manylinux*"
-            RUST_TOOLCHAIN: "x86_64-unknown-linux-gnu"
-          - NAME: "Linux x86_64 musllinux"
-            OS: "ubuntu-20.04"
-            ARCH: "x86_64"
-            CIBW_BUILD: "*-musllinux*"
-            RUST_TOOLCHAIN: "x86_64-unknown-linux-musl"
-          - NAME: "macOS x86_64"
-            OS: "macos-11"
-            ARCH: "x86_64"
-            RUST_TOOLCHAIN: "x86_64-apple-darwin"
-          - NAME: "macOS arm64"
-            OS: "macos-11"
-            ARCH: "arm64"
-            RUST_TOOLCHAIN: "aarch64-apple-darwin"
-          - NAME: "Windows x86_64"
-            OS: "windows-2019"
-            ARCH: "AMD64"
-            RUST_TOOLCHAIN: "x86_64-pc-windows-msvc"
-          - NAME: "Windows i686"
-            OS: "windows-2019"
-            ARCH: "x86"
-            RUST_TOOLCHAIN: "i686-pc-windows-msvc"
-    env:
-      # Install Rust toolchain inside the container
-      CIBW_BEFORE_ALL: "curl https://sh.rustup.rs -sSf | sh -s -- --default-toolchain stable -t ${{ matrix.BUILD.RUST_TOOLCHAIN }} -y --profile minimal"
-      CIBW_ENVIRONMENT: 'PATH="$PATH:$HOME/.cargo/bin"'
-      CIBW_BUILD: ${{ matrix.BUILD.CIBW_BUILD }}
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - name: Setup QEMU
-        # QEMU is needed for building aarch64 wheels on Linux
-        if: ${{ matrix.BUILD.ARCH == 'aarch64' && runner.os == 'Linux' }}
-        uses: docker/setup-qemu-action@v1
-        with:
-          platforms: all
-      - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel
-      - name: Build wheels
-        run: python -m cibuildwheel bindings/python --output-dir wheelhouse
-        env:
-          CIBW_ARCHS: ${{ matrix.BUILD.ARCH }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Distribution Artifacts
-          path: wheelhouse/*.whl
-
-  wheels-macos-universal:
-    # `cibuildwheel` does not support building CPython 3.7 wheels for macOS ARM64
-    # This job build universal wheel that covers these versions.
-    # Non-universal wheels are also in place, because they have smaller size & will be used in Python 3.8+ installations
-    name: "Wheels for macOS universal2"
-    runs-on: macos-11
-    steps:
-      - uses: actions/checkout@v2
-      - name: Setup python
-        run: |
-          curl "$PYTHON_DOWNLOAD_URL" -o python.pkg
-          sudo installer -pkg python.pkg -target /
-        env:
-          PYTHON_DOWNLOAD_URL: 'https://www.python.org/ftp/python/3.10.0/python-3.10.0post2-macos11.pkg'
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
-          default: true
-          target: aarch64-apple-darwin
-      - run: /Library/Frameworks/Python.framework/Versions/3.10/bin/python3 -m venv venv
-      - run: venv/bin/pip install -U pip wheel setuptools-rust
-      - run: mkdir wheelhouse
-      - name: Build the wheel
-        run: |
-          cd bindings/python && \
-          ../../venv/bin/python setup.py bdist_wheel --py-limited-api=cp37 && \
-          mv dist/css_inline*.whl ../../wheelhouse
-        env:
-          MACOSX_DEPLOYMENT_TARGET: '10.10'
-          ARCHFLAGS: '-arch x86_64 -arch arm64'
-          _PYTHON_HOST_PLATFORM: 'macosx-10.9-universal2'
-      - run: venv/bin/pip install -f wheelhouse --no-index css_inline
-      - run: find venv/lib/*/site-packages/ -name 'css_inline*.so' -exec vtool -show {} \;
-      - uses: actions/upload-artifact@v2
-        with:
-          name: Distribution Artifacts
-          path: wheelhouse/*.whl
-
   sdist:
-    name: Sdist package
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
         with:
-          python-version: 3.9
-      - name: Install Tox
-        run: pip install tox
-      - run: mkdir wheelhouse
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
       - name: Build sdist
-        run: tox -e build-sdist && mv dist/css_inline-*.tar.gz ../../wheelhouse
-        working-directory: ./bindings/python
-      - uses: actions/upload-artifact@v2
+        uses: messense/maturin-action@v1
         with:
-          name: Distribution Artifacts
-          path: wheelhouse/*.tar.gz
+          command: sdist
+          args: -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - name: Install sdist
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*.tar.gz --force-reinstall
+      - name: Upload sdist
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
 
-  upload_to_pypi:
-    needs:
-    - wheels
-    - wheels-macos-universal
-    - sdist
-    name: Upload Artifacts to PyPi
-    runs-on: ubuntu-20.04
+  macos-x86_64:
+    runs-on: macos-latest
     steps:
-    - uses: actions/download-artifact@v2
-      with:
-        name: Distribution Artifacts
-        path: wheelhouse/
-    - name: Publish distribution package to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.5.0
-      with:
-        user: ${{ secrets.PYPI_USERNAME }}
-        password: ${{ secrets.PYPI_PASSWORD }}
-        packages_dir: wheelhouse/
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build wheels - x86_64
+        uses: messense/maturin-action@v1
+        with:
+          target: x86_64
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - name: Install built wheel - x86_64
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  macos-universal:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build wheels - universal2
+        uses: messense/maturin-action@v1
+        with:
+          args: --release -m bindings/python/Cargo.toml --universal2 --out dist
+          maturin-version: "v0.13.7"
+      - name: Install built wheel - universal2
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*universal2.whl --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        target: [ x64, x86 ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: ${{ matrix.target }}
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          profile: minimal
+          default: true
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - name: Install built wheel
+        shell: bash
+        run: |
+          python -m pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ x86_64, i686 ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - name: Install built wheel
+        if: matrix.target == 'x86_64'
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  linux-cross:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [ aarch64, armv7 ]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release -m bindings/python/Cargo.toml  --no-default-features --out dist
+          maturin-version: "v0.13.7"
+      - uses: uraimo/run-on-arch-action@v2.0.5
+        name: Install built wheel
+        with:
+          arch: ${{ matrix.target }}
+          distro: ubuntu20.04
+          githubToken: ${{ github.token }}
+          install: |
+            apt-get update
+            apt-get install -y --no-install-recommends python3 python3-pip
+            pip3 install -U pip
+          run: |
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  musllinux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-musl
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          architecture: x64
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: musllinux_1_2
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - name: Install built wheel
+        uses: addnab/docker-run-action@v3
+        with:
+          image: alpine:latest
+          options: -v ${{ github.workspace }}:/io -w /io
+          run: |
+            apk add py3-pip
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links /io/dist/ --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  musllinux-cross:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform:
+          - target: aarch64-unknown-linux-musl
+            arch: aarch64
+          - target: armv7-unknown-linux-musleabihf
+            arch: armv7
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          manylinux: musllinux_1_2
+          args: --release -m bindings/python/Cargo.toml --out dist
+          maturin-version: "v0.13.7"
+      - uses: uraimo/run-on-arch-action@master
+        name: Install built wheel
+        with:
+          arch: ${{ matrix.platform.arch }}
+          distro: alpine_latest
+          githubToken: ${{ github.token }}
+          install: |
+            apk add py3-pip
+          run: |
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  pypy:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, macos-latest ]
+        target: [ x86_64, aarch64 ]
+        python-version:
+          - "3.7"
+          - "3.8"
+          - "3.9"
+        exclude:
+          - os: macos-latest
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: pypy${{ matrix.python-version }}
+      - name: Build wheels
+        uses: messense/maturin-action@v1
+        with:
+          maturin-version: "v0.13.7"
+          target: ${{ matrix.target }}
+          manylinux: auto
+          args: --release -m bindings/python/Cargo.toml --out dist -i pypy${{ matrix.python-version }}
+      - name: Install built wheel
+        if: matrix.target == 'x86_64'
+        run: |
+          pip install dist/${{ env.PACKAGE_NAME }}-*.whl --force-reinstall
+      - name: Upload wheels
+        uses: actions/upload-artifact@v2
+        with:
+          name: dist
+          path: dist
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs:
+      - sdist
+      - macos-x86_64
+      - macos-universal
+      - windows
+      - linux
+      - linux-cross
+      - musllinux
+      - musllinux-cross
+      - pypy
+    if: "startsWith(github.ref, 'refs/tags/')"
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: dist
+      - uses: actions/setup-python@v4
+      - name: Publish to PyPi
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: |
+          pip install --upgrade twine
+          twine upload --skip-existing *
