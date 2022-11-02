@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.4] - 2022-11-02
+
 ### Added
 
 - `data-css-inline="ignore"` attribute to ignore CSS inlining. [#10](https://github.com/Stranger6667/css-inline/issues/10)
@@ -210,7 +212,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.4...HEAD
+[0.8.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.3...rust-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.2...rust-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.1...rust-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.0...rust-v0.8.1
