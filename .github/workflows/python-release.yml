@@ -47,7 +47,7 @@ jobs:
       - name: Upload sdist
         uses: actions/upload-artifact@v2
         with:
-          name: sdist
+          name: dist
           path: dist
 
   macos-x86_64:
@@ -76,7 +76,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   macos-universal:
@@ -104,7 +104,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   windows:
@@ -137,7 +137,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   linux:
@@ -165,7 +165,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   linux-cross:
@@ -200,7 +200,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   musllinux:
@@ -233,7 +233,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   musllinux-cross:
@@ -270,7 +270,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   pypy:
@@ -305,7 +305,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
-          name: wheels
+          name: dist
           path: dist
 
   # release:
@@ -324,7 +324,7 @@ jobs:
   #   steps:
   #     - uses: actions/download-artifact@v2
   #       with:
-  #         name: wheels
+  #         name: dist
   #     - uses: actions/setup-python@v4
   #     - name: Publish to PyPi
   #       env:
