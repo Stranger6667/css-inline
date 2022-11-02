@@ -38,8 +38,8 @@ jobs:
       - name: Build sdist
         uses: messense/maturin-action@v1
         with:
-          target: x86_64
-          args: --release -m bindings/python/Cargo.toml --out dist --sdist
+          command: sdist
+          args: -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.7"
       - name: Install sdist
         run: |
