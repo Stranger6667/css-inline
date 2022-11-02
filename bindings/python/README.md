@@ -156,20 +156,7 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 Python support
 --------------
 
-`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, and PyPy 3.7 and 3.8.
-
-The following wheels are available:
-
-|                | manylinux<br/>musllinux<br/>x86_64 | macOS Intel | macOS ARM64 | Windows 64bit | Windows 32bit |
-|----------------|:----------------:|:-----------:|:-----------:|:-------------:|:-------------:|
-| CPython 3.7    |        ✔         |      ✔️      |      ✔      |       ✔️       |       ✔️       |
-| CPython 3.8    |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| CPython 3.9    |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| CPython 3.10   |        ✔         |      ✔️      |      ✔️      |       ✔️       |       ✔️       |
-| PyPy 3.7 v7.3  |        ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
-| PyPy 3.8 v7.3  |        ✔¹        |      ✔️      |     N/A     |       ✔️       |      N/A      |
-
-<sup>¹ PyPy is only supported for manylinux wheels.</sup><br>
+`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, and PyPy 3.7, 3.8, 3.9. 
 
 Extra materials
 ---------------
