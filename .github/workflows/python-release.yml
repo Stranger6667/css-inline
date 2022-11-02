@@ -179,7 +179,6 @@ jobs:
       matrix:
         target:
           - x86_64-unknown-linux-musl
-          - i686-unknown-linux-musl
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
@@ -194,7 +193,6 @@ jobs:
           args: --release -m bindings/python/Cargo.toml --out dist
           maturin-version: "v0.13.0"
       - name: Install built wheel
-        if: matrix.target == 'x86_64-unknown-linux-musl'
         uses: addnab/docker-run-action@v3
         with:
           image: alpine:latest
