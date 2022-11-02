@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        target: [aarch64, armv7, s390x]
+        target: [aarch64, armv7]
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v4
