@@ -246,7 +246,7 @@ impl<'a> CSSInliner<'a> {
                 .select("style")
                 .map_err(|_| InlineError::ParseError(Cow::from("Unknown error")))?
             {
-                if let Some("ignore") = style_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) {
+                if style_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
                     continue;
                 }
                 if let Some(first_child) = style_tag.as_node().first_child() {
@@ -277,7 +277,7 @@ impl<'a> CSSInliner<'a> {
                 .select("link[rel~=stylesheet]")
                 .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
                 .filter_map(|link_tag| {
-                    if let Some("ignore") = link_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) {
+                    if link_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
                         None
                     } else {
                         link_tag.attributes.borrow().get("href").map(str::to_string)
@@ -310,7 +310,7 @@ impl<'a> CSSInliner<'a> {
                 .try_borrow_mut()
             {
                 // Skip inlining for tags that have `data-css-inline="ignore"` attribute
-                if let Some("ignore") = attributes.get(CSS_INLINE_ATTRIBUTE) {
+                if attributes.get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
                     continue;
                 }
                 if let Some(existing_style) = attributes.get_mut("style") {
