@@ -156,6 +156,9 @@ OPTIONS:
 
     --extra-css
         Additional CSS to inline.
+
+    --output-filename-prefix
+        Custom prefix for output files. Defaults to `inlined.`.
 ```
 
 ## Extra materials

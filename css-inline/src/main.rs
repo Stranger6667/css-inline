@@ -7,6 +7,7 @@ use std::{
     fs::{read_to_string, File},
     io::{self, Read, Write},
     path::Path,
+    sync::atomic::{AtomicI32, Ordering},
 };
 
 const VERSION_MESSAGE: &[u8] = concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
@@ -47,6 +48,9 @@ OPTIONS:
 
     --extra-css
         Additional CSS to inline.
+
+    --output-filename-prefix
+        Custom prefix for output files. Defaults to `inlined.`.
 "#
 )
 .as_bytes();
@@ -56,6 +60,7 @@ struct Args {
     remove_style_tags: bool,
     base_url: Option<String>,
     extra_css: Option<String>,
+    output_filename_prefix: Option<OsString>,
     load_remote_stylesheets: bool,
     files: Vec<String>,
 }
@@ -70,6 +75,7 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = pico_args::Arguments::from_env();
+    let exit_code = AtomicI32::new(0);
     if args.contains(["-h", "--help"]) {
         io::stdout().write_all(HELP_MESSAGE)?;
     } else if args.contains(["-v", "--version"]) {
@@ -82,6 +88,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             remove_style_tags: args.contains("--remove-style-tags"),
             base_url: args.opt_value_from_str("--base-url")?,
             extra_css: args.opt_value_from_str("--extra-css")?,
+            output_filename_prefix: args.opt_value_from_str("--output-filename-prefix")?,
             load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
             files: args.free()?,
         };
@@ -104,7 +111,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                     read_to_string(file_path)
                         .and_then(|contents| {
                             let path = Path::new(file_path);
-                            let mut new_filename = OsString::from("inlined.");
+                            let mut new_filename = args
+                                .output_filename_prefix
+                                .clone()
+                                .unwrap_or_else(|| OsString::from("inlined."));
                             new_filename.push(
                                 path.to_path_buf()
                                     .file_name()
@@ -121,11 +131,17 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .for_each(|result| match result {
                     Ok((filename, result)) => match result {
                         Ok(_) => println!("{}: SUCCESS", filename),
-                        Err(error) => println!("{}: FAILURE ({})", filename, error),
+                        Err(error) => {
+                            println!("{}: FAILURE ({})", filename, error);
+                            exit_code.store(1, Ordering::SeqCst);
+                        }
                     },
-                    Err((filename, error)) => println!("{}: FAILURE ({})", filename, error),
+                    Err((filename, error)) => {
+                        println!("{}: FAILURE ({})", filename, error);
+                        exit_code.store(1, Ordering::SeqCst);
+                    }
                 });
         }
     }
-    Ok(())
+    std::process::exit(exit_code.into_inner());
 }
