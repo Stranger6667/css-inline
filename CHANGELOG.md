@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+
+- `--output-filename-prefix` CLI option to control the output files prefix.
+
+### Changed
+
+- Return `1` exit code if any of the input files were not processed successfully via CLI.
+
 ## [0.8.4] - 2022-11-02
 
 ### Added
