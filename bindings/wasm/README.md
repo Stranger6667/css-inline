@@ -77,6 +77,6 @@ This attribute also allows you to skip `link` and `style` tags:
 `css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.
 Notably:
 
-- Only HTML 5;
+- Only HTML 5, XHTML is not supported;
 - Only CSS 3;
 - Only UTF-8 for string representation. Other document encodings are not yet supported.
