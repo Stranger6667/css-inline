@@ -1,0 +1,29 @@
+[package]
+name = "css-inline-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.css-inline]
+path = ".."
+default-features = false
+features = ["http", "file"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[profile.release]
+debug = 1
+
+[[bin]]
+name = "inline"
+path = "fuzz_targets/inline.rs"
+test = false
+doc = false
