@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - master
+  schedule: [cron: "40 1 * * *"]
 
 jobs:
 
@@ -177,4 +178,14 @@ jobs:
           override: true
       - uses: taiki-e/install-action@cargo-hack
       - run: cargo hack check --feature-powerset --lib
+        working-directory: ./css-inline
+
+  fuzz:
+    name: Fuzz
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/install@cargo-fuzz
+      - run: cargo fuzz build -O
         working-directory: ./css-inline
