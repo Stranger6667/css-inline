@@ -115,6 +115,18 @@ Notably:
 - Only CSS 3;
 - Only UTF-8 for string representation. Other document encodings are not yet supported.
 
+If you'd like to work around some XHTML compatibility issues like closing empty tags (`<hr>` vs. `<hr/>`), you can use the following snippet that involves `lxml`:
+
+```python
+import css_inline
+from lxml import html, etree
+
+document = "..."  # Your HTML document
+inlined = css_inline.inline(document)
+tree = html.fromstring(inlined)
+inlined = etree.tostring(tree).decode(encoding="utf-8")
+```
+
 ## Performance
 
 Due to the usage of efficient tooling from Mozilla's Servo project (`html5ever`, `rust-cssparser` and others) this
