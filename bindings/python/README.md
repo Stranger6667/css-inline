@@ -1,6 +1,6 @@
 # css_inline
 
-[![Build](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css_inline/actions)
+[![Build](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
 [![PyPI](https://img.shields.io/pypi/v/css_inline.svg)](https://pypi.org/project/css_inline/)
 [![Python versions](https://img.shields.io/pypi/pyversions/css_inline.svg)](https://pypi.org/project/css_inline/)
 [![License](https://img.shields.io/pypi/l/css_inline.svg)](https://opensource.org/licenses/MIT)
