@@ -111,6 +111,15 @@ This attribute also allows you to skip `link` and `style` tags:
 </html>
 ```
 
+## Standards support & restrictions
+
+`css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.
+Notably:
+
+- Only HTML 5;
+- Only CSS 3;
+- Only UTF-8 for string representation. Other document encodings are not yet supported.
+
 ## Bindings
 
 There are bindings for Python and WebAssembly in the `bindings` directory.

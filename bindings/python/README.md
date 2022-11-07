@@ -1,5 +1,4 @@
-css_inline
-==========
+# css_inline
 
 [![Build](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css_inline/actions)
 [![PyPI](https://img.shields.io/pypi/v/css_inline.svg)](https://pypi.org/project/css_inline/)
@@ -18,8 +17,7 @@ Features:
 
 The project supports CSS Syntax Level 3.
 
-Installation
-------------
+## Installation
 
 To install `css_inline` via `pip` run the following command:
 
@@ -30,8 +28,7 @@ pip install css_inline
 Pre-compiled wheels for most popular platforms are provided. If your platform is not in the support table below, you will need
 a Rust compiler to build this package from source. The minimum supported Rust version is 1.54.
 
-Usage
------
+## Usage
 
 To inline CSS in a HTML document:
 
@@ -109,8 +106,16 @@ This attribute also allows you to skip `link` and `style` tags:
 </html>
 ```
 
-Performance
------------
+## Standards support & restrictions
+
+`css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.
+Notably:
+
+- Only HTML 5;
+- Only CSS 3;
+- Only UTF-8 for string representation. Other document encodings are not yet supported.
+
+## Performance
 
 Due to the usage of efficient tooling from Mozilla's Servo project (`html5ever`, `rust-cssparser` and others) this
 library has excellent performance characteristics. In comparison with other Python projects, it is usually >10x faster than the nearest alternative.
@@ -142,8 +147,7 @@ Realistic email 2:
 You can take a look at the benchmarks' code at `benches/bench.py` file.
 The results above were measured with stable `rustc 1.64.0`, `Python 3.10.4`, `Linux x86_64` on i8700K, and 32GB RAM.
 
-Comparison with other libraries
--------------------------------
+## Comparison with other libraries
 
 Besides performance, `css-inline` differs from other Python libraries for CSS inlining.
 
@@ -153,21 +157,18 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 - Does not have debug logs yet;
 - Supports only HTML 5.
 
-Python support
---------------
+## Python support
 
 `css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11 and PyPy 3.7, 3.8, 3.9. 
 
-Extra materials
----------------
+## Extra materials
 
 If you want to know how this library was created & how it works internally, you could take a look at these articles:
 
 - [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 - [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
 
-License
--------
+## License
 
 The code in this project is licensed under [MIT license](https://opensource.org/licenses/MIT).
 By contributing to `css_inline`, you agree that your contributions
