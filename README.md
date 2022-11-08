@@ -38,7 +38,7 @@ To use it in your project add the following line to your `dependencies` section 
 css-inline = "0.8"
 ```
 
-Minimum Supported Rust Version is 1.54.
+Minimum Supported Rust Version is 1.60.
 
 ## Usage
 
