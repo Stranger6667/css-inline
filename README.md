@@ -25,7 +25,9 @@ Will be turned into this:
 
 ```html
 <html>
-    <head><title>Test</title></head>
+    <head>
+        <title>Test</title>
+    </head>
     <body>
         <h1 style="color:blue;">Big Text</h1>
     </body>
