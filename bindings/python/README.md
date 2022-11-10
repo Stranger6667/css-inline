@@ -106,6 +106,16 @@ This attribute also allows you to skip `link` and `style` tags:
 </html>
 ```
 
+If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+
+```python
+import css_inline
+
+# styles/email is relative to the current directory
+inliner = css_inline.CSSInliner(base_url="file://styles/email/")
+inliner.inline("...")
+```
+
 ## Standards support & restrictions
 
 `css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.

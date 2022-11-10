@@ -570,6 +570,37 @@ h2 { color: red; }
 }
 
 #[test]
+fn file_scheme() {
+    let html = r#"
+<html>
+<head>
+<link href="external.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>"#;
+    let options = InlineOptions {
+        base_url: Some(Url::parse("file://tests/").unwrap()),
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(html).unwrap();
+    assert!(result.ends_with(
+        r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"#
+    ))
+}
+
+#[test]
 fn customize_inliner() {
     let options = InlineOptions {
         load_remote_stylesheets: false,

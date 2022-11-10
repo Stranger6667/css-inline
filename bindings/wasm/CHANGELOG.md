@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for the `file://` URI scheme in `base_url`. [#171](https://github.com/Stranger6667/css-inline/issues/171)
+
 ## [0.8.3] - 2022-11-02
 
 ### Added

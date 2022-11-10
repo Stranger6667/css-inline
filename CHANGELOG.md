@@ -5,6 +5,7 @@
 ### Added
 
 - `--output-filename-prefix` CLI option to control the output files prefix.
+- Support for the `file://` URI scheme in `base_url`. [#171](https://github.com/Stranger6667/css-inline/issues/171)
 
 ### Changed
 

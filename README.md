@@ -81,7 +81,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 - `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `true`
 - `remove_style_tags`. Remove "style" tags after inlining. Default: `false`
-- `base_url`. Base URL to resolve relative URLs. Default: `None`
+- `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
 - `extra_css`. Additional CSS to inline. Default: `None`
 

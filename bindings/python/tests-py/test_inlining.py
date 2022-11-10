@@ -37,9 +37,7 @@ SAMPLE_INLINED = """<h1 style="color:red;">Big Text</h1>
         ({}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
         (
             {"remove_style_tags": True},
-            "<html><head><title>Test</title></head><body>{body}</body></html>".format(
-                body=SAMPLE_INLINED
-            ),
+            "<html><head><title>Test</title></head><body>{body}</body></html>".format(body=SAMPLE_INLINED),
         ),
     ),
 )
@@ -62,9 +60,7 @@ def test_inline_many_wrong_type():
 
 
 def test_missing_stylesheet():
-    with pytest.raises(
-        css_inline.InlineError, match="Missing stylesheet file: tests/missing.css"
-    ):
+    with pytest.raises(css_inline.InlineError, match="Missing stylesheet file: tests/missing.css"):
         css_inline.inline(
             """<html>
 <head>
@@ -75,6 +71,20 @@ def test_missing_stylesheet():
 </body>
 </html>"""
         )
+
+
+def test_file_scheme():
+    css_inline.inline(
+        """<html>
+<head>
+<link href="external.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>""",
+        base_url="file://tests-py/",
+    )
 
 
 def test_invalid_base_url():
