@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.6] - 2022-11-10
+
 ### Added
 
 - Support for the `file://` URI scheme in `base_url`. [#171](https://github.com/Stranger6667/css-inline/issues/171)
@@ -224,7 +226,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.6...HEAD
+[0.8.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.5...python-v0.8.6
 [0.8.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.4...python-v0.8.5
 [0.8.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.3...python-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.2...python-v0.8.3
