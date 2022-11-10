@@ -353,7 +353,7 @@ impl<'a> CSSInliner<'a> {
     }
 }
 
-fn load_external(location: &str) -> Result<String> {
+fn load_external(mut location: &str) -> Result<String> {
     if location.starts_with("https") | location.starts_with("http") {
         #[cfg(feature = "http")]
         {
@@ -372,6 +372,7 @@ fn load_external(location: &str) -> Result<String> {
     } else {
         #[cfg(feature = "file")]
         {
+            location = location.trim_start_matches("file://");
             std::fs::read_to_string(location).map_err(|error| match error.kind() {
                 ErrorKind::NotFound => InlineError::MissingStyleSheet {
                     path: location.to_string(),
