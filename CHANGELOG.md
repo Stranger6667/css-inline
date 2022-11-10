@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.5] - 2022-11-10
+
 ### Added
 
 - `--output-filename-prefix` CLI option to control the output files prefix.
@@ -221,7 +223,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.5...HEAD
+[0.8.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.4...rust-v0.8.5
 [0.8.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.3...rust-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.2...rust-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.1...rust-v0.8.2
