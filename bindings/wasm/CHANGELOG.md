@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.4] - 2022-11-10
+
 ### Added
 
 - Support for the `file://` URI scheme in `base_url`. [#171](https://github.com/Stranger6667/css-inline/issues/171)
@@ -108,7 +110,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.4...HEAD
+[0.8.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.3...wasm-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.2...wasm-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.1...wasm-v0.8.2
 [0.8.1]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.0...wasm-v0.8.1
