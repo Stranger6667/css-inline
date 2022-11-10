@@ -1,4 +1,4 @@
-name: WASM Release
+name: "[WASM] Release"
 
 on:
   push:

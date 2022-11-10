@@ -1,4 +1,4 @@
-name: "[css-inline] Release"
+name: "[Python] Release"
 
 on:
   push:

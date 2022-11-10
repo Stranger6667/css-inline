@@ -1,4 +1,4 @@
-name: Rust Release
+name: "[Rust] Release"
 
 on:
   push:
