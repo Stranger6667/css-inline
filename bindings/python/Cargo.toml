@@ -3,8 +3,7 @@ name = "css-inline-python"
 version = "0.8.6"
 authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+rust-version = "1.60"
 
 [lib]
 name = "css_inline"

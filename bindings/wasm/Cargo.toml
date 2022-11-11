@@ -9,6 +9,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["html", "css", "css-inline"]
 categories = ["web-programming"]
 license = "MIT"
+rust-version = "1.60"
 
 [lib]
 name = "css_inline"
