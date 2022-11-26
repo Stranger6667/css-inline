@@ -1,0 +1,5 @@
+image: tngo04/nil:latest
+project: tngo04/nil
+target: parser
+cmds:
+  - cmd: /parser
