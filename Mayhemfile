@@ -1,5 +1,5 @@
-image: tngo04/nil:latest
-project: tngo04/nil
-target: parser
+image: tngo04/css-inline:latest
+project: tngo04/css-inline
+target: inline
 cmds:
-  - cmd: /parser
+  - cmd: /inline
