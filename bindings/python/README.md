@@ -67,7 +67,7 @@ import css_inline
 css_inline.inline_many(["<...>", "<...>"])
 ```
 
-`inline_many` will use Rust-level threads; thus, you can expect it's running faster than `css_inline.inline` via Python's `multiprocessing` or `threading` modules.
+`inline_many` will spawn threads on the Rust level; thus, you can expect it's running faster than `css_inline.inline` via Python's `multiprocessing` or `threading` modules.
 
 For customization options use the `CSSInliner` class:
 
