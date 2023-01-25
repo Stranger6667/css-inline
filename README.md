@@ -1,6 +1,7 @@
 # css-inline
 
 [![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
+[![codecov](https://codecov.io/gh/Stranger6667/css-inline/branch/master/graph/badge.svg)](https://codecov.io/gh/Stranger6667/css-inline)
 [![Crates.io](https://img.shields.io/crates/v/css-inline.svg)](https://crates.io/crates/css-inline)
 [![docs.rs](https://docs.rs/css-inline/badge.svg)](https://docs.rs/css-inline/)
 [![gitter](https://img.shields.io/gitter/room/Stranger6667/css-inline.svg)](https://gitter.im/Stranger6667/css-inline)
