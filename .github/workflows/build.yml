@@ -193,6 +193,52 @@ jobs:
       - run: cargo hack check --feature-powerset --lib
         working-directory: ./css-inline
 
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Toolchain setup
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: nightly
+          override: true
+
+      - name: Install `cargo-tarpaulin`
+        run: cargo install cargo-tarpaulin
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: coverage-cargo-cache
+
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.7
+
+      - name: Start background server
+        run: |
+          python -m pip install flask
+          # Starts the server in background
+          python ./css-inline/tests/server.py &
+
+      - name: Run tests
+        run: cargo tarpaulin --verbose --all-features --out Xml
+        working-directory: ./css-inline
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        if: ${{ env.GITHUB_REPOSITORY }} == 'Stranger6667/css-inline'
+        with:
+          name: coverage
+
   fuzz:
     name: Fuzz
     runs-on: ubuntu-20.04
@@ -200,5 +246,5 @@ jobs:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
       - run: cargo install cargo-fuzz
-      - run: cargo fuzz build -O
+      - run: cargo fuzz run inline -- -max_total_time=60
         working-directory: ./css-inline
