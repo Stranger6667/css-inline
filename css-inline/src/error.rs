@@ -48,7 +48,7 @@ impl Display for InlineError {
             Self::Network(error) => error.fmt(f),
             Self::ParseError(error) => f.write_str(error),
             Self::MissingStyleSheet { path } => {
-                f.write_fmt(format_args!("Missing stylesheet file: {}", path))
+                f.write_fmt(format_args!("Missing stylesheet file: {path}"))
             }
         }
     }
@@ -59,11 +59,11 @@ impl From<(ParseError<'_, ()>, &str)> for InlineError {
         return match error.0.kind {
             ParseErrorKind::Basic(kind) => match kind {
                 BasicParseErrorKind::UnexpectedToken(token) => {
-                    Self::ParseError(Cow::Owned(format!("Unexpected token: {:?}", token)))
+                    Self::ParseError(Cow::Owned(format!("Unexpected token: {token:?}")))
                 }
                 BasicParseErrorKind::EndOfInput => Self::ParseError(Cow::Borrowed("End of input")),
                 BasicParseErrorKind::AtRuleInvalid(value) => {
-                    Self::ParseError(Cow::Owned(format!("Invalid @ rule: {}", value)))
+                    Self::ParseError(Cow::Owned(format!("Invalid @ rule: {value}")))
                 }
                 BasicParseErrorKind::AtRuleBodyInvalid => {
                     Self::ParseError(Cow::Borrowed("Invalid @ rule body"))
