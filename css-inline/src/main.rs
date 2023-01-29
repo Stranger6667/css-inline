@@ -130,14 +130,14 @@ fn main() -> Result<(), Box<dyn Error>> {
                 })
                 .for_each(|result| match result {
                     Ok((filename, result)) => match result {
-                        Ok(_) => println!("{}: SUCCESS", filename),
+                        Ok(_) => println!("{filename}: SUCCESS"),
                         Err(error) => {
-                            println!("{}: FAILURE ({})", filename, error);
+                            println!("{filename}: FAILURE ({error})");
                             exit_code.store(1, Ordering::SeqCst);
                         }
                     },
                     Err((filename, error)) => {
-                        println!("{}: FAILURE ({})", filename, error);
+                        println!("{filename}: FAILURE ({error})");
                         exit_code.store(1, Ordering::SeqCst);
                     }
                 });
