@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Distribute typing information. [#167](https://github.com/Stranger6667/css-inline/issues/167)
+
 ### Changed
 
 - Update `PyO3` to `0.18.0`.
