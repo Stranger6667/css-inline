@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.8.7] - 2023-01-30
+
 ### Added
 
 - Distribute typing information. [#167](https://github.com/Stranger6667/css-inline/issues/167)
@@ -234,7 +236,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.6...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.7...HEAD
+[0.8.7]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.6...python-v0.8.7
 [0.8.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.5...python-v0.8.6
 [0.8.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.4...python-v0.8.5
 [0.8.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.8.3...python-v0.8.4
