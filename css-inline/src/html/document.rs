@@ -251,6 +251,17 @@ impl Document {
         successors(self[node].first_child, |&node| self[node].next_sibling)
     }
 
+    pub(crate) fn node_and_ancestors(&self, node: NodeId) -> impl Iterator<Item = NodeId> + '_ {
+        successors(Some(node), move |&node| self[node].parent)
+    }
+
+    pub(crate) fn next_in_tree_order(&self, node: NodeId) -> Option<NodeId> {
+        self[node].first_child.or_else(|| {
+            self.node_and_ancestors(node)
+                .find_map(|ancestor| self[ancestor].next_sibling)
+        })
+    }
+
     /// Serialize the document to HTML string.
     pub(crate) fn serialize<W: Write>(
         &self,

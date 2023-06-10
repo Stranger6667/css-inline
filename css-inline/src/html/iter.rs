@@ -1,6 +1,7 @@
 use super::{
     document::Document,
     element::Element,
+    node::NodeId,
     selectors::{ParseError, Selectors},
     Specificity,
 };
@@ -9,21 +10,36 @@ pub(crate) fn select<'a, 'b>(
     document: &'a Document,
     selectors: &'b str,
 ) -> Result<Select<'a>, ParseError<'b>> {
-    Iter { document }.select(selectors)
+    Selectors::compile(selectors).map(|selectors| Select {
+        iter: Iter {
+            document,
+            current: Some(NodeId::document_id()),
+        },
+        selectors,
+    })
 }
 
-#[derive(Debug, Clone)]
-pub(crate) struct Iter<'a> {
+struct Iter<'a> {
     document: &'a Document,
-    // TODO: iterator state
+    current: Option<NodeId>,
 }
 
 impl<'a> Iterator for Iter<'a> {
     type Item = Element<'a>;
-    #[inline]
-    fn next(&mut self) -> Option<Element<'a>> {
-        // TODO: Implement iteration
-        None
+
+    fn next(&mut self) -> Option<Self::Item> {
+        loop {
+            if let Some(current) = self.current {
+                self.current = self.document.next_in_tree_order(current);
+                if let Some(element) = self.document.as_element(current) {
+                    return Some(element);
+                } else {
+                    continue;
+                }
+            } else {
+                return None;
+            }
+        }
     }
 }
 
@@ -32,15 +48,6 @@ pub(crate) struct Select<'a> {
     iter: Iter<'a>,
     /// The selectors to be matched.
     selectors: Selectors,
-}
-
-impl<'a> Iter<'a> {
-    pub(super) fn select<'b>(self, selectors: &'b str) -> Result<Select<'a>, ParseError<'b>> {
-        Selectors::compile(selectors).map(|s| Select {
-            iter: self,
-            selectors: s,
-        })
-    }
 }
 
 impl<'a> Select<'a> {

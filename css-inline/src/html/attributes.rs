@@ -1,11 +1,11 @@
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 /// A collection of HTML attributes.
 #[derive(Debug, PartialEq, Clone)]
 pub(crate) struct Attributes {
     /// Attribute names and their respective values.
-    pub(crate) map: HashMap<QualName, StrTendril>,
+    pub(crate) map: IndexMap<QualName, StrTendril>,
 }
 
 pub(crate) const CSS_INLINE_ATTRIBUTE: &str = "data-css-inline";
