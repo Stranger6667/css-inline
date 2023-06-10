@@ -116,7 +116,7 @@ This attribute also allows you to skip `link` and `style` tags:
 
 ## Standards support & restrictions
 
-`css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.
+`css-inline` is built on top of [cssparser](https://crates.io/crates/cssparser) and relies on its behavior for CSS parsing.
 Notably:
 
 - Only HTML 5, XHTML is not supported;

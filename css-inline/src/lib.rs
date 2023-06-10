@@ -25,11 +25,8 @@
     rust_2018_compatibility
 )]
 
-use kuchiki::{
-    parse_html, traits::TendrilSink, ElementData, Node, NodeDataRef, NodeRef, Specificity,
-};
-
 pub mod error;
+mod html;
 mod parser;
 
 pub use error::InlineError;
@@ -40,6 +37,7 @@ use std::{
     io::{ErrorKind, Write},
 };
 
+use crate::html::{Document, NodeId, Specificity};
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -145,7 +143,6 @@ impl Default for InlineOptions<'_> {
 }
 
 type Result<T> = std::result::Result<T, InlineError>;
-const CSS_INLINE_ATTRIBUTE: &str = "data-css-inline";
 
 /// Customizable CSS inliner.
 #[derive(Debug)]
@@ -226,7 +223,7 @@ impl<'a> CSSInliner<'a> {
     ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
-        let document = parse_html().one(html);
+        let mut document = Document::parse(html.as_bytes());
         // CSS rules may overlap, and the final set of rules applied to an element depend on
         // selectors' specificity - selectors with higher specificity have more priority.
         // Inlining happens in two major steps:
@@ -234,57 +231,15 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        #[allow(clippy::mutable_key_type)]
-        // Each matched element is identified by their raw pointers - they are evaluated once
-        // and then reused, which allows O(1) access to find them.
-        // Internally, their raw pointers are used to implement `Eq`, which seems like the only
-        // reasonable approach to compare them (performance-wise).
         let mut styles = IndexMap::with_capacity(128);
-        let mut style_tags: SmallVec<[NodeDataRef<ElementData>; 4]> = smallvec![];
         if self.options.inline_style_tags {
-            for style_tag in document
-                .select("style")
-                .map_err(|_| InlineError::ParseError(Cow::from("Unknown error")))?
-            {
-                if style_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
-                    continue;
-                }
-                if let Some(first_child) = style_tag.as_node().first_child() {
-                    if let Some(css_cell) = first_child.as_text() {
-                        process_css(&document, css_cell.borrow().as_str(), &mut styles);
-                    }
-                }
-                if self.options.remove_style_tags {
-                    style_tags.push(style_tag);
-                }
+            for style in document.styles() {
+                process_css(&document, style, &mut styles);
             }
         }
-        if self.options.remove_style_tags {
-            if !self.options.inline_style_tags {
-                style_tags.extend(
-                    document
-                        .select("style")
-                        .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?,
-                );
-            }
-            for style_tag in &style_tags {
-                style_tag.as_node().detach();
-            }
-        }
-
         if self.options.load_remote_stylesheets {
-            let mut links = document
-                .select("link[rel~=stylesheet]")
-                .map_err(|_| error::InlineError::ParseError(Cow::from("Unknown error")))?
-                .filter_map(|link_tag| {
-                    if link_tag.attributes.borrow().get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
-                        None
-                    } else {
-                        link_tag.attributes.borrow().get("href").map(str::to_string)
-                    }
-                })
-                .filter(|link| !link.is_empty())
-                .collect::<Vec<String>>();
+            // TODO: Implement skipping + skip empty links
+            let mut links = document.stylesheets().collect::<Vec<&str>>();
             links.sort_unstable();
             links.dedup();
             for href in &links {
@@ -297,39 +252,27 @@ impl<'a> CSSInliner<'a> {
             process_css(&document, extra_css, &mut styles);
         }
         for (node_id, styles) in styles {
-            // SAFETY: All nodes are alive as long as `document` is in scope.
-            // Therefore, any `document` children should be alive and it is safe to dereference
-            // pointers to them
-            let node = unsafe { &*node_id };
-            // It can be borrowed if the current selector matches <link> tag, that is
-            // already borrowed in `inline_to`. We can ignore such matches
-            if let Ok(mut attributes) = node
-                .as_element()
-                .expect("Element is expected")
-                .attributes
-                .try_borrow_mut()
-            {
-                // Skip inlining for tags that have `data-css-inline="ignore"` attribute
-                if attributes.get(CSS_INLINE_ATTRIBUTE) == Some("ignore") {
-                    continue;
+            let node = &mut document[node_id];
+            let Some(element) = node.as_not_ignored_element_mut() else {
+                continue;
+            };
+            let attributes = &mut element.attributes;
+            if let Some(existing_style) = attributes.get_style_mut() {
+                *existing_style = merge_styles(existing_style, &styles)?.into();
+            } else {
+                let mut final_styles = String::with_capacity(128);
+                let mut styles = styles.iter().collect::<Vec<_>>();
+                styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
+                for (name, (_, value)) in styles {
+                    final_styles.push_str(name.as_str());
+                    final_styles.push(':');
+                    replace_double_quotes!(final_styles, name, value);
+                    final_styles.push(';');
                 }
-                if let Some(existing_style) = attributes.get_mut("style") {
-                    *existing_style = merge_styles(existing_style, &styles)?;
-                } else {
-                    let mut final_styles = String::with_capacity(128);
-                    let mut styles = styles.iter().collect::<Vec<_>>();
-                    styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
-                    for (name, (_, value)) in styles {
-                        final_styles.push_str(name.as_str());
-                        final_styles.push(':');
-                        replace_double_quotes!(final_styles, name, value);
-                        final_styles.push(';');
-                    }
-                    attributes.insert("style", final_styles);
-                };
-            }
+                attributes.set_style(final_styles);
+            };
         }
-        document.serialize(target)?;
+        document.serialize(target, self.options.remove_style_tags)?;
         Ok(())
     }
 
@@ -390,11 +333,9 @@ fn load_external(mut location: &str) -> Result<String> {
     }
 }
 
-type NodeId = *const Node;
-
 #[allow(clippy::mutable_key_type)]
 fn process_css(
-    document: &NodeRef,
+    document: &Document,
     css: &str,
     styles: &mut IndexMap<NodeId, IndexMap<String, (Specificity, String)>>,
 ) {
@@ -408,10 +349,10 @@ fn process_css(
         for selector in selectors.split(',') {
             if let Ok(matching_elements) = document.select(selector) {
                 // There is always only one selector applied
-                let specificity = matching_elements.selectors.0[0].specificity();
+                let specificity = matching_elements.specificity();
                 for matching_element in matching_elements {
                     let element_styles = styles
-                        .entry(&**matching_element.as_node())
+                        .entry(matching_element.node_id)
                         .or_insert_with(|| IndexMap::with_capacity(8));
                     // Iterate over pairs of property name & value
                     // Example: `padding`, `0`

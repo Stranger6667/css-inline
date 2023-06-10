@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Replace `kuchiki` with an in-house HTML tree representation.
+
+### Performance
+
+- ???
+
 ## [0.8.5] - 2022-11-10
 
 ### Added

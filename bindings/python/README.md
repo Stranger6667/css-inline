@@ -30,7 +30,7 @@ a Rust compiler to build this package from source. The minimum supported Rust ve
 
 ## Usage
 
-To inline CSS in a HTML document:
+To inline CSS in an HTML document:
 
 ```python
 import css_inline
@@ -118,7 +118,7 @@ inliner.inline("...")
 
 ## Standards support & restrictions
 
-`css-inline` is built on top of [kuchiki](https://crates.io/crates/kuchiki) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML / CSS parsing and serialization.
+`css-inline` is built on top of [cssparser](https://crates.io/crates/cssparser) and relies on its behavior for CSS parsing.
 Notably:
 
 - Only HTML 5, XHTML is not supported;
