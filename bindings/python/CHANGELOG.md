@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `PyO3` to `0.19.0`.
+
 ### Performance
 
 - 15-30% average performance improvement due switch from `kuchiki` to a custom-built HTML tree representation.
