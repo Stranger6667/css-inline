@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.9.0] - 2023-06-10
+
 ### Fixed
 
 - Serialize all HTML attributes without escaping. [#184](https://github.com/Stranger6667/css-inline/issues/184)
@@ -118,7 +120,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.9.0...HEAD
+[0.9.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.4...wasm-v0.9.0
 [0.8.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.3...wasm-v0.8.4
 [0.8.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.2...wasm-v0.8.3
 [0.8.2]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.8.1...wasm-v0.8.2
