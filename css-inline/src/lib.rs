@@ -266,7 +266,9 @@ impl<'a> CSSInliner<'a> {
         }
         for (node_id, styles) in styles {
             let node = &mut document[node_id];
-            let Some(element) = node.as_not_ignored_element_mut() else {
+            let element = if let Some(element) = node.as_not_ignored_element_mut() {
+                element
+            } else {
                 continue;
             };
             let attributes = &mut element.attributes;
