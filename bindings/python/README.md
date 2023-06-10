@@ -152,7 +152,7 @@ For inlining CSS in the html document from the `Usage` section above there is th
 
 Realistic email 1:
 
-- `css_inline 0.8.2` - 393.79 us
+- `css_inline 0.9.0` - 393.79 us
 - `premailer 3.10.0` - 2.72 ms (**x6.90**)
 - `toronado 0.1.0` - 30.55 ms (**x77.57**)
 - `inlinestyler 0.2.5` - 51.69 ms (**x141.42**)
@@ -160,7 +160,7 @@ Realistic email 1:
 
 Realistic email 2:
 
-- `css_inline 0.8.2` - 296.61 us
+- `css_inline 0.9.0` - 296.61 us
 - `premailer 3.10.0` - 4.07 ms (**x13.72**)
 - `toronado 0.1.0` - `Error: Pseudo-elements are not supported`
 - `inlinestyler 0.2.5` - 33.31 ms (**x112.30**)
