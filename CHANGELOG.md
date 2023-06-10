@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Serialize all HTML attributes without escaping. [#184](https://github.com/Stranger6667/css-inline/issues/184)
+
 ### Internal
 
 - Replaced the `kuchiki` crate with our custom-built HTML tree representation. [#176](https://github.com/Stranger6667/css-inline/issues/176)

@@ -7,6 +7,7 @@ use super::{
 };
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
+#[inline]
 pub(crate) fn select<'a, 'b>(
     document: &'a Document,
     selectors: &'b str,
@@ -59,6 +60,7 @@ pub(crate) struct Select<'a> {
 
 impl<'a> Select<'a> {
     /// Specificity of the first selector in the list of selectors.
+    #[inline]
     pub(crate) fn specificity(&self) -> Specificity {
         self.selectors.0[0].specificity()
     }

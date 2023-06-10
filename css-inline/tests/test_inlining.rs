@@ -194,6 +194,34 @@ fn font_family_quoted() {
 }
 
 #[test]
+fn href_attribute_unchanged() {
+    // All HTML attributes should be serialized as is
+    let html = r#"<html>
+<head>
+    <title>Test</title>
+    <style>h1 { color:blue; }</style>
+</head>
+<body>
+    <h1>Big Text</h1>
+    <a href="https://example.org/test?a=b&c=d">Link</a>
+</body>
+</html>"#;
+    let inlined = inline(html).unwrap();
+    assert_eq!(
+        inlined,
+        r#"<html><head>
+    <title>Test</title>
+    <style>h1 { color:blue; }</style>
+</head>
+<body>
+    <h1 style="color:blue;">Big Text</h1>
+    <a href="https://example.org/test?a=b&c=d">Link</a>
+
+</body></html>"#
+    );
+}
+
+#[test]
 fn existing_styles() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag

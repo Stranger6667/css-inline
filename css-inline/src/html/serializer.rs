@@ -1,11 +1,9 @@
 use super::{
+    attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
 };
-use html5ever::{
-    local_name, serialize,
-    serialize::{Serialize, SerializeOpts, Serializer, TraversalScope},
-};
+use html5ever::{local_name, namespace_url, ns, QualName};
 use std::{io, io::Write};
 
 pub(crate) fn serialize_to<W: Write>(
@@ -14,7 +12,8 @@ pub(crate) fn serialize_to<W: Write>(
     skip_style_tags: bool,
 ) -> io::Result<()> {
     let sink = Sink::new(document, NodeId::document_id(), skip_style_tags);
-    serialize(writer, &sink, SerializeOpts::default())
+    let mut serializer = HtmlSerializer::new(writer);
+    sink.serialize(&mut serializer)
 }
 
 /// Intermediary structure for serializing an HTML document.
@@ -32,46 +31,35 @@ impl<'a> Sink<'a> {
             skip_style_tags,
         }
     }
+    #[inline]
     fn for_node(&self, node: NodeId) -> Sink<'a> {
         Sink::new(self.document, node, self.skip_style_tags)
     }
+    #[inline]
     fn data(&self) -> &NodeData {
         &self.document[self.node].data
     }
+    #[inline]
     fn should_skip_element(&self, element: &ElementData) -> bool {
         self.skip_style_tags && element.name.local == local_name!("style")
     }
-    fn serialize_children<S: Serializer>(&self, serializer: &mut S) -> io::Result<()> {
+    fn serialize_children<W: Write>(&self, serializer: &mut HtmlSerializer<W>) -> io::Result<()> {
         for child in self.document.children(self.node) {
-            Serialize::serialize(
-                &self.for_node(child),
-                serializer,
-                TraversalScope::IncludeNode,
-            )?
+            self.for_node(child).serialize(serializer)?
         }
         Ok(())
     }
-}
-
-impl<'a> Serialize for Sink<'a> {
-    fn serialize<S: Serializer>(&self, serializer: &mut S, _: TraversalScope) -> io::Result<()> {
+    fn serialize<W: Write>(&self, serializer: &mut HtmlSerializer<W>) -> io::Result<()> {
         match self.data() {
             NodeData::Element { element, .. } => {
                 if self.should_skip_element(element) {
                     return Ok(());
                 }
-                serializer.start_elem(
-                    element.name.clone(),
-                    element
-                        .attributes
-                        .map
-                        .iter()
-                        .map(|(name, value)| (name, &**value)),
-                )?;
+                serializer.start_elem(&element.name, &element.attributes)?;
 
                 self.serialize_children(serializer)?;
 
-                serializer.end_elem(element.name.clone())?;
+                serializer.end_elem(&element.name)?;
                 Ok(())
             }
             NodeData::Document => self.serialize_children(serializer),
@@ -82,6 +70,130 @@ impl<'a> Serialize for Sink<'a> {
                 serializer.write_processing_instruction(target, data)
             }
         }
+    }
+}
+
+struct ElemInfo {
+    ignore_children: bool,
+}
+
+struct HtmlSerializer<Wr: Write> {
+    writer: Wr,
+    stack: Vec<ElemInfo>,
+}
+
+impl<Wr: Write> HtmlSerializer<Wr> {
+    fn new(writer: Wr) -> Self {
+        HtmlSerializer {
+            writer,
+            stack: vec![ElemInfo {
+                ignore_children: false,
+            }],
+        }
+    }
+
+    fn parent(&mut self) -> &mut ElemInfo {
+        self.stack.last_mut().expect("Stack is empty")
+    }
+
+    fn start_elem(&mut self, name: &QualName, attrs: &Attributes) -> io::Result<()> {
+        if self.parent().ignore_children {
+            self.stack.push(ElemInfo {
+                ignore_children: true,
+            });
+            return Ok(());
+        }
+
+        self.writer.write_all(b"<")?;
+        self.writer.write_all(name.local.as_bytes())?;
+        for (name, value) in &attrs.map {
+            self.writer.write_all(b" ")?;
+
+            match name.ns {
+                ns!() => (),
+                ns!(xml) => self.writer.write_all(b"xml:")?,
+                ns!(xmlns) => {
+                    if name.local != local_name!("xmlns") {
+                        self.writer.write_all(b"xmlns:")?;
+                    }
+                }
+                ns!(xlink) => self.writer.write_all(b"xlink:")?,
+                _ => {
+                    self.writer.write_all(b"unknown_namespace:")?;
+                }
+            }
+
+            self.writer.write_all(name.local.as_bytes())?;
+            self.writer.write_all(b"=\"")?;
+            self.writer.write_all(value.as_bytes())?;
+            self.writer.write_all(b"\"")?;
+        }
+        self.writer.write_all(b">")?;
+
+        let ignore_children = name.ns == ns!(html)
+            && matches!(
+                name.local,
+                local_name!("area")
+                    | local_name!("base")
+                    | local_name!("basefont")
+                    | local_name!("bgsound")
+                    | local_name!("br")
+                    | local_name!("col")
+                    | local_name!("embed")
+                    | local_name!("frame")
+                    | local_name!("hr")
+                    | local_name!("img")
+                    | local_name!("input")
+                    | local_name!("keygen")
+                    | local_name!("link")
+                    | local_name!("meta")
+                    | local_name!("param")
+                    | local_name!("source")
+                    | local_name!("track")
+                    | local_name!("wbr")
+            );
+
+        self.stack.push(ElemInfo { ignore_children });
+
+        Ok(())
+    }
+
+    fn end_elem(&mut self, name: &QualName) -> io::Result<()> {
+        let info = match self.stack.pop() {
+            Some(info) => info,
+            _ => panic!("no ElemInfo"),
+        };
+        if info.ignore_children {
+            return Ok(());
+        }
+
+        self.writer.write_all(b"</")?;
+        self.writer.write_all(name.local.as_bytes())?;
+        self.writer.write_all(b">")
+    }
+
+    fn write_text(&mut self, text: &str) -> io::Result<()> {
+        self.writer.write_all(text.as_bytes())
+    }
+
+    fn write_comment(&mut self, text: &str) -> io::Result<()> {
+        self.writer.write_all(b"<!--")?;
+        self.writer.write_all(text.as_bytes())?;
+        self.writer.write_all(b"-->")
+    }
+
+    fn write_doctype(&mut self, name: &str) -> io::Result<()> {
+        self.writer.write_all(b"<!DOCTYPE ")?;
+        self.writer.write_all(name.as_bytes())?;
+        self.writer.write_all(b">")
+    }
+
+    fn write_processing_instruction(&mut self, target: &str, data: &str) -> io::Result<()> {
+        self.writer.write_all(b"<?")?;
+        self.writer.write_all(target.as_bytes())?;
+        self.writer.write_all(b" ")?;
+        self.writer.write_all(data.as_bytes())?;
+        self.writer.write_all(b">")
     }
 }
 
