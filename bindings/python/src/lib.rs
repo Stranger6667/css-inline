@@ -67,12 +67,12 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
     })
 }
 
-/// CSSInliner(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)
+/// CSSInliner(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=0)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
 #[pyo3(
-    text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None)"
+    text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=0)"
 )]
 struct CSSInliner {
     inner: rust_inline::CSSInliner<'static>,
@@ -87,6 +87,7 @@ impl CSSInliner {
         base_url: Option<String>,
         load_remote_stylesheets: Option<bool>,
         extra_css: Option<String>,
+        preallocate_node_capacity: Option<usize>,
     ) -> PyResult<Self> {
         let options = rust_inline::InlineOptions {
             inline_style_tags: inline_style_tags.unwrap_or(true),
@@ -94,6 +95,8 @@ impl CSSInliner {
             base_url: parse_url(base_url)?,
             load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
             extra_css: extra_css.map(Cow::Owned),
+            preallocate_node_capacity: preallocate_node_capacity
+                .unwrap_or(rust_inline::DEFAULT_HTML_TREE_CAPACITY),
         };
         Ok(CSSInliner {
             inner: rust_inline::CSSInliner::new(options),
@@ -131,6 +134,7 @@ fn inline(
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     extra_css: Option<&str>,
+    preallocate_node_capacity: Option<usize>,
 ) -> PyResult<String> {
     let options = rust_inline::InlineOptions {
         inline_style_tags: inline_style_tags.unwrap_or(true),
@@ -138,6 +142,8 @@ fn inline(
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         extra_css: extra_css.map(Cow::Borrowed),
+        preallocate_node_capacity: preallocate_node_capacity
+            .unwrap_or(rust_inline::DEFAULT_HTML_TREE_CAPACITY),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
@@ -157,6 +163,7 @@ fn inline_many(
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     extra_css: Option<&str>,
+    preallocate_node_capacity: Option<usize>,
 ) -> PyResult<Vec<String>> {
     let options = rust_inline::InlineOptions {
         inline_style_tags: inline_style_tags.unwrap_or(true),
@@ -164,6 +171,8 @@ fn inline_many(
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         extra_css: extra_css.map(Cow::Borrowed),
+        preallocate_node_capacity: preallocate_node_capacity
+            .unwrap_or(rust_inline::DEFAULT_HTML_TREE_CAPACITY),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     inline_many_impl(&inliner, htmls)

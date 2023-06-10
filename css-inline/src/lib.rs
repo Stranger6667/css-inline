@@ -37,7 +37,8 @@ use std::{
     io::{ErrorKind, Write},
 };
 
-use crate::html::{Document, NodeId, Specificity, DEFAULT_HTML_TREE_CAPACITY};
+use crate::html::{Document, NodeId, Specificity};
+pub use html::DEFAULT_HTML_TREE_CAPACITY;
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -251,7 +252,7 @@ impl<'a> CSSInliner<'a> {
             }
         }
         if self.options.load_remote_stylesheets {
-            // TODO: Implement skipping + skip empty links
+            // TODO: skip empty links
             let mut links = document.stylesheets().collect::<Vec<&str>>();
             links.sort_unstable();
             links.dedup();

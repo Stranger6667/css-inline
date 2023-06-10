@@ -12,7 +12,8 @@ use std::{io, io::Write, iter::successors};
 // TODO:
 //   - Make it generic over `NodeId`?
 
-pub(crate) const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
+/// The capacity, pre-allocated for HTML nodes during parsing by default.
+pub const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
 
 /// HTML document representation.
 ///
