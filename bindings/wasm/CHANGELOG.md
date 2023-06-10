@@ -8,7 +8,7 @@
 
 ### Performance
 
-- 15-30% average performance improvement due switch from `kuchiki` to a custom-built HTML tree representation.
+- 30-50% average performance improvement due switch to a custom-built HTML tree representation and serializer.
 
 ## [0.8.4] - 2022-11-10
 
