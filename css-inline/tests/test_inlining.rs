@@ -222,6 +222,67 @@ fn href_attribute_unchanged() {
 }
 
 #[test]
+fn complex_child_selector() {
+    let html = r#"<html>
+   <head>
+      <title>Test</title>
+      <style>.parent {
+         overflow: hidden;
+         box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);
+         }
+         .parent > table > tbody > tr > td,
+         .parent > table > tbody > tr > td > div {
+         border-radius: 3px;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="parent">
+         <table>
+            <tbody>
+               <tr>
+                  <td>
+                     <div>
+                        Test
+                     </div>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div></body></html>"#;
+    let inlined = inline(&html).unwrap();
+    assert_eq!(
+        inlined,
+        r#"<html><head>
+      <title>Test</title>
+      <style>.parent {
+         overflow: hidden;
+         box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);
+         }
+         .parent > table > tbody > tr > td,
+         .parent > table > tbody > tr > td > div {
+         border-radius: 3px;
+         }
+      </style>
+   </head>
+   <body>
+      <div class="parent" style="overflow: hidden;box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);">
+         <table>
+            <tbody>
+               <tr>
+                  <td style="border-radius: 3px;">
+                     <div style="border-radius: 3px;">
+                        Test
+                     </div>
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div></body></html>"#
+    );
+}
+
+#[test]
 fn existing_styles() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag
