@@ -9,9 +9,6 @@ use super::{
 use html5ever::local_name;
 use std::{io, io::Write, iter::successors};
 
-// TODO:
-//   - Make it generic over `NodeId`?
-
 /// The capacity, pre-allocated for HTML nodes during parsing by default.
 pub const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
 
@@ -311,7 +308,17 @@ mod tests {
 
     #[test]
     fn test_collect_styles() {
-        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style><style data-css-inline='ignore'>h1 { color:yellow; }</style></head>", 0);
+        let doc = Document::parse_with_options(
+            r#"
+<head
+  ><title>Test</title>
+  <style>h1 { color:blue; }</style>
+  <style>h1 { color:red; }</style>
+  <style data-css-inline='ignore'>h1 { color:yellow; }</style>
+</head>"#
+                .as_bytes(),
+            0,
+        );
         let styles = doc.styles().collect::<Vec<_>>();
         assert_eq!(styles.len(), 2);
         assert_eq!(styles[0], "h1 { color:blue; }");
@@ -320,7 +327,17 @@ mod tests {
 
     #[test]
     fn test_collect_stylesheets() {
-        let doc = Document::parse_with_options(b"<head><link href='styles1.css' rel='stylesheet' type='text/css'><link href='styles2.css' rel='stylesheet' type='text/css'><link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'></head>", 0);
+        let doc = Document::parse_with_options(
+            r#"
+<head>
+  <link href='styles1.css' rel='stylesheet' type='text/css'>
+  <link href='styles2.css' rel='stylesheet' type='text/css'>
+  <link href='' rel='stylesheet' type='text/css'>
+  <link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'>
+</head>"#
+                .as_bytes(),
+            0,
+        );
         let links = doc.stylesheets().collect::<Vec<_>>();
         assert_eq!(links.len(), 2);
         assert_eq!(links[0], "styles1.css");

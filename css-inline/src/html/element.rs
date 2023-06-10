@@ -17,7 +17,6 @@ use selectors::{
 pub(crate) struct Element<'a> {
     /// Reference to the original document.
     pub(crate) document: &'a Document,
-    // TODO: Store `node` instead? to avoid going via `document[node_id]`
     /// The unique identifier of the node in the document.
     pub(crate) node_id: NodeId,
     /// The specific data associated with the element.

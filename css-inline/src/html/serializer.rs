@@ -55,7 +55,6 @@ impl<'a> Sink<'a> {
 
 impl<'a> Serialize for Sink<'a> {
     fn serialize<S: Serializer>(&self, serializer: &mut S, _: TraversalScope) -> io::Result<()> {
-        // TODO: Consider iteration over recursion
         match self.data() {
             NodeData::Element { element, .. } => {
                 if self.should_skip_element(element) {

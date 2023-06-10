@@ -252,7 +252,6 @@ impl<'a> CSSInliner<'a> {
             }
         }
         if self.options.load_remote_stylesheets {
-            // TODO: skip empty links
             let mut links = document.stylesheets().collect::<Vec<&str>>();
             links.sort_unstable();
             links.dedup();

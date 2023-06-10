@@ -130,12 +130,22 @@ impl TreeSink for Sink {
                 (false, false)
             } else if name.expanded() == expanded_name!(html "style") {
                 (true, false)
-            } else if name.expanded() == expanded_name!(html "link")
-                && attrs.iter().any(|attr| {
-                    attr.name.local == local_name!("rel") && attr.value == "stylesheet".into()
-                })
-            {
-                (false, true)
+            } else if name.expanded() == expanded_name!(html "link") {
+                let mut rel_stylesheet = false;
+                let mut href_non_empty = false;
+                for attr in &attrs {
+                    if attr.name.local == local_name!("rel") && attr.value == "stylesheet".into() {
+                        rel_stylesheet = true;
+                    }
+                    // Skip links with empty `href` attributes
+                    if attr.name.local == local_name!("href") && !attr.value.is_empty() {
+                        href_non_empty = true;
+                    }
+                    if rel_stylesheet && href_non_empty {
+                        break;
+                    }
+                }
+                (false, rel_stylesheet && href_non_empty)
             } else {
                 (false, false)
             }

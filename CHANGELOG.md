@@ -2,13 +2,13 @@
 
 ## [Unreleased]
 
-### Changed
+### Internal
 
-- Replace `kuchiki` with an in-house HTML tree representation.
+- Replaced the `kuchiki` crate with our custom-built HTML tree representation. [#176](https://github.com/Stranger6667/css-inline/issues/176)
 
 ### Performance
 
-- ???
+- 15-30% average performance improvement due switch from `kuchiki` to a custom-built HTML tree representation.
 
 ## [0.8.5] - 2022-11-10
 
