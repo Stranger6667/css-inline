@@ -12,9 +12,9 @@ use html5ever::{
 use std::borrow::Cow;
 
 /// Parse input bytes into an HTML document.
-pub(crate) fn parse(bytes: &[u8]) -> Document {
+pub(crate) fn parse_with_options(bytes: &[u8], preallocate_node_capacity: usize) -> Document {
     let sink = Sink {
-        document: Document::new(),
+        document: Document::with_capacity(preallocate_node_capacity),
     };
     html5ever::parse_document(sink, html5ever::ParseOpts::default())
         .from_utf8()
@@ -238,28 +238,5 @@ impl TreeSink for Sink {
             self.document.append(new_parent, child);
             next_child = self.document[child].next_sibling
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_collect_styles() {
-        let doc = parse(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style><style data-css-inline='ignore'>h1 { color:yellow; }</style></head>");
-        let styles = doc.styles().collect::<Vec<_>>();
-        assert_eq!(styles.len(), 2);
-        assert_eq!(styles[0], "h1 { color:blue; }");
-        assert_eq!(styles[1], "h1 { color:red; }");
-    }
-
-    #[test]
-    fn test_collect_stylesheets() {
-        let doc = parse(b"<head><link href='styles1.css' rel='stylesheet' type='text/css'><link href='styles2.css' rel='stylesheet' type='text/css'><link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'></head>");
-        let links = doc.stylesheets().collect::<Vec<_>>();
-        assert_eq!(links.len(), 2);
-        assert_eq!(links[0], "styles1.css");
-        assert_eq!(links[1], "styles2.css");
     }
 }

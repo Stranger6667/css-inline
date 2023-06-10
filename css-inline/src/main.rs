@@ -98,6 +98,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             base_url: parse_url(args.base_url)?,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
+            ..Default::default()
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

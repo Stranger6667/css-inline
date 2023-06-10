@@ -10,8 +10,9 @@ use html5ever::local_name;
 use std::{io, io::Write, iter::successors};
 
 // TODO:
-//   - Configure capacity of `Document.nodes` somewhere above the call stack
 //   - Make it generic over `NodeId`?
+
+pub(crate) const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
 
 /// HTML document representation.
 ///
@@ -47,12 +48,8 @@ pub(crate) struct Document {
 }
 
 impl Document {
-    pub(crate) fn parse(bytes: &[u8]) -> Document {
-        parser::parse(bytes)
-    }
-
-    pub(super) fn new() -> Self {
-        Document::with_capacity(0)
+    pub(crate) fn parse_with_options(bytes: &[u8], preallocate_node_capacity: usize) -> Document {
+        parser::parse_with_options(bytes, preallocate_node_capacity)
     }
 
     pub(super) fn with_capacity(capacity: usize) -> Self {
@@ -299,8 +296,26 @@ mod tests {
     }
 
     #[test]
+    fn test_collect_styles() {
+        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style><style data-css-inline='ignore'>h1 { color:yellow; }</style></head>", 0);
+        let styles = doc.styles().collect::<Vec<_>>();
+        assert_eq!(styles.len(), 2);
+        assert_eq!(styles[0], "h1 { color:blue; }");
+        assert_eq!(styles[1], "h1 { color:red; }");
+    }
+
+    #[test]
+    fn test_collect_stylesheets() {
+        let doc = Document::parse_with_options(b"<head><link href='styles1.css' rel='stylesheet' type='text/css'><link href='styles2.css' rel='stylesheet' type='text/css'><link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'></head>", 0);
+        let links = doc.stylesheets().collect::<Vec<_>>();
+        assert_eq!(links.len(), 2);
+        assert_eq!(links[0], "styles1.css");
+        assert_eq!(links[1], "styles2.css");
+    }
+
+    #[test]
     fn test_insert_before() {
-        let mut doc = Document::new();
+        let mut doc = Document::with_capacity(0);
 
         let node1_id = doc.push_node(new_element());
         let node2_id = doc.push_node(new_element());
@@ -318,7 +333,7 @@ mod tests {
 
     #[test]
     fn test_append() {
-        let mut doc = Document::new();
+        let mut doc = Document::with_capacity(0);
 
         let node1_id = doc.push_node(new_element());
         let node2_id = doc.push_node(new_element());

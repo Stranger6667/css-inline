@@ -37,7 +37,7 @@ use std::{
     io::{ErrorKind, Write},
 };
 
-use crate::html::{Document, NodeId, Specificity};
+use crate::html::{Document, NodeId, Specificity, DEFAULT_HTML_TREE_CAPACITY};
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -71,6 +71,9 @@ pub struct InlineOptions<'a> {
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
     /// Additional CSS to inline.
     pub extra_css: Option<Cow<'a, str>>,
+    /// Pre-allocate capacity for HTML nodes during parsing.
+    /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
+    pub preallocate_node_capacity: usize,
 }
 
 impl<'a> InlineOptions<'a> {
@@ -84,6 +87,7 @@ impl<'a> InlineOptions<'a> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            preallocate_node_capacity: DEFAULT_HTML_TREE_CAPACITY,
         }
     }
 
@@ -122,6 +126,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Set the initial node capacity for HTML tree.
+    #[must_use]
+    pub fn preallocate_node_capacity(mut self, preallocate_node_capacity: usize) -> Self {
+        self.preallocate_node_capacity = preallocate_node_capacity;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -138,6 +149,7 @@ impl Default for InlineOptions<'_> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            preallocate_node_capacity: 0,
         }
     }
 }
@@ -223,7 +235,8 @@ impl<'a> CSSInliner<'a> {
     ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
-        let mut document = Document::parse(html.as_bytes());
+        let mut document =
+            Document::parse_with_options(html.as_bytes(), self.options.preallocate_node_capacity);
         // CSS rules may overlap, and the final set of rules applied to an element depend on
         // selectors' specificity - selectors with higher specificity have more priority.
         // Inlining happens in two major steps:

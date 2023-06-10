@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn test_serialize() {
-        let doc = Document::parse(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>");
+        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
         let mut buffer = Vec::new();
         doc.serialize(&mut buffer, false).expect("Should not fail");
         assert_eq!(buffer, b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head><body></body></html>")
@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn test_skip_style_tags() {
-        let doc = Document::parse(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>");
+        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
         let mut buffer = Vec::new();
         doc.serialize(&mut buffer, true).expect("Should not fail");
         assert_eq!(
