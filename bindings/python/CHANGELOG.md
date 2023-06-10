@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Serialize all HTML attributes without escaping. [#184](https://github.com/Stranger6667/css-inline/issues/184)
+
 ### Changed
 
 - Update `PyO3` to `0.19.0`.

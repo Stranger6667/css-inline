@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Serialize all HTML attributes without escaping. [#184](https://github.com/Stranger6667/css-inline/issues/184)
+
 ### Performance
 
 - 15-30% average performance improvement due switch from `kuchiki` to a custom-built HTML tree representation.
