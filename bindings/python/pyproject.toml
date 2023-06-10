@@ -43,7 +43,7 @@ homepage = "https://github.com/Stranger6667/css-inline/tree/master/bindings/pyth
 repository = "https://github.com/Stranger6667/css-inline"
 
 [build-system]
-requires = ["maturin>=0.14,<0.15"]
+requires = ["maturin>=1.1"]
 build-backend = "maturin"
 
 [tool.maturin]
