@@ -23,7 +23,7 @@ file = []
 
 [dependencies]
 cssparser = "0.29"
-kuchiki = "0.8"
+html5ever = "0.26.0"
 memchr = "2.4"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
 url = "2"
@@ -31,10 +31,11 @@ smallvec = "1"
 indexmap = "1.8.1"
 pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.5", optional = true }
+selectors = "0.24.0"
 
 [dev-dependencies]
 assert_cmd = "2.0.6"
-criterion = ">= 0.1"
+criterion = { version = "0.5.1", features = [], default-features = false }
 
 [[bench]]
 name = "inliner"

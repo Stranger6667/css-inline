@@ -67,6 +67,7 @@ struct Options {
     base_url: Option<String>,
     load_remote_stylesheets: bool,
     extra_css: Option<String>,
+    preallocate_node_capacity: Option<usize>,
 }
 
 impl Default for Options {
@@ -77,6 +78,7 @@ impl Default for Options {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
+            preallocate_node_capacity: None,
         }
     }
 }
@@ -99,6 +101,9 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: value.extra_css.map(Cow::Owned),
+            preallocate_node_capacity: value
+                .preallocate_node_capacity
+                .unwrap_or(rust_inline::DEFAULT_HTML_TREE_CAPACITY),
         })
     }
 }
@@ -123,6 +128,7 @@ interface InlineOptions {
     base_url?: string,
     load_remote_stylesheets?: boolean,
     extra_css?: string,
+    preallocate_node_capacity?: number,
 }
 
 export function inline(html: string, options?: InlineOptions): string;
