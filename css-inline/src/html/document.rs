@@ -22,6 +22,7 @@ pub(crate) const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
 ///
 /// Here is an example of how nodes within a `Document` could be arranged:
 ///
+/// ```text
 ///                    Document
 ///                       ↓
 ///                      [N1]
@@ -34,6 +35,7 @@ pub(crate) const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
 ///               /  \          /   \
 ///              /    \        /     \
 ///            [N5]<->[N6]   [N7]<->[N8]
+/// ```
 ///
 /// Each Node within the `Document` is interconnected with its siblings, and has a parent-child
 /// relationship with its descendants.
@@ -159,7 +161,7 @@ impl Document {
     ///   [Child1] <--> [Child2] <--> ...
     ///
     /// After:
-    ///  
+    ///
     ///   [Parent]
     ///      ↓
     ///   [Child1] <--> [Child2] <--> [New] ...
