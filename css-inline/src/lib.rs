@@ -78,20 +78,6 @@ pub struct InlineOptions<'a> {
 }
 
 impl<'a> InlineOptions<'a> {
-    /// Options for "compact" HTML output.
-    #[must_use]
-    #[inline]
-    pub const fn compact() -> Self {
-        InlineOptions {
-            inline_style_tags: true,
-            remove_style_tags: true,
-            base_url: None,
-            load_remote_stylesheets: true,
-            extra_css: None,
-            preallocate_node_capacity: DEFAULT_HTML_TREE_CAPACITY,
-        }
-    }
-
     /// Override whether "style" tags should be inlined.
     #[must_use]
     pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
@@ -146,7 +132,7 @@ impl Default for InlineOptions<'_> {
     fn default() -> Self {
         InlineOptions {
             inline_style_tags: true,
-            remove_style_tags: false,
+            remove_style_tags: true,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
@@ -194,16 +180,6 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn options() -> InlineOptions<'a> {
         InlineOptions::default()
-    }
-
-    /// Inliner, that will produce "compact" HTML.
-    /// For example, "style" tags will be removed.
-    #[must_use]
-    #[inline]
-    pub const fn compact() -> Self {
-        CSSInliner {
-            options: InlineOptions::compact(),
-        }
     }
 
     /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a

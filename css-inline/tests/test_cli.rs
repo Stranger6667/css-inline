@@ -5,6 +5,7 @@ use std::fs;
 fn success() {
     let mut cmd = Command::cargo_bin("css-inline").unwrap();
     cmd.arg("tests/example.html")
+        .arg("--keep-style-tags")
         .assert()
         .success()
         .stdout("tests/example.html: SUCCESS\n");
@@ -27,7 +28,6 @@ fn success() {
 fn remove_style_tags() {
     let mut cmd = Command::cargo_bin("css-inline").unwrap();
     cmd.arg("tests/example.html")
-        .arg("--remove-style-tags")
         .arg("--output-filename-prefix=remove-style-tags.")
         .assert()
         .success()

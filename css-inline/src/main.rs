@@ -37,8 +37,8 @@ OPTIONS:
         Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
         from "style" tags use `--inline-style-tags=false`.
 
-    --remove-style-tags
-        Remove "style" tags after inlining.
+    --keep-style-tags
+        Keep "style" tags after inlining.
 
     --base-url
         Used for loading external stylesheets via relative URLs.
@@ -57,7 +57,7 @@ OPTIONS:
 
 struct Args {
     inline_style_tags: bool,
-    remove_style_tags: bool,
+    keep_style_tags: bool,
     base_url: Option<String>,
     extra_css: Option<String>,
     output_filename_prefix: Option<OsString>,
@@ -85,7 +85,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             inline_style_tags: args
                 .opt_value_from_str("--inline-style-tags")?
                 .unwrap_or(true),
-            remove_style_tags: args.contains("--remove-style-tags"),
+            keep_style_tags: args.contains("--keep-style-tags"),
             base_url: args.opt_value_from_str("--base-url")?,
             extra_css: args.opt_value_from_str("--extra-css")?,
             output_filename_prefix: args.opt_value_from_str("--output-filename-prefix")?,
@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         };
         let options = InlineOptions {
             inline_style_tags: args.inline_style_tags,
-            remove_style_tags: args.remove_style_tags,
+            remove_style_tags: !args.keep_style_tags,
             base_url: parse_url(args.base_url)?,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),

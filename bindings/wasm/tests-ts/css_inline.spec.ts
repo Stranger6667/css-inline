@@ -16,10 +16,10 @@ describe("CSS inliner", () => {
       expect(
         inline(
           "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>",
-          { remove_style_tags: true }
+          { remove_style_tags: false }
         )
       ).to.equal(
-        '<html><head><title>Test</title></head><body><h1 style="color:red;">Test</h1></body></html>'
+        '<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style="color:red;">Test</h1></body></html>'
       );
     });
   });

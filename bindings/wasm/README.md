@@ -30,12 +30,13 @@ var inlined = inline(
     </body>
   </html>
   `,
-  { remove_style_tags: true }
+  { remove_style_tags: false }
 )
 // Inlined HTML looks like this:
 // <html>
 //   <head>
 //     <title>Test</title>
+//     <style>h1 { color:red; }</style>
 //   </head>
 //   <body>
 //     <h1 style="color:red;">Test</h1>
@@ -43,6 +44,13 @@ var inlined = inline(
 // </html>
 // Do something with the inlined HTML, e.g. send an email
 ```
+
+- `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `true`
+- `remove_style_tags`. Remove "style" tags after inlining. Default: `true`
+- `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
+- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
+- `extra_css`. Additional CSS to inline. Default: `null`
+- `preallocate_node_capacity`. **Advanced**. Pre-allocate capacity for HTML nodes during parsing. It can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
 
 If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
 

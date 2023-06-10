@@ -74,9 +74,16 @@ For customization options use the `CSSInliner` class:
 ```python
 import css_inline
 
-inliner = css_inline.CSSInliner(remove_style_tags=True)
+inliner = css_inline.CSSInliner(remove_style_tags=False)
 inliner.inline("...")
 ```
+
+- `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `True`
+- `remove_style_tags`. Remove "style" tags after inlining. Default: `True`
+- `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
+- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `True`
+- `extra_css`. Additional CSS to inline. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Pre-allocate capacity for HTML nodes during parsing. It can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
 
 If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
 
@@ -181,7 +188,7 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 
 ## Python support
 
-`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11 and PyPy 3.7, 3.8, 3.9. 
+`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11 and PyPy 3.7, 3.8, 3.9.
 
 ## Extra materials
 

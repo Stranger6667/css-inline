@@ -34,7 +34,7 @@ SAMPLE_INLINED = """<h1 style="color:red;">Big Text</h1>
 @pytest.mark.parametrize(
     "kwargs, expected",
     (
-        ({}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
+        ({"remove_style_tags": False}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
         (
             {"remove_style_tags": True},
             "<html><head><title>Test</title></head><body>{body}</body></html>".format(

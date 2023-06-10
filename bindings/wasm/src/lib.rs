@@ -74,7 +74,7 @@ impl Default for Options {
     fn default() -> Self {
         Options {
             inline_style_tags: true,
-            remove_style_tags: false,
+            remove_style_tags: true,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
@@ -142,17 +142,17 @@ pub mod tests {
     #[wasm_bindgen_test]
     fn default_config() {
         let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &JsValue::undefined()).expect("Inlines correctly");
-        assert_eq!(result, "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 
     #[wasm_bindgen_test]
     fn remove_style_tags() {
         let options = Options {
-            remove_style_tags: true,
+            remove_style_tags: false,
             ..Options::default()
         };
         let options = JsValue::from_serde(&options).expect("Valid value");
         let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &options).expect("Inlines correctly");
-        assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        assert_eq!(result, "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 }

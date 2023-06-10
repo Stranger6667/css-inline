@@ -6,7 +6,7 @@
 [![docs.rs](https://docs.rs/css-inline/badge.svg)](https://docs.rs/css-inline/)
 [![gitter](https://img.shields.io/gitter/room/Stranger6667/css-inline.svg)](https://gitter.im/Stranger6667/css-inline)
 
-A crate for inlining CSS into HTML documents. It is built with Mozilla's Servo project components. 
+A crate for inlining CSS into HTML documents. It is built with Mozilla's Servo project components.
 
 When you send HTML emails, you need to use "style" attributes instead of "style" tags. For example, this HTML:
 
@@ -81,10 +81,11 @@ fn main() -> Result<(), css_inline::InlineError> {
 ```
 
 - `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `true`
-- `remove_style_tags`. Remove "style" tags after inlining. Default: `false`
+- `remove_style_tags`. Remove "style" tags after inlining. Default: `true`
 - `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
 - `extra_css`. Additional CSS to inline. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Pre-allocate capacity for HTML nodes during parsing. It can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
 
 If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
 
@@ -157,8 +158,8 @@ OPTIONS:
         value is `true`. To disable inlining from "style" tags
         use `--inline-style-tags=false`.
 
-    --remove-style-tags
-        Remove "style" tags after inlining.
+    --keep-style-tags
+        Keep "style" tags after inlining.
 
     --base-url
         Used for loading external stylesheets via relative URLs.

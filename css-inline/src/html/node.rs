@@ -2,7 +2,7 @@ use super::attributes::Attributes;
 use html5ever::{tendril::StrTendril, QualName};
 use std::num::NonZeroUsize;
 
-/// Sigle node in the DOM
+/// Single node in the DOM.
 #[derive(Debug, Clone)]
 pub(crate) struct Node {
     pub(crate) parent: Option<NodeId>,

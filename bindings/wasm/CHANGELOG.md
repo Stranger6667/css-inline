@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Set `remove_style_tags` to `true` by default.
+
 ## [0.9.0] - 2023-06-10
 
 ### Fixed
