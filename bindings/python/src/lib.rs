@@ -71,16 +71,15 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
 ///
 /// Customizable CSS inliner.
 #[pyclass]
-#[pyo3(
-    text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=0)"
-)]
 struct CSSInliner {
     inner: rust_inline::CSSInliner<'static>,
 }
 
 #[pymethods]
 impl CSSInliner {
-    #[new]
+    #[new(
+        text_signature = "(inline_style_tags=True, remove_style_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=0)"
+    )]
     fn new(
         inline_style_tags: Option<bool>,
         remove_style_tags: Option<bool>,
