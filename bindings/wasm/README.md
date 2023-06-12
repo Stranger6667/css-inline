@@ -5,7 +5,7 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css-inline` is a library that inlines CSS into HTML documents, built using components from Mozilla's Servo project.
+`css-inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
 
 This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
 
