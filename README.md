@@ -102,7 +102,6 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
     <!-- The tag below won't receive additional styles -->
     <h1 data-css-inline="ignore">Big Text</h1>
 </body>
-</html>
 ```
 
 The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
@@ -116,7 +115,6 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 <body>
     <h1>Big Text</h1>
 </body>
-</html>
 ```
 
 If you'd like to load stylesheets from your filesystem, use the `file://` scheme:

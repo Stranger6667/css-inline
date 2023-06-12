@@ -102,7 +102,6 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 <body>
     <h1>Big Text</h1>
 </body>
-</html>
 ```
 
 ## Standards support & restrictions
