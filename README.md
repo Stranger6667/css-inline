@@ -170,10 +170,6 @@ ARGS:
         there will be "inlined.example.html".
 
 OPTIONS:
-    --inline-style-tags
-        Specifies whether to inline CSS from "style" tags.
-        To disable inlining from "style" tags use
-        `--inline-style-tags=false`.
 
     --keep-style-tags
         Keep "style" tags after inlining.
