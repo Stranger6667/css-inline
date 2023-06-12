@@ -1,14 +1,16 @@
 # css-inline
 
-[![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
-[![codecov](https://codecov.io/gh/Stranger6667/css-inline/branch/master/graph/badge.svg)](https://codecov.io/gh/Stranger6667/css-inline)
-[![Crates.io](https://img.shields.io/crates/v/css-inline.svg)](https://crates.io/crates/css-inline)
-[![docs.rs](https://docs.rs/css-inline/badge.svg)](https://docs.rs/css-inline/)
-[![gitter](https://img.shields.io/gitter/room/Stranger6667/css-inline.svg)](https://gitter.im/Stranger6667/css-inline)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/Stranger6667/css-inline/build.yml?style=flat-square&labelColor=555555&logo=github" height="20">](https://github.com/Stranger6667/css-inline)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/css-inline.svg?style=flat-square&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/css-inline)
+[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-css_inline-66c2a5?style=flat-square&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/css-inline)
+[<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
+[<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-A crate for inlining CSS into HTML documents. It is built with Mozilla's Servo project components.
+`css-inline` is a crate that inlines CSS into HTML documents, built using components from Mozilla's Servo project.
 
-When you send HTML emails, you need to use "style" attributes instead of "style" tags. For example, this HTML:
+This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+
+For instance, the crate transforms HTML like this:
 
 ```html
 <html>
@@ -22,7 +24,7 @@ When you send HTML emails, you need to use "style" attributes instead of "style"
 </html>
 ```
 
-Will be turned into this:
+into:
 
 ```html
 <html>
@@ -35,13 +37,16 @@ Will be turned into this:
 </html>
 ```
 
-To use it in your project add the following line to your `dependencies` section in the project's `Cargo.toml` file:
+## Installation
+
+To include it in your project, add the following line to the dependencies section in your project's `Cargo.toml` file:
 
 ```toml
+[dependencies]
 css-inline = "0.9"
 ```
 
-Minimum Supported Rust Version is 1.60.
+The Minimum Supported Rust Version is 1.60.
 
 ## Usage
 
@@ -80,14 +85,13 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
-- `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `true`
-- `remove_style_tags`. Remove "style" tags after inlining. Default: `true`
-- `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
-- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `true`
-- `extra_css`. Additional CSS to inline. Default: `None`
-- `preallocate_node_capacity`. **Advanced**. Pre-allocate capacity for HTML nodes during parsing. It can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
+- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
+- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
+- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `extra_css`. Extra CSS to be inlined. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
 
-If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
+You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 
 ```html
 <head>
@@ -101,7 +105,7 @@ If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore
 </html>
 ```
 
-This attribute also allows you to skip `link` and `style` tags:
+The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
 
 ```html
 <head>
@@ -115,18 +119,33 @@ This attribute also allows you to skip `link` and `style` tags:
 </html>
 ```
 
+If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+
+```rust
+const HTML: &str = "...";
+
+fn main() -> Result<(), css_inline::InlineError> {
+    let base_url = css_inline::Url::parse("file://styles/email/").expect("Invalid URL");
+    let inliner = css_inline::CSSInliner::options()
+        .base_url(Some(base_url))
+        .build();
+    let inlined = inliner.inline(HTML);
+    // Do something with inlined HTML, e.g. send an email
+    Ok(())
+}
+```
+
 ## Standards support & restrictions
 
-`css-inline` is built on top of [cssparser](https://crates.io/crates/cssparser) and relies on its behavior for CSS parsing.
-Notably:
+`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
 
-- Only HTML 5, XHTML is not supported;
-- Only CSS 3;
-- Only UTF-8 for string representation. Other document encodings are not yet supported.
+- Only HTML 5 is supported, not XHTML.
+- Only CSS 3 is supported.
+- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
 
 ## Bindings
 
-There are bindings for Python and WebAssembly in the `bindings` directory.
+We provide bindings for Python and WebAssembly. Check the `bindings` directory for more information.
 
 ## Command Line Interface
 
@@ -149,23 +168,23 @@ ARGS:
         HTML tags, according to the corresponding CSS selectors.
         When multiple documents are specified, they will be
         processed in parallel, and each inlined file will be saved
-        with "inlined." prefix. E.g., for "example.html", there
-        will be "inlined.example.html".
+        with an "inlined." prefix. For example, for "example.html",
+        there will be "inlined.example.html".
 
 OPTIONS:
     --inline-style-tags
-        Whether to inline CSS from "style" tags. The default
-        value is `true`. To disable inlining from "style" tags
-        use `--inline-style-tags=false`.
+        Specifies whether to inline CSS from "style" tags.
+        To disable inlining from "style" tags use
+        `--inline-style-tags=false`.
 
     --keep-style-tags
         Keep "style" tags after inlining.
 
     --base-url
-        Used for loading external stylesheets via relative URLs.
+        The base URL used to resolve relative URLs.
 
     --load-remote-stylesheets
-        Whether remote stylesheets should be loaded or not.
+        Specifies if remote stylesheets should be loaded or not.
 
     --extra-css
         Additional CSS to inline.
@@ -176,11 +195,15 @@ OPTIONS:
 
 ## Extra materials
 
-If you want to know how this library was created & how it works internally, you could take a look at these articles:
+If you're interested in learning how this library was created and how it works internally, check out these articles:
 
 - [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 - [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
 
 ## Support
 
-If you have anything to discuss regarding this library, please, join our [gitter](https://gitter.im/Stranger6667/css-inline)!
+If you have any questions or discussions related to this library, please join our [gitter](https://gitter.im/Stranger6667/css-inline)!
+
+## License
+
+This project is licensed under the terms of the <a href="LICENSE">MIT license</a>.

@@ -264,9 +264,9 @@ impl Document {
     pub(crate) fn serialize<W: Write>(
         &self,
         writer: &mut W,
-        skip_style_tags: bool,
+        keep_style_tags: bool,
     ) -> io::Result<()> {
-        serialize_to(self, writer, skip_style_tags)
+        serialize_to(self, writer, keep_style_tags)
     }
 
     /// Filter this node iterator to elements matching the given selectors.
@@ -298,12 +298,21 @@ impl std::ops::IndexMut<NodeId> for Document {
 mod tests {
     use super::{super::node::ElementData, *};
     use html5ever::{local_name, namespace_url, ns, QualName};
+    use test_case::test_case;
 
     fn new_element() -> NodeData {
         NodeData::Element {
             element: ElementData::new(QualName::new(None, ns!(), local_name!("span")), vec![]),
             inlining_ignored: false,
         }
+    }
+
+    fn roundtrip(bytes: &[u8]) -> Vec<u8> {
+        let mut buffer = Vec::new();
+        Document::parse_with_options(bytes, 0)
+            .serialize(&mut buffer, false)
+            .expect("Failed to serialize");
+        buffer
     }
 
     #[test]
@@ -376,5 +385,28 @@ mod tests {
         assert_eq!(doc[document_id].last_child, Some(node2_id));
         assert_eq!(doc[node1_id].next_sibling, Some(node2_id));
         assert_eq!(doc[node2_id].previous_sibling, Some(node1_id));
+    }
+
+    #[test_case(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body></body></html>")]
+    #[test_case(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr></body></html>")]
+    fn test_roundtrip(input: &[u8]) {
+        assert_eq!(roundtrip(input), input);
+    }
+
+    #[test]
+    fn test_ignore_children() {
+        assert_eq!(roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></hr></hr></body></html>"), b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></body></html>")
+    }
+
+    #[test]
+    fn test_pseudo_class() {
+        let output = roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title><style>h1:hover { color:blue; }</style></head><body><h1>Hello world!</h1></body></html>");
+        assert_eq!(output, b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><h1>Hello world!</h1></body></html>")
+    }
+
+    #[test]
+    fn test_comment() {
+        let output = roundtrip(b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>");
+        assert_eq!(output, b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>")
     }
 }

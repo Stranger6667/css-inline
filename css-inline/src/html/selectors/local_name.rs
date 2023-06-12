@@ -3,7 +3,7 @@ use std::fmt::Write;
 
 /// `LocalName` type wraps `html5ever::LocalName` to extend it by implementing the `ToCss` trait,
 /// which is needed for selectors implementation.
-#[derive(Debug, Default, PartialEq, Eq, Hash, Clone, PartialOrd, Ord)]
+#[derive(Debug, Default, PartialEq, Eq, Clone)]
 pub(crate) struct LocalName(html5ever::LocalName);
 
 impl LocalName {
@@ -19,12 +19,6 @@ impl LocalName {
 impl PartialEq<LocalName> for html5ever::LocalName {
     fn eq(&self, other: &LocalName) -> bool {
         self.eq(&other.0)
-    }
-}
-
-impl From<html5ever::LocalName> for LocalName {
-    fn from(value: html5ever::LocalName) -> Self {
-        LocalName(value)
     }
 }
 

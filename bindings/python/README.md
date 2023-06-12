@@ -1,21 +1,48 @@
 # css_inline
 
-[![Build](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
-[![PyPI](https://img.shields.io/pypi/v/css_inline.svg)](https://pypi.org/project/css_inline/)
-[![Python versions](https://img.shields.io/pypi/pyversions/css_inline.svg)](https://pypi.org/project/css_inline/)
-[![License](https://img.shields.io/pypi/l/css_inline.svg)](https://opensource.org/licenses/MIT)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/Stranger6667/css-inline/build.yml?style=flat-square&labelColor=555555&logo=github" height="20">](https://github.com/Stranger6667/css-inline)
+[<img alt="pypi" src="https://img.shields.io/pypi/v/css_inline.svg?style=flat-square" height="20">](https://pypi.org/project/css_inline/)
+[<img alt="versions" src="https://img.shields.io/pypi/pyversions/css_inline.svg?style=flat-square" height="20">](https://pypi.org/project/css_inline/)
+[<img alt="license" src="https://img.shields.io/pypi/l/css_inline.svg?style=flat-square" height="20">](https://opensource.org/licenses/MIT)
+[<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
+[<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-Blazing-fast CSS inlining for Python implemented with Mozilla's Servo project components.
+`css-inline` is a library that inlines CSS into HTML documents, built using components from Mozilla's Servo project.
 
-Features:
+This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
 
+For instance, the library transforms HTML like this:
+
+```html
+<html>
+    <head>
+        <title>Test</title>
+        <style>h1 { color:blue; }</style>
+    </head>
+    <body>
+        <h1>Big Text</h1>
+    </body>
+</html>
+```
+
+into:
+
+```html
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <h1 style="color:blue;">Big Text</h1>
+    </body>
+</html>
+```
+
+- 10-350x faster than existing CSS inliners;
 - Removing `style` tags after inlining;
 - Resolving external stylesheets (including local files);
-- Control if `style` tags should be processed;
 - Out-of-document CSS to inline;
 - Inlining multiple documents in parallel (via Rust-level threads)
-
-The project supports CSS Syntax Level 3.
 
 ## Installation
 
@@ -25,7 +52,7 @@ To install `css_inline` via `pip` run the following command:
 pip install css_inline
 ```
 
-Pre-compiled wheels for most popular platforms are provided. If your platform is not in the support table below, you will need
+Pre-compiled wheels for most popular platforms are provided. If your platform is not supported, you will need
 a Rust compiler to build this package from source. The minimum supported Rust version is 1.60.
 
 ## Usage
@@ -74,18 +101,17 @@ For customization options use the `CSSInliner` class:
 ```python
 import css_inline
 
-inliner = css_inline.CSSInliner(remove_style_tags=False)
+inliner = css_inline.CSSInliner(keep_style_tags=True)
 inliner.inline("...")
 ```
 
-- `inline_style_tags`. Whether to inline CSS from "style" tags. Default: `True`
-- `remove_style_tags`. Remove "style" tags after inlining. Default: `True`
-- `base_url`. Base URL to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
-- `load_remote_stylesheets`. Whether remote stylesheets should be loaded or not. Default: `True`
-- `extra_css`. Additional CSS to inline. Default: `None`
-- `preallocate_node_capacity`. **Advanced**. Pre-allocate capacity for HTML nodes during parsing. It can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
+- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `False`
+- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
+- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
+- `extra_css`. Extra CSS to be inlined. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
 
-If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
+You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 
 ```html
 <head>
@@ -99,7 +125,7 @@ If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore
 </html>
 ```
 
-This attribute also allows you to skip `link` and `style` tags:
+The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
 
 ```html
 <head>
@@ -125,12 +151,11 @@ inliner.inline("...")
 
 ## Standards support & restrictions
 
-`css-inline` is built on top of [cssparser](https://crates.io/crates/cssparser) and relies on its behavior for CSS parsing.
-Notably:
+`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
 
-- Only HTML 5, XHTML is not supported;
-- Only CSS 3;
-- Only UTF-8 for string representation. Other document encodings are not yet supported.
+- Only HTML 5 is supported, not XHTML.
+- Only CSS 3 is supported.
+- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
 
 If you'd like to work around some XHTML compatibility issues like closing empty tags (`<hr>` vs. `<hr/>`), you can use the following snippet that involves `lxml`:
 
@@ -199,6 +224,4 @@ If you want to know how this library was created & how it works internally, you 
 
 ## License
 
-The code in this project is licensed under [MIT license](https://opensource.org/licenses/MIT).
-By contributing to `css_inline`, you agree that your contributions
-will be licensed under its MIT license.
+This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).

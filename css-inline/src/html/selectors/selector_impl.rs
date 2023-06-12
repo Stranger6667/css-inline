@@ -7,7 +7,7 @@ use selectors::SelectorImpl;
 
 /// CSS selectors implementation. It is needed to parametrize the parser implementation in regards
 /// of pseudo-classes and elements.
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone)]
 pub(crate) struct InlinerSelectors;
 
 impl SelectorImpl for InlinerSelectors {

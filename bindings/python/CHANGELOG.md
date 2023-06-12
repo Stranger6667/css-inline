@@ -4,7 +4,11 @@
 
 ### Changed
 
-- Set `remove_style_tags` to `true` by default.
+- Replace `remove_style_tags` with `keep_style_tags`.
+
+### Removed
+
+- The `inline_style_tags` configuration option.
 
 ## [0.9.0] - 2023-06-10
 

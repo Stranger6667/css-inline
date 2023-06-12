@@ -62,8 +62,7 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
 struct Options {
-    inline_style_tags: bool,
-    remove_style_tags: bool,
+    keep_style_tags: bool,
     base_url: Option<String>,
     load_remote_stylesheets: bool,
     extra_css: Option<String>,
@@ -73,8 +72,7 @@ struct Options {
 impl Default for Options {
     fn default() -> Self {
         Options {
-            inline_style_tags: true,
-            remove_style_tags: true,
+            keep_style_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
@@ -96,8 +94,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
 
     fn try_from(value: Options) -> Result<Self, Self::Error> {
         Ok(rust_inline::InlineOptions {
-            inline_style_tags: value.inline_style_tags,
-            remove_style_tags: value.remove_style_tags,
+            keep_style_tags: value.keep_style_tags,
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: value.extra_css.map(Cow::Owned),
@@ -123,8 +120,7 @@ pub fn inline(html: &str, options: &JsValue) -> Result<String, JsValue> {
 #[wasm_bindgen(typescript_custom_section)]
 const INLINE: &'static str = r#"
 interface InlineOptions {
-    inline_style_tags?: boolean,
-    remove_style_tags?: boolean,
+    keep_style_tags?: boolean,
     base_url?: string,
     load_remote_stylesheets?: boolean,
     extra_css?: string,
@@ -148,7 +144,7 @@ pub mod tests {
     #[wasm_bindgen_test]
     fn remove_style_tags() {
         let options = Options {
-            remove_style_tags: false,
+            keep_style_tags: true,
             ..Options::default()
         };
         let options = JsValue::from_serde(&options).expect("Valid value");

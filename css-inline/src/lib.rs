@@ -59,10 +59,8 @@ macro_rules! replace_double_quotes {
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
 pub struct InlineOptions<'a> {
-    /// Whether to inline CSS from "style" tags.
-    pub inline_style_tags: bool,
-    /// Remove "style" tags after inlining.
-    pub remove_style_tags: bool,
+    /// Keep "style" tags after inlining.
+    pub keep_style_tags: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not.
@@ -78,17 +76,10 @@ pub struct InlineOptions<'a> {
 }
 
 impl<'a> InlineOptions<'a> {
-    /// Override whether "style" tags should be inlined.
+    /// Override whether "style" tags should be kept after processing.
     #[must_use]
-    pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
-        self.inline_style_tags = inline_style_tags;
-        self
-    }
-
-    /// Override whether "style" tags should be removed after processing.
-    #[must_use]
-    pub fn remove_style_tags(mut self, remove_style_tags: bool) -> Self {
-        self.remove_style_tags = remove_style_tags;
+    pub fn keep_style_tags(mut self, keep_style_tags: bool) -> Self {
+        self.keep_style_tags = keep_style_tags;
         self
     }
 
@@ -131,8 +122,7 @@ impl Default for InlineOptions<'_> {
     #[inline]
     fn default() -> Self {
         InlineOptions {
-            inline_style_tags: true,
-            remove_style_tags: true,
+            keep_style_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
@@ -212,6 +202,13 @@ impl<'a> CSSInliner<'a> {
     ///   - Internal CSS selector parsing error;
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
+        let document = self.inline_impl(html)?;
+        document.serialize(target, self.options.keep_style_tags)?;
+        Ok(())
+    }
+
+    /// Non-generic inlining function.
+    fn inline_impl(&self, html: &str) -> Result<Document> {
         let mut document =
             Document::parse_with_options(html.as_bytes(), self.options.preallocate_node_capacity);
         // CSS rules may overlap, and the final set of rules applied to an element depend on
@@ -222,10 +219,8 @@ impl<'a> CSSInliner<'a> {
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
         let mut styles = IndexMap::with_capacity(128);
-        if self.options.inline_style_tags {
-            for style in document.styles() {
-                process_css(&document, style, &mut styles);
-            }
+        for style in document.styles() {
+            process_css(&document, style, &mut styles);
         }
         if self.options.load_remote_stylesheets {
             let mut links = document.stylesheets().collect::<Vec<&str>>();
@@ -263,8 +258,7 @@ impl<'a> CSSInliner<'a> {
                 attributes.set_style(final_styles);
             };
         }
-        document.serialize(target, self.options.remove_style_tags)?;
-        Ok(())
+        Ok(document)
     }
 
     fn get_full_url<'u>(&self, href: &'u str) -> Cow<'u, str> {

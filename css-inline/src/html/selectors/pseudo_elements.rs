@@ -2,7 +2,7 @@ use super::selector_impl::InlinerSelectors;
 use cssparser::ToCss;
 use std::fmt;
 
-#[derive(PartialEq, Eq, Clone, Debug, Hash)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub(crate) enum PseudoElement {}
 
 impl ToCss for PseudoElement {

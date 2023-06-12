@@ -3,7 +3,7 @@ use cssparser::ToCss;
 use selectors::parser::NonTSPseudoClass;
 use std::fmt;
 
-#[derive(PartialEq, Eq, Clone, Debug, Hash)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub(crate) enum PseudoClass {
     AnyLink,
     Link,

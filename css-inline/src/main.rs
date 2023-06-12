@@ -4,6 +4,7 @@ use std::{
     borrow::Cow,
     error::Error,
     ffi::OsString,
+    fmt::{Display, Write as FmtWrite},
     fs::{read_to_string, File},
     io::{self, Read, Write},
     path::Path,
@@ -33,9 +34,6 @@ ARGS:
         "inlined.example.html".
 
 OPTIONS:
-    --inline-style-tags
-        Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
-        from "style" tags use `--inline-style-tags=false`.
 
     --keep-style-tags
         Keep "style" tags after inlining.
@@ -56,7 +54,6 @@ OPTIONS:
 .as_bytes();
 
 struct Args {
-    inline_style_tags: bool,
     keep_style_tags: bool,
     base_url: Option<String>,
     extra_css: Option<String>,
@@ -73,6 +70,16 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
     })
 }
 
+fn format_error(filename: Option<&str>, error: impl Display) {
+    let mut buffer = String::with_capacity(128);
+    if let Some(filename) = filename {
+        writeln!(buffer, "Filename: {}", filename).expect("Failed to write to buffer");
+    }
+    buffer.push_str("Status: ERROR\n");
+    writeln!(buffer, "Details: {}", error).expect("Failed to write to buffer");
+    eprintln!("{}", buffer.trim());
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let mut args = pico_args::Arguments::from_env();
     let exit_code = AtomicI32::new(0);
@@ -82,9 +89,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         io::stdout().write_all(VERSION_MESSAGE)?;
     } else {
         let args = Args {
-            inline_style_tags: args
-                .opt_value_from_str("--inline-style-tags")?
-                .unwrap_or(true),
             keep_style_tags: args.contains("--keep-style-tags"),
             base_url: args.opt_value_from_str("--base-url")?,
             extra_css: args.opt_value_from_str("--extra-css")?,
@@ -92,10 +96,16 @@ fn main() -> Result<(), Box<dyn Error>> {
             load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
             files: args.free()?,
         };
+        let base_url = match parse_url(args.base_url) {
+            Ok(base_url) => base_url,
+            Err(error) => {
+                format_error(None, error);
+                std::process::exit(1);
+            }
+        };
         let options = InlineOptions {
-            inline_style_tags: args.inline_style_tags,
-            remove_style_tags: !args.keep_style_tags,
-            base_url: parse_url(args.base_url)?,
+            keep_style_tags: args.keep_style_tags,
+            base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
             ..Default::default()
@@ -104,7 +114,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         if args.files.is_empty() {
             let mut buffer = String::new();
             io::stdin().read_to_string(&mut buffer)?;
-            inliner.inline_to(buffer.as_str().trim(), &mut io::stdout())?;
+            if let Err(error) = inliner.inline_to(buffer.as_str().trim(), &mut io::stdout()) {
+                format_error(None, error);
+                exit_code.store(1, Ordering::SeqCst);
+            }
         } else {
             args.files
                 .par_iter()
@@ -133,12 +146,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                     Ok((filename, result)) => match result {
                         Ok(_) => println!("{filename}: SUCCESS"),
                         Err(error) => {
-                            println!("{filename}: FAILURE ({error})");
+                            format_error(Some(filename.as_str()), error);
                             exit_code.store(1, Ordering::SeqCst);
                         }
                     },
                     Err((filename, error)) => {
-                        println!("{filename}: FAILURE ({error})");
+                        format_error(Some(filename.as_str()), error);
                         exit_code.store(1, Ordering::SeqCst);
                     }
                 });

@@ -122,7 +122,7 @@ a {
 </body>
 </html>"#,
     );
-    let inliner = CSSInliner::options().remove_style_tags(false).build();
+    let inliner = CSSInliner::options().keep_style_tags(false).build();
     c.bench_function("removing tags", |b| {
         b.iter(|| inliner.inline(html).unwrap())
     });
