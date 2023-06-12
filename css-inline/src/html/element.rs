@@ -248,7 +248,7 @@ impl<'a> selectors::Element for Element<'a> {
             .children(self.node_id)
             .all(|child| match &self.document[child].data {
                 NodeData::Element { .. } => false,
-                NodeData::Text { text: content } => content.is_empty(),
+                NodeData::Text { text } => text.is_empty(),
                 _ => true,
             })
     }

@@ -34,9 +34,9 @@ SAMPLE_INLINED = """<h1 style="color:red;">Big Text</h1>
 @pytest.mark.parametrize(
     "kwargs, expected",
     (
-        ({}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
+        ({"keep_style_tags": True}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
         (
-            {"remove_style_tags": True},
+            {"keep_style_tags": False},
             "<html><head><title>Test</title></head><body>{body}</body></html>".format(
                 body=SAMPLE_INLINED
             ),
@@ -98,8 +98,7 @@ def test_invalid_base_url():
 
 @given(
     document=st.text(),
-    inline_style_tags=st.booleans() | st.none(),
-    remove_style_tags=st.booleans() | st.none(),
+    keep_style_tags=st.booleans() | st.none(),
     base_url=provisional.urls() | st.none(),
     load_remote_stylesheets=st.booleans() | st.none(),
     extra_css=st.text() | st.none(),
@@ -107,16 +106,14 @@ def test_invalid_base_url():
 @settings(max_examples=1000)
 def test_random_input(
     document,
-    inline_style_tags,
-    remove_style_tags,
+    keep_style_tags,
     base_url,
     load_remote_stylesheets,
     extra_css,
 ):
     with suppress(ValueError):
         inliner = css_inline.CSSInliner(
-            inline_style_tags=inline_style_tags,
-            remove_style_tags=remove_style_tags,
+            keep_style_tags=keep_style_tags,
             base_url=base_url,
             load_remote_stylesheets=load_remote_stylesheets,
             extra_css=extra_css,

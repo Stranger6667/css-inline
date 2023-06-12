@@ -2,8 +2,8 @@ use super::attributes::Attributes;
 use html5ever::{tendril::StrTendril, QualName};
 use std::num::NonZeroUsize;
 
-/// Sigle node in the DOM
-#[derive(Debug, Clone)]
+/// Single node in the DOM.
+#[derive(Debug)]
 pub(crate) struct Node {
     pub(crate) parent: Option<NodeId>,
     pub(crate) next_sibling: Option<NodeId>,
@@ -71,7 +71,7 @@ impl NodeId {
 }
 
 /// Data associated with a `Node`.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub(crate) enum NodeData {
     Document,
     Doctype {
@@ -93,7 +93,7 @@ pub(crate) enum NodeData {
     },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug)]
 pub(crate) struct ElementData {
     /// The name (tag) of the element.
     pub(crate) name: QualName,

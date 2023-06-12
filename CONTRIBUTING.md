@@ -1,6 +1,6 @@
 # css-inline contribution guidelines
 
-Thank you for your interest in making `css-inline` better! 
+Thank you for your interest in making `css-inline` better!
 We'd love to have your contribution. We expect all contributors to
 abide by the [Contributor Covenant Code of Conduct], which you can find in the
 [`CODE_OF_CONDUCT.md`] file in this repository.
@@ -9,7 +9,7 @@ abide by the [Contributor Covenant Code of Conduct], which you can find in the
 
 ## License
 
-The code in this project is licensed under MIT license. 
+The code in this project is licensed under MIT license.
 By contributing to `css-inline`, you agree that your contributions will be licensed under its MIT license.
 
 ## Pull Requests

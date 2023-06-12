@@ -1,6 +1,7 @@
 #[macro_use]
 mod utils;
-use css_inline::{inline, CSSInliner, InlineError, InlineOptions, Url};
+use css_inline::{inline, CSSInliner, InlineOptions, Url};
+use test_case::test_case;
 
 #[test]
 fn no_existing_style() {
@@ -139,14 +140,8 @@ fn simple_merge() {
     let html = html!(style, r#"<h1 style="font-size: 1px">Big Text</h1>"#);
     let inlined = inline(&html).unwrap();
     // Then new styles should be merged with the existing ones
-    let option_1 = html!(
-        style,
-        r#"<h1 style="font-size: 1px;color: red">Big Text</h1>"#
-    );
-    let option_2 = html!(
-        style,
-        r#"<h1 style="color: red;font-size: 1px">Big Text</h1>"#
-    );
+    let option_1 = html!(r#"<h1 style="font-size: 1px;color: red">Big Text</h1>"#);
+    let option_2 = html!(r#"<h1 style="color: red;font-size: 1px">Big Text</h1>"#);
     let valid = (inlined == option_1) || (inlined == option_2);
     assert!(valid, "{}", inlined);
 }
@@ -211,7 +206,7 @@ fn href_attribute_unchanged() {
         inlined,
         r#"<html><head>
     <title>Test</title>
-    <style>h1 { color:blue; }</style>
+    
 </head>
 <body>
     <h1 style="color:blue;">Big Text</h1>
@@ -250,20 +245,12 @@ fn complex_child_selector() {
             </tbody>
          </table>
       </div></body></html>"#;
-    let inlined = inline(&html).unwrap();
+    let inlined = inline(html).unwrap();
     assert_eq!(
         inlined,
         r#"<html><head>
       <title>Test</title>
-      <style>.parent {
-         overflow: hidden;
-         box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);
-         }
-         .parent > table > tbody > tr > td,
-         .parent > table > tbody > tr > td > div {
-         border-radius: 3px;
-         }
-      </style>
+      
    </head>
    <body>
       <div class="parent" style="overflow: hidden;box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);">
@@ -333,22 +320,23 @@ fn media_query_ignore() {
     )
 }
 
-#[test]
-fn invalid_rule() {
+#[test_case("@wrong { color: --- }", "Invalid @ rule: wrong")]
+#[test_case("ttt { 123 }", "Unexpected token: CurlyBracketBlock")]
+#[test_case("----", "End of input")]
+fn invalid_rule(style: &str, expected: &str) {
     let html = html!(
         "h1 {background-color: blue;}",
-        r#"<h1 style="@wrong { color: ---}">Hello world!</h1>"#
+        format!(r#"<h1 style="{}">Hello world!</h1>"#, style)
     );
     let result = inline(&html);
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err().to_string(), "Invalid @ rule: wrong")
+    assert_eq!(result.unwrap_err().to_string(), expected);
 }
 
 #[test]
 fn remove_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let inliner = CSSInliner::compact();
-    let result = inliner.inline(&html).unwrap();
+    let result = inline(&html).unwrap();
     assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }
 
@@ -377,8 +365,7 @@ a {
 </body>
 </html>
     "#;
-    let inliner = CSSInliner::compact();
-    let result = inliner.inline(html).unwrap();
+    let result = inline(html).unwrap();
     assert_eq!(
         result,
         r#"<html><head>
@@ -395,94 +382,15 @@ a {
 }
 
 #[test]
-fn remove_multiple_style_tags_without_inlining() {
-    let html = r#"
-<html>
-<head>
-<style>
-h1 {
-    text-decoration: none;
-}
-</style>
-<style>
-.test-class {
-        color: #ffffff;
-}
-a {
-        color: #17bebb;
-}
-</style>
-</head>
-<body>
-<a class="test-class" href="https://example.com">Test</a>
-<h1>Test</h1>
-</body>
-</html>
-    "#;
-    let inliner = CSSInliner::options()
-        .remove_style_tags(true)
-        .inline_style_tags(false)
-        .build();
-    let result = inliner.inline(html).unwrap();
-    assert_eq!(
-        result,
-        r#"<html><head>
-
-
-</head>
-<body>
-<a class="test-class" href="https://example.com">Test</a>
-<h1>Test</h1>
-
-
-    </body></html>"#
-    )
-}
-
-#[test]
-fn do_not_process_style_tag() {
-    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let options = InlineOptions {
-        inline_style_tags: false,
-        ..Default::default()
-    };
-    let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
-    assert_eq!(
-        result,
-        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
-    )
-}
-
-#[test]
-fn do_not_process_style_tag_and_remove() {
-    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let options = InlineOptions {
-        remove_style_tags: true,
-        inline_style_tags: false,
-        ..Default::default()
-    };
-    let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
-    assert_eq!(
-        result,
-        "<html><head><title>Test</title></head><body><h1>Hello world!</h1></body></html>"
-    )
-}
-
-#[test]
 fn extra_css() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let options = InlineOptions {
-        inline_style_tags: false,
-        extra_css: Some("h1 {background-color: green;}".into()),
-        ..Default::default()
-    };
-    let inliner = CSSInliner::new(options);
+    let inliner = CSSInliner::options()
+        .extra_css(Some("h1 {background-color: green;}".into()))
+        .build();
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
+        "<html><head><title>Test</title></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
     )
 }
 
@@ -523,12 +431,10 @@ fn missing_stylesheet() {
 <h1>Big Text</h1>
 </body>
 </html>"#;
-    match inline(html).expect_err("Should be an error") {
-        InlineError::MissingStyleSheet { path } => {
-            assert_eq!(path, String::from("tests/missing.css"))
-        }
-        _ => panic!("Invalid error type"),
-    }
+    assert_eq!(
+        inline(html).expect_err("Should be an error").to_string(),
+        "Missing stylesheet file: tests/missing.css"
+    );
 }
 
 #[test]
@@ -694,18 +600,19 @@ fn customize_inliner() {
     let options = InlineOptions {
         load_remote_stylesheets: false,
         ..Default::default()
-    };
+    }
+    .preallocate_node_capacity(25);
     assert!(!options.load_remote_stylesheets);
-    assert!(!options.remove_style_tags);
+    assert!(!options.keep_style_tags);
     assert_eq!(options.base_url, None);
+    assert_eq!(options.preallocate_node_capacity, 25);
 }
 
 #[test]
 fn use_builder() {
     let url = Url::parse("https://api.example.com").unwrap();
     let _ = CSSInliner::options()
-        .inline_style_tags(false)
-        .remove_style_tags(false)
+        .keep_style_tags(true)
         .base_url(Some(url))
         .load_remote_stylesheets(false)
         .extra_css(Some("h1 {color: green}".into()))
@@ -717,5 +624,5 @@ fn inline_to() {
     let html = html!("h1 { color: blue }", r#"<h1>Big Text</h1>"#);
     let mut out = Vec::new();
     css_inline::inline_to(&html, &mut out).unwrap();
-    assert_eq!(String::from_utf8_lossy(&out), "<html><head><title>Test</title><style>h1 { color: blue }</style></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>")
+    assert_eq!(String::from_utf8_lossy(&out), "<html><head><title>Test</title></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>")
 }

@@ -2,7 +2,7 @@ use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
 use std::collections::BTreeMap;
 
 /// A collection of HTML attributes.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug)]
 pub(crate) struct Attributes {
     /// Attribute names and their respective values.
     pub(crate) map: BTreeMap<QualName, StrTendril>,

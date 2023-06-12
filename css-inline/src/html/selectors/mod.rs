@@ -25,7 +25,7 @@ pub(crate) struct Selectors(pub(crate) Vec<Selector>);
 /// The specificity of a selector.
 /// Determines precedence in the cascading algorithm.
 /// When equal, a rule later in source order takes precedence.
-#[derive(Copy, Clone, Hash, Eq, PartialEq, Ord, PartialOrd)]
+#[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub(crate) struct Specificity(u32);
 
 pub(crate) type ParseError<'i> = cssparser::ParseError<'i, SelectorParseErrorKind<'i>>;

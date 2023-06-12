@@ -1,17 +1,43 @@
 # css-inline
 
-[![ci](https://github.com/Stranger6667/css-inline/workflows/ci/badge.svg)](https://github.com/Stranger6667/css-inline/actions)
-[![npm version](https://badge.fury.io/js/css-inline.svg)](https://badge.fury.io/js/css-inline)
+[<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/Stranger6667/css-inline/build.yml?style=flat-square&labelColor=555555&logo=github" height="20">](https://github.com/Stranger6667/css-inline)
+[<img alt="npm" src="https://img.shields.io/npm/v/css-inline?style=flat-square" height="20">](https://github.com/Stranger6667/css-inline/actions?query=branch%3Amaster)
+[<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
+[<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-Blazing-fast WASM package for inlining CSS into HTML documents.
+`css-inline` is a library that inlines CSS into HTML documents, built using components from Mozilla's Servo project.
 
-Features:
+This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+
+For instance, the library transforms HTML like this:
+
+```html
+<html>
+    <head>
+        <title>Test</title>
+        <style>h1 { color:blue; }</style>
+    </head>
+    <body>
+        <h1>Big Text</h1>
+    </body>
+</html>
+```
+
+into:
+
+```html
+<html>
+    <head>
+        <title>Test</title>
+    </head>
+    <body>
+        <h1 style="color:blue;">Big Text</h1>
+    </body>
+</html>
+```
 
 - Removing ``style`` tags after inlining;
-- Control if ``style`` tags should be processed;
 - Out-of-document CSS to inline;
-
-The project supports CSS Syntax Level 3 implemented with Mozilla's Servo project components.
 
 ## Usage
 
@@ -30,12 +56,13 @@ var inlined = inline(
     </body>
   </html>
   `,
-  { remove_style_tags: true }
+  { keep_style_tags: true }
 )
 // Inlined HTML looks like this:
 // <html>
 //   <head>
 //     <title>Test</title>
+//     <style>h1 { color:red; }</style>
 //   </head>
 //   <body>
 //     <h1 style="color:red;">Test</h1>
@@ -44,7 +71,13 @@ var inlined = inline(
 // Do something with the inlined HTML, e.g. send an email
 ```
 
-If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore"` attribute to it:
+- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
+- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
+- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `extra_css`. Extra CSS to be inlined. Default: `null`
+- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `8`
+
+You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 
 ```html
 <head>
@@ -58,7 +91,7 @@ If you'd like to skip CSS inlining for an HTML tag, add `data-css-inline="ignore
 </html>
 ```
 
-This attribute also allows you to skip `link` and `style` tags:
+The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
 
 ```html
 <head>
@@ -74,9 +107,12 @@ This attribute also allows you to skip `link` and `style` tags:
 
 ## Standards support & restrictions
 
-`css-inline` is built on top of [cssparser](https://crates.io/crates/cssparser) and relies on its behavior for CSS parsing.
-Notably:
+`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
 
-- Only HTML 5, XHTML is not supported;
-- Only CSS 3;
-- Only UTF-8 for string representation. Other document encodings are not yet supported.
+- Only HTML 5 is supported, not XHTML.
+- Only CSS 3 is supported.
+- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
+
+## License
+
+This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).

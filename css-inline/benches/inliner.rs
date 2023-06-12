@@ -98,7 +98,7 @@ fn merging(c: &mut Criterion) {
     c.bench_function("merging styles", |b| b.iter(|| inline(html).unwrap()));
 }
 
-fn removing_tags(c: &mut Criterion) {
+fn keep_tags(c: &mut Criterion) {
     let html = black_box(
         r#"<html>
 <head>
@@ -122,7 +122,7 @@ a {
 </body>
 </html>"#,
     );
-    let inliner = CSSInliner::compact();
+    let inliner = CSSInliner::options().keep_style_tags(false).build();
     c.bench_function("removing tags", |b| {
         b.iter(|| inliner.inline(html).unwrap())
     });
@@ -240,7 +240,7 @@ criterion_group!(
     simple,
     external,
     merging,
-    removing_tags,
+    keep_tags,
     big_email,
     error_formatting,
     io_error_formatting,

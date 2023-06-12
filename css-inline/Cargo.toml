@@ -36,6 +36,7 @@ selectors = "0.24.0"
 [dev-dependencies]
 assert_cmd = "2.0.6"
 criterion = { version = "0.5.1", features = [], default-features = false }
+test-case = "3.1.0"
 
 [[bench]]
 name = "inliner"
