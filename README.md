@@ -86,6 +86,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 ```
 
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
+- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
 - `extra_css`. Extra CSS to be inlined. Default: `None`

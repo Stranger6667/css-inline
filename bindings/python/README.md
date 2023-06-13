@@ -106,6 +106,7 @@ inliner.inline("...")
 ```
 
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `False`
+- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `False`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
 - `extra_css`. Extra CSS to be inlined. Default: `None`
@@ -197,7 +198,7 @@ Realistic email 2:
 - `pynliner 0.8.0` - `Error: No match was found`
 
 You can take a look at the benchmarks' code at `benches/bench.py` file.
-The results above were measured with stable `rustc 1.69.0`, `Python 3.11.0`, `Linux x86_64` on i8700K, and 32GB RAM.
+The results above were measured with stable `rustc 1.70.0`, `Python 3.11.0` on `Linux x86_64`.
 
 ## Comparison with other libraries
 

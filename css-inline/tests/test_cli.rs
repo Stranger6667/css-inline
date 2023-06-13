@@ -18,7 +18,7 @@ fn success() {
     assert_eq!(
         content,
         "<html><head>\n    \
-        <link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n    \
+        \n    \
         \n    \
         \n\
         </head>\n\
@@ -40,8 +40,7 @@ fn keep_style_tags() {
     let content = fs::read_to_string("tests/inlined.example.html").unwrap();
     assert_eq!(
         content,
-        "<html><head>\n    \
-        <link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n    \
+        "<html><head>\n    \n    \
         <style>\n        h1 {\n            text-decoration: none;\n        }\n    </style>\n    \
         <style>\n        .test-class {\n            color: #ffffff;\n        }\n\n        a {\n            color: #17bebb;\n        }\n    </style>\n\
         </head>\n\

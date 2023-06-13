@@ -2,6 +2,7 @@ class CSSInliner:
     def __init__(
         self,
         keep_style_tags: bool = False,
+        keep_link_tags: bool = False,
         base_url: str | None = None,
         load_remote_stylesheets: bool = True,
         extra_css: str | None = None,
@@ -13,6 +14,7 @@ class CSSInliner:
 def inline(
     html: str,
     keep_style_tags: bool = False,
+    keep_link_tags: bool = False,
     base_url: str | None = None,
     load_remote_stylesheets: bool = True,
     extra_css: str | None = None,
@@ -22,6 +24,7 @@ def inline(
 def inline_many(
     html: list[str],
     keep_style_tags: bool = False,
+    keep_link_tags: bool = False,
     base_url: str | None = None,
     load_remote_stylesheets: bool = True,
     extra_css: str | None = None,

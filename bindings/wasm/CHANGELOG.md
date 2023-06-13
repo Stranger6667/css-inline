@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `keep_link_tags` configuration option.
+
 ### Changed
 
 - Replace `remove_style_tags` with `keep_style_tags`.
