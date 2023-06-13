@@ -1,0 +1,21 @@
+name: "[Ruby] Release"
+
+on:
+  push:
+    tags:
+      - ruby-v*
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Release Gem
+        if: contains(github.ref, 'refs/tags/v')
+        uses: cadwallion/publish-rubygems-action@1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
+          RELEASE_COMMAND: gem build *.gemspec && gem push *.gem

@@ -1,0 +1,40 @@
+# frozen_string_literal: true
+
+require "rake/extensiontask"
+require 'rspec/core/rake_task'
+
+task default: :spec
+
+spec = Bundler.load_gemspec("css_inline.gemspec")
+spec.requirements.clear
+spec.required_ruby_version = nil
+spec.required_rubygems_version = nil
+spec.extensions.clear
+spec.files -= Dir["ext/**/*"]
+
+Rake::ExtensionTask.new("css_inline", spec) do |c|
+  c.lib_dir = "lib/css_inline"
+  c.cross_compile = true
+  c.cross_platform = [
+    "aarch64-linux",
+    "arm64-darwin",
+    "x64-mingw-ucrt",
+    "x64-mingw32",
+    "x86_64-darwin",
+    "x86_64-linux",
+    "x86_64-linux-musl"]
+end
+
+task :dev do
+  ENV["RB_SYS_CARGO_PROFILE"] = "dev"
+end
+
+RSpec::Core::RakeTask.new(:test) do |task|
+  task.rspec_opts = [ "-f documentation" ]
+end
+
+task test: :compile
+
+task bench: :compile do
+  ruby "test/bench.rb"
+end
