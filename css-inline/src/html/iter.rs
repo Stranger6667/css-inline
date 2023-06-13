@@ -40,8 +40,6 @@ impl<'a> Iterator for Traverse<'a> {
                 // If the current node is an element node, return it, else continue with the loop
                 if let Some(element) = self.document.as_element(current) {
                     return Some(element);
-                } else {
-                    continue;
                 }
             } else {
                 // No more elements in the document

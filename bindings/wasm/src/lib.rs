@@ -43,7 +43,7 @@ impl From<InlineErrorWrapper> for JsValue {
     }
 }
 
-struct UrlError(url::ParseError);
+struct UrlError(rust_inline::ParseError);
 
 impl From<UrlError> for JsValue {
     fn from(error: UrlError) -> Self {
@@ -51,9 +51,9 @@ impl From<UrlError> for JsValue {
     }
 }
 
-fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
+fn parse_url(url: Option<String>) -> Result<Option<rust_inline::Url>, JsValue> {
     Ok(if let Some(url) = url {
-        Some(url::Url::parse(url.as_str()).map_err(UrlError)?)
+        Some(rust_inline::Url::parse(url.as_str()).map_err(UrlError)?)
     } else {
         None
     })
@@ -63,6 +63,7 @@ fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
 #[serde(default)]
 struct Options {
     keep_style_tags: bool,
+    keep_link_tags: bool,
     base_url: Option<String>,
     load_remote_stylesheets: bool,
     extra_css: Option<String>,
@@ -73,6 +74,7 @@ impl Default for Options {
     fn default() -> Self {
         Options {
             keep_style_tags: false,
+            keep_link_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
@@ -95,23 +97,22 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
     fn try_from(value: Options) -> Result<Self, Self::Error> {
         Ok(rust_inline::InlineOptions {
             keep_style_tags: value.keep_style_tags,
+            keep_link_tags: value.keep_link_tags,
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: value.extra_css.map(Cow::Owned),
-            preallocate_node_capacity: value
-                .preallocate_node_capacity
-                .unwrap_or(rust_inline::DEFAULT_HTML_TREE_CAPACITY),
+            preallocate_node_capacity: value.preallocate_node_capacity.unwrap_or(8),
         })
     }
 }
 
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
 #[wasm_bindgen(skip_typescript)]
-pub fn inline(html: &str, options: &JsValue) -> Result<String, JsValue> {
+pub fn inline(html: &str, options: JsValue) -> Result<String, JsValue> {
     let options: Options = if options.is_undefined() {
         Options::default()
     } else {
-        options.into_serde().map_err(SerdeError)?
+        serde_wasm_bindgen::from_value(options)?
     };
     let inliner = rust_inline::CSSInliner::new(options.try_into()?);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
@@ -137,7 +138,7 @@ pub mod tests {
 
     #[wasm_bindgen_test]
     fn default_config() {
-        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &JsValue::undefined()).expect("Inlines correctly");
+        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", JsValue::undefined()).expect("Inlines correctly");
         assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 
@@ -147,8 +148,8 @@ pub mod tests {
             keep_style_tags: true,
             ..Options::default()
         };
-        let options = JsValue::from_serde(&options).expect("Valid value");
-        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", &options).expect("Inlines correctly");
+        let options = serde_wasm_bindgen::to_value(&options).expect("Valid value");
+        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", options).expect("Inlines correctly");
         assert_eq!(result, "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 }

@@ -2,7 +2,7 @@
 
 Thank you for your interest in making `css-inline` better!
 We'd love to have your contribution. We expect all contributors to
-abide by the [Contributor Covenant Code of Conduct], which you can find in the
+abide by the Contributor Covenant Code of Conduct, which you can find in the
 [`CODE_OF_CONDUCT.md`] file in this repository.
 
 [`CODE_OF_CONDUCT.md`]: https://github.com/Stranger6667/css-inline/blob/master/CODE_OF_CONDUCT.md
@@ -24,7 +24,7 @@ your commits before merging, depending.
 
 ## Feature requests and feedback
 
-If you'd like to suggest a feature, feel free to `submit an issue <https://github.com/Stranger6667/css-inline/issues>`_
+If you'd like to suggest a feature, feel free to [submit an issue](https://github.com/Stranger6667/css-inline/issues)
 and:
 
 * Write a simple and descriptive title to identify your suggestion.
@@ -34,7 +34,7 @@ and:
 
 ## Report bugs
 
-Report bugs for `css-inline` in the `issue tracker <https://github.com/Stranger6667/css-inline/issues>`_.
+Report bugs for `css-inline` in the [issue tracker](https://github.com/Stranger6667/css-inline/issues).
 
 If you are reporting a bug, please:
 

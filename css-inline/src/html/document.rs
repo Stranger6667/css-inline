@@ -9,9 +9,6 @@ use super::{
 use html5ever::local_name;
 use std::{io, io::Write, iter::successors};
 
-/// The capacity, pre-allocated for HTML nodes during parsing by default.
-pub const DEFAULT_HTML_TREE_CAPACITY: usize = 8;
-
 /// HTML document representation.
 ///
 /// A `Document` holds a collection of nodes, with each node representing an HTML element.
@@ -133,7 +130,7 @@ impl Document {
 
         if let Some(next_sibling) = next_sibling {
             // Point next sibling one step back to bypass the detached node
-            self[next_sibling].previous_sibling = previous_sibling
+            self[next_sibling].previous_sibling = previous_sibling;
         } else if let Some(parent) = parent {
             // No next sibling - this node was the last child of the parent node, now the previous
             // sibling becomes the last child
@@ -265,8 +262,9 @@ impl Document {
         &self,
         writer: &mut W,
         keep_style_tags: bool,
+        keep_link_tags: bool,
     ) -> io::Result<()> {
-        serialize_to(self, writer, keep_style_tags)
+        serialize_to(self, writer, keep_style_tags, keep_link_tags)
     }
 
     /// Filter this node iterator to elements matching the given selectors.
@@ -310,7 +308,7 @@ mod tests {
     fn roundtrip(bytes: &[u8]) -> Vec<u8> {
         let mut buffer = Vec::new();
         Document::parse_with_options(bytes, 0)
-            .serialize(&mut buffer, false)
+            .serialize(&mut buffer, false, false)
             .expect("Failed to serialize");
         buffer
     }
@@ -395,18 +393,18 @@ mod tests {
 
     #[test]
     fn test_ignore_children() {
-        assert_eq!(roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></hr></hr></body></html>"), b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></body></html>")
+        assert_eq!(roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></hr></hr></body></html>"), b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></body></html>");
     }
 
     #[test]
     fn test_pseudo_class() {
         let output = roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title><style>h1:hover { color:blue; }</style></head><body><h1>Hello world!</h1></body></html>");
-        assert_eq!(output, b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><h1>Hello world!</h1></body></html>")
+        assert_eq!(output, b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><h1>Hello world!</h1></body></html>");
     }
 
     #[test]
     fn test_comment() {
         let output = roundtrip(b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>");
-        assert_eq!(output, b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>")
+        assert_eq!(output, b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>");
     }
 }

@@ -38,7 +38,6 @@ use std::{
 };
 
 use crate::html::{Document, NodeId, Specificity};
-pub use html::DEFAULT_HTML_TREE_CAPACITY;
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -61,6 +60,8 @@ macro_rules! replace_double_quotes {
 pub struct InlineOptions<'a> {
     /// Keep "style" tags after inlining.
     pub keep_style_tags: bool,
+    /// Keep "link" tags after inlining.
+    pub keep_link_tags: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not.
@@ -80,6 +81,13 @@ impl<'a> InlineOptions<'a> {
     #[must_use]
     pub fn keep_style_tags(mut self, keep_style_tags: bool) -> Self {
         self.keep_style_tags = keep_style_tags;
+        self
+    }
+
+    /// Override whether "link" tags should be kept after processing.
+    #[must_use]
+    pub fn keep_link_tags(mut self, keep_link_tags: bool) -> Self {
+        self.keep_link_tags = keep_link_tags;
         self
     }
 
@@ -123,10 +131,11 @@ impl Default for InlineOptions<'_> {
     fn default() -> Self {
         InlineOptions {
             keep_style_tags: false,
+            keep_link_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
-            preallocate_node_capacity: DEFAULT_HTML_TREE_CAPACITY,
+            preallocate_node_capacity: 8,
         }
     }
 }
@@ -154,8 +163,7 @@ impl<'a> CSSInliner<'a> {
     /// Get default `InlineOptions`, then change base url
     ///
     /// ```rust
-    /// use url::Url;
-    /// use css_inline::CSSInliner;
+    /// use css_inline::{CSSInliner, Url};
     /// # use url::ParseError;
     /// # fn run() -> Result<(), ParseError> {
     /// let url = Url::parse("https://api.example.com")?;
@@ -203,7 +211,11 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document = self.inline_impl(html)?;
-        document.serialize(target, self.options.keep_style_tags)?;
+        document.serialize(
+            target,
+            self.options.keep_style_tags,
+            self.options.keep_link_tags,
+        )?;
         Ok(())
     }
 
@@ -318,7 +330,6 @@ fn load_external(mut location: &str) -> Result<String> {
     }
 }
 
-#[allow(clippy::mutable_key_type)]
 fn process_css(
     document: &Document,
     css: &str,

@@ -518,11 +518,9 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let options = InlineOptions {
-        base_url: Some(Url::parse("http://127.0.0.1:5000").unwrap()),
-        ..Default::default()
-    };
-    let inliner = CSSInliner::new(options);
+    let inliner = CSSInliner::options()
+        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .build();
     let result = inliner.inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
@@ -549,11 +547,9 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let options = InlineOptions {
-        base_url: Some(Url::parse("http://127.0.0.1:5000").unwrap()),
-        ..Default::default()
-    };
-    let inliner = CSSInliner::new(options);
+    let inliner = CSSInliner::options()
+        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .build();
     let result = inliner.inline(html).unwrap();
     assert!(result.ends_with(
         r#"<body>
@@ -625,4 +621,41 @@ fn inline_to() {
     let mut out = Vec::new();
     css_inline::inline_to(&html, &mut out).unwrap();
     assert_eq!(String::from_utf8_lossy(&out), "<html><head><title>Test</title></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>")
+}
+
+#[test]
+fn keep_style_tags() {
+    let inliner = CSSInliner::options().keep_style_tags(true).build();
+    let html = r#"
+<html>
+<head>
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h2></h2>
+</body>
+</html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert_eq!(inlined, "<html><head>\n<style type=\"text/css\">\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
+}
+
+#[test]
+fn keep_link_tags() {
+    let inliner = CSSInliner::options()
+        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .keep_link_tags(true)
+        .build();
+    let html = r#"
+<html>
+<head>
+<link href="external.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1></h1>
+</body>
+</html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert_eq!(inlined, "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>");
 }

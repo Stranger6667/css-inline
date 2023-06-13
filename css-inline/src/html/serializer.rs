@@ -10,8 +10,14 @@ pub(crate) fn serialize_to<W: Write>(
     document: &Document,
     writer: &mut W,
     keep_style_tags: bool,
+    keep_link_tags: bool,
 ) -> io::Result<()> {
-    let sink = Sink::new(document, NodeId::document_id(), keep_style_tags);
+    let sink = Sink::new(
+        document,
+        NodeId::document_id(),
+        keep_style_tags,
+        keep_link_tags,
+    );
     let mut serializer = HtmlSerializer::new(writer);
     sink.serialize(&mut serializer)
 }
@@ -21,19 +27,31 @@ struct Sink<'a> {
     document: &'a Document,
     node: NodeId,
     keep_style_tags: bool,
+    keep_link_tags: bool,
 }
 
 impl<'a> Sink<'a> {
-    fn new(document: &'a Document, node: NodeId, keep_style_tags: bool) -> Sink<'a> {
+    fn new(
+        document: &'a Document,
+        node: NodeId,
+        keep_style_tags: bool,
+        keep_link_tags: bool,
+    ) -> Sink<'a> {
         Sink {
             document,
             node,
             keep_style_tags,
+            keep_link_tags,
         }
     }
     #[inline]
     fn for_node(&self, node: NodeId) -> Sink<'a> {
-        Sink::new(self.document, node, self.keep_style_tags)
+        Sink::new(
+            self.document,
+            node,
+            self.keep_style_tags,
+            self.keep_link_tags,
+        )
     }
     #[inline]
     fn data(&self) -> &NodeData {
@@ -43,13 +61,17 @@ impl<'a> Sink<'a> {
     fn should_skip_element(&self, element: &ElementData) -> bool {
         if element.name.local == local_name!("style") {
             !self.keep_style_tags
+        } else if element.name.local == local_name!("link")
+            && element.attributes.get(local_name!("rel")) == Some("stylesheet")
+        {
+            !self.keep_link_tags
         } else {
             false
         }
     }
     fn serialize_children<W: Write>(&self, serializer: &mut HtmlSerializer<W>) -> io::Result<()> {
         for child in self.document.children(self.node) {
-            self.for_node(child).serialize(serializer)?
+            self.for_node(child).serialize(serializer)?;
         }
         Ok(())
     }
@@ -209,18 +231,20 @@ mod tests {
     fn test_serialize() {
         let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, true).expect("Should not fail");
-        assert_eq!(buffer, b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head><body></body></html>")
+        doc.serialize(&mut buffer, true, false)
+            .expect("Should not fail");
+        assert_eq!(buffer, b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head><body></body></html>");
     }
 
     #[test]
     fn test_skip_style_tags() {
         let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, false).expect("Should not fail");
+        doc.serialize(&mut buffer, false, false)
+            .expect("Should not fail");
         assert_eq!(
             buffer,
             b"<html><head><title>Test</title></head><body></body></html>"
-        )
+        );
     }
 }

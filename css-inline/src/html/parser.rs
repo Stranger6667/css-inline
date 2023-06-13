@@ -87,7 +87,7 @@ impl Sink {
             NodeOrText::AppendNode(node) => node,
         };
 
-        append(&mut self.document, new_node)
+        append(&mut self.document, new_node);
     }
 }
 
@@ -153,10 +153,10 @@ impl TreeSink for Sink {
         let element = self.push_element(name, attrs, inlining_ignored);
         // Collect `style` tags and linked stylesheets separately to use them for CSS inlining later.
         if is_style {
-            self.document.add_style(element)
+            self.document.add_style(element);
         }
         if is_stylesheet {
-            self.document.add_linked_stylesheet(element)
+            self.document.add_linked_stylesheet(element);
         }
         element
     }
@@ -175,7 +175,7 @@ impl TreeSink for Sink {
             child,
             |document| document[parent].last_child,
             |document, new_node| document.append(parent, new_node),
-        )
+        );
     }
 
     fn append_based_on_parent_node(
@@ -185,9 +185,9 @@ impl TreeSink for Sink {
         child: NodeOrText<NodeId>,
     ) {
         if self.document[*element].parent.is_some() {
-            self.append_before_sibling(element, child)
+            self.append_before_sibling(element, child);
         } else {
-            self.append(prev_element, child)
+            self.append(prev_element, child);
         }
     }
 
@@ -199,7 +199,7 @@ impl TreeSink for Sink {
         _system_id: StrTendril,
     ) {
         let node = self.push_doctype(name);
-        self.document.append(NodeId::document_id(), node)
+        self.document.append(NodeId::document_id(), node);
     }
 
     fn get_template_contents(&mut self, &target: &NodeId) -> NodeId {
@@ -219,7 +219,7 @@ impl TreeSink for Sink {
             child,
             |document| document[sibling].previous_sibling,
             |document, node| document.insert_before(sibling, node),
-        )
+        );
     }
 
     /// Add each attribute to the given element, if no attribute with that name already exists.
@@ -238,7 +238,7 @@ impl TreeSink for Sink {
 
     /// Detach the given node from its parent.
     fn remove_from_parent(&mut self, &target: &NodeId) {
-        self.document.detach(target)
+        self.document.detach(target);
     }
 
     /// Remove all the children from node and append them to `new_parent`.
@@ -246,7 +246,7 @@ impl TreeSink for Sink {
         let mut next_child = self.document[node].first_child;
         while let Some(child) = next_child {
             self.document.append(new_parent, child);
-            next_child = self.document[child].next_sibling
+            next_child = self.document[child].next_sibling;
         }
     }
 }
