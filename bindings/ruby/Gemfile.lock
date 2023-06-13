@@ -1,0 +1,57 @@
+PATH
+  remote: .
+  specs:
+    css_inline (0.10.0)
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    addressable (2.8.4)
+      public_suffix (>= 2.0.2, < 6.0)
+    benchmark-ips (2.12.0)
+    css_parser (1.14.0)
+      addressable
+    diff-lcs (1.5.0)
+    htmlentities (4.3.4)
+    mini_portile2 (2.8.2)
+    nokogiri (1.15.2)
+      mini_portile2 (~> 2.8.2)
+      racc (~> 1.4)
+    premailer (1.21.0)
+      addressable
+      css_parser (>= 1.12.0)
+      htmlentities (>= 4.0.0)
+    public_suffix (5.0.1)
+    racc (1.7.1)
+    rake (13.0.6)
+    rake-compiler (1.2.3)
+      rake
+    rb_sys (0.9.79)
+    rspec (3.12.0)
+      rspec-core (~> 3.12.0)
+      rspec-expectations (~> 3.12.0)
+      rspec-mocks (~> 3.12.0)
+    rspec-core (3.12.2)
+      rspec-support (~> 3.12.0)
+    rspec-expectations (3.12.3)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-mocks (3.12.5)
+      diff-lcs (>= 1.2.0, < 2.0)
+      rspec-support (~> 3.12.0)
+    rspec-support (3.12.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  benchmark-ips (~> 2.10)
+  css_inline!
+  nokogiri (~> 1.15)
+  premailer (~> 1.21)
+  rake-compiler (~> 1.2.0)
+  rb_sys (~> 0.9)
+  rspec
+
+BUNDLED WITH
+   2.4.10

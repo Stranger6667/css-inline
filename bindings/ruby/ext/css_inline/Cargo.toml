@@ -1,0 +1,26 @@
+[package]
+name = "css-inline-ruby"
+version = "0.10.0"
+authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
+edition = "2021"
+readme = "README.rdoc"
+description = "High-performance library for inlining CSS into HTML 'style' attributes"
+repository = "https://github.com/Stranger6667/css-inline"
+keywords = ["css", "html", "email", "stylesheet", "inlining"]
+categories = ["web-programming"]
+license = "MIT"
+rust-version = "1.61"
+
+[lib]
+name = "css_inline"
+crate-type = ["cdylib"]
+
+[dependencies]
+magnus = "0.5"
+rayon = "1"
+
+[dependencies.css-inline]
+path = "../../../../css-inline"
+version = "*"
+default-features = false
+features = ["http", "file"]
