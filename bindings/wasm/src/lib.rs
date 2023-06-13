@@ -43,7 +43,7 @@ impl From<InlineErrorWrapper> for JsValue {
     }
 }
 
-struct UrlError(url::ParseError);
+struct UrlError(rust_inline::ParseError);
 
 impl From<UrlError> for JsValue {
     fn from(error: UrlError) -> Self {
@@ -51,9 +51,9 @@ impl From<UrlError> for JsValue {
     }
 }
 
-fn parse_url(url: Option<String>) -> Result<Option<url::Url>, JsValue> {
+fn parse_url(url: Option<String>) -> Result<Option<rust_inline::Url>, JsValue> {
     Ok(if let Some(url) = url {
-        Some(url::Url::parse(url.as_str()).map_err(UrlError)?)
+        Some(rust_inline::Url::parse(url.as_str()).map_err(UrlError)?)
     } else {
         None
     })
