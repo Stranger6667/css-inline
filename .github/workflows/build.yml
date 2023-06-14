@@ -219,6 +219,8 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - uses: taiki-e/install-action@cargo-hack
+
       - uses: actions/setup-python@v4
         with:
           python-version: 3.7
@@ -229,8 +231,12 @@ jobs:
           # Starts the server in background
           python ./css-inline/tests/server.py &
 
-      - name: Generate code coverage
-        run: cargo llvm-cov --all-features --lcov --output-path lcov.info
+      - name: Run tests
+        run: cargo hack llvm-cov --no-report
+        working-directory: ./css-inline
+
+      - name: Generate coverage reports
+        run: cargo llvm-cov report --lcov --output-path lcov.info
         working-directory: ./css-inline
 
       - name: Upload coverage to Codecov

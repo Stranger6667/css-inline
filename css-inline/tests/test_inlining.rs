@@ -3,6 +3,41 @@ mod utils;
 use css_inline::{inline, CSSInliner, InlineOptions, Url};
 use test_case::test_case;
 
+#[cfg(not(feature = "file"))]
+fn assert_file_error(inlined: Result<String, css_inline::InlineError>) {
+    assert_eq!(
+        inlined.expect_err("Should fail").to_string(),
+        "Loading local files requires the `file` feature"
+    );
+}
+
+#[allow(unused_variables)]
+fn assert_file(inlined: Result<String, css_inline::InlineError>, expected: &str) {
+    #[cfg(feature = "file")]
+    {
+        assert!(inlined.expect("Inlining failed").ends_with(expected));
+    }
+    #[cfg(not(feature = "file"))]
+    {
+        assert_file_error(inlined)
+    }
+}
+
+#[allow(unused_variables)]
+fn assert_http(inlined: Result<String, css_inline::InlineError>, expected: &str) {
+    #[cfg(feature = "http")]
+    {
+        assert!(inlined.expect("Inlining failed").ends_with(expected));
+    }
+    #[cfg(not(feature = "http"))]
+    {
+        assert_eq!(
+            inlined.expect_err("Should fail").to_string(),
+            "Loading external URLs requires the `http` feature"
+        );
+    }
+}
+
 #[test]
 fn no_existing_style() {
     // When no "style" attributes exist
@@ -410,14 +445,15 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inline(html);
+    assert_file(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -431,10 +467,18 @@ fn missing_stylesheet() {
 <h1>Big Text</h1>
 </body>
 </html>"#;
-    assert_eq!(
-        inline(html).expect_err("Should be an error").to_string(),
-        "Missing stylesheet file: tests/missing.css"
-    );
+    let inlined = inline(html);
+    #[cfg(feature = "file")]
+    {
+        assert_eq!(
+            inlined.expect_err("Should be an error").to_string(),
+            "Missing stylesheet file: tests/missing.css"
+        );
+    }
+    #[cfg(not(feature = "file"))]
+    {
+        assert_file_error(inlined);
+    }
 }
 
 #[test]
@@ -453,14 +497,15 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inline(html);
+    assert_file(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -479,14 +524,15 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let result = inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inline(html);
+    assert_http(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -521,14 +567,15 @@ h2 { color: red; }
     let inliner = CSSInliner::options()
         .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
         .build();
-    let result = inliner.inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inliner.inline(html);
+    assert_http(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -550,14 +597,15 @@ h2 { color: red; }
     let inliner = CSSInliner::options()
         .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
         .build();
-    let result = inliner.inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inliner.inline(html);
+    assert_http(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -581,14 +629,15 @@ h2 { color: red; }
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(html).unwrap();
-    assert!(result.ends_with(
+    let inlined = inliner.inline(html);
+    assert_file(
+        inlined,
         r#"<body>
 <h1 style="color: blue;">Big Text</h1>
 <h2 style="color: red;">Smaller Text</h2>
 
-</body></html>"#
-    ))
+</body></html>"#,
+    );
 }
 
 #[test]
@@ -656,6 +705,9 @@ fn keep_link_tags() {
 <h1></h1>
 </body>
 </html>"#;
-    let inlined = inliner.inline(html).unwrap();
-    assert_eq!(inlined, "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>");
+    let inlined = inliner.inline(html);
+    assert_http(
+        inlined,
+        "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",
+    );
 }

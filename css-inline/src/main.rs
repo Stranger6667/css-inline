@@ -1,21 +1,29 @@
-use css_inline::{CSSInliner, InlineOptions};
-use rayon::prelude::*;
-use std::{
-    borrow::Cow,
-    error::Error,
-    ffi::OsString,
-    fmt::{Display, Write as FmtWrite},
-    fs::{read_to_string, File},
-    io::{self, Read, Write},
-    path::Path,
-    sync::atomic::{AtomicI32, Ordering},
-};
+#[cfg(not(feature = "cli"))]
+fn main() {
+    eprintln!("`css-inline` CLI is only available with the `cli` feature");
+    std::process::exit(1);
+}
 
-const VERSION_MESSAGE: &[u8] = concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
-const HELP_MESSAGE: &[u8] = concat!(
-    "css-inline ",
-    env!("CARGO_PKG_VERSION"),
-    r#"
+#[cfg(feature = "cli")]
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    use css_inline::{CSSInliner, InlineOptions};
+    use rayon::prelude::*;
+    use std::{
+        borrow::Cow,
+        ffi::OsString,
+        fmt::{Display, Write as FmtWrite},
+        fs::{read_to_string, File},
+        io::{self, Read, Write},
+        path::Path,
+        sync::atomic::{AtomicI32, Ordering},
+    };
+
+    const VERSION_MESSAGE: &[u8] =
+        concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
+    const HELP_MESSAGE: &[u8] = concat!(
+        "css-inline ",
+        env!("CARGO_PKG_VERSION"),
+        r#"
 Dmitry Dygalo <dadygalo@gmail.com>
 
 css-inline inlines CSS into HTML documents.
@@ -50,37 +58,36 @@ OPTIONS:
     --output-filename-prefix
         Custom prefix for output files. Defaults to `inlined.`.
 "#
-)
-.as_bytes();
+    )
+    .as_bytes();
 
-struct Args {
-    keep_style_tags: bool,
-    base_url: Option<String>,
-    extra_css: Option<String>,
-    output_filename_prefix: Option<OsString>,
-    load_remote_stylesheets: bool,
-    files: Vec<String>,
-}
-
-fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
-    Ok(if let Some(url) = url {
-        Some(url::Url::parse(url.as_str())?)
-    } else {
-        None
-    })
-}
-
-fn format_error(filename: Option<&str>, error: impl Display) {
-    let mut buffer = String::with_capacity(128);
-    if let Some(filename) = filename {
-        writeln!(buffer, "Filename: {}", filename).expect("Failed to write to buffer");
+    struct Args {
+        keep_style_tags: bool,
+        base_url: Option<String>,
+        extra_css: Option<String>,
+        output_filename_prefix: Option<OsString>,
+        load_remote_stylesheets: bool,
+        files: Vec<String>,
     }
-    buffer.push_str("Status: ERROR\n");
-    writeln!(buffer, "Details: {}", error).expect("Failed to write to buffer");
-    eprintln!("{}", buffer.trim());
-}
 
-fn main() -> Result<(), Box<dyn Error>> {
+    fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
+        Ok(if let Some(url) = url {
+            Some(url::Url::parse(url.as_str())?)
+        } else {
+            None
+        })
+    }
+
+    fn format_error(filename: Option<&str>, error: impl Display) {
+        let mut buffer = String::with_capacity(128);
+        if let Some(filename) = filename {
+            writeln!(buffer, "Filename: {}", filename).expect("Failed to write to buffer");
+        }
+        buffer.push_str("Status: ERROR\n");
+        writeln!(buffer, "Details: {}", error).expect("Failed to write to buffer");
+        eprintln!("{}", buffer.trim());
+    }
+
     let mut args = pico_args::Arguments::from_env();
     let exit_code = AtomicI32::new(0);
     if args.contains(["-h", "--help"]) {
