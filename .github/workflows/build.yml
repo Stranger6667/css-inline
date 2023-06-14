@@ -38,23 +38,29 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.7
+          python-version: 3.11
+          cache: 'pip'
+          cache-dependency-path: '**/requirements-*.txt'
 
       - name: Start background server
         run: |
-          python -m pip install flask
+          python -m pip install -r ./css-inline/tests/requirements-test.txt
           # Starts the server in background
           python ./css-inline/tests/server.py &
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: css-inline
+
       - run: cargo test --no-fail-fast
         working-directory: ./css-inline
 
@@ -63,12 +69,14 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           components: rustfmt
+
       - run: cargo fmt --all -- --check
         working-directory: ./css-inline
 
@@ -77,14 +85,32 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
           components: clippy
-      - run: cargo clippy -- -D warnings
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            css-inline
+            bindings/python
+            bindings/wasm
+
+      - name: Rust
+        run: cargo clippy -- -D warnings
         working-directory: ./css-inline
+
+      - name: Python
+        run: cargo clippy -- -D warnings
+        working-directory: ./bindings/python
+
+      - name: WASM
+        run: cargo clippy -- -D warnings
+        working-directory: ./bindings/wasm
 
   msrv:
     name: MSRV
@@ -96,6 +122,9 @@ jobs:
           profile: minimal
           toolchain: "1.60"
           override: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: css-inline
       - run: cargo build
         working-directory: ./css-inline
 
@@ -103,27 +132,34 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-11, windows-2019]
+        os: [ubuntu-22.04, macos-12, windows-2022]
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
+
+      - uses: actions-rs/toolchain@v1
         with:
-          submodules: true
+          profile: minimal
+          toolchain: stable
+          override: true
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/python
+          key: ${{ matrix.os }}-${{ matrix.python-version }}
+
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
+          cache: 'pip'
+          cache-dependency-path: '**/requirements-*.txt'
 
-      - run: python -m pip install tox
+      - run: python -m pip install -r requirements-dev.txt
         working-directory: ./bindings/python
-
-      - uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
 
       - name: Run ${{ matrix.python }} tox job
         run: tox -e py
@@ -134,18 +170,24 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/wasm
+          cache-all-crates: "true"
+
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1
         with:
           command: install
           args: wasm-pack
+
       - name: Run tests
         run: wasm-pack test --node --release
         working-directory: ./bindings/wasm
@@ -155,24 +197,34 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            css-inline
+            bindings/wasm
+          cache-all-crates: "true"
+
       - name: Install wasm-pack
         uses: actions-rs/cargo@v1
         with:
           command: install
           args: wasm-pack
+
       - name: Build package
         run: wasm-pack build -t nodejs
         working-directory: ./bindings/wasm
+
       - name: Install dependencies
         run: npm install
         working-directory: ./bindings/wasm
+
       - name: Run tests
         run: npm run test
         working-directory: ./bindings/wasm
@@ -182,14 +234,20 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
+
       - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           override: true
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: css-inline
+          cache-all-crates: "true"
+
       - uses: taiki-e/install-action@cargo-hack
+
       - run: cargo hack check --feature-powerset --lib
         working-directory: ./css-inline
 
@@ -198,8 +256,6 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - uses: actions-rs/toolchain@v1
         with:
@@ -207,14 +263,10 @@ jobs:
           toolchain: stable
           override: true
 
-      - name: Cache cargo
-        uses: actions/cache@v3
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: coverage-cargo-cache
+          workspaces: css-inline
+          cache-all-crates: "true"
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
@@ -223,16 +275,18 @@ jobs:
 
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.7
+          python-version: 3.11
+          cache: 'pip'
+          cache-dependency-path: '**/requirements-*.txt'
 
       - name: Start background server
         run: |
-          python -m pip install flask
+          python -m pip install -r ./css-inline/tests/requirements-test.txt
           # Starts the server in background
           python ./css-inline/tests/server.py &
 
       - name: Run tests
-        run: cargo hack llvm-cov --no-report
+        run: cargo hack llvm-cov --no-report --feature-powerset
         working-directory: ./css-inline
 
       - name: Generate coverage reports
@@ -253,7 +307,15 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
+
       - uses: dtolnay/rust-toolchain@nightly
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: css-inline
+          cache-all-crates: "true"
+
       - run: cargo install cargo-fuzz
+
       - run: cargo fuzz run inline -- -max_total_time=60
         working-directory: ./css-inline
