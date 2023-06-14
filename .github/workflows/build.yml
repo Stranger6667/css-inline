@@ -11,7 +11,7 @@ jobs:
 
   commitsar:
     name: Verify commit messages
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Check out code
         uses: actions/checkout@v1
@@ -20,7 +20,7 @@ jobs:
 
   pre-commit:
     name: Generic pre-commit checks
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -35,7 +35,7 @@ jobs:
 
   test-stable:
     name: Test (stable)
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -60,7 +60,7 @@ jobs:
 
   fmt:
     name: Rustfmt
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -74,7 +74,7 @@ jobs:
 
   clippy:
     name: Clippy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -88,7 +88,7 @@ jobs:
 
   msrv:
     name: MSRV
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: actions-rs/toolchain@v1
@@ -103,7 +103,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-11, windows-2019]
+        os: [ubuntu-22.04, macos-11, windows-2019]
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
 
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
@@ -131,7 +131,7 @@ jobs:
 
   test-wasm:
     name: Tests for WASM crate
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -152,7 +152,7 @@ jobs:
 
   test-wasm-typescript:
     name: TypeScript tests for WASM crate
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -179,7 +179,7 @@ jobs:
 
   features:
     name: Check features
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -195,7 +195,7 @@ jobs:
 
   coverage:
     name: Code coverage
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
         with:
@@ -250,7 +250,7 @@ jobs:
 
   fuzz:
     name: Fuzz
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
       - uses: dtolnay/rust-toolchain@nightly
