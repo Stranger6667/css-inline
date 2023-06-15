@@ -35,6 +35,7 @@ use indexmap::IndexMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
     borrow::Cow,
+    collections::btree_map::Entry,
     io::{ErrorKind, Write},
 };
 
@@ -257,18 +258,22 @@ impl<'a> CSSInliner<'a> {
             };
             styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
             let attributes = &mut element.attributes;
-            if let Some(existing_style) = attributes.get_style_mut() {
-                merge_styles(existing_style, styles)?;
-            } else {
-                let mut final_styles = String::with_capacity(128);
-                for (name, (_, value)) in styles {
-                    final_styles.push_str(name.as_str());
-                    final_styles.push(':');
-                    replace_double_quotes!(final_styles, name, value);
-                    final_styles.push(';');
+            match attributes.get_style_entry() {
+                Entry::Vacant(entry) => {
+                    let mut final_styles = String::with_capacity(128);
+                    for (name, (_, value)) in styles {
+                        final_styles.push_str(name.as_str());
+                        final_styles.push(':');
+                        replace_double_quotes!(final_styles, name, value);
+                        final_styles.push(';');
+                    }
+                    entry.insert(final_styles.into());
                 }
-                attributes.set_style(final_styles);
-            };
+                Entry::Occupied(mut entry) => {
+                    let existing_style = entry.get_mut();
+                    merge_styles(existing_style, styles)?;
+                }
+            }
         }
         Ok(document)
     }

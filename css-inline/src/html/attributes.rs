@@ -1,5 +1,5 @@
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
-use std::collections::BTreeMap;
+use std::collections::{btree_map::Entry, BTreeMap};
 
 /// A collection of HTML attributes.
 #[derive(Debug)]
@@ -39,15 +39,8 @@ impl Attributes {
             .map(|value| &**value)
     }
 
-    pub(crate) fn get_style_mut(&mut self) -> Option<&mut StrTendril> {
+    pub(crate) fn get_style_entry(&mut self) -> Entry<'_, QualName, StrTendril> {
         self.map
-            .get_mut(&QualName::new(None, ns!(), local_name!("style")))
-    }
-
-    pub(crate) fn set_style(&mut self, style: String) {
-        self.map.insert(
-            QualName::new(None, ns!(), local_name!("style")),
-            style.into(),
-        );
+            .entry(QualName::new(None, ns!(), local_name!("style")))
     }
 }
