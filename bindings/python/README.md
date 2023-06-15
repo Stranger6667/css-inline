@@ -175,26 +175,26 @@ library has excellent performance characteristics. In comparison with other Pyth
 
 For inlining CSS in the html document from the `Usage` section above there is the following breakdown in the benchmarks:
 
-- `css_inline 0.9.0` - 13.58 us
-- `premailer 3.10.0` - 310.06 us (**x22.83**)
-- `toronado 0.1.0` - 1.43 ms (**x105.32**)
-- `inlinestyler 0.2.5` - 2.11 ms (**x155.46**)
-- `pynliner 0.8.0` - 2.51 ms (**x184.97**)
+- `css_inline 0.9.0` - 10.92 us
+- `premailer 3.10.0` - 300.28 us (**x27.49**)
+- `toronado 0.1.0` - 1.47 ms (**x135.27**)
+- `inlinestyler 0.2.5` - 2.13 ms (**x195.24**)
+- `pynliner 0.8.0` - 2.40 ms (**x220.51**)
 
 Realistic email 1:
 
-- `css_inline 0.9.0` - 266.53 us
-- `premailer 3.10.0` - 2.78 ms (**x10.47**)
-- `toronado 0.1.0` - 31.20 ms (**x117.09**)
-- `inlinestyler 0.2.5` - 52.64 ms (**x197.52**)
-- `pynliner 0.8.0` - 101.14 ms (**x379.47**)
+- `css_inline 0.9.0` - 244.05 us
+- `premailer 3.10.0` - 2.80 ms (**x11.51**)
+- `toronado 0.1.0` - 31.24 ms (**x128.03**)
+- `inlinestyler 0.2.5` - 54.01 ms (**x221.33**)
+- `pynliner 0.8.0` - 89.71 ms (**x367.62**)
 
 Realistic email 2:
 
-- `css_inline 0.9.0` - 237.23 us
-- `premailer 3.10.0` - 4.07 ms (**x17.24**)
+- `css_inline 0.9.0` - 187.51 us
+- `premailer 3.10.0` - 4.32 ms (**x23.06**)
 - `toronado 0.1.0` - `Error: Pseudo-elements are not supported`
-- `inlinestyler 0.2.5` - 33.87 ms (**x142.81**)
+- `inlinestyler 0.2.5` - 35.55 ms (**x189.60**)
 - `pynliner 0.8.0` - `Error: No match was found`
 
 You can take a look at the benchmarks' code at `benches/bench.py` file.
