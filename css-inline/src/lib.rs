@@ -247,8 +247,8 @@ impl<'a> CSSInliner<'a> {
         if let Some(extra_css) = &self.options.extra_css {
             process_css(&document, extra_css, &mut styles);
         }
-        for (node_id, styles) in styles {
-            let node = &mut document[node_id];
+        for (node_id, styles) in styles.iter_mut() {
+            let node = &mut document[*node_id];
             let element = if let Some(element) = node.as_not_ignored_element_mut() {
                 element
             } else {
@@ -256,6 +256,7 @@ impl<'a> CSSInliner<'a> {
             };
             let attributes = &mut element.attributes;
             if let Some(existing_style) = attributes.get_style_mut() {
+                styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
                 *existing_style = merge_styles(existing_style, &styles)?.into();
             } else {
                 let mut final_styles = String::with_capacity(128);
@@ -429,8 +430,6 @@ fn merge_styles(
         // This property won't be taken from new styles unless it's !important
         buffer.push(name.to_string());
     }
-    let mut new_styles = new_styles.iter().collect::<Vec<_>>();
-    new_styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
     for (property, (_, value)) in new_styles {
         match (
             value.strip_suffix("!important"),
