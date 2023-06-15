@@ -66,6 +66,7 @@ OPTIONS:
 
     struct Args {
         keep_style_tags: bool,
+        keep_link_tags: bool,
         base_url: Option<String>,
         extra_css: Option<String>,
         output_filename_prefix: Option<OsString>,
@@ -100,6 +101,7 @@ OPTIONS:
     } else {
         let args = Args {
             keep_style_tags: args.contains("--keep-style-tags"),
+            keep_link_tags: args.contains("--keep-link-tags"),
             base_url: args.opt_value_from_str("--base-url")?,
             extra_css: args.opt_value_from_str("--extra-css")?,
             output_filename_prefix: args.opt_value_from_str("--output-filename-prefix")?,
@@ -115,10 +117,11 @@ OPTIONS:
         };
         let options = InlineOptions {
             keep_style_tags: args.keep_style_tags,
+            keep_link_tags: args.keep_link_tags,
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
-            ..Default::default()
+            preallocate_node_capacity: 8,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {
