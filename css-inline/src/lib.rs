@@ -422,7 +422,8 @@ fn merge_styles(
     let mut final_styles: Vec<String> = Vec::new();
     for declaration in declarations {
         let (name, value) = declaration?;
-        let mut style = String::with_capacity(256);
+        // Allocate enough space for the new style
+        let mut style = String::with_capacity(name.len() + value.len() + 2);
         style.push_str(&name);
         style.push_str(": ");
         replace_double_quotes!(style, name, value.trim());
