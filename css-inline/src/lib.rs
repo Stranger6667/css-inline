@@ -30,6 +30,7 @@ mod html;
 mod parser;
 
 pub use error::InlineError;
+use html5ever::tendril::StrTendril;
 use indexmap::IndexMap;
 use smallvec::{smallvec, SmallVec};
 use std::{
@@ -257,7 +258,7 @@ impl<'a> CSSInliner<'a> {
             let attributes = &mut element.attributes;
             if let Some(existing_style) = attributes.get_style_mut() {
                 styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
-                *existing_style = merge_styles(existing_style, &styles)?.into();
+                merge_styles(existing_style, styles)?;
             } else {
                 let mut final_styles = String::with_capacity(128);
                 let mut styles = styles.iter().collect::<Vec<_>>();
@@ -409,9 +410,9 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
 }
 
 fn merge_styles(
-    existing_style: &str,
+    existing_style: &mut StrTendril,
     new_styles: &IndexMap<String, (Specificity, String)>,
-) -> Result<String> {
+) -> Result<()> {
     // Parse existing declarations in the "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
@@ -423,7 +424,8 @@ fn merge_styles(
     for declaration in declarations {
         let (name, value) = declaration?;
         // Allocate enough space for the new style
-        let mut style = String::with_capacity(name.len() + value.len() + 2);
+        let mut style =
+            String::with_capacity(name.len().saturating_add(value.len()).saturating_add(2));
         style.push_str(&name);
         style.push_str(": ");
         replace_double_quotes!(style, name, value.trim());
@@ -456,5 +458,16 @@ fn merge_styles(
             (None, Some(_)) => {}
         }
     }
-    Ok(final_styles.join(";"))
+    drop(input);
+    existing_style.clear();
+    let mut first = true;
+    for style in &final_styles {
+        if first {
+            first = false
+        } else {
+            existing_style.push_char(';');
+        }
+        existing_style.push_slice(style);
+    }
+    Ok(())
 }
