@@ -255,14 +255,12 @@ impl<'a> CSSInliner<'a> {
             } else {
                 continue;
             };
+            styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
             let attributes = &mut element.attributes;
             if let Some(existing_style) = attributes.get_style_mut() {
-                styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
                 merge_styles(existing_style, styles)?;
             } else {
                 let mut final_styles = String::with_capacity(128);
-                let mut styles = styles.iter().collect::<Vec<_>>();
-                styles.sort_unstable_by(|(_, (a, _)), (_, (b, _))| a.cmp(b));
                 for (name, (_, value)) in styles {
                     final_styles.push_str(name.as_str());
                     final_styles.push(':');
