@@ -24,13 +24,13 @@ file = []
 [dependencies]
 cssparser = "0.29"
 html5ever = "0.26.0"
-memchr = "2.4"
+memchr = "2.5"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
 url = "2"
 smallvec = "1"
-indexmap = "1.8.1"
+indexmap = "1.9"
 pico-args = { version = "0.3", optional = true }
-rayon = { version = "1.5", optional = true }
+rayon = { version = "1.7", optional = true }
 selectors = "0.24.0"
 
 [dev-dependencies]
