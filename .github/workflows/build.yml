@@ -51,11 +51,7 @@ jobs:
           # Starts the server in background
           python ./css-inline/tests/server.py &
 
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          override: true
+      - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
