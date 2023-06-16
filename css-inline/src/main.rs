@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         r#"
 Dmitry Dygalo <dadygalo@gmail.com>
 
-css-inline inlines CSS into HTML documents.
+css-inline inlines CSS into HTML 'style' attributes.
 
 USAGE:
    css-inline [OPTIONS] [PATH ...]
@@ -45,6 +45,9 @@ OPTIONS:
 
     --keep-style-tags
         Keep "style" tags after inlining.
+
+    --keep-link-tags
+        Keep "link" tags after inlining.
 
     --base-url
         Used for loading external stylesheets via relative URLs.

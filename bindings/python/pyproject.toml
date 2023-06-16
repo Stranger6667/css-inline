@@ -13,9 +13,10 @@ known_third_party = []
 
 [project]
 name = "css-inline"
-description = "Fast CSS inlining written in Rust"
+description = "High-performance library for inlining CSS into HTML 'style' attributes"
+keywords = ["css", "html", "email", "stylesheet", "inlining"]
 authors = [
-    {name = "Dmitry Dygalo", email = "dadygalo@gmail.com"}
+    { name = "Dmitry Dygalo", email = "dadygalo@gmail.com" }
 ]
 license = { text = "MIT" }
 classifiers=[

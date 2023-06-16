@@ -38,15 +38,18 @@ into:
 </html>
 ```
 
-- 10-350x faster than existing CSS inliners;
-- Removing `style` tags after inlining;
-- Resolving external stylesheets (including local files);
-- Out-of-document CSS to inline;
-- Inlining multiple documents in parallel (via Rust-level threads)
+- Uses reliable components from Mozilla's Servo
+- 10-300x faster than alternatives
+- Inlines CSS from `style` and `link` tags
+- Removes `style` and `link` tags
+- Resolves external stylesheets (including local files)
+- Can process multiple documents in parallel
+- Works on Linux, Windows, and macOS
+- Supports HTML5 & CSS3
 
 ## Installation
 
-To install `css_inline` via `pip` run the following command:
+Install with `pip`:
 
 ```
 pip install css_inline
@@ -56,8 +59,6 @@ Pre-compiled wheels for most popular platforms are provided. If your platform is
 a Rust compiler to build this package from source. The minimum supported Rust version is 1.60.
 
 ## Usage
-
-To inline CSS in an HTML document:
 
 ```python
 import css_inline
@@ -96,7 +97,9 @@ css_inline.inline_many(["<...>", "<...>"])
 
 `inline_many` will spawn threads on the Rust level; thus, you can expect it's running faster than `css_inline.inline` via Python's `multiprocessing` or `threading` modules.
 
-For customization options use the `CSSInliner` class:
+### Configuration
+
+For configuration options use the `CSSInliner` class:
 
 ```python
 import css_inline

@@ -36,8 +36,20 @@ into:
 </html>
 ```
 
-- Removing ``style`` tags after inlining;
-- Out-of-document CSS to inline;
+- Uses reliable components from Mozilla's Servo
+- Inlines CSS from `style` and `link` tags
+- Removes `style` and `link` tags
+- Resolves external stylesheets (including local files)
+- Works on Linux, Windows, and macOS
+- Supports HTML5 & CSS3
+
+## Install
+
+Install with `npm`:
+
+```
+npm install --save css-inline
+```
 
 ## Usage
 
@@ -56,20 +68,11 @@ var inlined = inline(
     </body>
   </html>
   `,
-  { keep_style_tags: true }
 )
-// Inlined HTML looks like this:
-// <html>
-//   <head>
-//     <title>Test</title>
-//     <style>h1 { color:red; }</style>
-//   </head>
-//   <body>
-//     <h1 style="color:red;">Test</h1>
-//   </body>
-// </html>
 // Do something with the inlined HTML, e.g. send an email
 ```
+
+### Configuration
 
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`

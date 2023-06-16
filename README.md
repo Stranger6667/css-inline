@@ -37,6 +37,13 @@ into:
 </html>
 ```
 
+- Uses reliable components from Mozilla's Servo
+- Inlines CSS from `style` and `link` tags
+- Removes `style` and `link` tags
+- Resolves external stylesheets (including local files)
+- Works on Linux, Windows, and macOS
+- Supports HTML5 & CSS3
+
 ## Installation
 
 To include it in your project, add the following line to the dependencies section in your project's `Cargo.toml` file:
@@ -68,7 +75,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
-### Features & Configuration
+### Configuration
 
 `css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:
 
@@ -148,44 +155,27 @@ We provide bindings for Python and WebAssembly. Check the `bindings` directory f
 
 ## Command Line Interface
 
-`css-inline` provides a command-line interface:
+### Installation
 
-```text
+Install with `cargo`:
+
+```
+cargo install css-inline
+```
+
+### Usage
+
+The following command inlines CSS in multiple documents in parallel. Resulting files will be saved
+as `inlined.email1.html` and `inlined.email2.html`:
+
+```
+css-inline email1.html email2.html
+```
+
+For full details of the options available, you can use the `--help` flag:
+
+```
 css-inline --help
-
-css-inline inlines CSS into HTML documents.
-
-USAGE:
-   css-inline [OPTIONS] [PATH ...]
-   command | css-inline [OPTIONS]
-
-ARGS:
-    <PATH>...
-        An HTML document to process. In each specified document
-        "css-inline" will look for all relevant "style" and "link"
-        tags, will load CSS from them and then inline it to the
-        HTML tags, according to the corresponding CSS selectors.
-        When multiple documents are specified, they will be
-        processed in parallel, and each inlined file will be saved
-        with an "inlined." prefix. For example, for "example.html",
-        there will be "inlined.example.html".
-
-OPTIONS:
-
-    --keep-style-tags
-        Keep "style" tags after inlining.
-
-    --base-url
-        The base URL used to resolve relative URLs.
-
-    --load-remote-stylesheets
-        Specifies if remote stylesheets should be loaded or not.
-
-    --extra-css
-        Additional CSS to inline.
-
-    --output-filename-prefix
-        Custom prefix for output files. Defaults to `inlined.`.
 ```
 
 ## Extra materials
