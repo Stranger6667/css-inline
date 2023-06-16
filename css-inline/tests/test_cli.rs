@@ -101,7 +101,7 @@ pub mod tests {
             .stdout("<html><head><title>Test</title></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>");
     }
 
-    #[test_case("--help", "css-inline inlines CSS into HTML documents.")]
+    #[test_case("--help", "css-inline inlines CSS into HTML")]
     #[test_case("--version", "css-inline 0.9.0")]
     fn args(arg: &str, expected: &str) {
         let stdout = css_inline().arg(arg).assert().success().to_string();

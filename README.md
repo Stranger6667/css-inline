@@ -159,7 +159,7 @@ We provide bindings for Python and WebAssembly. Check the `bindings` directory f
 
 Install with `cargo`:
 
-```
+```text
 cargo install css-inline
 ```
 
@@ -168,13 +168,13 @@ cargo install css-inline
 The following command inlines CSS in multiple documents in parallel. Resulting files will be saved
 as `inlined.email1.html` and `inlined.email2.html`:
 
-```
+```text
 css-inline email1.html email2.html
 ```
 
 For full details of the options available, you can use the `--help` flag:
 
-```
+```text
 css-inline --help
 ```
 
