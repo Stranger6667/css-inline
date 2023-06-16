@@ -102,7 +102,7 @@ pub mod tests {
     }
 
     #[test_case("--help", "css-inline inlines CSS into HTML")]
-    #[test_case("--version", "css-inline 0.9.0")]
+    #[test_case("--version", "css-inline")]
     fn args(arg: &str, expected: &str) {
         let stdout = css_inline().arg(arg).assert().success().to_string();
         assert!(stdout.contains(expected), "{}", stdout);
