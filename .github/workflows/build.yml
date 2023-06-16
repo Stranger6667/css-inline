@@ -162,9 +162,6 @@ jobs:
       matrix:
         os: [ubuntu-22.04, macos-12, windows-2022]
         ruby-version: ['2.7', '3.2']
-        exclude:
-          - os: windows-2022
-            ruby-version: "3.2"
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
