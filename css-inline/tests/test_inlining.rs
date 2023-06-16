@@ -245,7 +245,7 @@ fn href_attribute_unchanged() {
 </head>
 <body>
     <h1 style="color:blue;">Big Text</h1>
-    <a href="https://example.org/test?a=b&c=d">Link</a>
+    <a href="https://example.org/test?a=b&amp;c=d">Link</a>
 
 </body></html>"#
     );
