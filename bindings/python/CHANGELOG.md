@@ -10,6 +10,11 @@
 
 - Replace `remove_style_tags` with `keep_style_tags`.
 
+### Fixed
+
+- **SECURITY**: Passing unescaped strings in attribute values introduced in [#184](https://github.com/Stranger6667/css-inline/issues/184).
+  Previously, escaped values became unescaped on the serialization step.
+
 ### Removed
 
 - The `inline_style_tags` configuration option.
