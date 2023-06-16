@@ -121,7 +121,7 @@ OPTIONS:
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
-            preallocate_node_capacity: 8,
+            preallocate_node_capacity: 32,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

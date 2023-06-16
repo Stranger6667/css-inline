@@ -101,7 +101,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: value.extra_css.map(Cow::Owned),
-            preallocate_node_capacity: value.preallocate_node_capacity.unwrap_or(8),
+            preallocate_node_capacity: value.preallocate_node_capacity.unwrap_or(32),
         })
     }
 }
