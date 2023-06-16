@@ -67,7 +67,7 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
     })
 }
 
-/// CSSInliner(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)
+/// CSSInliner(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
@@ -78,7 +78,7 @@ struct CSSInliner {
 #[pymethods]
 impl CSSInliner {
     #[new(
-        text_signature = "(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)"
+        text_signature = "(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
     )]
     fn new(
         keep_style_tags: Option<bool>,
@@ -94,7 +94,7 @@ impl CSSInliner {
             base_url: parse_url(base_url)?,
             load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
             extra_css: extra_css.map(Cow::Owned),
-            preallocate_node_capacity: preallocate_node_capacity.unwrap_or(8),
+            preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
         };
         Ok(CSSInliner {
             inner: rust_inline::CSSInliner::new(options),
@@ -118,12 +118,12 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)
+/// inline(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
 #[pyo3(
-    text_signature = "(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)"
+    text_signature = "(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
 )]
 fn inline(
     html: &str,
@@ -140,18 +140,18 @@ fn inline(
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         extra_css: extra_css.map(Cow::Borrowed),
-        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(8),
+        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)
+/// inline_many(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
 #[pyo3(
-    text_signature = "(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=8)"
+    text_signature = "(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
 )]
 fn inline_many(
     htmls: &PyList,
@@ -168,7 +168,7 @@ fn inline_many(
         base_url: parse_url(base_url)?,
         load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
         extra_css: extra_css.map(Cow::Borrowed),
-        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(8),
+        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
     };
     let inliner = rust_inline::CSSInliner::new(options);
     inline_many_impl(&inliner, htmls)

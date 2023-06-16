@@ -137,7 +137,7 @@ impl Default for InlineOptions<'_> {
             base_url: None,
             load_remote_stylesheets: true,
             extra_css: None,
-            preallocate_node_capacity: 8,
+            preallocate_node_capacity: 32,
         }
     }
 }
