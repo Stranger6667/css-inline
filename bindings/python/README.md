@@ -173,35 +173,21 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 
 ## Performance
 
-Due to the usage of efficient tooling from Mozilla's Servo project (`html5ever`, `rust-cssparser` and others) this
-library has excellent performance characteristics. In comparison with other Python projects, it is usually >10x faster than the nearest alternative.
+`css-inline`  is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed. 
+It achieves over a **10x** speed advantage compared to the next fastest alternative.
 
-For inlining CSS in the html document from the `Usage` section above there is the following breakdown in the benchmarks:
+Here is the performance comparison:
 
-- `css_inline 0.9.0` - 9.72 us
-- `premailer 3.10.0` - 207.95 us (**x21.39**)
-- `toronado 0.1.0` - 1.03 ms (**x106.86**)
-- `inlinestyler 0.2.5` - 1.69 ms (**x174.64**)
-- `pynliner 0.8.0` - 2.05 ms (**x211.89**)
+|             | `css_inline 0.10.0` | `premailer 3.10.0`      | `toronado 0.1.0`       | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|-------------|---------------------|-------------------------|------------------------|-------------------------|-------------------------|
+| Basic       | 9.72 µs             | 207.95 µs  (**21.39x**) | 1.03 ms  (**106.86x**) | 1.69 ms  (**174.64x**)  | 2.05 ms  (**211.89x**)  |
+| Realistic-1 | 262.33 µs           | 2.11 ms  (**8.08x**)    | 25.51 ms  (**97.28x**) | 43.13 ms  (**164.43x**) | 72.55 ms  (**276.57x**) |
+| Realistic-2 | 151.83 µs           | 4.12 ms  (**27.18x**)   | ERROR                  | 28.85 ms  (**190.03x**) | ERROR                   |
 
-Realistic email 1:
+The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section. 
+Note that the `toronado` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
-- `css_inline 0.9.0` - 262.33 us
-- `premailer 3.10.0` - 2.11 ms (**x8.08**)
-- `toronado 0.1.0` - 25.51 ms (**x97.28**)
-- `inlinestyler 0.2.5` - 4313 ms (**x164.43**)
-- `pynliner 0.8.0` - 72.55 ms (**x276.57**)
-
-Realistic email 2:
-
-- `css_inline 0.9.0` - 151.83 us
-- `premailer 3.10.0` - 4.12 ms (**x27.18**)
-- `toronado 0.1.0` - `Error: Pseudo-elements are not supported`
-- `inlinestyler 0.2.5` - 28.85 ms (**x190.03**)
-- `pynliner 0.8.0` - `Error: No match was found`
-
-You can take a look at the benchmarks' code at `benches/bench.py` file.
-The results above were measured with stable `rustc 1.70.0` on `Python 3.11.0`.
+The benchmarking code is available in the `benches/bench.py` file. The tests were conducted using the stable `rustc 1.70` on Python `3.11.0`.
 
 ## Comparison with other libraries
 
