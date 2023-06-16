@@ -173,7 +173,7 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 
 ## Performance
 
-`css-inline`  is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed. 
+`css-inline`  is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed.
 It achieves over a **10x** speed advantage compared to the next fastest alternative.
 
 Here is the performance comparison:
@@ -184,7 +184,7 @@ Here is the performance comparison:
 | Realistic-1 | 262.33 µs           | 2.11 ms  (**8.08x**)    | 25.51 ms  (**97.28x**) | 43.13 ms  (**164.43x**) | 72.55 ms  (**276.57x**) |
 | Realistic-2 | 151.83 µs           | 4.12 ms  (**27.18x**)   | ERROR                  | 28.85 ms  (**190.03x**) | ERROR                   |
 
-The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section. 
+The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
 The benchmarking code is available in the `benches/bench.py` file. The tests were conducted using the stable `rustc 1.70` on Python `3.11.0`.
