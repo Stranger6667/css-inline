@@ -1,7 +1,7 @@
 # css-inline
 
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/Stranger6667/css-inline/build.yml?style=flat-square&labelColor=555555&logo=github" height="20">](https://github.com/Stranger6667/css-inline)
-[<img alt="npm" src="https://img.shields.io/npm/v/css-inline?style=flat-square" height="20">](https://github.com/Stranger6667/css-inline/actions?query=branch%3Amaster)
+[<img alt="npm" src="https://img.shields.io/npm/v/css-inline?style=flat-square" height="20">](https://www.npmjs.com/package/css-inline)
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
