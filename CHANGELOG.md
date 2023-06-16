@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.0] - 2023-06-16
+
 ### Added
 
 - `keep_link_tags` configuration option.
@@ -254,7 +256,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.9.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.0...HEAD
+[0.10.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.9.0...rust-v0.10.0
 [0.9.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.5...rust-v0.9.0
 [0.8.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.4...rust-v0.8.5
 [0.8.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.3...rust-v0.8.4
