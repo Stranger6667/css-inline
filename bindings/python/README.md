@@ -82,7 +82,8 @@ inlined = css_inline.inline(HTML)
 # </html>
 ```
 
-If you want to inline many HTML documents, you can utilize `inline_many` that processes the input in parallel.
+When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function. 
+This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
 
 ```python
 import css_inline
@@ -90,7 +91,10 @@ import css_inline
 css_inline.inline_many(["<...>", "<...>"])
 ```
 
-`inline_many` will spawn threads on the Rust level; thus, you can expect it's running faster than `css_inline.inline` via Python's `multiprocessing` or `threading` modules.
+Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs. 
+This results in faster execution times compared to employing parallel processing techniques at the Python level.
+
+**Note**: To fully benefit from `inline_many`, you should run your application on a multicore machine.
 
 ### Configuration
 

@@ -63,6 +63,20 @@ puts inlined
 # Outputs: "<html><head></head><body><h1 style=\"color:blue;\">Big Text</h1></body></html>"
 ```
 
+When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function.
+This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
+
+```ruby
+require 'css_inline'
+
+inlined = CSSInline.inline_many(["...", "..."])
+```
+
+Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs.
+This results in faster execution times compared to employing parallel processing techniques at the Ruby level.
+
+**Note**: To fully benefit from `inline_many`, you should run your application on a multicore machine.
+
 ## Configuration
 
 For customization options use the `CSSInliner` class:
