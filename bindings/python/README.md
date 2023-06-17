@@ -52,7 +52,7 @@ Install with `pip`:
 pip install css_inline
 ```
 
-Pre-compiled wheels are available for most popular platforms. 
+Pre-compiled wheels are available for most popular platforms.
 If not available for your platform, a Rust compiler will be needed to build this package from source. Rust version 1.60 or higher is required.
 
 ## Usage
@@ -82,7 +82,7 @@ inlined = css_inline.inline(HTML)
 # </html>
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function. 
+When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function.
 This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
 
 ```python
@@ -91,7 +91,7 @@ import css_inline
 css_inline.inline_many(["<...>", "<...>"])
 ```
 
-Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs. 
+Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs.
 This results in faster execution times compared to employing parallel processing techniques at the Python level.
 
 **Note**: To fully benefit from `inline_many`, you should run your application on a multicore machine.
