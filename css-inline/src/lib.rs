@@ -26,6 +26,7 @@
 )]
 
 pub mod error;
+mod hasher;
 mod html;
 mod parser;
 
@@ -39,7 +40,8 @@ use std::{
     io::{ErrorKind, Write},
 };
 
-use crate::html::{Document, NodeId, Specificity};
+use hasher::BuildNoHashHasher;
+use html::{Document, NodeId, Specificity};
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -232,7 +234,7 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        let mut styles = IndexMap::with_capacity(128);
+        let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         for style in document.styles() {
             process_css(&document, style, &mut styles);
         }
@@ -338,7 +340,7 @@ fn load_external(location: &str) -> Result<String> {
 fn process_css(
     document: &Document,
     css: &str,
-    styles: &mut IndexMap<NodeId, IndexMap<String, (Specificity, String)>>,
+    styles: &mut IndexMap<NodeId, IndexMap<String, (Specificity, String)>, BuildNoHashHasher>,
 ) {
     let mut parse_input = cssparser::ParserInput::new(css);
     let mut parser = cssparser::Parser::new(&mut parse_input);

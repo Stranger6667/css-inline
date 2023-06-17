@@ -5,6 +5,7 @@
 ### Performance
 
 - Use a simpler way for HTML tree traversal.
+- Avoid hashing in some cases.
 
 ## [0.10.0] - 2023-06-16
 
