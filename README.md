@@ -34,7 +34,7 @@ into:
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo
+- Uses reliable components from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -135,14 +135,6 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
-## Standards support & restrictions
-
-`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
-
-- Only HTML 5 is supported, not XHTML.
-- Only CSS 3 is supported.
-- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
-
 ## Bindings
 
 `css-inline` is primarily a Rust library, but we also provide bindings for several other languages:
@@ -176,7 +168,7 @@ For full details of the options available, you can use the `--help` flag:
 css-inline --help
 ```
 
-## Extra materials
+## Further reading
 
 If you're interested in learning how this library was created and how it works internally, check out these articles:
 

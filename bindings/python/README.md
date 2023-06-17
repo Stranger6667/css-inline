@@ -7,9 +7,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css-inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
+`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
 
-This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
 
 For instance, the library transforms HTML like this:
 
@@ -35,7 +35,7 @@ into:
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo
+- Uses reliable components from Mozilla's Servo project
 - 10-300x faster than alternatives
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
@@ -52,8 +52,8 @@ Install with `pip`:
 pip install css_inline
 ```
 
-Pre-compiled wheels for most popular platforms are provided. If your platform is not supported, you will need
-a Rust compiler to build this package from source. The minimum supported Rust version is 1.60.
+Pre-compiled wheels are available for most popular platforms. 
+If not available for your platform, a Rust compiler will be needed to build this package from source. Rust version 1.60 or higher is required.
 
 ## Usage
 
@@ -148,13 +148,7 @@ inliner = css_inline.CSSInliner(base_url="file://styles/email/")
 inliner.inline("...")
 ```
 
-## Standards support & restrictions
-
-`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
-
-- Only HTML 5 is supported, not XHTML.
-- Only CSS 3 is supported.
-- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
+## XHTML compatibility
 
 If you'd like to work around some XHTML compatibility issues like closing empty tags (`<hr>` vs. `<hr/>`), you can use the following snippet that involves `lxml`:
 
@@ -200,7 +194,7 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 
 `css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11 and PyPy 3.7, 3.8, 3.9.
 
-## Extra materials
+## Further reading
 
 If you want to know how this library was created & how it works internally, you could take a look at these articles:
 

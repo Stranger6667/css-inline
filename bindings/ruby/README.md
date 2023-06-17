@@ -5,9 +5,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css_inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
+`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
 
-This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
 
 For instance, the library transforms HTML like this:
 
@@ -33,7 +33,7 @@ into:
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo
+- Uses reliable components from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -149,7 +149,7 @@ The results displayed above were measured using stable `rustc 1.70` on Ruby `3.2
 
 `css_inline` supports Ruby 2.7 and 3.2.
 
-## Extra materials
+## Further reading
 
 If you want to know how this library was created & how it works internally, you could take a look at these articles:
 

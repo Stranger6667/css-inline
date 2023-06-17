@@ -5,9 +5,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css-inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
+`css-inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
 
-This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
 
 For instance, the library transforms HTML like this:
 
@@ -33,7 +33,7 @@ into:
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo
+- Uses reliable components from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -101,14 +101,6 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
     <h1>Big Text</h1>
 </body>
 ```
-
-## Standards support & restrictions
-
-`css-inline` is built on top of [html5ever](https://crates.io/crates/html5ever) and [cssparser](https://crates.io/crates/cssparser) and relies on their behavior for HTML & CSS parsing.
-
-- Only HTML 5 is supported, not XHTML.
-- Only CSS 3 is supported.
-- Only UTF-8 encoding for string representation. Other document encodings are not yet supported.
 
 ## License
 
