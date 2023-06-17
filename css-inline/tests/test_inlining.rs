@@ -228,7 +228,6 @@ fn href_attribute_unchanged() {
     // All HTML attributes should be serialized as is
     let html = r#"<html>
 <head>
-    <title>Test</title>
     <style>h1 { color:blue; }</style>
 </head>
 <body>
@@ -240,7 +239,6 @@ fn href_attribute_unchanged() {
     assert_eq!(
         inlined,
         r#"<html><head>
-    <title>Test</title>
     
 </head>
 <body>
@@ -255,7 +253,6 @@ fn href_attribute_unchanged() {
 fn complex_child_selector() {
     let html = r#"<html>
    <head>
-      <title>Test</title>
       <style>.parent {
          overflow: hidden;
          box-shadow: 0 4px 10px 0px rgba(0, 0, 0, 0.1);
@@ -284,7 +281,6 @@ fn complex_child_selector() {
     assert_eq!(
         inlined,
         r#"<html><head>
-      <title>Test</title>
       
    </head>
    <body>
@@ -372,7 +368,7 @@ fn invalid_rule(style: &str, expected: &str) {
 fn remove_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let result = inline(&html).unwrap();
-    assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
+    assert_eq!(result, "<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }
 
 #[test]
@@ -425,7 +421,7 @@ fn extra_css() {
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><title>Test</title></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
+        "<html><head></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
     )
 }
 
@@ -669,7 +665,10 @@ fn inline_to() {
     let html = html!("h1 { color: blue }", r#"<h1>Big Text</h1>"#);
     let mut out = Vec::new();
     css_inline::inline_to(&html, &mut out).unwrap();
-    assert_eq!(String::from_utf8_lossy(&out), "<html><head><title>Test</title></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>")
+    assert_eq!(
+        String::from_utf8_lossy(&out),
+        "<html><head></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>"
+    )
 }
 
 #[test]

@@ -8,7 +8,7 @@ import css_inline
 
 
 def make_html(style: str, body: str) -> str:
-    return "<html><head><title>Test</title><style>{style}</style></head><body>{body}</body></html>".format(
+    return "<html><head><style>{style}</style></head><body>{body}</body></html>".format(
         style=style, body=body
     )
 
@@ -37,9 +37,7 @@ SAMPLE_INLINED = """<h1 style="color:red;">Big Text</h1>
         ({"keep_style_tags": True}, make_html(SAMPLE_STYLE, SAMPLE_INLINED)),
         (
             {"keep_style_tags": False},
-            "<html><head><title>Test</title></head><body>{body}</body></html>".format(
-                body=SAMPLE_INLINED
-            ),
+            "<html><head></head><body>{body}</body></html>".format(body=SAMPLE_INLINED),
         ),
     ),
 )
