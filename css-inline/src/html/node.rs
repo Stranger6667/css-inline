@@ -69,10 +69,6 @@ impl NodeId {
     pub(super) fn get(self) -> usize {
         self.0.get()
     }
-    #[inline]
-    pub(super) fn next(self) -> Option<NodeId> {
-        self.get().checked_add(1).map(NodeId::new)
-    }
 }
 
 /// Data associated with a `Node`.

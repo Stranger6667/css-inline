@@ -36,7 +36,7 @@ use std::{io, io::Write, iter::successors};
 /// relationship with its descendants.
 #[derive(Debug)]
 pub(crate) struct Document {
-    nodes: Vec<Node>,
+    pub(crate) nodes: Vec<Node>,
     /// Ids of `style` nodes.
     styles: Vec<NodeId>,
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
@@ -59,11 +59,6 @@ impl Document {
             styles: Vec::new(),
             linked_stylesheets: Vec::new(),
         }
-    }
-
-    #[inline]
-    pub(super) fn next_node_id(&self, node_id: NodeId) -> Option<NodeId> {
-        node_id.next().filter(|&next| next.get() < self.nodes.len())
     }
 
     #[inline]
