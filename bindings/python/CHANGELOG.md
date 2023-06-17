@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Use a simpler way for HTML tree traversal.
+
 ## [0.10.0] - 2023-06-16
 
 ### Added

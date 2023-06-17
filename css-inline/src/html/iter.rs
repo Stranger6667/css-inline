@@ -15,17 +15,17 @@ pub(crate) fn select<'a, 'b>(
     Selectors::compile(selectors).map(|selectors| Select {
         traverse: Traverse {
             document,
-            current: Some(NodeId::document_id()),
+            current: NodeId::document_id(),
         },
         selectors,
     })
 }
 
-/// An internal iterator that traverses a document in tree order.
+/// An internal iterator that traverses a document.
 struct Traverse<'a> {
     document: &'a Document,
     // Current node being processed
-    current: Option<NodeId>,
+    current: NodeId,
 }
 
 impl<'a> Iterator for Traverse<'a> {
@@ -34,11 +34,10 @@ impl<'a> Iterator for Traverse<'a> {
     fn next(&mut self) -> Option<Self::Item> {
         // Loop until we either run out of nodes or find an element node
         loop {
-            if let Some(current) = self.current {
-                // Advance to the next node in tree order
-                self.current = self.document.next_in_tree_order(current);
+            if let Some(next) = self.document.next_node_id(self.current) {
+                self.current = next;
                 // If the current node is an element node, return it, else continue with the loop
-                if let Some(element) = self.document.as_element(current) {
+                if let Some(element) = self.document.as_element(next) {
                     return Some(element);
                 }
             } else {

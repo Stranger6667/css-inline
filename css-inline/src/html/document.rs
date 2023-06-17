@@ -61,6 +61,12 @@ impl Document {
         }
     }
 
+    #[inline]
+    pub(super) fn next_node_id(&self, node_id: NodeId) -> Option<NodeId> {
+        node_id.next().filter(|&next| next.get() < self.nodes.len())
+    }
+
+    #[inline]
     pub(super) fn as_element(&self, node_id: NodeId) -> Option<Element<'_>> {
         if let NodeData::Element { element, .. } = &self[node_id].data {
             Some(Element::new(self, node_id, element))
@@ -244,17 +250,6 @@ impl Document {
     /// Returns an iterator over the direct children of a node.
     pub(super) fn children(&self, node: NodeId) -> impl Iterator<Item = NodeId> + '_ {
         successors(self[node].first_child, |&node| self[node].next_sibling)
-    }
-
-    pub(crate) fn node_and_ancestors(&self, node: NodeId) -> impl Iterator<Item = NodeId> + '_ {
-        successors(Some(node), move |&node| self[node].parent)
-    }
-
-    pub(crate) fn next_in_tree_order(&self, node: NodeId) -> Option<NodeId> {
-        self[node].first_child.or_else(|| {
-            self.node_and_ancestors(node)
-                .find_map(|ancestor| self[ancestor].next_sibling)
-        })
     }
 
     /// Serialize the document to HTML string.
