@@ -1,10 +1,11 @@
 use super::{
     document::Document,
     element::Element,
-    node::NodeId,
+    node::{Node, NodeData, NodeId},
     selectors::{ParseError, Selectors},
     Specificity,
 };
+use std::iter::{Enumerate, Skip};
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
@@ -13,32 +14,31 @@ pub(crate) fn select<'a, 'b>(
     selectors: &'b str,
 ) -> Result<Select<'a>, ParseError<'b>> {
     Selectors::compile(selectors).map(|selectors| Select {
-        traverse: Traverse {
+        elements: Elements {
             document,
-            current: NodeId::document_id(),
+            // Skip the dummy & document nodes
+            iter: document.nodes.iter().enumerate().skip(2),
         },
         selectors,
     })
 }
 
 /// An internal iterator that traverses a document.
-struct Traverse<'a> {
+struct Elements<'a> {
     document: &'a Document,
-    // Current node being processed
-    current: NodeId,
+    iter: Skip<Enumerate<std::slice::Iter<'a, Node>>>,
 }
 
-impl<'a> Iterator for Traverse<'a> {
+impl<'a> Iterator for Elements<'a> {
     type Item = Element<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
         // Loop until we either run out of nodes or find an element node
         loop {
-            if let Some(next) = self.document.next_node_id(self.current) {
-                self.current = next;
+            if let Some((id, node)) = self.iter.next() {
                 // If the current node is an element node, return it, else continue with the loop
-                if let Some(element) = self.document.as_element(next) {
-                    return Some(element);
+                if let NodeData::Element { element, .. } = &node.data {
+                    return Some(Element::new(self.document, NodeId::new(id), element));
                 }
             } else {
                 // No more elements in the document
@@ -50,7 +50,7 @@ impl<'a> Iterator for Traverse<'a> {
 
 /// An element iterator adaptor that yields elements matching given selectors.
 pub(crate) struct Select<'a> {
-    traverse: Traverse<'a>,
+    elements: Elements<'a>,
     /// The selectors to be matched.
     selectors: Selectors,
 }
@@ -69,7 +69,7 @@ impl<'a> Iterator for Select<'a> {
     #[inline]
     fn next(&mut self) -> Option<Element<'a>> {
         // Filter the underlying iterator to only return elements that match any of the selectors
-        self.traverse
+        self.elements
             .by_ref()
             .find(|element| self.selectors.iter().any(|s| element.matches(s)))
     }
