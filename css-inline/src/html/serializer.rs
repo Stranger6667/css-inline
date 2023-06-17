@@ -120,22 +120,25 @@ mod tests {
 
     #[test]
     fn test_serialize() {
-        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
+        let doc = Document::parse_with_options(
+            b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
+            0,
+        );
         let mut buffer = Vec::new();
         doc.serialize(&mut buffer, true, false)
             .expect("Should not fail");
-        assert_eq!(buffer, b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head><body></body></html>");
+        assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
     }
 
     #[test]
     fn test_skip_style_tags() {
-        let doc = Document::parse_with_options(b"<html><head><title>Test</title><style>h1 { color:blue; }</style><style>h1 { color:red; }</style></head>", 0);
+        let doc = Document::parse_with_options(
+            b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
+            0,
+        );
         let mut buffer = Vec::new();
         doc.serialize(&mut buffer, false, false)
             .expect("Should not fail");
-        assert_eq!(
-            buffer,
-            b"<html><head><title>Test</title></head><body></body></html>"
-        );
+        assert_eq!(buffer, b"<html><head></head><body></body></html>");
     }
 }

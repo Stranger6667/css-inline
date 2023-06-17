@@ -59,7 +59,7 @@ pub mod tests {
     fn wrong_base_url() {
         css_inline()
             .arg("--base-url=https://:::::")
-            .write_stdin(r#"<html><head><title>Test</title><link href="external.css" rel="stylesheet" type="text/css"></head><body><h1>Hello world!</h1></body></html>"#)
+            .write_stdin(r#"<html><head><link href="external.css" rel="stylesheet" type="text/css"></head><body><h1>Hello world!</h1></body></html>"#)
             .assert()
             .failure()
             .stderr("Status: ERROR\nDetails: empty host\n");
@@ -75,7 +75,7 @@ pub mod tests {
     #[test]
     fn invalid_css() {
         css_inline()
-            .write_stdin(r#"<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1 style="@wrong { color: ---}">Hello world!</h1></body></html>"#)
+            .write_stdin(r#"<html><head><style>h1 {background-color: blue;}</style></head><body><h1 style="@wrong { color: ---}">Hello world!</h1></body></html>"#)
             .assert()
             .failure()
             .stderr("Status: ERROR\nDetails: Invalid @ rule: wrong\n");
@@ -95,10 +95,10 @@ pub mod tests {
     #[test]
     fn stdin() {
         css_inline()
-            .write_stdin(r#"<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"#)
+            .write_stdin(r#"<html><head><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"#)
             .assert()
             .success()
-            .stdout("<html><head><title>Test</title></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>");
+            .stdout("<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>");
     }
 
     #[test_case("--help", "css-inline inlines CSS into HTML")]

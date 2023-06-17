@@ -4,7 +4,7 @@ require 'rspec'
 require_relative "../lib/css_inline"
 
 def make_html(style, body)
-  "<html><head><title>Test</title><style>#{style}</style></head><body>#{body}</body></html>"
+  "<html><head><style>#{style}</style></head><body>#{body}</body></html>"
 end
 
 SAMPLE_STYLE = """
@@ -29,7 +29,7 @@ funcs = [
 
 test_cases = [
   ["keep style tags", { keep_style_tags: true }, make_html(SAMPLE_STYLE, SAMPLE_INLINED)],
-  ["drop style tags", {}, "<html><head><title>Test</title></head><body>#{SAMPLE_INLINED}</body></html>"]
+  ["drop style tags", {}, "<html><head></head><body>#{SAMPLE_INLINED}</body></html>"]
 ]
 
 RSpec.describe 'CssInline' do

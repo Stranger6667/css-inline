@@ -138,8 +138,8 @@ pub mod tests {
 
     #[wasm_bindgen_test]
     fn default_config() {
-        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", JsValue::undefined()).expect("Inlines correctly");
-        assert_eq!(result, "<html><head><title>Test</title></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        let result = inline("<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", JsValue::undefined()).expect("Inlines correctly");
+        assert_eq!(result, "<html><head></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 
     #[wasm_bindgen_test]
@@ -149,7 +149,7 @@ pub mod tests {
             ..Options::default()
         };
         let options = serde_wasm_bindgen::to_value(&options).expect("Valid value");
-        let result = inline("<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", options).expect("Inlines correctly");
-        assert_eq!(result, "<html><head><title>Test</title><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        let result = inline("<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", options).expect("Inlines correctly");
+        assert_eq!(result, "<html><head><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 }

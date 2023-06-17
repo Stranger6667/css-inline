@@ -2,15 +2,12 @@
 macro_rules! html {
     ($style: expr, $body: expr) => {
         format!(
-            r#"<html><head><title>Test</title><style>{}</style></head><body>{}</body></html>"#,
+            r#"<html><head><style>{}</style></head><body>{}</body></html>"#,
             $style, $body
         )
     };
     ($body: expr) => {
-        format!(
-            r#"<html><head><title>Test</title></head><body>{}</body></html>"#,
-            $body
-        )
+        format!(r#"<html><head></head><body>{}</body></html>"#, $body)
     };
 }
 

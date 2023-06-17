@@ -14,7 +14,6 @@ For instance, the library transforms HTML like this:
 ```html
 <html>
     <head>
-        <title>Test</title>
         <style>h1 { color:blue; }</style>
     </head>
     <body>
@@ -27,9 +26,7 @@ into:
 
 ```html
 <html>
-    <head>
-        <title>Test</title>
-    </head>
+    <head></head>
     <body>
         <h1 style="color:blue;">Big Text</h1>
     </body>
@@ -88,7 +85,6 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 
 ```html
 <head>
-    <title>Test</title>
     <style>h1 { color:blue; }</style>
 </head>
 <body>
@@ -101,7 +97,6 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 
 ```html
 <head>
-    <title>Test</title>
     <!-- Styles below are ignored -->
     <style data-css-inline="ignore">h1 { color:blue; }</style>
 </head>

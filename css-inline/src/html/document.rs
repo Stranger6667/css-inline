@@ -307,10 +307,9 @@ mod tests {
     fn test_collect_styles() {
         let doc = Document::parse_with_options(
             r#"
-<head
-  ><title>Test</title>
+<head>
   <style>h1 { color:blue; }</style>
-  <style>h1 { color:red; }</style>
+  <style>h1 { color:red }</style>
   <style data-css-inline='ignore'>h1 { color:yellow; }</style>
 </head>"#
                 .as_bytes(),
@@ -319,7 +318,7 @@ mod tests {
         let styles = doc.styles().collect::<Vec<_>>();
         assert_eq!(styles.len(), 2);
         assert_eq!(styles[0], "h1 { color:blue; }");
-        assert_eq!(styles[1], "h1 { color:red; }");
+        assert_eq!(styles[1], "h1 { color:red }");
     }
 
     #[test]
