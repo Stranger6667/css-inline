@@ -16,13 +16,16 @@
     missing_debug_implementations,
     trivial_casts,
     trivial_numeric_casts,
+    unreachable_pub,
     unused_extern_crates,
     unused_import_braces,
     unused_qualifications,
     variant_size_differences,
     rust_2018_idioms,
-    rust_2018_compatibility
+    rust_2018_compatibility,
+    rust_2021_compatibility
 )]
+#[allow(clippy::module_name_repetitions)]
 use css_inline as rust_inline;
 use magnus::{
     class, define_module, function, method,

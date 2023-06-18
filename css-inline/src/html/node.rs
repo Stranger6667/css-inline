@@ -15,6 +15,7 @@ pub(crate) struct Node {
 }
 
 impl Node {
+    #[inline]
     pub(crate) fn new(data: NodeData) -> Node {
         Node {
             parent: None,
@@ -25,18 +26,21 @@ impl Node {
             data,
         }
     }
+    #[inline]
     pub(crate) fn as_element(&self) -> Option<&ElementData> {
         match &self.data {
             NodeData::Element { element: data, .. } => Some(data),
             _ => None,
         }
     }
+    #[inline]
     pub(crate) fn as_element_mut(&mut self) -> Option<&mut ElementData> {
         match &mut self.data {
             NodeData::Element { element: data, .. } => Some(data),
             _ => None,
         }
     }
+    #[inline]
     pub(crate) fn as_not_ignored_element_mut(&mut self) -> Option<&mut ElementData> {
         match &mut self.data {
             NodeData::Element {
@@ -46,6 +50,7 @@ impl Node {
             _ => None,
         }
     }
+    #[inline]
     pub(crate) fn as_text(&self) -> Option<&str> {
         match &self.data {
             NodeData::Text { text } => Some(&**text),
@@ -59,9 +64,11 @@ impl Node {
 pub(crate) struct NodeId(NonZeroUsize);
 
 impl NodeId {
+    #[inline]
     pub(super) fn new(value: usize) -> NodeId {
         NodeId(NonZeroUsize::new(value).expect("Value is zero"))
     }
+    #[inline]
     pub(super) fn document_id() -> NodeId {
         NodeId::new(1)
     }
@@ -103,6 +110,7 @@ pub(crate) struct ElementData {
 }
 
 impl ElementData {
+    #[inline]
     pub(crate) fn new(name: QualName, attributes: Vec<html5ever::Attribute>) -> ElementData {
         ElementData {
             name,

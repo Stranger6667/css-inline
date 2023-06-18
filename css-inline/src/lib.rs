@@ -1,5 +1,6 @@
 #![doc = include_str!("../README.md")]
 #![warn(
+    clippy::pedantic,
     clippy::doc_markdown,
     clippy::redundant_closure,
     clippy::explicit_iter_loop,
@@ -22,9 +23,10 @@
     unused_qualifications,
     variant_size_differences,
     rust_2018_idioms,
-    rust_2018_compatibility
+    rust_2018_compatibility,
+    rust_2021_compatibility
 )]
-
+#[allow(clippy::module_name_repetitions)]
 pub mod error;
 mod hasher;
 mod html;
@@ -468,7 +470,7 @@ fn merge_styles(
     let mut first = true;
     for style in &final_styles {
         if first {
-            first = false
+            first = false;
         } else {
             existing_style.push_char(';');
         }

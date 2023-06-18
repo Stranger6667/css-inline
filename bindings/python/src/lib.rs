@@ -21,8 +21,10 @@
     unused_qualifications,
     variant_size_differences,
     rust_2018_idioms,
-    rust_2018_compatibility
+    rust_2018_compatibility,
+    rust_2021_compatibility
 )]
+#[allow(clippy::module_name_repetitions)]
 use ::css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;

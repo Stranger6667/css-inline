@@ -36,18 +36,22 @@ impl<'a> Element<'a> {
         }
     }
     /// Qualified name of the element.
+    #[inline]
     pub(crate) fn name(&self) -> &QualName {
         &self.data.name
     }
     /// Attributes of the element.
+    #[inline]
     pub(crate) fn attributes(&self) -> &Attributes {
         &self.data.attributes
     }
     /// A reference to the element data.
+    #[inline]
     pub(crate) fn data(&self) -> &'a ElementData {
         self.data
     }
     /// ID of the parent node of the element, if it exists.
+    #[inline]
     pub(crate) fn parent(&self) -> Option<NodeId> {
         self.document[self.node_id].parent
     }
@@ -162,6 +166,7 @@ impl<'a> selectors::Element for Element<'a> {
         }
     }
 
+    #[allow(clippy::enum_glob_use)]
     fn match_non_ts_pseudo_class<F>(
         &self,
         pseudo: &PseudoClass,
