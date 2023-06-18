@@ -6,9 +6,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css-inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
+`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
 
-This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
+This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
 
 For instance, the crate transforms HTML like this:
 
