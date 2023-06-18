@@ -55,7 +55,7 @@ mod tests {
                 mod $method {
                     use super::NoHashHasher;
                     use std::hash::Hasher;
-    
+
                     #[test]
                     #[should_panic]
                     fn test_panic() {
@@ -67,7 +67,17 @@ mod tests {
         };
     }
 
-    test_panic!(write_u8, write_u16, write_u32, write_u64, write_i8, write_i16, write_i32, write_i64, write_isize);
+    test_panic!(
+        write_u8,
+        write_u16,
+        write_u32,
+        write_u64,
+        write_i8,
+        write_i16,
+        write_i32,
+        write_i64,
+        write_isize
+    );
 
     #[test]
     #[should_panic]
