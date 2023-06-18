@@ -13,10 +13,10 @@ jobs:
     name: Verify commit messages
     runs-on: ubuntu-22.04
     steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-      - name: Run commitsar
-        uses: docker://commitsar/commitsar
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: aevea/commitsar@v0.20.1
 
   pre-commit:
     name: Generic pre-commit checks
