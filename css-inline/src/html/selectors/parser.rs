@@ -9,6 +9,7 @@ impl<'i> Parser<'i> for SelectorParser {
     type Impl = InlinerSelectors;
     type Error = SelectorParseErrorKind<'i>;
 
+    #[allow(clippy::enum_glob_use)]
     fn parse_non_ts_pseudo_class(
         &self,
         location: SourceLocation,

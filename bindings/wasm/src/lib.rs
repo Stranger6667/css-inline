@@ -13,17 +13,19 @@
     clippy::map_unwrap_or,
     clippy::trivially_copy_pass_by_ref,
     clippy::needless_pass_by_value,
-    missing_docs,
     missing_debug_implementations,
     trivial_casts,
     trivial_numeric_casts,
+    unreachable_pub,
     unused_extern_crates,
     unused_import_braces,
     unused_qualifications,
     variant_size_differences,
     rust_2018_idioms,
-    rust_2018_compatibility
+    rust_2018_compatibility,
+    rust_2021_compatibility
 )]
+#[allow(clippy::module_name_repetitions)]
 use css_inline as rust_inline;
 use std::{
     borrow::Cow,
@@ -138,8 +140,15 @@ pub mod tests {
 
     #[wasm_bindgen_test]
     fn default_config() {
-        let result = inline("<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", JsValue::undefined()).expect("Inlines correctly");
-        assert_eq!(result, "<html><head></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        let result = inline(
+            "<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>",
+            JsValue::undefined(),
+        )
+        .expect("Inlines correctly");
+        assert_eq!(
+            result,
+            "<html><head></head><body><h1 style=\"color:red;\">Test</h1></body></html>"
+        );
     }
 
     #[wasm_bindgen_test]
@@ -149,7 +158,11 @@ pub mod tests {
             ..Options::default()
         };
         let options = serde_wasm_bindgen::to_value(&options).expect("Valid value");
-        let result = inline("<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>", options).expect("Inlines correctly");
+        let result = inline(
+            "<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>",
+            options,
+        )
+        .expect("Inlines correctly");
         assert_eq!(result, "<html><head><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
     }
 }
