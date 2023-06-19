@@ -1,0 +1,31 @@
+name: Benchmarks
+
+on:
+  push:
+    branches:
+      - "master"
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rust:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: repo
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - run: cp -r repo/css-inline/* .
+
+      - uses: Swatinem/rust-cache@v2
+
+      - run: cargo install cargo-codspeed
+
+      - run: cargo codspeed build
+
+      - uses: CodSpeedHQ/action@v1
+        with:
+          run: cargo codspeed run
+          token: ${{ secrets.CODSPEED_TOKEN }}
