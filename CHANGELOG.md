@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Various performance improvements.
+
 ## [0.10.1] - 2023-06-18
 
 ### Performance
