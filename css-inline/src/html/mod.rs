@@ -9,4 +9,3 @@ mod serializer;
 
 pub(crate) use self::selectors::Specificity;
 pub(crate) use document::Document;
-pub(crate) use node::NodeId;

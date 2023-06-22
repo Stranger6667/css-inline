@@ -43,7 +43,7 @@ use std::{
 };
 
 use hasher::BuildNoHashHasher;
-use html::{Document, NodeId, Specificity};
+use html::{Document, Specificity};
 pub use url::{ParseError, Url};
 
 /// Replace double quotes in property values.
@@ -154,6 +154,8 @@ pub struct CSSInliner<'a> {
     options: InlineOptions<'a>,
 }
 
+const GROWTH_COEFFICIENT: f64 = 1.5;
+
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
     #[must_use]
@@ -199,7 +201,16 @@ impl<'a> CSSInliner<'a> {
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
         // Allocating more memory than the input HTML, as the inlined version is usually bigger
-        let mut out = Vec::with_capacity(html.len().saturating_mul(2));
+        #[allow(
+            clippy::cast_precision_loss,
+            clippy::cast_sign_loss,
+            clippy::cast_possible_truncation
+        )]
+        let mut out = Vec::with_capacity(
+            (html.len() as f64 * GROWTH_COEFFICIENT)
+                .min(usize::MAX as f64)
+                .round() as usize,
+        );
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
     }
@@ -236,9 +247,15 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
+        let mut size_estimate: usize = document.styles().map(str::len).sum();
+        if let Some(extra_css) = &self.options.extra_css {
+            size_estimate = size_estimate.saturating_add(extra_css.len());
+        }
+        let mut raw_styles = String::with_capacity(size_estimate);
         let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         for style in document.styles() {
-            process_css(&document, style, &mut styles);
+            raw_styles.push_str(style);
+            raw_styles.push('\n');
         }
         if self.options.load_remote_stylesheets {
             let mut links = document.stylesheets().collect::<Vec<&str>>();
@@ -247,26 +264,71 @@ impl<'a> CSSInliner<'a> {
             for href in &links {
                 let url = self.get_full_url(href);
                 let css = load_external(url.as_ref())?;
-                process_css(&document, css.as_str(), &mut styles);
+                raw_styles.push_str(&css);
+                raw_styles.push('\n');
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            process_css(&document, extra_css, &mut styles);
+            raw_styles.push_str(extra_css);
         }
+        let mut parse_input = cssparser::ParserInput::new(&raw_styles);
+        let mut parser = cssparser::Parser::new(&mut parse_input);
+        let rule_list: Vec<_> =
+            cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser)
+                .flatten()
+                .collect();
+        for (selectors, declarations) in &rule_list {
+            // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
+            // With `is` or `where` selectors (Level 4) this split should be done on the parser level
+            for selector in selectors.split(',') {
+                if let Ok(matching_elements) = document.select(selector) {
+                    let specificity = matching_elements.specificity();
+                    for matching_element in matching_elements {
+                        let element_styles =
+                            styles.entry(matching_element.node_id).or_insert_with(|| {
+                                IndexMap::<&str, (Specificity, &str)>::with_capacity(
+                                    declarations.len(),
+                                )
+                            });
+                        // Iterate over pairs of property name & value
+                        // Example: `padding`, `0`
+                        for (name, value) in declarations {
+                            match element_styles.entry(name.as_ref()) {
+                                indexmap::map::Entry::Occupied(mut entry) => {
+                                    if entry.get().0 <= specificity {
+                                        entry.insert((specificity, *value));
+                                    }
+                                }
+                                indexmap::map::Entry::Vacant(entry) => {
+                                    entry.insert((specificity, *value));
+                                }
+                            }
+                        }
+                    }
+                }
+                // Ignore not parsable selectors. E.g. there is no parser for @media queries
+                // Which means that they will fall into this category and will be ignored
+            }
+        }
+        let mut style_buffer: SmallVec<[String; 8]> = smallvec![];
         for (node_id, styles) in styles.iter_mut() {
-            let node = &mut document[*node_id];
-            let element = if let Some(element) = node.as_not_ignored_element_mut() {
+            let element = if let Some(element) = document[*node_id].as_not_ignored_element_mut() {
                 element
             } else {
                 continue;
             };
             styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
-            let attributes = &mut element.attributes;
-            match attributes.get_style_entry() {
+            match element.attributes.get_style_entry() {
                 Entry::Vacant(entry) => {
-                    let mut final_styles = String::with_capacity(128);
+                    let size_estimate: usize = styles
+                        .iter()
+                        .map(|(name, (_, value))| {
+                            name.len().saturating_add(value.len()).saturating_add(2)
+                        })
+                        .sum();
+                    let mut final_styles = String::with_capacity(size_estimate);
                     for (name, (_, value)) in styles {
-                        final_styles.push_str(name.as_str());
+                        final_styles.push_str(name);
                         final_styles.push(':');
                         replace_double_quotes!(final_styles, name, value);
                         final_styles.push(';');
@@ -275,7 +337,7 @@ impl<'a> CSSInliner<'a> {
                 }
                 Entry::Occupied(mut entry) => {
                     let existing_style = entry.get_mut();
-                    merge_styles(existing_style, styles)?;
+                    merge_styles(existing_style, styles, &mut style_buffer)?;
                 }
             }
         }
@@ -339,49 +401,6 @@ fn load_external(location: &str) -> Result<String> {
     }
 }
 
-fn process_css(
-    document: &Document,
-    css: &str,
-    styles: &mut IndexMap<NodeId, IndexMap<String, (Specificity, String)>, BuildNoHashHasher>,
-) {
-    let mut parse_input = cssparser::ParserInput::new(css);
-    let mut parser = cssparser::Parser::new(&mut parse_input);
-    let rule_list =
-        cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser);
-    for (selectors, declarations) in rule_list.flatten() {
-        // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
-        // With `is` or `where` selectors (Level 4) this split should be done on the parser level
-        for selector in selectors.split(',') {
-            if let Ok(matching_elements) = document.select(selector) {
-                // There is always only one selector applied
-                let specificity = matching_elements.specificity();
-                for matching_element in matching_elements {
-                    let element_styles = styles
-                        .entry(matching_element.node_id)
-                        .or_insert_with(|| IndexMap::with_capacity(8));
-                    // Iterate over pairs of property name & value
-                    // Example: `padding`, `0`
-                    for (name, value) in &declarations {
-                        match element_styles.entry(name.to_string()) {
-                            indexmap::map::Entry::Occupied(mut entry) => {
-                                if entry.get().0 <= specificity {
-                                    entry.insert((specificity, (*value).to_string()));
-                                }
-                            }
-                            indexmap::map::Entry::Vacant(entry) => {
-                                entry.insert((specificity, (*value).to_string()));
-                            }
-                        }
-                    }
-                }
-            }
-            // Skip selectors that can't be parsed
-            // Ignore not parsable entries. E.g. there is no parser for @media queries
-            // Which means that they will fall into this category and will be ignored
-        }
-    }
-}
-
 impl Default for CSSInliner<'_> {
     #[inline]
     fn default() -> Self {
@@ -416,62 +435,120 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
 }
 
+const STYLE_SEPARATOR: &str = ": ";
+
+macro_rules! push_or_update {
+    ($style_buffer:expr, $length:expr, $name: expr, $value:expr) => {
+        if let Some(style) = $style_buffer.get_mut($length) {
+            style.clear();
+            style.push_str($name);
+            style.push_str(STYLE_SEPARATOR);
+            style.push_str($value.trim());
+        } else {
+            let value = $value.trim();
+            let mut style = String::with_capacity(
+                $name
+                    .len()
+                    .saturating_add(STYLE_SEPARATOR.len())
+                    .saturating_add(value.len()),
+            );
+            style.push_str($name);
+            style.push_str(STYLE_SEPARATOR);
+            style.push_str(value);
+            $style_buffer.push(style);
+            $length = $length.saturating_add(1);
+        }
+    };
+}
+
+#[inline]
+fn append_style(style: &mut String, name: &str, value: &str) {
+    style.push_str(name);
+    style.push_str(STYLE_SEPARATOR);
+    replace_double_quotes!(style, name, value.trim());
+}
+
+/// Merge a new set of styles into an existing one, considering the rules of CSS precedence.
+///
+/// The merge process maintains the order of specificity and respects the `!important` rule in CSS.
 fn merge_styles(
     existing_style: &mut StrTendril,
-    new_styles: &IndexMap<String, (Specificity, String)>,
+    new_styles: &IndexMap<&str, (Specificity, &str)>,
+    style_buffer: &mut SmallVec<[String; 8]>,
 ) -> Result<()> {
-    // Parse existing declarations in the "style" attribute
+    // This function is designed with a focus on reusing existing allocations where possible
+    // We start by parsing the existing declarations in the "style" attribute
     let mut input = cssparser::ParserInput::new(existing_style);
     let mut parser = cssparser::Parser::new(&mut input);
     let declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
-    // New rules should not override old ones unless !important and we store selectors inline to check the old rules later
-    let mut buffer: SmallVec<[String; 8]> = smallvec![];
-    let mut final_styles: Vec<String> = Vec::new();
-    for declaration in declarations {
+    // We manually manage the length of our buffer. The buffer may contain slots used
+    // in previous runs, and we want to access only the portion that we build in this iteration
+    // NOTE: Can't use `count`, because `declarations` should be evaluated just once
+    let mut length: usize = 0;
+    for (idx, declaration) in declarations.enumerate() {
+        length = length.saturating_add(1);
         let (name, value) = declaration?;
-        // Allocate enough space for the new style
-        let mut style =
-            String::with_capacity(name.len().saturating_add(value.len()).saturating_add(2));
-        style.push_str(&name);
-        style.push_str(": ");
-        replace_double_quotes!(style, name, value.trim());
-        final_styles.push(style);
-        // This property won't be taken from new styles unless it's !important
-        buffer.push(name.to_string());
+        let size_estimate = name
+            .len()
+            .saturating_add(value.len())
+            .saturating_add(STYLE_SEPARATOR.len());
+        // We store the existing style declarations in the `style_buffer` for later merging with new styles
+        // If possible, we reuse existing slots in the `style_buffer` to avoid additional allocations
+        if let Some(style) = style_buffer.get_mut(idx) {
+            style.clear();
+            style.reserve(size_estimate);
+            append_style(style, &name, value);
+        } else {
+            let mut style = String::with_capacity(size_estimate);
+            append_style(&mut style, &name, value);
+            style_buffer.push(style);
+        };
     }
-    for (property, (_, value)) in new_styles {
+    // Next, we iterate over the new styles and merge them into our existing set
+    // New rules will not override old ones unless they are marked as `!important`
+    for (name, (_, value)) in new_styles {
         match (
             value.strip_suffix("!important"),
-            buffer.iter().position(|r| r == property),
+            style_buffer.iter_mut().find(|style| {
+                style.starts_with(name)
+                    && style.get(name.len()..=name.len().saturating_add(1)) == Some(STYLE_SEPARATOR)
+            }),
         ) {
-            // The new rule is `!important` and there is already one in existing styles:
-            // override with the new one.
-            #[allow(clippy::integer_arithmetic)]
-            (Some(value), Some(index)) => {
-                // Reuse existing allocation
-                let target = &mut final_styles[index];
-                // Keep '<rule>: ` (with a space at the end)
-                // NOTE: There will be no overflow as the new len is always smaller than the old one
-                target.truncate(property.len() + 2);
-                // And push the value
-                target.push_str(value.trim());
+            // The new rule is `!important` and there's an existing rule with the same name
+            // In this case, we override the existing rule with the new one
+            (Some(value), Some(style)) => {
+                // We keep the rule name and the colon-space suffix - '<rule>: `
+                style.truncate(name.len().saturating_add(STYLE_SEPARATOR.len()));
+                style.push_str(value.trim());
             }
-            // No such rules exist - push the version with `!important` trimmed
-            (Some(value), None) => final_styles.push(format!("{}: {}", property, value.trim())),
-            // Completely new rule - write it
-            (None, None) => final_styles.push(format!("{}: {}", property, value.trim())),
-            // Rule exists and the new one is not `!important` - keep the original one
+            // There's no existing rule with the same name, but the new rule is `!important`
+            // In this case, we add the new rule with the `!important` suffix removed
+            (Some(value), None) => push_or_update!(style_buffer, length, name, value),
+            // There's no existing rule with the same name, and the new rule is not `!important`
+            // In this case, we just add the new rule as-is
+            (None, None) => push_or_update!(style_buffer, length, name, value),
+            // Rule exists and the new one is not `!important` - leave the existing rule as-is and
+            // ignore the new one.
             (None, Some(_)) => {}
         }
     }
+
+    // We can now dispose of the parser input, which allows us to clear the `existing_style` string
     drop(input);
+    // Now we prepare to write the merged styles back into `existing_style`
     existing_style.clear();
-    let mut first = true;
-    for style in &final_styles {
-        if first {
-            first = false;
-        } else {
+    let size_estimate: usize = style_buffer[..length]
+        .iter()
+        .map(|s| s.len().saturating_add(1))
+        .sum();
+
+    // Reserve enough space in existing_style for the merged style string
+    existing_style.reserve(u32::try_from(size_estimate).expect("Size overflow"));
+
+    // Write the merged styles into `existing_style`
+    for style in &style_buffer[..length] {
+        if !existing_style.is_empty() {
             existing_style.push_char(';');
         }
         existing_style.push_slice(style);
