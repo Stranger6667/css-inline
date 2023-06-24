@@ -17,8 +17,8 @@ SAMPLE_STYLE = """h1, h2 { color:red; }
 strong { text-decoration:none }
 p { font-size:2px }
 p.footer { font-size: 1px}"""
-SAMPLE_INLINED = """<h1 style="color:red;">Big Text</h1>
-<p style="font-size:2px ;"><strong style="text-decoration:none ;">Yes!</strong></p>
+SAMPLE_INLINED = """<h1 style="color: red;">Big Text</h1>
+<p style="font-size: 2px;"><strong style="text-decoration: none;">Yes!</strong></p>
 <p class="footer" style="font-size: 1px;">Foot notes</p>"""
 
 

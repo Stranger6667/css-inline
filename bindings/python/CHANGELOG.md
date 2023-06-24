@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Standardized the formatting of CSS declarations: now consistently using `: ` separator between properties and values.
+
 ### Performance
 
 - Various performance improvements.
