@@ -147,7 +147,7 @@ pub mod tests {
         .expect("Inlines correctly");
         assert_eq!(
             result,
-            "<html><head></head><body><h1 style=\"color:red;\">Test</h1></body></html>"
+            "<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>"
         );
     }
 
@@ -163,6 +163,6 @@ pub mod tests {
             options,
         )
         .expect("Inlines correctly");
-        assert_eq!(result, "<html><head><style>h1 { color:red; }</style></head><body><h1 style=\"color:red;\">Test</h1></body></html>");
+        assert_eq!(result, "<html><head><style>h1 { color:red; }</style></head><body><h1 style=\"color: red;\">Test</h1></body></html>");
     }
 }

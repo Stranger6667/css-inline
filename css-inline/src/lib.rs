@@ -320,24 +320,25 @@ impl<'a> CSSInliner<'a> {
             styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
             match element.attributes.get_style_entry() {
                 Entry::Vacant(entry) => {
-                    let size_estimate: usize = styles
+                    let estimated_declaration_size: usize = styles
                         .iter()
                         .map(|(name, (_, value))| {
-                            name.len().saturating_add(value.len()).saturating_add(2)
+                            name.len()
+                                .saturating_add(STYLE_SEPARATOR.len())
+                                .saturating_add(value.len())
+                                // Additional byte for the semicolon symbol
+                                .saturating_add(1)
                         })
                         .sum();
-                    let mut final_styles = String::with_capacity(size_estimate);
-                    for (name, (_, value)) in styles {
-                        final_styles.push_str(name);
-                        final_styles.push(':');
-                        replace_double_quotes!(final_styles, name, value);
-                        final_styles.push(';');
+                    let mut buffer = String::with_capacity(estimated_declaration_size);
+                    for (property, (_, value)) in styles {
+                        write_declaration(&mut buffer, property, value);
+                        buffer.push(';');
                     }
-                    entry.insert(final_styles.into());
+                    entry.insert(buffer.into());
                 }
                 Entry::Occupied(mut entry) => {
-                    let existing_style = entry.get_mut();
-                    merge_styles(existing_style, styles, &mut style_buffer)?;
+                    merge_styles(entry.get_mut(), styles, &mut style_buffer)?;
                 }
             }
         }
@@ -462,96 +463,109 @@ macro_rules! push_or_update {
 }
 
 #[inline]
-fn append_style(style: &mut String, name: &str, value: &str) {
+fn write_declaration(style: &mut String, name: &str, value: &str) {
     style.push_str(name);
     style.push_str(STYLE_SEPARATOR);
     replace_double_quotes!(style, name, value.trim());
 }
 
-/// Merge a new set of styles into an existing one, considering the rules of CSS precedence.
+/// Merge a new set of styles into an current one, considering the rules of CSS precedence.
 ///
 /// The merge process maintains the order of specificity and respects the `!important` rule in CSS.
 fn merge_styles(
-    existing_style: &mut StrTendril,
+    current_style: &mut StrTendril,
     new_styles: &IndexMap<&str, (Specificity, &str)>,
-    style_buffer: &mut SmallVec<[String; 8]>,
+    declarations_buffer: &mut SmallVec<[String; 8]>,
 ) -> Result<()> {
     // This function is designed with a focus on reusing existing allocations where possible
-    // We start by parsing the existing declarations in the "style" attribute
-    let mut input = cssparser::ParserInput::new(existing_style);
-    let mut parser = cssparser::Parser::new(&mut input);
-    let declarations =
+    // We start by parsing the current declarations in the "style" attribute
+    let mut parser_input = cssparser::ParserInput::new(current_style);
+    let mut parser = cssparser::Parser::new(&mut parser_input);
+    let current_declarations =
         cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
     // We manually manage the length of our buffer. The buffer may contain slots used
     // in previous runs, and we want to access only the portion that we build in this iteration
-    // NOTE: Can't use `count`, because `declarations` should be evaluated just once
-    let mut length: usize = 0;
-    for (idx, declaration) in declarations.enumerate() {
-        length = length.saturating_add(1);
-        let (name, value) = declaration?;
-        let size_estimate = name
+    let mut parsed_declarations_count: usize = 0;
+    for (idx, declaration) in current_declarations.enumerate() {
+        parsed_declarations_count = parsed_declarations_count.saturating_add(1);
+        let (property, value) = declaration?;
+        let estimated_declaration_size = property
             .len()
-            .saturating_add(value.len())
-            .saturating_add(STYLE_SEPARATOR.len());
-        // We store the existing style declarations in the `style_buffer` for later merging with new styles
-        // If possible, we reuse existing slots in the `style_buffer` to avoid additional allocations
-        if let Some(style) = style_buffer.get_mut(idx) {
-            style.clear();
-            style.reserve(size_estimate);
-            append_style(style, &name, value);
+            .saturating_add(STYLE_SEPARATOR.len())
+            .saturating_add(value.len());
+        // We store the existing style declarations in the buffer for later merging with new styles
+        // If possible, we reuse existing slots in the buffer to avoid additional allocations
+        if let Some(buffer) = declarations_buffer.get_mut(idx) {
+            buffer.clear();
+            buffer.reserve(estimated_declaration_size);
+            write_declaration(buffer, &property, value);
         } else {
-            let mut style = String::with_capacity(size_estimate);
-            append_style(&mut style, &name, value);
-            style_buffer.push(style);
+            let mut buffer = String::with_capacity(estimated_declaration_size);
+            write_declaration(&mut buffer, &property, value);
+            declarations_buffer.push(buffer);
         };
     }
     // Next, we iterate over the new styles and merge them into our existing set
     // New rules will not override old ones unless they are marked as `!important`
-    for (name, (_, value)) in new_styles {
+    for (property, (_, value)) in new_styles {
         match (
             value.strip_suffix("!important"),
-            style_buffer.iter_mut().find(|style| {
-                style.starts_with(name)
-                    && style.get(name.len()..=name.len().saturating_add(1)) == Some(STYLE_SEPARATOR)
+            declarations_buffer.iter_mut().find(|style| {
+                style.starts_with(property)
+                    && style.get(property.len()..=property.len().saturating_add(1))
+                        == Some(STYLE_SEPARATOR)
             }),
         ) {
             // The new rule is `!important` and there's an existing rule with the same name
             // In this case, we override the existing rule with the new one
-            (Some(value), Some(style)) => {
+            (Some(value), Some(buffer)) => {
                 // We keep the rule name and the colon-space suffix - '<rule>: `
-                style.truncate(name.len().saturating_add(STYLE_SEPARATOR.len()));
-                style.push_str(value.trim());
+                buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
+                buffer.push_str(value.trim());
             }
             // There's no existing rule with the same name, but the new rule is `!important`
             // In this case, we add the new rule with the `!important` suffix removed
-            (Some(value), None) => push_or_update!(style_buffer, length, name, value),
+            (Some(value), None) => {
+                push_or_update!(
+                    declarations_buffer,
+                    parsed_declarations_count,
+                    property,
+                    value
+                );
+            }
             // There's no existing rule with the same name, and the new rule is not `!important`
             // In this case, we just add the new rule as-is
-            (None, None) => push_or_update!(style_buffer, length, name, value),
+            (None, None) => push_or_update!(
+                declarations_buffer,
+                parsed_declarations_count,
+                property,
+                value
+            ),
             // Rule exists and the new one is not `!important` - leave the existing rule as-is and
             // ignore the new one.
             (None, Some(_)) => {}
         }
     }
 
-    // We can now dispose of the parser input, which allows us to clear the `existing_style` string
-    drop(input);
-    // Now we prepare to write the merged styles back into `existing_style`
-    existing_style.clear();
-    let size_estimate: usize = style_buffer[..length]
+    // We can now dispose of the parser input, which allows us to clear the current style string
+    drop(parser_input);
+    // Now we prepare to write the merged styles back into current style
+    current_style.clear();
+    let size_estimate: usize = declarations_buffer[..parsed_declarations_count]
         .iter()
+        // Additional byte for the semicolon symbol
         .map(|s| s.len().saturating_add(1))
         .sum();
 
-    // Reserve enough space in existing_style for the merged style string
-    existing_style.reserve(u32::try_from(size_estimate).expect("Size overflow"));
+    // Reserve enough space in current style for the merged style string
+    current_style.reserve(u32::try_from(size_estimate).expect("Size overflow"));
 
-    // Write the merged styles into `existing_style`
-    for style in &style_buffer[..length] {
-        if !existing_style.is_empty() {
-            existing_style.push_char(';');
+    // Write the merged styles into the current style
+    for declaration in &declarations_buffer[..parsed_declarations_count] {
+        if !current_style.is_empty() {
+            current_style.push_char(';');
         }
-        existing_style.push_slice(style);
+        current_style.push_slice(declaration);
     }
     Ok(())
 }

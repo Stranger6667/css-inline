@@ -9,7 +9,7 @@ describe("CSS inliner", () => {
           "<html><head><style>h1 { color:red; }</style></head><body><h1>Test</h1></body></html>"
         )
       ).to.equal(
-        '<html><head></head><body><h1 style="color:red;">Test</h1></body></html>'
+        '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>'
       );
     });
     it("style tag is kept", function () {
@@ -19,7 +19,7 @@ describe("CSS inliner", () => {
           { keep_style_tags: true }
         )
       ).to.equal(
-        '<html><head><style>h1 { color:red; }</style></head><body><h1 style="color:red;">Test</h1></body></html>'
+        '<html><head><style>h1 { color:red; }</style></head><body><h1 style="color: red;">Test</h1></body></html>'
       );
     });
   });

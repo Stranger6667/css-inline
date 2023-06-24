@@ -50,8 +50,8 @@ p.footer { font-size: 1px}"#,
 <p><strong>Yes!</strong></p>
 <p class="footer">Foot notes</p>"#,
         // Then all styles should be added to new "style" attributes
-        expected = r#"<h1 style="color:red;">Big Text</h1>
-<p style="font-size:2px ;"><strong style="text-decoration:none ;">Yes!</strong></p>
+        expected = r#"<h1 style="color: red;">Big Text</h1>
+<p style="font-size: 2px;"><strong style="text-decoration: none;">Yes!</strong></p>
 <p class="footer" style="font-size: 1px;">Foot notes</p>"#
     )
 }
@@ -242,7 +242,7 @@ fn href_attribute_unchanged() {
     
 </head>
 <body>
-    <h1 style="color:blue;">Big Text</h1>
+    <h1 style="color: blue;">Big Text</h1>
     <a href="https://example.org/test?a=b&amp;c=d">Link</a>
 
 </body></html>"#
@@ -667,7 +667,7 @@ fn inline_to() {
     css_inline::inline_to(&html, &mut out).unwrap();
     assert_eq!(
         String::from_utf8_lossy(&out),
-        "<html><head></head><body><h1 style=\"color: blue ;\">Big Text</h1></body></html>"
+        "<html><head></head><body><h1 style=\"color: blue;\">Big Text</h1></body></html>"
     )
 }
 

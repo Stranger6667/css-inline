@@ -14,7 +14,7 @@ p { font-size:2px }
 p.footer { font-size: 1px}
 """
 
-SAMPLE_INLINED = "<h1 style=\"color:red;\">Big Text</h1><p style=\"font-size:2px ;\"><strong style=\"text-decoration:none ;\">Yes!</strong></p><p class=\"footer\" style=\"font-size: 1px;\">Foot notes</p>"
+SAMPLE_INLINED = "<h1 style=\"color: red;\">Big Text</h1><p style=\"font-size: 2px;\"><strong style=\"text-decoration: none;\">Yes!</strong></p><p class=\"footer\" style=\"font-size: 1px;\">Foot notes</p>"
 SAMPLE_HTML = make_html(
     SAMPLE_STYLE,
     "<h1>Big Text</h1><p><strong>Yes!</strong></p><p class=\"footer\">Foot notes</p>"
