@@ -169,11 +169,11 @@ It achieves over a **10x** speed advantage compared to the next fastest alternat
 
 Here is the performance comparison:
 
-|             | `css_inline 0.10.0` | `premailer 3.10.0`      | `toronado 0.1.0`       | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
-|-------------|---------------------|-------------------------|------------------------|-------------------------|-------------------------|
-| Basic       | 9.72 µs             | 207.95 µs  (**21.39x**) | 1.03 ms  (**106.86x**) | 1.69 ms  (**174.64x**)  | 2.05 ms  (**211.89x**)  |
-| Realistic-1 | 262.33 µs           | 2.11 ms  (**8.08x**)    | 25.51 ms  (**97.28x**) | 43.13 ms  (**164.43x**) | 72.55 ms  (**276.57x**) |
-| Realistic-2 | 151.83 µs           | 4.12 ms  (**27.18x**)   | ERROR                  | 28.85 ms  (**190.03x**) | ERROR                   |
+|             | `css_inline 0.10.2` | `premailer 3.10.0`      | `toronado 0.1.0`         | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|-------------|---------------------|-------------------------|--------------------------|-------------------------|-------------------------|
+| Basic       | 7.95 µs             | 197.08 µs  (**24.77x**) | 960.04 µs  (**120.64x**) | 1.52 ms  (**192.13x**)  | 1.79 ms  (**225.64x**)  |
+| Realistic-1 | 216.00 µs           | 2.09 ms  (**9.72x**)    | 25.15 ms  (**116.47x**)  | 42.75 ms  (**197.96x**) | 71.83 ms  (**332.59x**) |
+| Realistic-2 | 137.20 µs           | 3.98 ms  (**29.03x**)   | ERROR                    | 26.63 ms  (**194.15x**) | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
