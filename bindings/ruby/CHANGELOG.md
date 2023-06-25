@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.2] - 2023-06-25
+
 ### Changed
 
 - Standardized the formatting of CSS declarations: now consistently using `: ` separator between properties and values.
@@ -21,5 +23,6 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.10.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.10.2...HEAD
+[0.10.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.10.1...ruby-v0.10.2
 [0.10.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.10.0...ruby-v0.10.1

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    css_inline (0.10.1)
+    css_inline (0.10.2)
 
 GEM
   remote: https://rubygems.org/
