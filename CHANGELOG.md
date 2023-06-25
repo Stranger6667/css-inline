@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.2] - 2023-06-25
+
 ### Changed
 
 - Standardized the formatting of CSS declarations: now consistently using `: ` separator between properties and values.
@@ -271,7 +273,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.2...HEAD
+[0.10.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.1...rust-v0.10.2
 [0.10.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.0...rust-v0.10.1
 [0.10.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.9.0...rust-v0.10.0
 [0.9.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.8.5...rust-v0.9.0
