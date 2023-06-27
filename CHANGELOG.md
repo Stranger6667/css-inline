@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Optimized HTML serialization for a performance boost of up to 25%.
+
 ## [0.10.2] - 2023-06-25
 
 ### Changed
