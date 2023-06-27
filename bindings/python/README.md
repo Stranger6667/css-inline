@@ -36,7 +36,7 @@ into:
 ```
 
 - Uses reliable components from Mozilla's Servo project
-- 10-300x faster than alternatives
+- 10-400x faster than alternatives
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -169,11 +169,11 @@ It achieves over a **10x** speed advantage compared to the next fastest alternat
 
 Here is the performance comparison:
 
-|             | `css_inline 0.10.2` | `premailer 3.10.0`      | `toronado 0.1.0`         | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|             | `css_inline 0.10.3` | `premailer 3.10.0`      | `toronado 0.1.0`         | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
 |-------------|---------------------|-------------------------|--------------------------|-------------------------|-------------------------|
-| Basic       | 7.95 µs             | 197.08 µs  (**24.77x**) | 960.04 µs  (**120.64x**) | 1.52 ms  (**192.13x**)  | 1.79 ms  (**225.64x**)  |
-| Realistic-1 | 216.00 µs           | 2.09 ms  (**9.72x**)    | 25.15 ms  (**116.47x**)  | 42.75 ms  (**197.96x**) | 71.83 ms  (**332.59x**) |
-| Realistic-2 | 137.20 µs           | 3.98 ms  (**29.03x**)   | ERROR                    | 26.63 ms  (**194.15x**) | ERROR                   |
+| Basic       | 7.58 µs             | 192.50 µs  (**25.39x**) | 951.66 µs  (**125.50x**) | 1.52 ms  (**201.12x**)  | 1.78 ms  (**235.59x**)  |
+| Realistic-1 | 172.58 µs           | 2.08 ms  (**12.09x**)   | 25.01 ms  (**144.92x**)  | 42.50 ms  (**246.31x**) | 71.75 ms  (**415.76x**) |
+| Realistic-2 | 119.16 µs           | 3.93 ms  (**33.00x**)   | ERROR                    | 26.49 ms  (**222.31x**) | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
