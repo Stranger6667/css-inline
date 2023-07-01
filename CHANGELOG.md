@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.3] - 2023-07-01
+
 ### Performance
 
 - Optimized HTML serialization for a performance boost of up to 25%.
