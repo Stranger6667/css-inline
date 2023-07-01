@@ -8,7 +8,13 @@ readme = "../README.md"
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
 repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
-exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore", "tests"]
+exclude = [
+  ".github",
+  ".pre-commit-config.yaml",
+  ".yamllint",
+  ".gitignore",
+  "tests",
+]
 categories = ["web-programming"]
 rust-version = "1.60"
 
@@ -25,10 +31,13 @@ file = []
 cssparser = "0.29"
 html5ever = "0.26.0"
 memchr = "2.5"
-attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
+attohttpc = { version = "0", default-features = false, features = [
+  "compress",
+  "tls-rustls",
+], optional = true }
 url = "2"
 smallvec = "1"
-indexmap = "1.9"
+indexmap = "2"
 pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.7", optional = true }
 selectors = "0.24.0"
