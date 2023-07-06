@@ -7,7 +7,6 @@ use std::ptr::null;
 use std::str;
 
 /// Result of CSS inlining operations
-/// cbindgen:rename-all=QualifiedScreamingSnakeCase
 #[repr(C)]
 pub enum CssResult {
     /// No error.
