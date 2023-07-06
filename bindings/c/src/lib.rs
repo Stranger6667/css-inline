@@ -34,13 +34,13 @@ pub struct CSSInlinerOptions {
     pub keep_link_tags: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: *const c_char,
-    /// Size of base_url in bytes
+    /// Size of base_url in bytes.
     pub base_url_size: size_t,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
     /// Additional CSS to inline.
     pub extra_css: *const c_char,
-    /// Size of extra_css in bytes
+    /// Size of extra_css in bytes.
     pub extra_css_size: size_t,
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
@@ -53,7 +53,7 @@ pub struct CSSInlinerOptions {
 /// @param input_size size of @p input in bytes.
 /// @param output buffer to save the inlined CSS.
 /// @param output_size size of @p output in bytes.
-/// @return a CSS_RESULT enum variant regarding if the operation was a success or an error ocurred
+/// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
 #[allow(clippy::missing_safety_doc)]
 #[no_mangle]
 pub unsafe extern "C" fn inline_to(
@@ -89,7 +89,7 @@ pub unsafe extern "C" fn inline_to(
 }
 
 /// @brief Creates an instance of CSSInlinerOptions with the default parameters.
-/// @return a CSSInlinerOptions struct.
+/// @return a CSSInlinerOptions struct
 #[no_mangle]
 pub extern "C" fn css_inliner_default_options() -> CSSInlinerOptions {
     CSSInlinerOptions {
