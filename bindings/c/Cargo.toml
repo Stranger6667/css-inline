@@ -1,0 +1,18 @@
+[package]
+name = "css-inline-c"
+version = "0.10.3"
+authors = ["Dmitry Dygalo <dadygalo@gmail.com>"]
+edition = "2021"
+
+[lib]
+name = "css_inline"
+crate-type = ["cdylib"]
+
+[dependencies]
+libc = "0.2"
+
+[dependencies.css-inline]
+path = "../../css-inline"
+version = "*"
+default-features = false
+features = ["http", "file"]
