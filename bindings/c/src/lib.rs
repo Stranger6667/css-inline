@@ -178,7 +178,7 @@ impl CBuffer {
 impl Write for CBuffer {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         // Because write() attempts to write regardless of buf.len() being higher than self.size,
-        // we are going to write all we can
+        // we are going to write all it's possible
         let end = self.size - 1; // size-1 because the buffer needs to be null terminated
         let num_bytes_to_write = cmp::min(end - self.pos, buf.len());
         if num_bytes_to_write != 0 {
