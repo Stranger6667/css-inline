@@ -1,10 +1,9 @@
-use core::slice;
 use css_inline::{CSSInliner, InlineError, InlineOptions, Url};
 use libc::{c_char, size_t};
 use std::borrow::Cow;
+use std::ffi::CStr;
 use std::io::Write;
 use std::ptr::null;
-use std::str;
 
 /// Result of CSS inlining operations
 #[repr(C)]
@@ -15,14 +14,27 @@ pub enum CssResult {
     MissingStylesheet,
     /// When loading a remote stylesheet, the file is not available.
     RemoteStylesheetNotAvailable,
-    /// Error in the IO layer.
+    /// Error in the IO layer. This error also happens when the output array is too small to fit
+    /// the inlined CSS.
     IoError,
     /// Error while parsing the CSS.
     InternalSelectorParseError,
     /// options pointer is null.
     NullOptions,
-    /// Some option in CSSInlinerOptions couldn't be used correctly.
-    InvalidOptions,
+    /// Invalid base_url parameter.
+    InvalidUrl,
+    /// Invalid extra_css parameter.
+    InvalidExtraCss,
+    /// input string not in UTF-8.
+    InvalidInputString,
+}
+
+// must be public because the impl From<&CssInlinerOptions> for InlineOptions would leak this type
+/// Error to convert to CssResult later
+/// cbindgen:ignore
+pub enum InlineOptionsError {
+    InvalidUrl,
+    InvalidExtraCss,
 }
 
 /// Configuration options for CSS inlining process.
@@ -41,20 +53,6 @@ pub struct CssInlinerOptions {
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     pub preallocate_node_capacity: size_t,
-}
-
-/// Searches for the end of a string
-fn seek_for_string_end(string: *const c_char) -> usize {
-    let mut end: usize = 0;
-    loop {
-        unsafe {
-            let ptr = string.add(end);
-            if *ptr == 0 {
-                return end;
-            }
-            end += 1;
-        };
-    }
 }
 
 /// @brief Inline CSS from @p input & write the result to @p output with @p options.
@@ -77,13 +75,13 @@ pub unsafe extern "C" fn inline_to(
             None => return CssResult::NullOptions,
         }) {
             Ok(inline_options) => inline_options,
-            Err(_) => return CssResult::InvalidOptions,
+            Err(e) => return CssResult::from(e),
         },
     );
-    let html = str::from_utf8_unchecked(slice::from_raw_parts(
-        input as *const u8,
-        seek_for_string_end(input),
-    ));
+    let html = match CStr::from_ptr(input).to_str() {
+        Ok(val) => val,
+        Err(_) => return CssResult::InvalidInputString,
+    };
     let mut buffer = CBuffer::new(output, output_size);
     if let Err(e) = options.inline_to(html, &mut buffer) {
         match e {
@@ -99,8 +97,8 @@ pub unsafe extern "C" fn inline_to(
     CssResult::Ok
 }
 
-/// @brief Creates an instance of CSSInlinerOptions with the default parameters.
-/// @return a CSSInlinerOptions struct
+/// @brief Creates an instance of CssInlinerOptions with the default parameters.
+/// @return a CssInlinerOptions struct
 #[no_mangle]
 pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
     CssInlinerOptions {
@@ -120,26 +118,26 @@ struct CBuffer {
 }
 
 impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
-    type Error = css_inline::ParseError;
+    type Error = InlineOptionsError;
 
     fn try_from(value: &CssInlinerOptions) -> Result<Self, Self::Error> {
         let base_url: Option<&str> = unsafe {
             // .as_ref() returns None when the pointer is null
             match value.base_url.as_ref() {
-                Some(val) => Some(str::from_utf8_unchecked(slice::from_raw_parts(
-                    *val as *const u8,
-                    seek_for_string_end(val),
-                ))),
+                Some(val) => Some(match CStr::from_ptr(val).to_str() {
+                    Ok(val) => val,
+                    Err(_) => return Err(InlineOptionsError::InvalidUrl),
+                }),
                 None => None,
             }
         };
         let extra_css: Option<&str> = unsafe {
             // .as_ref() returns None when the pointer is null
             match value.extra_css.as_ref() {
-                Some(val) => Some(str::from_utf8_unchecked(slice::from_raw_parts(
-                    *val as *const u8,
-                    seek_for_string_end(val),
-                ))),
+                Some(val) => Some(match CStr::from_ptr(val).to_str() {
+                    Ok(val) => val,
+                    Err(_) => return Err(InlineOptionsError::InvalidExtraCss),
+                }),
                 None => None,
             }
         };
@@ -147,13 +145,22 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             keep_style_tags: value.keep_style_tags,
             keep_link_tags: value.keep_link_tags,
             base_url: match base_url {
-                Some(url) => Some(Url::parse(url)?),
+                Some(url) => Some(Url::parse(url).map_err(|_| InlineOptionsError::InvalidUrl)?),
                 None => None,
             },
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: extra_css.map(Cow::Borrowed),
             preallocate_node_capacity: value.preallocate_node_capacity,
         })
+    }
+}
+
+impl From<InlineOptionsError> for CssResult {
+    fn from(value: InlineOptionsError) -> Self {
+        match value {
+            InlineOptionsError::InvalidUrl => CssResult::InvalidUrl,
+            InlineOptionsError::InvalidExtraCss => CssResult::InvalidExtraCss,
+        }
     }
 }
 
