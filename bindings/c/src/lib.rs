@@ -1,9 +1,10 @@
 use css_inline::{CSSInliner, InlineError, InlineOptions, Url};
 use libc::{c_char, size_t};
 use std::borrow::Cow;
+use std::cmp;
 use std::ffi::CStr;
 use std::io::Write;
-use std::ptr::null;
+use std::ptr;
 
 /// Result of CSS inlining operations
 #[repr(C)]
@@ -84,12 +85,12 @@ pub unsafe extern "C" fn inline_to(
     };
     let mut buffer = CBuffer::new(output, output_size);
     if let Err(e) = options.inline_to(html, &mut buffer) {
-        match e {
-            InlineError::IO(_) => return CssResult::IoError,
-            InlineError::Network(_) => return CssResult::RemoteStylesheetNotAvailable,
-            InlineError::ParseError(_) => return CssResult::InternalSelectorParseError,
-            InlineError::MissingStyleSheet { .. } => return CssResult::MissingStylesheet,
-        }
+        return match e {
+            InlineError::IO(_) => CssResult::IoError,
+            InlineError::Network(_) => CssResult::RemoteStylesheetNotAvailable,
+            InlineError::ParseError(_) => CssResult::InternalSelectorParseError,
+            InlineError::MissingStyleSheet { .. } => CssResult::MissingStylesheet,
+        };
     };
     // Null terminate the pointer
     let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
@@ -104,9 +105,9 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
     CssInlinerOptions {
         keep_style_tags: false,
         keep_link_tags: false,
-        base_url: null(),
+        base_url: ptr::null(),
         load_remote_stylesheets: true,
-        extra_css: null(),
+        extra_css: ptr::null(),
         preallocate_node_capacity: 32,
     }
 }
@@ -177,21 +178,17 @@ impl CBuffer {
 impl Write for CBuffer {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         // Because write() attempts to write regardless of buf.len() being higher than self.size,
-        // we are going to check at each byte that we didn't cross the bounds
-        let mut bytes_written: usize = 0;
-        for byte in buf {
-            // size-1 because the buffer needs to be null terminated
-            if self.pos >= self.size - 1 {
-                return Ok(bytes_written);
-            }
+        // we are going to write all we can
+        let end = self.size - 1; // size-1 because the buffer needs to be null terminated
+        let num_bytes_to_write = cmp::min(end - self.pos, buf.len());
+        if num_bytes_to_write != 0 {
             unsafe {
-                let ptr: *mut c_char = self.buffer.add(self.pos);
-                *ptr = *byte as i8;
+                let dst = self.buffer.add(self.pos);
+                ptr::copy_nonoverlapping(buf.as_ptr() as *const c_char, dst, num_bytes_to_write);
             }
-            self.pos += 1;
-            bytes_written += 1;
+            self.pos += num_bytes_to_write;
         }
-        Ok(bytes_written)
+        Ok(num_bytes_to_write)
     }
 
     fn flush(&mut self) -> std::io::Result<()> {
