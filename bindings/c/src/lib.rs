@@ -14,7 +14,7 @@ pub enum CssResult {
     /// Missing a stylesheet file.
     MissingStylesheet,
     /// When loading a remote stylesheet, the file is not available.
-    RemoteStylesheetNotAvalable,
+    RemoteStylesheetNotAvailable,
     /// Error in the IO layer.
     IoError,
     /// Error while parsing the CSS.
@@ -27,39 +27,47 @@ pub enum CssResult {
 
 /// Configuration options for CSS inlining process.
 #[repr(C)]
-pub struct CSSInlinerOptions {
+pub struct CssInlinerOptions {
     /// Keep "style" tags after inlining.
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
     pub keep_link_tags: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: *const c_char,
-    /// Size of base_url in bytes.
-    pub base_url_size: size_t,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
     /// Additional CSS to inline.
     pub extra_css: *const c_char,
-    /// Size of extra_css in bytes.
-    pub extra_css_size: size_t,
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     pub preallocate_node_capacity: size_t,
 }
 
+/// Searches for the end of a string
+fn seek_for_string_end(string: *const c_char) -> usize {
+    let mut end: usize = 0;
+    loop {
+        unsafe {
+            let ptr = string.add(end);
+            if *ptr == 0 {
+                return end;
+            }
+            end += 1;
+        };
+    }
+}
+
 /// @brief Inline CSS from @p input & write the result to @p output with @p options.
 /// @param options configuration for the inliner.
 /// @param input html to inline.
-/// @param input_size size of @p input in bytes.
 /// @param output buffer to save the inlined CSS.
 /// @param output_size size of @p output in bytes.
 /// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
 #[allow(clippy::missing_safety_doc)]
 #[no_mangle]
 pub unsafe extern "C" fn inline_to(
-    options: *const CSSInlinerOptions,
+    options: *const CssInlinerOptions,
     input: *const c_char,
-    input_size: size_t,
     output: *mut c_char,
     output_size: size_t,
 ) -> CssResult {
@@ -72,12 +80,15 @@ pub unsafe extern "C" fn inline_to(
             Err(_) => return CssResult::InvalidOptions,
         },
     );
-    let html = str::from_utf8_unchecked(slice::from_raw_parts(input as *const u8, input_size));
+    let html = str::from_utf8_unchecked(slice::from_raw_parts(
+        input as *const u8,
+        seek_for_string_end(input),
+    ));
     let mut buffer = CBuffer::new(output, output_size);
     if let Err(e) = options.inline_to(html, &mut buffer) {
         match e {
             InlineError::IO(_) => return CssResult::IoError,
-            InlineError::Network(_) => return CssResult::RemoteStylesheetNotAvalable,
+            InlineError::Network(_) => return CssResult::RemoteStylesheetNotAvailable,
             InlineError::ParseError(_) => return CssResult::InternalSelectorParseError,
             InlineError::MissingStyleSheet { .. } => return CssResult::MissingStylesheet,
         }
@@ -91,15 +102,13 @@ pub unsafe extern "C" fn inline_to(
 /// @brief Creates an instance of CSSInlinerOptions with the default parameters.
 /// @return a CSSInlinerOptions struct
 #[no_mangle]
-pub extern "C" fn css_inliner_default_options() -> CSSInlinerOptions {
-    CSSInlinerOptions {
+pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
+    CssInlinerOptions {
         keep_style_tags: false,
         keep_link_tags: false,
         base_url: null(),
-        base_url_size: 0,
         load_remote_stylesheets: true,
         extra_css: null(),
-        extra_css_size: 0,
         preallocate_node_capacity: 32,
     }
 }
@@ -110,16 +119,16 @@ struct CBuffer {
     pos: usize,
 }
 
-impl TryFrom<&CSSInlinerOptions> for InlineOptions<'_> {
+impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
     type Error = css_inline::ParseError;
 
-    fn try_from(value: &CSSInlinerOptions) -> Result<Self, Self::Error> {
+    fn try_from(value: &CssInlinerOptions) -> Result<Self, Self::Error> {
         let base_url: Option<&str> = unsafe {
             // .as_ref() returns None when the pointer is null
             match value.base_url.as_ref() {
                 Some(val) => Some(str::from_utf8_unchecked(slice::from_raw_parts(
                     *val as *const u8,
-                    value.base_url_size,
+                    seek_for_string_end(val),
                 ))),
                 None => None,
             }
@@ -129,7 +138,7 @@ impl TryFrom<&CSSInlinerOptions> for InlineOptions<'_> {
             match value.extra_css.as_ref() {
                 Some(val) => Some(str::from_utf8_unchecked(slice::from_raw_parts(
                     *val as *const u8,
-                    value.extra_css_size,
+                    seek_for_string_end(val),
                 ))),
                 None => None,
             }
