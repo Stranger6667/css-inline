@@ -44,10 +44,10 @@ pub struct CssInlinerOptions {
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
     pub keep_link_tags: bool,
-    /// Used for loading external stylesheets via relative URLs.
-    pub base_url: *const c_char,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
+    /// Used for loading external stylesheets via relative URLs.
+    pub base_url: *const c_char,
     /// Additional CSS to inline.
     pub extra_css: *const c_char,
     /// Pre-allocate capacity for HTML nodes during parsing.
