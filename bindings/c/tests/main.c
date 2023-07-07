@@ -24,7 +24,7 @@
  * @param body the body to be used.
  * @return true if MAX_SIZE is enough to fit the generated html, or else, false
  */
-static bool make_hmtl(char *html, const char *style, const char *body) {
+static bool make_html(char *html, const char *style, const char *body) {
   int res =
       // sprintf is very dangerous so I am using the safe snprintf instead
       snprintf(html, MAX_SIZE,
@@ -38,16 +38,16 @@ static bool make_hmtl(char *html, const char *style, const char *body) {
 
 static void test_default_options(void) {
   char html[MAX_SIZE];
-  assert(make_hmtl(html, SAMPLE_STYLE, SAMPLE_BODY));
+  assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   char output[MAX_SIZE];
   assert(inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
   assert(strcmp(output, SAMPLE_INLINED) == 0);
 }
 
-static void test_output_size_too_smal(void) {
+static void test_output_size_too_small(void) {
   char html[MAX_SIZE];
-  assert(make_hmtl(html, SAMPLE_STYLE, SAMPLE_BODY));
+  assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   char output[1];
   assert(inline_to(&options, html, output, sizeof(output)) ==
@@ -66,7 +66,7 @@ static void test_missing_stylesheet(void) {
 
 static void test_invalid_base_url(void) {
   char html[MAX_SIZE];
-  assert(make_hmtl(html, SAMPLE_STYLE, SAMPLE_BODY));
+  assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   options.base_url = "foo";
   char output[MAX_SIZE];
@@ -85,7 +85,7 @@ static void test_file_scheme(void) {
 
 int main(void) {
   test_default_options();
-  test_output_size_too_smal();
+  test_output_size_too_small();
   test_missing_stylesheet();
   test_invalid_base_url();
   test_file_scheme();
