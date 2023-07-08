@@ -90,6 +90,7 @@ jobs:
             bindings/python
             bindings/ruby
             bindings/wasm
+            bindings/c
 
       - name: Rust
         run: cargo clippy -- -D warnings
@@ -106,6 +107,10 @@ jobs:
       - name: WASM
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/wasm
+
+      - name: C
+        run: cargo clippy -- -D warnings
+        working-directory: ./bindings/c
 
   msrv:
     name: MSRV
@@ -235,6 +240,25 @@ jobs:
       - name: Run tests
         run: npm run test
         working-directory: ./bindings/wasm
+
+  test-c:
+    name: Tests for C crate
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build
+        working-directory: ./bindings/c
+
+      - name: Run tests
+        run: |
+          gcc -c -I. tests/main.c
+          gcc main.o target/debug/libcss_inline.so -o tests
+          ./tests
+        working-directory: ./bindings/c
 
   features:
     name: Check features
