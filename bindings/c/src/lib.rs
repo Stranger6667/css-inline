@@ -65,7 +65,7 @@ pub struct CssInlinerOptions {
 #[allow(clippy::missing_safety_doc)]
 #[must_use]
 #[no_mangle]
-pub unsafe extern "C" fn inline_to(
+pub unsafe extern "C" fn css_inline_to(
     options: *const CssInlinerOptions,
     input: *const c_char,
     output: *mut c_char,

@@ -41,7 +41,7 @@ static void test_default_options(void) {
   assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   char output[MAX_SIZE];
-  assert(inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
   assert(strcmp(output, SAMPLE_INLINED) == 0);
 }
 
@@ -50,7 +50,7 @@ static void test_output_size_too_small(void) {
   assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   char output[1];
-  assert(inline_to(&options, html, output, sizeof(output)) ==
+  assert(css_inline_to(&options, html, output, sizeof(output)) ==
          CSS_RESULT_IO_ERROR);
 }
 
@@ -60,7 +60,7 @@ static void test_missing_stylesheet(void) {
       "<html><head><link href=\"tests/missing.css\" rel=\"stylesheet\" "
       "type=\"text/css\"></head><body><h1>Big Text</h1></body>";
   char output[MAX_SIZE];
-  assert(inline_to(&options, html, output, sizeof(output)) ==
+  assert(css_inline_to(&options, html, output, sizeof(output)) ==
          CSS_RESULT_MISSING_STYLESHEET);
 }
 
@@ -70,7 +70,7 @@ static void test_invalid_base_url(void) {
   CssInlinerOptions options = css_inliner_default_options();
   options.base_url = "foo";
   char output[MAX_SIZE];
-  assert(inline_to(&options, html, output, sizeof(output)) ==
+  assert(css_inline_to(&options, html, output, sizeof(output)) ==
          CSS_RESULT_INVALID_URL);
 }
 
@@ -80,7 +80,7 @@ static void test_file_scheme(void) {
   CssInlinerOptions options = css_inliner_default_options();
   options.base_url = "file://tests/";
   char output[MAX_SIZE];
-  assert(inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
 }
 
 int main(void) {
