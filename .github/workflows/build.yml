@@ -256,8 +256,8 @@ jobs:
       - name: Run tests
         run: |
           gcc -c -I. tests/main.c
-          gcc main.o target/debug/libcss_inline.so -o tests
-          ./tests
+          gcc main.o target/debug/libcss_inline.so -o out
+          ./out
         working-directory: ./bindings/c
 
   features:
