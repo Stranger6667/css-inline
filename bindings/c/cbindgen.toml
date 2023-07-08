@@ -293,7 +293,7 @@ item_types = ["enums", "structs", "functions"]
 # would involve emitting the name of a macro which you define in a
 # platform-specific way. e.g. "MUST_USE_FUNC"
 # default: nothing is emitted for must_use functions
-# must_use = "MUST_USE_FUNC"
+must_use = "__attribute__((warn_unused_result))"
 
 # An optional string that will be used in the attribute position for functions
 # that don't return (that return `!` in Rust).

@@ -63,6 +63,7 @@ pub struct CssInlinerOptions {
 /// @param output_size size of @p output in bytes.
 /// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
 #[allow(clippy::missing_safety_doc)]
+#[must_use]
 #[no_mangle]
 pub unsafe extern "C" fn inline_to(
     options: *const CssInlinerOptions,
