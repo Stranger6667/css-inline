@@ -524,12 +524,12 @@ rename_variants = "QualifiedScreamingSnakeCase"
 # idea why you would turn this off.
 #
 # default: true
-allow_static_const = true
+# allow_static_const = true
 
 # Whether a generated constant can be constexpr in C++ mode.
 #
 # default: true
-allow_constexpr = false
+# allow_constexpr = false
 
 # This rule specifies the order in which constants will be sorted.
 #
@@ -537,7 +537,7 @@ allow_constexpr = false
 # "None": keep order in which the constants have been parsed
 #
 # default: "None"
-sort_by = "Name"
+# sort_by = "Name"
 
 
 
@@ -545,7 +545,7 @@ sort_by = "Name"
 [macro_expansion]
 # Whether bindings should be generated for instances of the bitflags! macro.
 # default: false
-bitflags = true
+# bitflags = true
 
 
 
