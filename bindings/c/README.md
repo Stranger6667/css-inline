@@ -113,6 +113,7 @@ Possible configurations:
 You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 
 ```html
+<html>
 <head>
     <style>h1 { color:blue; }</style>
 </head>
