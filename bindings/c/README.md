@@ -43,7 +43,7 @@ into:
 
 The C bindings are distributed as a header (`css_inline.h`) along with a dynamic library (`libcss_inline.so`).
 
-To download them, go to [Releases](https://github.com/Stranger6667/css-inline/releases) and get the latest archive with the *C* tag.
+To download them, go to [Releases](https://github.com/Stranger6667/css-inline/releases) and get the latest archive with the *[C]* tag.
 
 ## Usage
 
@@ -79,7 +79,7 @@ int main(void) {
 }
 ```
 
-The inline function, `css_inline_to()`, doesn't allocate, so you must provide a array big enough to fit the result. If the size is not sufficient, the enum `CSS_RESULT_IO_ERROR` will be returned.
+The inline function, `css_inline_to()`, doesn't allocate, so you must provide an array big enough to fit the result. If the size is not sufficient, the enum `CSS_RESULT_IO_ERROR` will be returned.
 
 ### Configuration
 
@@ -99,10 +99,10 @@ int main(void) {
   }
   return 0;
 }
+```
 
 Possible configurations:
 
-```
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `NULL`
