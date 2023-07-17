@@ -247,12 +247,17 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        let mut size_estimate: usize = document.styles().map(str::len).sum();
+        let mut size_estimate: usize = document
+            .styles()
+            .map(|s| {
+                // Add 1 to account for the extra `\n` char we add between styles
+                s.len().saturating_add(1)
+            })
+            .sum();
         if let Some(extra_css) = &self.options.extra_css {
             size_estimate = size_estimate.saturating_add(extra_css.len());
         }
         let mut raw_styles = String::with_capacity(size_estimate);
-        let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         for style in document.styles() {
             raw_styles.push_str(style);
             raw_styles.push('\n');
@@ -271,6 +276,7 @@ impl<'a> CSSInliner<'a> {
         if let Some(extra_css) = &self.options.extra_css {
             raw_styles.push_str(extra_css);
         }
+        let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
         let mut parser = cssparser::Parser::new(&mut parse_input);
         let rule_list: Vec<_> =
@@ -287,7 +293,7 @@ impl<'a> CSSInliner<'a> {
                         let element_styles =
                             styles.entry(matching_element.node_id).or_insert_with(|| {
                                 IndexMap::<&str, (Specificity, &str)>::with_capacity(
-                                    declarations.len(),
+                                    declarations.len().saturating_add(4),
                                 )
                             });
                         // Iterate over pairs of property name & value
