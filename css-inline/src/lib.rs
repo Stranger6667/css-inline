@@ -7,7 +7,7 @@
     clippy::match_same_arms,
     clippy::needless_borrow,
     clippy::print_stdout,
-    clippy::integer_arithmetic,
+    clippy::arithmetic_side_effects,
     clippy::cast_possible_truncation,
     clippy::unwrap_used,
     clippy::map_unwrap_or,
