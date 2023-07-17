@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Fix under-allocating storage for intermediate CSS styles.
+
 ## [0.10.3] - 2023-07-01
 
 ### Performance
