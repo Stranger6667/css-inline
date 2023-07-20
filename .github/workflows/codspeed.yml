@@ -12,12 +12,8 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
-        with:
-          path: repo
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - run: cp -r repo/css-inline/* .
 
       - uses: Swatinem/rust-cache@v2
 
@@ -29,3 +25,4 @@ jobs:
         with:
           run: cargo codspeed run
           token: ${{ secrets.CODSPEED_TOKEN }}
+          working-directory: ./css-inline
