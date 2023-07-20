@@ -20,6 +20,7 @@ jobs:
       - run: cargo install cargo-codspeed
 
       - run: cargo codspeed build
+        working-directory: ./css-inline
 
       - uses: CodSpeedHQ/action@v1
         with:
