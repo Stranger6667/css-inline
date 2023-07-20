@@ -81,7 +81,7 @@ This results in faster execution times compared to employing parallel processing
 
 For customization options use the `CSSInliner` class:
 
-```python
+```ruby
 require 'css_inline'
 
 inliner = CSSInline::CSSInliner.new(keep_style_tags: true)
