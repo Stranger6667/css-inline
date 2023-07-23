@@ -1,0 +1,27 @@
+name: "[C] Release"
+
+on:
+  push:
+    tags:
+      - c-v*
+
+jobs:
+  ruby-release:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Build
+        run: cargo build --release
+        working-directory: ./bindings/c
+
+      - name: Archive build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: css-inline
+          path: |
+            bindings/c/target/release/libcss_inline.so
+            bindings/c/css_inline.h
