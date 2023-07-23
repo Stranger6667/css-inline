@@ -41,7 +41,8 @@ static void test_default_options(void) {
   assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
   CssInlinerOptions options = css_inliner_default_options();
   char output[MAX_SIZE];
-  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(css_inline_to(&options, html, output, sizeof(output)) ==
+         CSS_RESULT_OK);
   assert(strcmp(output, SAMPLE_INLINED) == 0);
 }
 
@@ -80,7 +81,8 @@ static void test_file_scheme(void) {
   CssInlinerOptions options = css_inliner_default_options();
   options.base_url = "file://tests/";
   char output[MAX_SIZE];
-  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(css_inline_to(&options, html, output, sizeof(output)) ==
+         CSS_RESULT_OK);
 }
 
 int main(void) {
