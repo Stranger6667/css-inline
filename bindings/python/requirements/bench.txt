@@ -8,7 +8,7 @@ beautifulsoup4==4.12.2
     # via pynliner
 cachetools==5.3.1
     # via premailer
-certifi==2023.5.7
+certifi==2023.7.22
     # via requests
 charset-normalizer==3.1.0
     # via requests
@@ -22,14 +22,12 @@ cssutils==2.7.1
     #   premailer
     #   pynliner
     #   toronado
-exceptiongroup==1.1.1
-    # via pytest
 idna==3.4
     # via requests
 iniconfig==2.0.0
     # via pytest
 inlinestyler==0.2.5
-    # via -r requirements/bench.in
+    # via -r bench.in
 lxml==4.9.2
     # via
     #   inlinestyler
@@ -40,24 +38,22 @@ packaging==23.1
 pluggy==1.0.0
     # via pytest
 premailer==3.10.0
-    # via -r requirements/bench.in
+    # via -r bench.in
 py-cpuinfo==9.0.0
     # via pytest-benchmark
 pynliner==0.8.0
-    # via -r requirements/bench.in
+    # via -r bench.in
 pytest==7.3.2
     # via pytest-benchmark
 pytest-benchmark==4.0.0
-    # via -r requirements/bench.in
+    # via -r bench.in
 requests==2.31.0
     # via
     #   inlinestyler
     #   premailer
 soupsieve==2.4.1
     # via beautifulsoup4
-tomli==2.0.1
-    # via pytest
 toronado==0.1.0
-    # via -r requirements/bench.in
+    # via -r bench.in
 urllib3==2.0.3
     # via requests
