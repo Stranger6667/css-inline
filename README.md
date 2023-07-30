@@ -139,6 +139,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 `css-inline` is primarily a Rust library, but we also provide bindings for several other languages:
 
+- [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c)
 - [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python)
 - [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby)
 - [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/wasm)
