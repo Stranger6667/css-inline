@@ -16,7 +16,7 @@ name = "css_inline"
 crate-type = ["cdylib"]
 
 [dependencies]
-magnus = "0.5"
+magnus = "0.6"
 rayon = "1"
 
 [dependencies.css-inline]
