@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "css-inline ",
         env!("CARGO_PKG_VERSION"),
         r#"
-Dmitry Dygalo <dadygalo@gmail.com>
+Dmitry Dygalo <dmitry@dygalo.dev>
 
 css-inline inlines CSS into HTML 'style' attributes.
 

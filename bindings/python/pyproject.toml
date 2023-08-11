@@ -16,7 +16,7 @@ name = "css-inline"
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 authors = [
-    { name = "Dmitry Dygalo", email = "dadygalo@gmail.com" }
+    { name = "Dmitry Dygalo", email = "dmitry@dygalo.dev" }
 ]
 license = { text = "MIT" }
 classifiers=[

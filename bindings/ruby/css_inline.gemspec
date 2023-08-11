@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.extensions = ["ext/css_inline/extconf.rb"]
   spec.rdoc_options = ["--main", "README.rdoc", "--charset", "utf-8", "--exclude", "ext/"]
   spec.authors = ["Dmitry Dygalo"]
-  spec.email = ["dadygalo@gmail.com"]
+  spec.email = ["dmitry@dygalo.dev"]
   spec.homepage = "https://github.com/Stranger6667/css-inline"
   spec.license = "MIT"
   spec.metadata = {
