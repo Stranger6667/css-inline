@@ -165,20 +165,20 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 ## Performance
 
 `css-inline`  is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed.
-It achieves over a **10x** speed advantage compared to the next fastest alternative.
+Most of the time it achieves over a **10x** speed advantage compared to the next fastest alternative.
 
 Here is the performance comparison:
 
-|             | `css_inline 0.10.3` | `premailer 3.10.0`      | `toronado 0.1.0`         | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
-|-------------|---------------------|-------------------------|--------------------------|-------------------------|-------------------------|
-| Basic       | 7.58 µs             | 192.50 µs  (**25.39x**) | 951.66 µs  (**125.50x**) | 1.52 ms  (**201.12x**)  | 1.78 ms  (**235.59x**)  |
-| Realistic-1 | 172.58 µs           | 2.08 ms  (**12.09x**)   | 25.01 ms  (**144.92x**)  | 42.50 ms  (**246.31x**) | 71.75 ms  (**415.76x**) |
-| Realistic-2 | 119.16 µs           | 3.93 ms  (**33.00x**)   | ERROR                    | 26.49 ms  (**222.31x**) | ERROR                   |
+|             | `css_inline 0.10.4` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|-------------|---------------------|-------------------------|-------------------------|-------------------------|-------------------------|
+| Basic       | 7.08 µs             | 128.33 µs  (**18.12x**) | 673.62 µs  (**95.10x**) | 1.05 ms  (**149.38x**)  | 1.21 ms  (**172.14x**)  |
+| Realistic-1 | 151.83 µs           | 1.41 ms  (**9.33x**)    | 16.62 ms  (**109.50x**) | 27.53 ms  (**181.32x**) | 52.46 ms  (**345.57x**) |
+| Realistic-2 | 108.66 µs           | 2.73 ms  (**25.15x**)   | ERROR                   | 18.13 ms  (**166.85x**) | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
-The benchmarking code is available in the `benches/bench.py` file. The tests were conducted using the stable `rustc 1.70` on Python `3.11.0`.
+The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.71.1` on Python `3.11.4`.
 
 ## Comparison with other libraries
 

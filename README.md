@@ -135,6 +135,18 @@ fn main() -> Result<(), css_inline::InlineError> {
 }
 ```
 
+## Performance
+
+`css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
+
+Benchmarks for `css-inline==0.10.4`:
+
+- Basic: 7.13 µs
+- Realistic-1: 152.95 µs
+- Realistic-2: 110.82 µs
+
+- These benchmarks, conducted using `rustc 1.70`, can be found in `css-inline/benches/inliner.rs`.
+
 ## Bindings
 
 `css-inline` is primarily a Rust library, but we also provide bindings for several other languages:
