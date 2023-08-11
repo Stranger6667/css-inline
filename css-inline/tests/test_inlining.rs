@@ -313,6 +313,20 @@ fn existing_styles() {
 }
 
 #[test]
+fn existing_styles_multiple_tags() {
+    // When there are `style` attribute on tags that contains rules
+    // And the `style` tag contains the same rule applicable to those tags
+    assert_inlined!(
+        style = "h1 { color: red; }",
+        body =
+            r#"<h1 style="color: blue">Hello world!</h1><h1 style="color: blue">Hello world!</h1>"#,
+        // Then the existing rule should be preferred
+        expected =
+            r#"<h1 style="color: blue">Hello world!</h1><h1 style="color: blue">Hello world!</h1>"#
+    )
+}
+
+#[test]
 fn existing_styles_with_merge() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag
@@ -323,6 +337,21 @@ fn existing_styles_with_merge() {
         // Then the existing rule should be preferred
         // And the new style should be merged
         expected = r#"<h1 style="color: blue;font-size: 14px">Hello world!</h1>"#
+    )
+}
+
+#[test]
+fn existing_styles_with_merge_multiple_tags() {
+    // When there are non-empty `style` attributes on tags
+    // And the `style` tag contains the same rule applicable to those tags
+    // And there is a new rule in the `style` tag
+    assert_inlined!(
+        style = "h1 { color: red; font-size:14px; }",
+        body =
+            r#"<h1 style="color: blue">Hello world!</h1><h1 style="color: blue">Hello world!</h1>"#,
+        // Then the existing rule should be preferred
+        // And the new style should be merged
+        expected = r#"<h1 style="color: blue;font-size: 14px">Hello world!</h1><h1 style="color: blue;font-size: 14px">Hello world!</h1>"#
     )
 }
 

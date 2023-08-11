@@ -388,7 +388,7 @@ fn write_declaration<Wr: Write>(
 }
 
 macro_rules! push_or_update {
-    ($style_buffer:expr, $length:expr, $name: expr, $value:expr) => {
+    ($style_buffer:expr, $length:expr, $name: expr, $value:expr) => {{
         if let Some(style) = $style_buffer.get_mut($length) {
             style.clear();
             style.extend_from_slice($name.as_bytes());
@@ -406,9 +406,9 @@ macro_rules! push_or_update {
             style.extend_from_slice(STYLE_SEPARATOR);
             style.extend_from_slice(value.as_bytes());
             $style_buffer.push(style);
-            $length = $length.saturating_add(1);
-        }
-    };
+        };
+        $length = $length.saturating_add(1);
+    }};
 }
 
 /// Merge a new set of styles into an current one, considering the rules of CSS precedence.
@@ -453,11 +453,14 @@ fn merge_styles<Wr: Write>(
     for (property, (_, value)) in new_styles {
         match (
             value.strip_suffix("!important"),
-            declarations_buffer.iter_mut().find(|style| {
-                style.starts_with(property.as_bytes())
-                    && style.get(property.len()..=property.len().saturating_add(1))
-                        == Some(STYLE_SEPARATOR)
-            }),
+            declarations_buffer
+                .iter_mut()
+                .take(parsed_declarations_count)
+                .find(|style| {
+                    style.starts_with(property.as_bytes())
+                        && style.get(property.len()..=property.len().saturating_add(1))
+                            == Some(STYLE_SEPARATOR)
+                }),
         ) {
             // The new rule is `!important` and there's an existing rule with the same name
             // In this case, we override the existing rule with the new one
