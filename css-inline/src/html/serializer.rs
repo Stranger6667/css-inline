@@ -2,23 +2,28 @@ use super::{
     attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
+    Specificity,
 };
-use html5ever::{local_name, namespace_url, ns, LocalName, QualName};
-use std::{io, io::Write};
+use crate::{hasher::BuildNoHashHasher, parser, InlineError};
+use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, LocalName, QualName};
+use indexmap::IndexMap;
+use smallvec::{smallvec, SmallVec};
+use std::io::Write;
 
 pub(crate) fn serialize_to<W: Write>(
     document: &Document,
     writer: &mut W,
+    styles: IndexMap<NodeId, IndexMap<&str, (Specificity, &str)>, BuildNoHashHasher>,
     keep_style_tags: bool,
     keep_link_tags: bool,
-) -> io::Result<()> {
+) -> Result<(), InlineError> {
     let sink = Sink::new(
         document,
         NodeId::document_id(),
         keep_style_tags,
         keep_link_tags,
     );
-    let mut ser = HtmlSerializer::new(writer);
+    let mut ser = HtmlSerializer::new(writer, styles);
     sink.serialize(&mut ser)
 }
 
@@ -70,20 +75,36 @@ impl<'a> Sink<'a> {
         }
     }
 
-    fn serialize_children<W: Write>(&self, serializer: &mut HtmlSerializer<W>) -> io::Result<()> {
+    fn serialize_children<W: Write>(
+        &self,
+        serializer: &mut HtmlSerializer<'_, W>,
+    ) -> Result<(), InlineError> {
         for child in self.document.children(self.node) {
             self.for_node(child).serialize(serializer)?;
         }
         Ok(())
     }
 
-    fn serialize<W: Write>(&self, serializer: &mut HtmlSerializer<W>) -> io::Result<()> {
+    fn serialize<W: Write>(
+        &self,
+        serializer: &mut HtmlSerializer<'_, W>,
+    ) -> Result<(), InlineError> {
         match self.data() {
-            NodeData::Element { element, .. } => {
+            NodeData::Element {
+                element,
+                inlining_ignored,
+            } => {
                 if self.should_skip_element(element) {
                     return Ok(());
                 }
-                serializer.start_elem(&element.name, &element.attributes)?;
+
+                let style_node_id = if *inlining_ignored {
+                    None
+                } else {
+                    Some(self.node)
+                };
+
+                serializer.start_elem(&element.name, &element.attributes, style_node_id)?;
 
                 self.serialize_children(serializer)?;
 
@@ -109,19 +130,26 @@ struct ElemInfo {
 
 /// Inspired by HTML serializer from `html5ever`
 /// Source: <https://github.com/servo/html5ever/blob/98d3c0cd01471af997cd60849a38da45a9414dfd/html5ever/src/serialize/mod.rs#L77>
-struct HtmlSerializer<Wr: Write> {
+struct HtmlSerializer<'a, Wr: Write> {
     writer: Wr,
+    styles: IndexMap<NodeId, IndexMap<&'a str, (Specificity, &'a str)>, BuildNoHashHasher>,
     stack: Vec<ElemInfo>,
+    style_buffer: SmallVec<[Vec<u8>; 8]>,
 }
 
-impl<W: Write> HtmlSerializer<W> {
-    fn new(writer: W) -> Self {
+impl<'a, W: Write> HtmlSerializer<'a, W> {
+    fn new(
+        writer: W,
+        styles: IndexMap<NodeId, IndexMap<&'a str, (Specificity, &'a str)>, BuildNoHashHasher>,
+    ) -> Self {
         HtmlSerializer {
             writer,
+            styles,
             stack: vec![ElemInfo {
                 html_name: None,
                 ignore_children: false,
             }],
+            style_buffer: smallvec![],
         }
     }
 
@@ -129,7 +157,7 @@ impl<W: Write> HtmlSerializer<W> {
         self.stack.last_mut().expect("no parent ElemInfo")
     }
 
-    fn write_escaped(&mut self, text: &str) -> io::Result<()> {
+    fn write_escaped(&mut self, text: &str) -> Result<(), InlineError> {
         // UTF-8 characters are maximum 4 bytes wide.
         let mut buffer = [0u8; 4];
         for c in text.chars() {
@@ -147,7 +175,7 @@ impl<W: Write> HtmlSerializer<W> {
         Ok(())
     }
 
-    fn write_attributes(&mut self, text: &str) -> io::Result<()> {
+    fn write_attributes(&mut self, text: &str) -> Result<(), InlineError> {
         // UTF-8 characters are maximum 4 bytes wide.
         let mut buffer = [0u8; 4];
         for c in text.chars() {
@@ -164,7 +192,12 @@ impl<W: Write> HtmlSerializer<W> {
         Ok(())
     }
 
-    fn start_elem(&mut self, name: &QualName, attrs: &Attributes) -> io::Result<()> {
+    fn start_elem(
+        &mut self,
+        name: &QualName,
+        attrs: &Attributes,
+        style_node_id: Option<NodeId>,
+    ) -> Result<(), InlineError> {
         let html_name = match name.ns {
             ns!(html) => Some(name.local.clone()),
             _ => None,
@@ -177,6 +210,15 @@ impl<W: Write> HtmlSerializer<W> {
             });
             return Ok(());
         }
+
+        let mut styles = if let Some(node_id) = style_node_id {
+            self.styles.remove(&node_id).map(|mut styles| {
+                styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
+                styles
+            })
+        } else {
+            None
+        };
 
         self.writer.write_all(b"<")?;
         self.writer.write_all(name.local.as_bytes())?;
@@ -199,7 +241,24 @@ impl<W: Write> HtmlSerializer<W> {
 
             self.writer.write_all(name.local.as_bytes())?;
             self.writer.write_all(b"=\"")?;
-            self.write_attributes(value)?;
+            if name.local.as_bytes() == b"style" {
+                if let Some(new_styles) = &styles {
+                    merge_styles(&mut self.writer, value, new_styles, &mut self.style_buffer)?;
+                    styles = None;
+                } else {
+                    self.write_attributes(value)?;
+                }
+            } else {
+                self.write_attributes(value)?;
+            }
+            self.writer.write_all(b"\"")?;
+        }
+        if let Some(styles) = &styles {
+            self.writer.write_all(b" style=\"")?;
+            for (property, (_, value)) in styles {
+                write_declaration(&mut self.writer, property, value)?;
+                self.writer.write_all(b";")?;
+            }
             self.writer.write_all(b"\"")?;
         }
         self.writer.write_all(b">")?;
@@ -235,7 +294,7 @@ impl<W: Write> HtmlSerializer<W> {
         Ok(())
     }
 
-    fn end_elem(&mut self, name: &QualName) -> io::Result<()> {
+    fn end_elem(&mut self, name: &QualName) -> Result<(), InlineError> {
         let info = match self.stack.pop() {
             Some(info) => info,
             _ => panic!("no ElemInfo"),
@@ -246,10 +305,11 @@ impl<W: Write> HtmlSerializer<W> {
 
         self.writer.write_all(b"</")?;
         self.writer.write_all(name.local.as_bytes())?;
-        self.writer.write_all(b">")
+        self.writer.write_all(b">")?;
+        Ok(())
     }
 
-    fn write_text(&mut self, text: &str) -> io::Result<()> {
+    fn write_text(&mut self, text: &str) -> Result<(), InlineError> {
         let escape = !matches!(
             self.parent().html_name,
             Some(
@@ -265,36 +325,187 @@ impl<W: Write> HtmlSerializer<W> {
         );
 
         if escape {
-            self.write_escaped(text)
+            self.write_escaped(text)?;
         } else {
-            self.writer.write_all(text.as_bytes())
+            self.writer.write_all(text.as_bytes())?;
         }
+        Ok(())
     }
 
-    fn write_comment(&mut self, text: &str) -> io::Result<()> {
+    fn write_comment(&mut self, text: &str) -> Result<(), InlineError> {
         self.writer.write_all(b"<!--")?;
         self.writer.write_all(text.as_bytes())?;
-        self.writer.write_all(b"-->")
+        self.writer.write_all(b"-->")?;
+        Ok(())
     }
 
-    fn write_doctype(&mut self, name: &str) -> io::Result<()> {
+    fn write_doctype(&mut self, name: &str) -> Result<(), InlineError> {
         self.writer.write_all(b"<!DOCTYPE ")?;
         self.writer.write_all(name.as_bytes())?;
-        self.writer.write_all(b">")
+        self.writer.write_all(b">")?;
+        Ok(())
     }
 
-    fn write_processing_instruction(&mut self, target: &str, data: &str) -> io::Result<()> {
+    fn write_processing_instruction(
+        &mut self,
+        target: &str,
+        data: &str,
+    ) -> Result<(), InlineError> {
         self.writer.write_all(b"<?")?;
         self.writer.write_all(target.as_bytes())?;
         self.writer.write_all(b" ")?;
         self.writer.write_all(data.as_bytes())?;
-        self.writer.write_all(b">")
+        self.writer.write_all(b">")?;
+        Ok(())
     }
+}
+/// Replace double quotes in property values.
+///
+/// This implementation is deliberately simplistic and covers only `font-family`, but escaping
+/// might be needed in other properties that accept strings.
+macro_rules! replace_double_quotes {
+    ($writer:expr, $name:expr, $value:expr) => {
+        // Avoid allocation if there is no double quote in the input string
+        if $name.starts_with("font-family") && memchr::memchr(b'"', $value.as_bytes()).is_some() {
+            $writer.write_all(&$value.replace('"', "\'").as_bytes())?
+        } else {
+            $writer.write_all($value.as_bytes())?
+        };
+    };
+}
+const STYLE_SEPARATOR: &[u8] = b": ";
+
+#[inline]
+fn write_declaration<Wr: Write>(
+    writer: &mut Wr,
+    name: &str,
+    value: &str,
+) -> Result<(), InlineError> {
+    writer.write_all(name.as_bytes())?;
+    writer.write_all(STYLE_SEPARATOR)?;
+    replace_double_quotes!(writer, name, value.trim());
+    Ok(())
+}
+
+macro_rules! push_or_update {
+    ($style_buffer:expr, $length:expr, $name: expr, $value:expr) => {
+        if let Some(style) = $style_buffer.get_mut($length) {
+            style.clear();
+            style.extend_from_slice($name.as_bytes());
+            style.extend_from_slice(STYLE_SEPARATOR);
+            style.extend_from_slice($value.trim().as_bytes());
+        } else {
+            let value = $value.trim();
+            let mut style = Vec::with_capacity(
+                $name
+                    .len()
+                    .saturating_add(STYLE_SEPARATOR.len())
+                    .saturating_add(value.len()),
+            );
+            style.extend_from_slice($name.as_bytes());
+            style.extend_from_slice(STYLE_SEPARATOR);
+            style.extend_from_slice(value.as_bytes());
+            $style_buffer.push(style);
+            $length = $length.saturating_add(1);
+        }
+    };
+}
+
+/// Merge a new set of styles into an current one, considering the rules of CSS precedence.
+///
+/// The merge process maintains the order of specificity and respects the `!important` rule in CSS.
+fn merge_styles<Wr: Write>(
+    writer: &mut Wr,
+    current_style: &StrTendril,
+    new_styles: &IndexMap<&str, (Specificity, &str)>,
+    declarations_buffer: &mut SmallVec<[Vec<u8>; 8]>,
+) -> Result<(), InlineError> {
+    // This function is designed with a focus on reusing existing allocations where possible
+    // We start by parsing the current declarations in the "style" attribute
+    let mut parser_input = cssparser::ParserInput::new(current_style);
+    let mut parser = cssparser::Parser::new(&mut parser_input);
+    let current_declarations =
+        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
+    // We manually manage the length of our buffer. The buffer may contain slots used
+    // in previous runs, and we want to access only the portion that we build in this iteration
+    let mut parsed_declarations_count: usize = 0;
+    for (idx, declaration) in current_declarations.enumerate() {
+        parsed_declarations_count = parsed_declarations_count.saturating_add(1);
+        let (property, value) = declaration?;
+        let estimated_declaration_size = property
+            .len()
+            .saturating_add(STYLE_SEPARATOR.len())
+            .saturating_add(value.len());
+        // We store the existing style declarations in the buffer for later merging with new styles
+        // If possible, we reuse existing slots in the buffer to avoid additional allocations
+        if let Some(buffer) = declarations_buffer.get_mut(idx) {
+            buffer.clear();
+            buffer.reserve(estimated_declaration_size);
+            write_declaration(buffer, &property, value)?;
+        } else {
+            let mut buffer = Vec::with_capacity(estimated_declaration_size);
+            write_declaration(&mut buffer, &property, value)?;
+            declarations_buffer.push(buffer);
+        };
+    }
+    // Next, we iterate over the new styles and merge them into our existing set
+    // New rules will not override old ones unless they are marked as `!important`
+    for (property, (_, value)) in new_styles {
+        match (
+            value.strip_suffix("!important"),
+            declarations_buffer.iter_mut().find(|style| {
+                style.starts_with(property.as_bytes())
+                    && style.get(property.len()..=property.len().saturating_add(1))
+                        == Some(STYLE_SEPARATOR)
+            }),
+        ) {
+            // The new rule is `!important` and there's an existing rule with the same name
+            // In this case, we override the existing rule with the new one
+            (Some(value), Some(buffer)) => {
+                // We keep the rule name and the colon-space suffix - '<rule>: `
+                buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
+                buffer.extend_from_slice(value.trim().as_bytes());
+            }
+            // There's no existing rule with the same name, but the new rule is `!important`
+            // In this case, we add the new rule with the `!important` suffix removed
+            (Some(value), None) => {
+                push_or_update!(
+                    declarations_buffer,
+                    parsed_declarations_count,
+                    property,
+                    value
+                );
+            }
+            // There's no existing rule with the same name, and the new rule is not `!important`
+            // In this case, we just add the new rule as-is
+            (None, None) => push_or_update!(
+                declarations_buffer,
+                parsed_declarations_count,
+                property,
+                value
+            ),
+            // Rule exists and the new one is not `!important` - leave the existing rule as-is and
+            // ignore the new one.
+            (None, Some(_)) => {}
+        }
+    }
+
+    let mut first = true;
+    for declaration in &declarations_buffer[..parsed_declarations_count] {
+        if first {
+            first = false;
+        } else {
+            writer.write_all(b";")?;
+        }
+        writer.write_all(declaration)?;
+    }
+    Ok(())
 }
 
 #[cfg(test)]
 mod tests {
     use super::Document;
+    use indexmap::IndexMap;
 
     #[test]
     fn test_serialize() {
@@ -303,7 +514,7 @@ mod tests {
             0,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, true, false)
+        doc.serialize(&mut buffer, IndexMap::default(), true, false)
             .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
     }
@@ -315,7 +526,7 @@ mod tests {
             0,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, false, false)
+        doc.serialize(&mut buffer, IndexMap::default(), false, false)
             .expect("Should not fail");
         assert_eq!(buffer, b"<html><head></head><body></body></html>");
     }

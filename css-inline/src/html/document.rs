@@ -5,9 +5,12 @@ use super::{
     parser,
     selectors::ParseError,
     serializer::serialize_to,
+    Specificity,
 };
+use crate::{hasher::BuildNoHashHasher, InlineError};
 use html5ever::local_name;
-use std::{io, io::Write, iter::successors};
+use indexmap::IndexMap;
+use std::{io::Write, iter::successors};
 
 /// HTML document representation.
 ///
@@ -251,10 +254,11 @@ impl Document {
     pub(crate) fn serialize<W: Write>(
         &self,
         writer: &mut W,
+        styles: IndexMap<NodeId, IndexMap<&str, (Specificity, &str)>, BuildNoHashHasher>,
         keep_style_tags: bool,
         keep_link_tags: bool,
-    ) -> io::Result<()> {
-        serialize_to(self, writer, keep_style_tags, keep_link_tags)
+    ) -> Result<(), InlineError> {
+        serialize_to(self, writer, styles, keep_style_tags, keep_link_tags)
     }
 
     /// Filter this node iterator to elements matching the given selectors.
@@ -298,7 +302,7 @@ mod tests {
     fn roundtrip(bytes: &[u8]) -> Vec<u8> {
         let mut buffer = Vec::new();
         Document::parse_with_options(bytes, 0)
-            .serialize(&mut buffer, false, false)
+            .serialize(&mut buffer, IndexMap::default(), false, false)
             .expect("Failed to serialize");
         buffer
     }

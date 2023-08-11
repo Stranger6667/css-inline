@@ -41,16 +41,6 @@ impl Node {
         }
     }
     #[inline]
-    pub(crate) fn as_not_ignored_element_mut(&mut self) -> Option<&mut ElementData> {
-        match &mut self.data {
-            NodeData::Element {
-                element: data,
-                inlining_ignored: false,
-            } => Some(data),
-            _ => None,
-        }
-    }
-    #[inline]
     pub(crate) fn as_text(&self) -> Option<&str> {
         match &self.data {
             NodeData::Text { text } => Some(&**text),

@@ -5,6 +5,7 @@
 ### Performance
 
 - Fix under-allocating storage for intermediate CSS styles.
+- Perform CSS inlining as late as possible to avoid intermediate allocations. [#220](https://github.com/Stranger6667/css-inline/issues/220)
 
 ## [0.10.3] - 2023-07-01
 
