@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-ruby"
-version = "0.10.3"
+version = "0.10.4"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 readme = "README.rdoc"
