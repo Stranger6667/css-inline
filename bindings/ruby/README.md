@@ -143,7 +143,7 @@ The table below provides a detailed comparison between `css_inline` and `premail
 | Realistic email 2 | 128.53 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
-The results displayed above were measured using stable `rustc 1.70` on Ruby `3.2.2`.
+The results displayed above were measured using stable `rustc 1.71.1` on Ruby `3.2.2`.
 
 ## Ruby support
 

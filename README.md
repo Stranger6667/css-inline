@@ -141,11 +141,11 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 Benchmarks for `css-inline==0.10.4`:
 
-- Basic: 7.13 µs
-- Realistic-1: 152.95 µs
-- Realistic-2: 110.82 µs
+- Basic: **7.13 µs**
+- Realistic-1: **152.95 µs**
+- Realistic-2: **110.82 µs**
 
-- These benchmarks, conducted using `rustc 1.70`, can be found in `css-inline/benches/inliner.rs`.
+These benchmarks, conducted using `rustc 1.71.1`, can be found in `css-inline/benches/inliner.rs`.
 
 ## Bindings
 
