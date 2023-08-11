@@ -18,7 +18,6 @@
     trivial_numeric_casts,
     unused_extern_crates,
     unused_import_braces,
-    unused_qualifications,
     variant_size_differences,
     rust_2018_idioms,
     rust_2018_compatibility,
