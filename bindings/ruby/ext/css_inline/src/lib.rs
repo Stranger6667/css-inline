@@ -72,7 +72,7 @@ fn parse_options<Req>(
         base_url: parse_url(kwargs.2)?,
         load_remote_stylesheets: kwargs.3.unwrap_or(true),
         extra_css: kwargs.4.map(Cow::Owned),
-        preallocate_node_capacity: kwargs.5.unwrap_or(8),
+        preallocate_node_capacity: kwargs.5.unwrap_or(32),
     })
 }
 
