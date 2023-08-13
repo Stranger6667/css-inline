@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Drop usage of `memchr`.
+
 ## [0.10.4] - 2023-08-12
 
 ### Fixed

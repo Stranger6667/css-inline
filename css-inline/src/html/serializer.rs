@@ -366,7 +366,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
 macro_rules! replace_double_quotes {
     ($writer:expr, $name:expr, $value:expr) => {
         // Avoid allocation if there is no double quote in the input string
-        if $name.starts_with("font-family") && memchr::memchr(b'"', $value.as_bytes()).is_some() {
+        if $name.starts_with("font-family") && $value.as_bytes().contains(&b'"') {
             $writer.write_all(&$value.replace('"', "\'").as_bytes())?
         } else {
             $writer.write_all($value.as_bytes())?
