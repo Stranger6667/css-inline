@@ -24,7 +24,6 @@ file = []
 [dependencies]
 cssparser = "0.29"
 html5ever = "0.26.0"
-memchr = "2.5"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
 url = "2"
 smallvec = "1"
