@@ -141,6 +141,7 @@ The table below provides a detailed comparison between `css_inline` and `premail
 | Basic usage       | 8.73 µs             | 421.40 µs                                      | **48.24x** |
 | Realistic email 1 | 172.71 µs           | 9.77 ms                                        | **56.62x** |
 | Realistic email 2 | 128.53 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
+| GitHub Page       | 850.25 ms           | 3.25 s                                         | **3.83x**  |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.71.1` on Ruby `3.2.2`.
