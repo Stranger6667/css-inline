@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
     "source_code_uri"   => "https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby",
   }
 
-  spec.requirements = ["Rust >= 1.61.0"]
+  spec.requirements = ["Rust >= 1.62.1"]
   spec.required_ruby_version = ">= 2.7.0"
   spec.required_rubygems_version = ">= 3.3.26"
 

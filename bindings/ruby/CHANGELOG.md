@@ -4,6 +4,11 @@
 
 ### Changed
 
+- Drop usage of `memchr`.
+- Bump MSRV to `1.62.1`.
+
+### Changed
+
 - Set the default value for `preallocate_node_capacity` to `32` to match other the default value in other bindings.
 
 ## [0.10.4] - 2023-08-12

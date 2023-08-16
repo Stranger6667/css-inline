@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Drop usage of `memchr`.
+- Bump MSRV to `1.62.1`.
+
 ## [0.10.4] - 2023-08-12
 
 ### Fixed
