@@ -22,7 +22,7 @@ http = ["attohttpc"]
 file = []
 
 [dependencies]
-cssparser = "0.29"
+cssparser = "0.32"
 html5ever = "0.26.0"
 attohttpc = { version = "0", default-features = false, features = ["compress", "tls-rustls"], optional = true }
 url = "2"
