@@ -10,7 +10,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 exclude = [".github", ".pre-commit-config.yaml", ".yamllint", ".gitignore", "tests"]
 categories = ["web-programming"]
-rust-version = "1.60"
+rust-version = "1.62.1"
 
 [[bin]]
 name = "css-inline"
