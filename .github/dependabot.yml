@@ -1,22 +1,22 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
-    directory: "/css-inline" 
+    directory: "/css-inline"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/c" 
+    directory: "/bindings/c"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/python" 
+    directory: "/bindings/python"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/ruby" 
+    directory: "/bindings/ruby"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/wasm" 
+    directory: "/bindings/wasm"
     schedule:
       interval: "daily"
