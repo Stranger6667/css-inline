@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Pre-allocate space during serialization.
+
 ### Changed
 
 - Drop usage of `memchr`.
