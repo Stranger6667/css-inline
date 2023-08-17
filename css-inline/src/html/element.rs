@@ -90,8 +90,6 @@ impl<'a> Element<'a> {
     }
 }
 
-static SELECTOR_WHITESPACE: &[char] = &[' ', '\t', '\n', '\r', '\x0C'];
-
 impl<'a> selectors::Element for Element<'a> {
     type Impl = InlinerSelectors;
 
@@ -228,19 +226,13 @@ impl<'a> selectors::Element for Element<'a> {
     #[inline]
     fn has_class(&self, name: &LocalName, case_sensitivity: CaseSensitivity) -> bool {
         let name = name.as_bytes();
+
         !name.is_empty()
             && if let Some(class_attr) = &self.attributes().class {
-                match class_attr.as_bytes().len().cmp(&name.len()) {
+                match class_attr.value.as_bytes().len().cmp(&name.len()) {
                     Ordering::Less => false,
-                    Ordering::Equal => case_sensitivity.eq(class_attr.as_bytes(), name),
-                    Ordering::Greater => {
-                        for class in class_attr.split(SELECTOR_WHITESPACE) {
-                            if case_sensitivity.eq(class.as_bytes(), name) {
-                                return true;
-                            }
-                        }
-                        false
-                    }
+                    Ordering::Equal => case_sensitivity.eq(class_attr.value.as_bytes(), name),
+                    Ordering::Greater => class_attr.has_class(name, case_sensitivity),
                 }
             } else {
                 false
