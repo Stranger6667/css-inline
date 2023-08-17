@@ -142,13 +142,15 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         writer: W,
         styles: IndexMap<NodeId, IndexMap<&'a str, (Specificity, &'a str)>, BuildNoHashHasher>,
     ) -> Self {
+        let mut stack = Vec::with_capacity(8);
+        stack.push(ElemInfo {
+            html_name: None,
+            ignore_children: false,
+        });
         HtmlSerializer {
             writer,
             styles,
-            stack: vec![ElemInfo {
-                html_name: None,
-                ignore_children: false,
-            }],
+            stack,
             style_buffer: smallvec![],
         }
     }
