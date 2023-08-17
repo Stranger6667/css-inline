@@ -233,9 +233,14 @@ impl<'a> selectors::Element for Element<'a> {
                 match class_attr.as_bytes().len().cmp(&name.len()) {
                     Ordering::Less => false,
                     Ordering::Equal => case_sensitivity.eq(class_attr.as_bytes(), name),
-                    Ordering::Greater => class_attr
-                        .split(SELECTOR_WHITESPACE)
-                        .any(|class| case_sensitivity.eq(class.as_bytes(), name)),
+                    Ordering::Greater => {
+                        for class in class_attr.split(SELECTOR_WHITESPACE) {
+                            if case_sensitivity.eq(class.as_bytes(), name) {
+                                return true;
+                            }
+                        }
+                        false
+                    }
                 }
             } else {
                 false
