@@ -226,7 +226,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         self.writer.write_all(name.local.as_bytes())?;
         if let Some(class) = &attrs.class {
             self.writer.write_all(b" class=\"")?;
-            self.writer.write_all(class.as_bytes())?;
+            self.writer.write_all(class.value.as_bytes())?;
             self.writer.write_all(b"\"")?;
         }
         for (name, value) in &attrs.map {
