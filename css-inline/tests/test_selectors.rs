@@ -42,6 +42,33 @@ fn contains() {
 }
 
 #[test]
+fn has_class_unicode() {
+    assert_inlined!(
+        style = r#".тест {color: red}"#,
+        body = r#"<span class="тест">1</span>"#,
+        expected = r#"<span class="тест" style="color: red;">1</span>"#
+    )
+}
+
+#[test]
+fn has_class_short() {
+    assert_inlined!(
+        style = r#".t {color: red}"#,
+        body = r#"<span class="test">1</span>"#,
+        expected = r#"<span class="test">1</span>"#
+    )
+}
+
+#[test]
+fn has_class_multiple() {
+    assert_inlined!(
+        style = r#".t {color: red}"#,
+        body = r#"<span class="t e s t">1</span>"#,
+        expected = r#"<span class="t e s t" style="color: red;">1</span>"#
+    )
+}
+
+#[test]
 fn ends_with() {
     assert_inlined!(
         style = r#"[data-type$="ng"] {color: red;}"#,
