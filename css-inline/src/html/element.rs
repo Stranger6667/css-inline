@@ -228,7 +228,7 @@ impl<'a> selectors::Element for Element<'a> {
     fn has_class(&self, name: &LocalName, case_sensitivity: CaseSensitivity) -> bool {
         let name = name.as_bytes();
         !name.is_empty()
-            && if let Some(class_attr) = self.attributes().get(local_name!("class")) {
+            && if let Some(class_attr) = &self.attributes().class {
                 class_attr
                     .split(SELECTOR_WHITESPACE)
                     .any(|class| case_sensitivity.eq(class.as_bytes(), name))

@@ -1,4 +1,4 @@
-use html5ever::{namespace_url, ns, tendril::StrTendril, QualName};
+use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
 use std::collections::BTreeMap;
 
 /// A collection of HTML attributes.
@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 pub(crate) struct Attributes {
     /// Attribute names and their respective values.
     pub(crate) map: BTreeMap<QualName, StrTendril>,
+    pub(crate) class: Option<StrTendril>,
 }
 
 pub(crate) const CSS_INLINE_ATTRIBUTE: &str = "data-css-inline";
@@ -19,12 +20,16 @@ pub(super) fn should_ignore(attributes: &[html5ever::Attribute]) -> bool {
 
 impl Attributes {
     pub(crate) fn new(attributes: Vec<html5ever::Attribute>) -> Attributes {
-        Attributes {
-            map: attributes
-                .into_iter()
-                .map(|attr| (attr.name, attr.value))
-                .collect(),
+        let mut class = None;
+        let mut map = BTreeMap::new();
+        for attr in attributes {
+            if attr.name.local == local_name!("class") {
+                class = Some(attr.value);
+            } else {
+                map.insert(attr.name, attr.value);
+            }
         }
+        Attributes { map, class }
     }
 
     /// Checks if the attributes map contains a given local name.
