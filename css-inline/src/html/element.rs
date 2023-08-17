@@ -10,6 +10,7 @@ use selectors::{
     context::QuirksMode,
     matching, OpaqueElement,
 };
+use std::cmp::Ordering;
 
 /// A reference to an element node in a document.
 /// This structure is necessary for accessing and iterating over other nodes in the tree.
@@ -229,12 +230,12 @@ impl<'a> selectors::Element for Element<'a> {
         let name = name.as_bytes();
         !name.is_empty()
             && if let Some(class_attr) = &self.attributes().class {
-                if class_attr.len() < name.len() {
-                    false
-                } else {
-                    class_attr
+                match class_attr.as_bytes().len().cmp(&name.len()) {
+                    Ordering::Less => false,
+                    Ordering::Equal => case_sensitivity.eq(class_attr.as_bytes(), name),
+                    Ordering::Greater => class_attr
                         .split(SELECTOR_WHITESPACE)
-                        .any(|class| case_sensitivity.eq(class.as_bytes(), name))
+                        .any(|class| case_sensitivity.eq(class.as_bytes(), name)),
                 }
             } else {
                 false
