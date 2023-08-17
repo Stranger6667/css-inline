@@ -229,9 +229,13 @@ impl<'a> selectors::Element for Element<'a> {
         let name = name.as_bytes();
         !name.is_empty()
             && if let Some(class_attr) = &self.attributes().class {
-                class_attr
-                    .split(SELECTOR_WHITESPACE)
-                    .any(|class| case_sensitivity.eq(class.as_bytes(), name))
+                if class_attr.len() < name.len() {
+                    false
+                } else {
+                    class_attr
+                        .split(SELECTOR_WHITESPACE)
+                        .any(|class| case_sensitivity.eq(class.as_bytes(), name))
+                }
             } else {
                 false
             }
