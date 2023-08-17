@@ -5,6 +5,7 @@
 ### Performance
 
 - Pre-allocate space during serialization.
+- Optimized `class` attribute handling: up to 25% faster for extensive class-dependent selectors.
 
 ### Changed
 
