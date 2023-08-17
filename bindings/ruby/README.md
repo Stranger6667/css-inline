@@ -132,16 +132,16 @@ inliner.inline("...")
 ## Performance
 
 Leveraging efficient tools from Mozilla's Servo project, this library delivers superior performance.
-It consistently outperforms `premailer`, offering speed increases often exceeding **40 times**.
+It consistently outperforms `premailer`, offering speed increases often exceeding **50 times**.
 
 The table below provides a detailed comparison between `css_inline` and `premailer` when inlining CSS into an HTML document (like in the Usage section above):
 
-|                   | `css_inline 0.10.4` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
-|-------------------|---------------------|------------------------------------------------|------------|
-| Basic usage       | 8.73 µs             | 421.40 µs                                      | **48.24x** |
-| Realistic email 1 | 172.71 µs           | 9.77 ms                                        | **56.62x** |
-| Realistic email 2 | 128.53 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
-| GitHub Page       | 850.25 ms           | 3.25 s                                         | **3.83x**  |
+|                   | Size    | `css_inline 0.10.4` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
+|-------------------|---------|---------------------|------------------------------------------------|------------|
+| Basic usage       | 230 B   | 8.37 µs             | 418.96 µs                                      | **50.00x** |
+| Realistic email 1 | 8.58 KB | 172.35 µs           | 9.72 ms                                        | **56.45x** |
+| Realistic email 2 | 4.3 KB  | 114.81 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
+| GitHub Page       | 1.81 MB | 619.19 ms           | 3.07 s                                         | **4.97x**  |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.71.1` on Ruby `3.2.2`.
