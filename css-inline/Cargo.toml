@@ -31,7 +31,7 @@ indexmap = "1.9"
 pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.7", optional = true }
 rustc-hash = "1.1.0"
-selectors = "0.24.0"
+selectors = "0.25.0"
 
 [dev-dependencies]
 assert_cmd = "2.0.6"
