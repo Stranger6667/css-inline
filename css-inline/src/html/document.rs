@@ -5,11 +5,9 @@ use super::{
     parser,
     selectors::ParseError,
     serializer::serialize_to,
-    Specificity,
 };
-use crate::{hasher::BuildNoHashHasher, InlineError};
+use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::local_name;
-use indexmap::IndexMap;
 use std::{io::Write, iter::successors};
 
 /// HTML document representation.
@@ -254,7 +252,7 @@ impl Document {
     pub(crate) fn serialize<W: Write>(
         &self,
         writer: &mut W,
-        styles: IndexMap<NodeId, IndexMap<&str, (Specificity, &str)>, BuildNoHashHasher>,
+        styles: DocumentStyleMap<'_>,
         keep_style_tags: bool,
         keep_link_tags: bool,
     ) -> Result<(), InlineError> {
@@ -290,6 +288,7 @@ impl std::ops::IndexMut<NodeId> for Document {
 mod tests {
     use super::{super::node::ElementData, *};
     use html5ever::{local_name, namespace_url, ns, QualName};
+    use indexmap::IndexMap;
     use test_case::test_case;
 
     fn new_element() -> NodeData {
