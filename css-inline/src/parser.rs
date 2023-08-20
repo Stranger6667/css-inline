@@ -44,12 +44,10 @@ impl<'d, 'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'d, 'i> {
         // Parse list of declarations
         let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
         let start = self.0.len();
-        let mut end = start;
         for item in parser.flatten() {
             self.0.push(item);
-            end = end.saturating_add(1);
         }
-        Ok((prelude, (start, end)))
+        Ok((prelude, (start, self.0.len())))
     }
 }
 
