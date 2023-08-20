@@ -141,10 +141,10 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 Benchmarks for `css-inline==0.10.4`:
 
-- Basic: **6.72 µs**, 230 bytes
-- Realistic-1: **144.70 µs**, 8.58 KB
-- Realistic-2: **95.83 µs**, 4.3 KB
-- GitHub page: **539.26 ms**, 1.81 MB
+- Basic: **6.68 µs**, 230 bytes
+- Realistic-1: **143.21 µs**, 8.58 KB
+- Realistic-2: **91.69 µs**, 4.3 KB
+- GitHub page: **259.95 ms**, 1.81 MB
 
 These benchmarks, conducted using `rustc 1.71.1`, can be found in `css-inline/benches/inliner.rs`.
 
