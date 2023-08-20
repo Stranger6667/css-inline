@@ -79,14 +79,7 @@ impl<'a> Element<'a> {
             None,
             QuirksMode::NoQuirks,
         );
-        matching::matches_selector(
-            selector.inner_value(),
-            0,
-            None,
-            self,
-            &mut context,
-            &mut |_, _| {},
-        )
+        matching::matches_selector(selector, 0, None, self, &mut context, &mut |_, _| {})
     }
 }
 
