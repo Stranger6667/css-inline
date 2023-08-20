@@ -36,11 +36,13 @@ pub use error::InlineError;
 use indexmap::IndexMap;
 use std::{
     borrow::Cow,
+    hash::BuildHasherDefault,
     io::{ErrorKind, Write},
 };
 
+use crate::html::ElementStyleMap;
 use hasher::BuildNoHashHasher;
-use html::{Document, Specificity};
+use html::Document;
 pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.
@@ -282,8 +284,9 @@ impl<'a> CSSInliner<'a> {
                     for matching_element in matching_elements {
                         let element_styles =
                             styles.entry(matching_element.node_id).or_insert_with(|| {
-                                IndexMap::<&str, (Specificity, &str)>::with_capacity(
+                                ElementStyleMap::with_capacity_and_hasher(
                                     end.saturating_sub(*start).saturating_add(4),
+                                    BuildHasherDefault::default(),
                                 )
                             });
                         // Iterate over pairs of property name & value

@@ -9,6 +9,7 @@
 - Fast-path class check for shorter class attribute values.
 - Use a Bloom filter to detect if an element has no given class.
 - Avoid allocating a vector during selectors compilation.
+- Use `FxHasher` in more cases.
 
 ### Changed
 

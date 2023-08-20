@@ -2,18 +2,17 @@ use super::{
     attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
-    Specificity,
+    DocumentStyleMap,
 };
-use crate::{hasher::BuildNoHashHasher, parser, InlineError};
+use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, LocalName, QualName};
-use indexmap::IndexMap;
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
 pub(crate) fn serialize_to<W: Write>(
     document: &Document,
     writer: &mut W,
-    styles: IndexMap<NodeId, IndexMap<&str, (Specificity, &str)>, BuildNoHashHasher>,
+    styles: DocumentStyleMap<'_>,
     keep_style_tags: bool,
     keep_link_tags: bool,
 ) -> Result<(), InlineError> {
@@ -132,16 +131,13 @@ struct ElemInfo {
 /// Source: <https://github.com/servo/html5ever/blob/98d3c0cd01471af997cd60849a38da45a9414dfd/html5ever/src/serialize/mod.rs#L77>
 struct HtmlSerializer<'a, Wr: Write> {
     writer: Wr,
-    styles: IndexMap<NodeId, IndexMap<&'a str, (Specificity, &'a str)>, BuildNoHashHasher>,
+    styles: DocumentStyleMap<'a>,
     stack: Vec<ElemInfo>,
     style_buffer: SmallVec<[Vec<u8>; 8]>,
 }
 
 impl<'a, W: Write> HtmlSerializer<'a, W> {
-    fn new(
-        writer: W,
-        styles: IndexMap<NodeId, IndexMap<&'a str, (Specificity, &'a str)>, BuildNoHashHasher>,
-    ) -> Self {
+    fn new(writer: W, styles: DocumentStyleMap<'a>) -> Self {
         let mut stack = Vec::with_capacity(8);
         stack.push(ElemInfo {
             html_name: None,
@@ -424,7 +420,7 @@ macro_rules! push_or_update {
 fn merge_styles<Wr: Write>(
     writer: &mut Wr,
     current_style: &StrTendril,
-    new_styles: &IndexMap<&str, (Specificity, &str)>,
+    new_styles: &ElementStyleMap<'_>,
     declarations_buffer: &mut SmallVec<[Vec<u8>; 8]>,
 ) -> Result<(), InlineError> {
     // This function is designed with a focus on reusing existing allocations where possible
