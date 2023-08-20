@@ -264,12 +264,15 @@ impl<'a> CSSInliner<'a> {
                 .round() as usize)
                 .max(16),
         );
-        let rule_list: Vec<_> = cssparser::RuleListParser::new_for_stylesheet(
+        let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
+        for rule in cssparser::RuleListParser::new_for_stylesheet(
             &mut parser,
             parser::CSSRuleListParser::new(&mut declarations),
         )
         .flatten()
-        .collect();
+        {
+            rule_list.push(rule);
+        }
         for (selectors, (start, end)) in &rule_list {
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
