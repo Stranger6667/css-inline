@@ -137,6 +137,8 @@ pub struct CSSInliner<'a> {
 }
 
 const GROWTH_COEFFICIENT: f64 = 1.5;
+// A rough coefficient to calculate the number of individual declarations based on the total CSS size.
+const DECLARATION_SIZE_COEFFICIENT: f64 = 30.0;
 
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
@@ -250,11 +252,25 @@ impl<'a> CSSInliner<'a> {
         let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
         let mut parser = cssparser::Parser::new(&mut parse_input);
-        let rule_list: Vec<_> =
-            cssparser::RuleListParser::new_for_stylesheet(&mut parser, parser::CSSRuleListParser)
-                .flatten()
-                .collect();
-        for (selectors, declarations) in &rule_list {
+        // Allocating some memory for all the parsed declarations
+        #[allow(
+            clippy::cast_precision_loss,
+            clippy::cast_sign_loss,
+            clippy::cast_possible_truncation
+        )]
+        let mut declarations = Vec::with_capacity(
+            ((raw_styles.len() as f64 / DECLARATION_SIZE_COEFFICIENT)
+                .min(usize::MAX as f64)
+                .round() as usize)
+                .max(16),
+        );
+        let rule_list: Vec<_> = cssparser::RuleListParser::new_for_stylesheet(
+            &mut parser,
+            parser::CSSRuleListParser::new(&mut declarations),
+        )
+        .flatten()
+        .collect();
+        for (selectors, (start, end)) in &rule_list {
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
             for selector in selectors.split(',') {
@@ -264,12 +280,12 @@ impl<'a> CSSInliner<'a> {
                         let element_styles =
                             styles.entry(matching_element.node_id).or_insert_with(|| {
                                 IndexMap::<&str, (Specificity, &str)>::with_capacity(
-                                    declarations.len().saturating_add(4),
+                                    end.saturating_sub(*start).saturating_add(4),
                                 )
                             });
                         // Iterate over pairs of property name & value
                         // Example: `padding`, `0`
-                        for (name, value) in declarations {
+                        for (name, value) in &declarations[*start..*end] {
                             match element_styles.entry(name.as_ref()) {
                                 indexmap::map::Entry::Occupied(mut entry) => {
                                     if entry.get().0 <= specificity {

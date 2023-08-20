@@ -1,9 +1,17 @@
-pub(crate) struct CSSRuleListParser;
+pub(crate) struct CSSRuleListParser<'d, 'i>(&'d mut Vec<Declaration<'i>>);
+
+impl<'d, 'i> CSSRuleListParser<'d, 'i> {
+    #[inline]
+    pub(crate) fn new(declarations: &'d mut Vec<Declaration<'i>>) -> CSSRuleListParser<'d, 'i> {
+        CSSRuleListParser(declarations)
+    }
+}
+
 pub(crate) struct CSSDeclarationListParser;
 
 pub(crate) type Name<'i> = cssparser::CowRcStr<'i>;
 pub(crate) type Declaration<'i> = (Name<'i>, &'i str);
-pub(crate) type QualifiedRule<'i> = (&'i str, Vec<Declaration<'i>>);
+pub(crate) type QualifiedRule<'i> = (&'i str, (usize, usize));
 
 fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
     let start = input.position();
@@ -14,7 +22,7 @@ fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
 /// Parser for qualified rules - a prelude + a simple {} block.
 ///
 /// Usually these rules are a selector + list of declarations: `p { color: blue; font-size: 2px }`
-impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
+impl<'d, 'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'d, 'i> {
     type Prelude = &'i str;
     type QualifiedRule = QualifiedRule<'i>;
     type Error = ();
@@ -35,8 +43,13 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser {
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
         let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
-        let declarations: Vec<_> = parser.flatten().collect();
-        Ok((prelude, declarations))
+        let start = self.0.len();
+        let mut end = start;
+        for item in parser.flatten() {
+            self.0.push(item);
+            end = end.saturating_add(1);
+        }
+        Ok((prelude, (start, end)))
     }
 }
 
@@ -54,7 +67,7 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
     }
 }
 
-impl<'i> cssparser::AtRuleParser<'i> for CSSRuleListParser {
+impl<'d, 'i> cssparser::AtRuleParser<'i> for CSSRuleListParser<'d, 'i> {
     type Prelude = &'i str;
     type AtRule = QualifiedRule<'i>;
     type Error = ();
