@@ -69,8 +69,13 @@ impl<'a> Iterator for Select<'a> {
     #[inline]
     fn next(&mut self) -> Option<Element<'a>> {
         // Filter the underlying iterator to only return elements that match any of the selectors
-        self.elements
-            .by_ref()
-            .find(|element| self.selectors.iter().any(|s| element.matches(s)))
+        for element in self.elements.by_ref() {
+            for selector in self.selectors.iter() {
+                if element.matches(selector) {
+                    return Some(element);
+                }
+            }
+        }
+        None
     }
 }

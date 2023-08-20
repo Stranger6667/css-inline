@@ -102,10 +102,12 @@ impl<'a> selectors::Element for Element<'a> {
     fn parent_element(&self) -> Option<Self> {
         self.parent_element()
     }
+
     #[inline]
     fn parent_node_is_shadow_root(&self) -> bool {
         false
     }
+
     #[inline]
     fn containing_shadow_host(&self) -> Option<Self> {
         None
@@ -115,18 +117,22 @@ impl<'a> selectors::Element for Element<'a> {
     fn is_pseudo_element(&self) -> bool {
         false
     }
+
     #[inline]
     fn prev_sibling_element(&self) -> Option<Self> {
         self.previous_sibling_element()
     }
+
     #[inline]
     fn next_sibling_element(&self) -> Option<Self> {
         self.next_sibling_element()
     }
+
     #[inline]
     fn is_html_element_in_html_document(&self) -> bool {
         self.name().ns == ns!(html)
     }
+
     #[inline]
     fn has_local_name(&self, name: &LocalName) -> bool {
         self.name().local == *name
@@ -141,6 +147,7 @@ impl<'a> selectors::Element for Element<'a> {
     fn is_same_type(&self, other: &Self) -> bool {
         self.name() == other.name()
     }
+
     #[inline]
     fn attr_matches(
         &self,
@@ -154,6 +161,7 @@ impl<'a> selectors::Element for Element<'a> {
                 .map
                 .iter()
                 .any(|(name, value)| name.local == *local_name && operation.eval_str(value)),
+            NamespaceConstraint::Specific(_) if attrs.map.is_empty() => false,
             NamespaceConstraint::Specific(ns_url) => attrs
                 .map
                 .get(&QualName::new(
@@ -229,9 +237,10 @@ impl<'a> selectors::Element for Element<'a> {
 
         !name.is_empty()
             && if let Some(class_attr) = &self.attributes().class {
-                match class_attr.value.as_bytes().len().cmp(&name.len()) {
+                let class = class_attr.value.as_bytes();
+                match class.len().cmp(&name.len()) {
                     Ordering::Less => false,
-                    Ordering::Equal => case_sensitivity.eq(class_attr.value.as_bytes(), name),
+                    Ordering::Equal => case_sensitivity.eq(class, name),
                     Ordering::Greater => class_attr.has_class(name, case_sensitivity),
                 }
             } else {
