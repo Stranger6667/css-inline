@@ -59,7 +59,7 @@ impl<'a> Select<'a> {
     /// Specificity of the first selector in the list of selectors.
     #[inline]
     pub(crate) fn specificity(&self) -> Specificity {
-        self.selectors.0[0].specificity()
+        Specificity::new(self.selectors.0[0].specificity())
     }
 }
 

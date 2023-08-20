@@ -15,18 +15,26 @@ use selectors::{
     parser::{Selector as GenericSelector, SelectorParseErrorKind},
     SelectorList,
 };
+use smallvec::SmallVec;
 
 /// A pre-compiled CSS Selector.
-pub(crate) struct Selector(GenericSelector<InlinerSelectors>);
+pub(crate) type Selector = GenericSelector<InlinerSelectors>;
 
 /// A pre-compiled list of CSS Selectors.
-pub(crate) struct Selectors(pub(crate) Vec<Selector>);
+pub(crate) struct Selectors(pub(crate) SmallVec<[Selector; 1]>);
 
 /// The specificity of a selector.
 /// Determines precedence in the cascading algorithm.
 /// When equal, a rule later in source order takes precedence.
 #[derive(Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub(crate) struct Specificity(u32);
+
+impl Specificity {
+    #[inline]
+    pub(crate) fn new(value: u32) -> Specificity {
+        Specificity(value)
+    }
+}
 
 pub(crate) type ParseError<'i> = cssparser::ParseError<'i, SelectorParseErrorKind<'i>>;
 
@@ -41,23 +49,12 @@ impl Selectors {
     /// Compile a list of selectors.
     #[inline]
     pub(super) fn compile(selectors: &str) -> Result<Selectors, ParseError<'_>> {
-        parse(selectors).map(|list| Selectors(list.0.into_iter().map(Selector).collect()))
+        parse(selectors).map(|list| Selectors(list.0))
     }
 
     /// Iterator over selectors.
     #[inline]
     pub(super) fn iter(&self) -> impl Iterator<Item = &Selector> {
         self.0.iter()
-    }
-}
-
-impl Selector {
-    /// Inner selector value.
-    pub(crate) fn inner_value(&self) -> &GenericSelector<InlinerSelectors> {
-        &self.0
-    }
-    /// Specificity of this selector.
-    pub(crate) fn specificity(&self) -> Specificity {
-        Specificity(self.0.specificity())
     }
 }

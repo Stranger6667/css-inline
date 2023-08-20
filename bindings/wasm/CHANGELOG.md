@@ -8,6 +8,7 @@
 - Optimized `class` attribute handling: up to 25% faster for extensive class-dependent selectors.
 - Fast-path class check for shorter class attribute values.
 - Use a Bloom filter to detect if an element has no given class.
+- Avoid allocating a vector during selectors compilation.
 
 ### Changed
 
