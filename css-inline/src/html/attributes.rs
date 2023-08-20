@@ -1,9 +1,6 @@
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
 use rustc_hash::FxHasher;
-use selectors::{
-    attr::CaseSensitivity,
-    bloom::{BloomStorageBool, CountingBloomFilter},
-};
+use selectors::attr::CaseSensitivity;
 use std::{
     collections::BTreeMap,
     hash::{Hash, Hasher},
@@ -17,15 +14,51 @@ pub(crate) struct Class {
     /// often specific, most elements won't have the checked class. Leveraging this, we use a Bloom
     /// filter for a quick initial check. If positive, we do an actual check. This two-tier
     /// approach ensures fewer actual checks on class attributes.
-    pub(crate) cache: CountingBloomFilter<BloomStorageBool>,
+    pub(crate) cache: BloomFilter,
 }
 
 static SELECTOR_WHITESPACE: &[char] = &[' ', '\t', '\n', '\r', '\x0C'];
 
+/// This Bloom filter has 64 bits of storage and two hash functions which gives a decent false
+/// positive rate given that most of the time an element has a very few number of classes.
+#[derive(Debug)]
+pub(crate) struct BloomFilter(u64);
+
+impl BloomFilter {
+    #[inline]
+    fn new() -> BloomFilter {
+        BloomFilter(0)
+    }
+
+    #[inline]
+    fn insert_hash(&mut self, hash: u64) {
+        self.0 |= 1 << (hash1(hash) % 64);
+        self.0 |= 1 << (hash2(hash) % 64);
+    }
+
+    #[inline]
+    fn might_contain_hash(&self, hash: u64) -> bool {
+        self.0 & (1 << (hash1(hash) % 64)) != 0 && self.0 & (1 << (hash2(hash) % 64)) != 0
+    }
+}
+
+const KEY_SIZE: usize = 32;
+const KEY_MASK: u64 = u32::MAX as u64;
+
+#[inline]
+fn hash1(hash: u64) -> u64 {
+    hash & KEY_MASK
+}
+
+#[inline]
+fn hash2(hash: u64) -> u64 {
+    (hash >> KEY_SIZE) & KEY_MASK
+}
+
 impl Class {
     fn new(value: StrTendril) -> Class {
         // Build a Bloom filter for all element's classes
-        let mut cache = CountingBloomFilter::<BloomStorageBool>::new();
+        let mut cache = BloomFilter::new();
         for class in value.split(SELECTOR_WHITESPACE) {
             let hash = hash_class_name(class.as_bytes());
             cache.insert_hash(hash);
@@ -71,10 +104,10 @@ impl Class {
 }
 
 #[inline]
-pub(crate) fn hash_class_name(name: &[u8]) -> u32 {
+pub(crate) fn hash_class_name(name: &[u8]) -> u64 {
     let mut hasher = FxHasher::default();
     name.hash(&mut hasher);
-    u32::try_from(hasher.finish() >> 32).expect("Invalid hash value")
+    hasher.finish()
 }
 
 /// A collection of HTML attributes.
