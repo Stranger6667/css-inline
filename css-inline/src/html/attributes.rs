@@ -13,10 +13,10 @@ use std::{
 #[derive(Debug)]
 pub(crate) struct Class {
     pub(crate) value: StrTendril,
-    /// In CSS selector matching, checking an element's class is frequent.
-    /// Given that classes are often specific, most elements won't have the checked class.
-    /// Leveraging this, we use a Bloom filter for a quick initial check.
-    /// If positive, we do an actual check. This two-tier approach ensures fewer actual checks on class attributes.
+    /// In CSS selector matching, checking an element's class is frequent. Given that classes are
+    /// often specific, most elements won't have the checked class. Leveraging this, we use a Bloom
+    /// filter for a quick initial check. If positive, we do an actual check. This two-tier
+    /// approach ensures fewer actual checks on class attributes.
     pub(crate) cache: CountingBloomFilter<BloomStorageBool>,
 }
 
@@ -42,7 +42,7 @@ impl Class {
         self.cache.might_contain_hash(hash)
     }
 
-    /// Manually check whether the class atteibute value contains the given class.
+    /// Manually check whether the class attribute value contains the given class.
     #[inline]
     fn has_class_impl(&self, name: &[u8], case_sensitivity: CaseSensitivity) -> bool {
         for class in self.value.split(SELECTOR_WHITESPACE) {
@@ -71,7 +71,6 @@ impl Class {
 }
 
 #[inline]
-#[allow(clippy::arithmetic_side_effects)]
 pub(crate) fn hash_class_name(name: &[u8]) -> u32 {
     let mut hasher = FxHasher::default();
     name.hash(&mut hasher);
