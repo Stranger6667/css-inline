@@ -138,10 +138,10 @@ The table below provides a detailed comparison between `css_inline` and `premail
 
 |                   | Size    | `css_inline 0.10.4` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
 |-------------------|---------|---------------------|------------------------------------------------|------------|
-| Basic usage       | 230 B   | 8.58 µs             | 419.74 µs                                      | **48.87x** |
-| Realistic email 1 | 8.58 KB | 173.28 µs           | 9.77 ms                                        | **56.40x** |
-| Realistic email 2 | 4.3 KB  | 114.81 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
-| GitHub Page       | 1.81 MB | 305.95 ms           | 3.08 s                                         | **10.07x** |
+| Basic usage       | 230 B   | 8.05 µs             | 419.75 µs                                      | **52.13x** |
+| Realistic email 1 | 8.58 KB | 164.22 µs           | 9.75 ms                                        | **59.40x** |
+| Realistic email 2 | 4.3 KB  | 106.95 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
+| GitHub Page       | 1.81 MB | 308.11 ms           | 3.08 s                                         | **9.99x**  |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.71.1` on Ruby `3.2.2`.

@@ -171,10 +171,10 @@ Here is the performance comparison:
 
 |             | Size    | `css_inline 0.10.4` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
 |-------------|---------|---------------------|-------------------------|-------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 6.91 µs             | 130.00 µs  (**18.80x**) | 672.54 µs  (**97.24x**) | 1.06 ms  (**153.61x**)  | 1.22 ms  (**177.51x**)  |
-| Realistic-1 | 8.58 KB | 149.29 µs           | 1.42 ms  (**9.57x**)    | 16.52 ms  (**110.72x**) | 27.40 ms  (**183.57x**) | 52.07 ms  (**348.84x**) |
-| Realistic-2 | 4.3 KB  | 92.29 µs            | 2.72 ms  (**29.58x**)   | ERROR                   | 18.11 ms  (**196.28x**) | ERROR                   |
-| GitHub page | 1.81 MB | 261.04 ms           | 25.43 s  (**97.43x**)   | ERROR                   | ERROR                   | ERROR                   |
+| Basic       | 230 B   | 6.58 µs             | 130.45 µs  (**19.82x**) | 671.87 µs  (**102.06**) | 1.05 ms  (**161.00**)   | 1.23 ms  (**187.51x**)  |
+| Realistic-1 | 8.58 KB | 146.20 µs           | 1.42 ms  (**9.71x**)    | 16.56 ms  (**113.29x**) | 27.45 ms  (**187.78x**) | 51.85 ms  (**354.66x**) |
+| Realistic-2 | 4.3 KB  | 87.91 µs            | 2.71 ms  (**30.90x**)   | ERROR                   | 18.07 ms  (**205.64x**) | ERROR                   |
+| GitHub page | 1.81 MB | 262.74 ms           | 25.38 s  (**96.63x**)   | ERROR                   | ERROR                   | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado`, `inlinestyler` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
