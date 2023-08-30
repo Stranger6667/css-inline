@@ -28,7 +28,7 @@ attohttpc = { version = "0", default-features = false, features = ["compress", "
 url = "2"
 smallvec = "1"
 indexmap = "1.9"
-pico-args = { version = "0.3", optional = true }
+pico-args = { version = "0.5", optional = true }
 rayon = { version = "1.7", optional = true }
 rustc-hash = "1.1.0"
 selectors = "0.24.0"
