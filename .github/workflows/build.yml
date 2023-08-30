@@ -73,6 +73,18 @@ jobs:
       - run: cargo fmt --all -- --check
         working-directory: ./css-inline
 
+      - run: cargo fmt --all -- --check
+        working-directory: ./bindings/c
+
+      - run: cargo fmt --all -- --check
+        working-directory: ./bindings/python
+
+      - run: cargo fmt --all -- --check
+        working-directory: ./bindings/ruby
+
+      - run: cargo fmt --all -- --check
+        working-directory: ./bindings/wasm
+
   clippy:
     name: Clippy
     runs-on: ubuntu-22.04
