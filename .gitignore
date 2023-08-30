@@ -4,7 +4,13 @@
 css-inline/target/
 css-inline/fuzz/target/
 css-inline/fuzz/corpus/
+profiler/target/
 bindings/*/target/
+
+perf.data
+perf.data.old
+trace.svg
+dhat-heap.json
 
 # Remove Cargo.lock from gitignore if creating an executable, leave it for libraries
 # More information here https://doc.rust-lang.org/cargo/guide/cargo-toml-vs-cargo-lock.html

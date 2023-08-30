@@ -74,6 +74,9 @@ jobs:
         working-directory: ./css-inline
 
       - run: cargo fmt --all -- --check
+        working-directory: ./profiler
+
+      - run: cargo fmt --all -- --check
         working-directory: ./bindings/c
 
       - run: cargo fmt --all -- --check
@@ -107,6 +110,10 @@ jobs:
       - name: Rust
         run: cargo clippy -- -D warnings
         working-directory: ./css-inline
+
+      - name: Profiler
+        run: cargo clippy -- -D warnings
+        working-directory: ./profiler
 
       - name: Python
         run: cargo clippy -- -D warnings
