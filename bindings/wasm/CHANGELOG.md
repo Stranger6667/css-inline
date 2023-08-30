@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.10.5] - 2023-08-30
+
 ### Performance
 
 - Pre-allocate space during serialization.
@@ -187,7 +189,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.5...HEAD
+[0.10.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.4...wasm-v0.10.5
 [0.10.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.3...wasm-v0.10.4
 [0.10.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.2...wasm-v0.10.3
 [0.10.2]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.1...wasm-v0.10.2
