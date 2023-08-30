@@ -139,7 +139,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.10.4`:
+Benchmarks for `css-inline==0.10.5`:
 
 - Basic: **6.40 µs**, 230 bytes
 - Realistic-1: **140.19 µs**, 8.58 KB
