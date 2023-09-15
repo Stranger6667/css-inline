@@ -225,14 +225,14 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             self.writer.write_all(class.value.as_bytes())?;
             self.writer.write_all(b"\"")?;
         }
-        for (name, value) in &attrs.map {
+        for attr in &attrs.attributes {
             self.writer.write_all(b" ")?;
 
-            match name.ns {
+            match attr.name.ns {
                 ns!() => (),
                 ns!(xml) => self.writer.write_all(b"xml:")?,
                 ns!(xmlns) => {
-                    if name.local != local_name!("xmlns") {
+                    if attr.name.local != local_name!("xmlns") {
                         self.writer.write_all(b"xmlns:")?;
                     }
                 }
@@ -242,17 +242,22 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                 }
             }
 
-            self.writer.write_all(name.local.as_bytes())?;
+            self.writer.write_all(attr.name.local.as_bytes())?;
             self.writer.write_all(b"=\"")?;
-            if name.local.as_bytes() == b"style" {
+            if attr.name.local.as_bytes() == b"style" {
                 if let Some(new_styles) = &styles {
-                    merge_styles(&mut self.writer, value, new_styles, &mut self.style_buffer)?;
+                    merge_styles(
+                        &mut self.writer,
+                        &attr.value,
+                        new_styles,
+                        &mut self.style_buffer,
+                    )?;
                     styles = None;
                 } else {
-                    self.write_attributes(value)?;
+                    self.write_attributes(&attr.value)?;
                 }
             } else {
-                self.write_attributes(value)?;
+                self.write_attributes(&attr.value)?;
             }
             self.writer.write_all(b"\"")?;
         }

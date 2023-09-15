@@ -229,10 +229,12 @@ impl TreeSink for Sink {
             .expect("not an element");
         let attributes = &mut element.attributes;
         for attr in attrs {
-            attributes
-                .map
-                .entry(attr.name)
-                .or_insert_with(|| attr.value);
+            if let Err(idx) = attributes
+                .attributes
+                .binary_search_by(|entry| entry.name.cmp(&attr.name))
+            {
+                attributes.attributes.insert(idx, attr);
+            }
         }
     }
 
