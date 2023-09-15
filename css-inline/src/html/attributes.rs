@@ -1,10 +1,7 @@
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
 use rustc_hash::FxHasher;
 use selectors::attr::CaseSensitivity;
-use std::{
-    collections::BTreeMap,
-    hash::{Hash, Hasher},
-};
+use std::hash::{Hash, Hasher};
 
 /// Class attribute value wrapper that provides a way to make fast class lookups.
 #[derive(Debug)]
@@ -139,8 +136,7 @@ pub(crate) fn hash_class_name(name: &[u8]) -> u64 {
 /// A collection of HTML attributes.
 #[derive(Debug)]
 pub(crate) struct Attributes {
-    /// Attribute names and their respective values.
-    pub(crate) map: BTreeMap<QualName, StrTendril>,
+    pub(crate) attributes: Vec<html5ever::Attribute>,
     /// The 'class' attribute value is separated for performance reasons.
     pub(crate) class: Option<Class>,
 }
@@ -155,28 +151,39 @@ pub(super) fn should_ignore(attributes: &[html5ever::Attribute]) -> bool {
 }
 
 impl Attributes {
-    pub(crate) fn new(attributes: Vec<html5ever::Attribute>) -> Attributes {
+    pub(crate) fn new(mut attributes: Vec<html5ever::Attribute>) -> Attributes {
         let mut class = None;
-        let mut map = BTreeMap::new();
-        for attr in attributes {
-            if attr.name.local == local_name!("class") {
-                class = Some(Class::new(attr.value));
-            } else {
-                map.insert(attr.name, attr.value);
-            }
+        if let Some(idx) = attributes
+            .iter()
+            .position(|attr| attr.name.local == local_name!("class"))
+        {
+            let attr = attributes.swap_remove(idx);
+            class = Some(Class::new(attr.value));
         }
-        Attributes { map, class }
+        attributes.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+        Attributes { attributes, class }
+    }
+
+    pub(crate) fn find(&self, needle: &QualName) -> Option<usize> {
+        if let Ok(idx) = self
+            .attributes
+            .binary_search_by(|probe| probe.name.cmp(needle))
+        {
+            Some(idx)
+        } else {
+            None
+        }
     }
 
     /// Checks if the attributes map contains a given local name.
     pub(crate) fn contains(&self, local: html5ever::LocalName) -> bool {
-        self.map.contains_key(&QualName::new(None, ns!(), local))
+        let needle = QualName::new(None, ns!(), local);
+        self.find(&needle).is_some()
     }
 
     /// Get the value of the attribute with the given local name, if it exists.
     pub(crate) fn get(&self, local: html5ever::LocalName) -> Option<&str> {
-        self.map
-            .get(&QualName::new(None, ns!(), local))
-            .map(|value| &**value)
+        let needle = QualName::new(None, ns!(), local);
+        self.find(&needle).map(|idx| &*self.attributes[idx].value)
     }
 }

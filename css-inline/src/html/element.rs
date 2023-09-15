@@ -151,17 +151,17 @@ impl<'a> selectors::Element for Element<'a> {
         let attrs = self.attributes();
         match *ns {
             NamespaceConstraint::Any => attrs
-                .map
+                .attributes
                 .iter()
-                .any(|(name, value)| name.local == *local_name && operation.eval_str(value)),
-            NamespaceConstraint::Specific(_) if attrs.map.is_empty() => false,
+                .any(|attr| attr.name.local == *local_name && operation.eval_str(&attr.value)),
+            NamespaceConstraint::Specific(_) if attrs.attributes.is_empty() => false,
             NamespaceConstraint::Specific(ns_url) => attrs
-                .map
-                .get(&QualName::new(
+                .find(&QualName::new(
                     None,
                     ns_url.clone(),
                     local_name.clone().into_inner(),
                 ))
+                .map(|idx| &*attrs.attributes[idx].value)
                 .map_or(false, |value| operation.eval_str(value)),
         }
     }
