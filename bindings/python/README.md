@@ -53,7 +53,7 @@ pip install css_inline
 ```
 
 Pre-compiled wheels are available for most popular platforms.
-If not available for your platform, a Rust compiler will be needed to build this package from source. Rust version 1.62.1 or higher is required.
+If not available for your platform, a Rust compiler will be needed to build this package from source. Rust version 1.63 or higher is required.
 
 ## Usage
 
