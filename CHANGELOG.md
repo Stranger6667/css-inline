@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+- Bump MSRV to `1.63`.
+
 ## [0.10.5] - 2023-08-30
 
 ### Performance

@@ -9,7 +9,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 categories = ["web-programming"]
 license = "MIT"
-rust-version = "1.62.1"
+rust-version = "1.63"
 include = ["src/lib.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
 [lib]
