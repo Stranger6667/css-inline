@@ -185,7 +185,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [
+          ubuntu-22.04,
+          macos-12,
+          # Temporary disabled due to compiler errors on newer windows-2022 image
+          # windows-2022
+        ]
         ruby-version: ['2.7', '3.2']
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
