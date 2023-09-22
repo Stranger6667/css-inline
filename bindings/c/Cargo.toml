@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 libc = "0.2"
 
 [build-dependencies]
-cbindgen = "0.25"
+cbindgen = "0.26"
 
 [dependencies.css-inline]
 path = "../../css-inline"
