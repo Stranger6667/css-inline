@@ -3,11 +3,11 @@ use core::hash::{BuildHasherDefault, Hasher};
 pub(crate) type BuildNoHashHasher = BuildHasherDefault<NoHashHasher>;
 
 #[derive(Default)]
-pub(crate) struct NoHashHasher(u64);
+pub(crate) struct NoHashHasher(u32);
 
 impl Hasher for NoHashHasher {
     fn finish(&self) -> u64 {
-        self.0
+        self.0 as u64
     }
     fn write(&mut self, _: &[u8]) {
         unreachable!("Should not be used")
@@ -18,14 +18,14 @@ impl Hasher for NoHashHasher {
     fn write_u16(&mut self, _: u16) {
         unreachable!("Should not be used")
     }
-    fn write_u32(&mut self, _: u32) {
-        unreachable!("Should not be used")
+    fn write_u32(&mut self, n: u32) {
+        self.0 = n;
     }
     fn write_u64(&mut self, _: u64) {
         unreachable!("Should not be used")
     }
-    fn write_usize(&mut self, n: usize) {
-        self.0 = n as u64;
+    fn write_usize(&mut self, _: usize) {
+        unreachable!("Should not be used")
     }
     fn write_i8(&mut self, _: i8) {
         unreachable!("Should not be used")

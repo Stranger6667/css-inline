@@ -1,6 +1,6 @@
 use super::attributes::Attributes;
 use html5ever::{tendril::StrTendril, QualName};
-use std::num::NonZeroUsize;
+use std::num::NonZeroU32;
 
 /// Single node in the DOM.
 #[derive(Debug)]
@@ -51,12 +51,15 @@ impl Node {
 
 /// `NodeId` is a unique identifier for each `Node` in the document.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
-pub(crate) struct NodeId(NonZeroUsize);
+pub(crate) struct NodeId(NonZeroU32);
 
 impl NodeId {
     #[inline]
     pub(super) fn new(value: usize) -> NodeId {
-        NodeId(NonZeroUsize::new(value).expect("Value is zero"))
+        NodeId(
+            NonZeroU32::new(value.try_into().expect("Document is too large"))
+                .expect("Value is zero"),
+        )
     }
     #[inline]
     pub(super) fn document_id() -> NodeId {
@@ -64,7 +67,7 @@ impl NodeId {
     }
     #[inline]
     pub(super) fn get(self) -> usize {
-        self.0.get()
+        self.0.get() as usize
     }
 }
 
