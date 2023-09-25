@@ -63,6 +63,7 @@ fn parse_url(url: Option<String>) -> Result<Option<rust_inline::Url>, JsValue> {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
+#[allow(clippy::struct_excessive_bools)]
 struct Options {
     inline_style_tags: bool,
     keep_style_tags: bool,
