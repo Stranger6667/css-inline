@@ -43,6 +43,10 @@ ARGS:
 
 OPTIONS:
 
+    --inline-style-tags
+        Whether to inline CSS from "style" tags. The default value is `true`. To disable inlining
+        from "style" tags use `--inline-style-tags=false`.
+
     --keep-style-tags
         Keep "style" tags after inlining.
 
@@ -65,6 +69,7 @@ OPTIONS:
     .as_bytes();
 
     struct Args {
+        inline_style_tags: bool,
         keep_style_tags: bool,
         keep_link_tags: bool,
         base_url: Option<String>,
@@ -100,6 +105,9 @@ OPTIONS:
         io::stdout().write_all(VERSION_MESSAGE)?;
     } else {
         let args = Args {
+            inline_style_tags: args
+                .opt_value_from_str("--inline-style-tags")?
+                .unwrap_or(true),
             keep_style_tags: args.contains("--keep-style-tags"),
             keep_link_tags: args.contains("--keep-link-tags"),
             base_url: args.opt_value_from_str("--base-url")?,
@@ -116,6 +124,7 @@ OPTIONS:
             }
         };
         let options = InlineOptions {
+            inline_style_tags: args.inline_style_tags,
             keep_style_tags: args.keep_style_tags,
             keep_link_tags: args.keep_link_tags,
             base_url,

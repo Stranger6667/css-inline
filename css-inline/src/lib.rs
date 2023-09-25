@@ -48,6 +48,8 @@ pub use url::{ParseError, Url};
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
 pub struct InlineOptions<'a> {
+    /// Whether to inline CSS from "style" tags.
+    pub inline_style_tags: bool,
     /// Keep "style" tags after inlining.
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
@@ -67,6 +69,13 @@ pub struct InlineOptions<'a> {
 }
 
 impl<'a> InlineOptions<'a> {
+    /// Override whether "style" tags should be inlined.
+    #[must_use]
+    pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
+        self.inline_style_tags = inline_style_tags;
+        self
+    }
+
     /// Override whether "style" tags should be kept after processing.
     #[must_use]
     pub fn keep_style_tags(mut self, keep_style_tags: bool) -> Self {
@@ -120,6 +129,7 @@ impl Default for InlineOptions<'_> {
     #[inline]
     fn default() -> Self {
         InlineOptions {
+            inline_style_tags: true,
             keep_style_tags: false,
             keep_link_tags: false,
             base_url: None,
@@ -222,20 +232,26 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        let mut size_estimate: usize = document
-            .styles()
-            .map(|s| {
-                // Add 1 to account for the extra `\n` char we add between styles
-                s.len().saturating_add(1)
-            })
-            .sum();
+        let mut size_estimate: usize = if self.options.inline_style_tags {
+            document
+                .styles()
+                .map(|s| {
+                    // Add 1 to account for the extra `\n` char we add between styles
+                    s.len().saturating_add(1)
+                })
+                .sum()
+        } else {
+            0
+        };
         if let Some(extra_css) = &self.options.extra_css {
             size_estimate = size_estimate.saturating_add(extra_css.len());
         }
         let mut raw_styles = String::with_capacity(size_estimate);
-        for style in document.styles() {
-            raw_styles.push_str(style);
-            raw_styles.push('\n');
+        if self.options.inline_style_tags {
+            for style in document.styles() {
+                raw_styles.push_str(style);
+                raw_styles.push('\n');
+            }
         }
         if self.options.load_remote_stylesheets {
             let mut links = document.stylesheets().collect::<Vec<&str>>();
