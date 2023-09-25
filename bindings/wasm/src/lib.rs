@@ -63,7 +63,9 @@ fn parse_url(url: Option<String>) -> Result<Option<rust_inline::Url>, JsValue> {
 
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
+#[allow(clippy::struct_excessive_bools)]
 struct Options {
+    inline_style_tags: bool,
     keep_style_tags: bool,
     keep_link_tags: bool,
     base_url: Option<String>,
@@ -75,6 +77,7 @@ struct Options {
 impl Default for Options {
     fn default() -> Self {
         Options {
+            inline_style_tags: true,
             keep_style_tags: false,
             keep_link_tags: false,
             base_url: None,
@@ -98,6 +101,7 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
 
     fn try_from(value: Options) -> Result<Self, Self::Error> {
         Ok(rust_inline::InlineOptions {
+            inline_style_tags: value.inline_style_tags,
             keep_style_tags: value.keep_style_tags,
             keep_link_tags: value.keep_link_tags,
             base_url: parse_url(value.base_url)?,
@@ -123,7 +127,9 @@ pub fn inline(html: &str, options: JsValue) -> Result<String, JsValue> {
 #[wasm_bindgen(typescript_custom_section)]
 const INLINE: &'static str = r#"
 interface InlineOptions {
+    inline_style_tags?: boolean,
     keep_style_tags?: boolean,
+    keep_link_tags?: boolean,
     base_url?: string,
     load_remote_stylesheets?: boolean,
     extra_css?: string,

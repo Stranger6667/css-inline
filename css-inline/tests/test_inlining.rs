@@ -356,6 +356,83 @@ fn existing_styles_with_merge_multiple_tags() {
 }
 
 #[test]
+fn remove_multiple_style_tags_without_inlining() {
+    let html = r#"
+<html>
+<head>
+<style>
+h1 {
+    text-decoration: none;
+}
+</style>
+<style>
+.test-class {
+        color: #ffffff;
+}
+a {
+        color: #17bebb;
+}
+</style>
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+</body>
+</html>
+    "#;
+    let inliner = CSSInliner::options()
+        .keep_style_tags(false)
+        .inline_style_tags(false)
+        .build();
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head>
+
+
+</head>
+<body>
+<a class="test-class" href="https://example.com">Test</a>
+<h1>Test</h1>
+
+
+    </body></html>"#
+    )
+}
+
+#[test]
+fn do_not_process_style_tag() {
+    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        inline_style_tags: false,
+        keep_style_tags: true,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
+    )
+}
+
+#[test]
+fn do_not_process_style_tag_and_remove() {
+    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        keep_style_tags: false,
+        inline_style_tags: false,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head></head><body><h1>Hello world!</h1></body></html>"
+    )
+}
+
+#[test]
 fn empty_style() {
     // When the style tag is empty
     assert_inlined!(
@@ -444,9 +521,12 @@ a {
 #[test]
 fn extra_css() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let inliner = CSSInliner::options()
-        .extra_css(Some("h1 {background-color: green;}".into()))
-        .build();
+    let options = InlineOptions {
+        inline_style_tags: false,
+        extra_css: Some("h1 {background-color: green;}".into()),
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,

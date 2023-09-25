@@ -103,6 +103,7 @@ int main(void) {
 
 Possible configurations:
 
+- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `true`
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `NULL`

@@ -41,6 +41,8 @@ pub enum InlineOptionsError {
 /// Configuration options for CSS inlining process.
 #[repr(C)]
 pub struct CssInlinerOptions {
+    /// Whether to inline CSS from "style" tags.
+    pub inline_style_tags: bool,
     /// Keep "style" tags after inlining.
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
@@ -104,6 +106,7 @@ pub unsafe extern "C" fn css_inline_to(
 #[no_mangle]
 pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
     CssInlinerOptions {
+        inline_style_tags: true,
         keep_style_tags: false,
         keep_link_tags: false,
         base_url: ptr::null(),
@@ -144,6 +147,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             }
         };
         Ok(Self {
+            inline_style_tags: value.inline_style_tags,
             keep_style_tags: value.keep_style_tags,
             keep_link_tags: value.keep_link_tags,
             base_url: match base_url {
