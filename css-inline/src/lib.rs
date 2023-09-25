@@ -50,6 +50,9 @@ pub use url::{ParseError, Url};
 #[allow(clippy::struct_excessive_bools)]
 pub struct InlineOptions<'a> {
     /// Whether to inline CSS from "style" tags.
+    ///
+    /// Sometimes HTML may include a lot of boilerplate styles, that are not applicable in every
+    /// scenario and it is useful to ignore them and use `extra_css` instead.
     pub inline_style_tags: bool,
     /// Keep "style" tags after inlining.
     pub keep_style_tags: bool,
