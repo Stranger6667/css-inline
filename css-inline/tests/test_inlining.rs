@@ -394,6 +394,8 @@ a {
 <body>
 <a class="test-class" href="https://example.com">Test</a>
 <h1>Test</h1>
+
+
     </body></html>"#
     )
 }
@@ -403,13 +405,14 @@ fn do_not_process_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         inline_style_tags: false,
+        keep_style_tags: true,
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
+        "<html><head><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
@@ -425,7 +428,7 @@ fn do_not_process_style_tag_and_remove() {
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><title>Test</title></head><body><h1>Hello world!</h1></body></html>"
+        "<html><head></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
@@ -527,7 +530,7 @@ fn extra_css() {
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><title>Test</title><style>h1 {background-color: blue;}</style></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
+        "<html><head></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
     )
 }
 
