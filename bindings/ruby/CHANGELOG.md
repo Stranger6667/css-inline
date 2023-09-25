@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- The `inline_style_tags` option to control whether inlining from "style" tags should be performed. [#253](https://github.com/Stranger6667/css-inline/issues/253)
+
 ### Performance
 
 - Reuse existing attributes when creating an element during parsing.

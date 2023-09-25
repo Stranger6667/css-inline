@@ -47,6 +47,7 @@ fn parse_options<Req>(
         (
             Option<bool>,
             Option<bool>,
+            Option<bool>,
             Option<String>,
             Option<bool>,
             Option<String>,
@@ -57,6 +58,7 @@ fn parse_options<Req>(
         args.keywords,
         &[],
         &[
+            "inline_style_tags",
             "keep_style_tags",
             "keep_link_tags",
             "base_url",
@@ -67,12 +69,13 @@ fn parse_options<Req>(
     )?;
     let kwargs = kwargs.optional;
     Ok(rust_inline::InlineOptions {
-        keep_style_tags: kwargs.0.unwrap_or(false),
-        keep_link_tags: kwargs.1.unwrap_or(false),
-        base_url: parse_url(kwargs.2)?,
-        load_remote_stylesheets: kwargs.3.unwrap_or(true),
-        extra_css: kwargs.4.map(Cow::Owned),
-        preallocate_node_capacity: kwargs.5.unwrap_or(32),
+        inline_style_tags: kwargs.0.unwrap_or(true),
+        keep_style_tags: kwargs.1.unwrap_or(false),
+        keep_link_tags: kwargs.2.unwrap_or(false),
+        base_url: parse_url(kwargs.3)?,
+        load_remote_stylesheets: kwargs.4.unwrap_or(true),
+        extra_css: kwargs.5.map(Cow::Owned),
+        preallocate_node_capacity: kwargs.6.unwrap_or(32),
     })
 }
 

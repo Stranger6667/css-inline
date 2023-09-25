@@ -27,7 +27,6 @@
 use ::css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
-use std::borrow::Cow;
 #[macro_use]
 extern crate pyo3_built;
 
@@ -68,7 +67,7 @@ fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
     })
 }
 
-/// CSSInliner(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
@@ -76,12 +75,28 @@ struct CSSInliner {
     inner: rust_inline::CSSInliner<'static>,
 }
 
+macro_rules! inliner {
+    ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $base_url:expr, $load_remote_stylesheets:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
+        let options = rust_inline::InlineOptions {
+            inline_style_tags: $inline_style_tags.unwrap_or(true),
+            keep_style_tags: $keep_style_tags.unwrap_or(false),
+            keep_link_tags: $keep_link_tags.unwrap_or(false),
+            base_url: $crate::parse_url($base_url)?,
+            load_remote_stylesheets: $load_remote_stylesheets.unwrap_or(true),
+            extra_css: $extra_css.map(Into::into),
+            preallocate_node_capacity: $preallocate_node_capacity.unwrap_or(32),
+        };
+        rust_inline::CSSInliner::new(options)
+    }};
+}
+
 #[pymethods]
 impl CSSInliner {
     #[new(
-        text_signature = "(keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+        text_signature = "(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
     )]
     fn new(
+        inline_style_tags: Option<bool>,
         keep_style_tags: Option<bool>,
         keep_link_tags: Option<bool>,
         base_url: Option<String>,
@@ -89,17 +104,16 @@ impl CSSInliner {
         extra_css: Option<String>,
         preallocate_node_capacity: Option<usize>,
     ) -> PyResult<Self> {
-        let options = rust_inline::InlineOptions {
-            keep_style_tags: keep_style_tags.unwrap_or(false),
-            keep_link_tags: keep_link_tags.unwrap_or(false),
-            base_url: parse_url(base_url)?,
-            load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
-            extra_css: extra_css.map(Cow::Owned),
-            preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
-        };
-        Ok(CSSInliner {
-            inner: rust_inline::CSSInliner::new(options),
-        })
+        let inner = inliner!(
+            inline_style_tags,
+            keep_style_tags,
+            keep_link_tags,
+            base_url,
+            load_remote_stylesheets,
+            extra_css,
+            preallocate_node_capacity
+        );
+        Ok(CSSInliner { inner })
     }
 
     /// inline(html)
@@ -119,15 +133,17 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
 #[pyo3(
-    text_signature = "(html, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+    text_signature = "(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
 )]
+#[allow(clippy::too_many_arguments)]
 fn inline(
     html: &str,
+    inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
     base_url: Option<String>,
@@ -135,27 +151,29 @@ fn inline(
     extra_css: Option<&str>,
     preallocate_node_capacity: Option<usize>,
 ) -> PyResult<String> {
-    let options = rust_inline::InlineOptions {
-        keep_style_tags: keep_style_tags.unwrap_or(false),
-        keep_link_tags: keep_link_tags.unwrap_or(false),
-        base_url: parse_url(base_url)?,
-        load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
-        extra_css: extra_css.map(Cow::Borrowed),
-        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
-    };
-    let inliner = rust_inline::CSSInliner::new(options);
+    let inliner = inliner!(
+        inline_style_tags,
+        keep_style_tags,
+        keep_link_tags,
+        base_url,
+        load_remote_stylesheets,
+        extra_css,
+        preallocate_node_capacity
+    );
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
 #[pyo3(
-    text_signature = "(htmls, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+    text_signature = "(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
 )]
+#[allow(clippy::too_many_arguments)]
 fn inline_many(
     htmls: &PyList,
+    inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
     base_url: Option<String>,
@@ -163,15 +181,15 @@ fn inline_many(
     extra_css: Option<&str>,
     preallocate_node_capacity: Option<usize>,
 ) -> PyResult<Vec<String>> {
-    let options = rust_inline::InlineOptions {
-        keep_style_tags: keep_style_tags.unwrap_or(false),
-        keep_link_tags: keep_link_tags.unwrap_or(false),
-        base_url: parse_url(base_url)?,
-        load_remote_stylesheets: load_remote_stylesheets.unwrap_or(true),
-        extra_css: extra_css.map(Cow::Borrowed),
-        preallocate_node_capacity: preallocate_node_capacity.unwrap_or(32),
-    };
-    let inliner = rust_inline::CSSInliner::new(options);
+    let inliner = inliner!(
+        inline_style_tags,
+        keep_style_tags,
+        keep_link_tags,
+        base_url,
+        load_remote_stylesheets,
+        extra_css,
+        preallocate_node_capacity
+    );
     inline_many_impl(&inliner, htmls)
 }
 

@@ -47,6 +47,7 @@ pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.
 #[derive(Debug)]
+#[allow(clippy::struct_excessive_bools)]
 pub struct InlineOptions<'a> {
     /// Whether to inline CSS from "style" tags.
     pub inline_style_tags: bool,
