@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2023-09-26
+
 ### Added
 
 - The `inline_style_tags` option to control whether inlining from "style" tags should be performed. [#253](https://github.com/Stranger6667/css-inline/issues/253)
@@ -318,7 +320,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.11.0...HEAD
+[0.11.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.5...rust-v0.11.0
 [0.10.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.4...rust-v0.10.5
 [0.10.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.3...rust-v0.10.4
 [0.10.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.10.2...rust-v0.10.3
