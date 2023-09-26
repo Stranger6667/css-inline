@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.11.0] - 2023-09-26
+
 ### Added
 
 - The `inline_style_tags` option to control whether inlining from "style" tags should be performed. [#253](https://github.com/Stranger6667/css-inline/issues/253)
@@ -201,7 +203,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.11.0...HEAD
+[0.11.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.5...wasm-v0.11.0
 [0.10.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.4...wasm-v0.10.5
 [0.10.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.3...wasm-v0.10.4
 [0.10.3]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.2...wasm-v0.10.3
