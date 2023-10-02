@@ -18,7 +18,7 @@ keywords = ["css", "html", "email", "stylesheet", "inlining"]
 authors = [
     { name = "Dmitry Dygalo", email = "dmitry@dygalo.dev" }
 ]
-license = { text = "MIT" }
+license = { file = "LICENSE" }
 classifiers=[
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
