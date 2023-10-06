@@ -72,7 +72,7 @@ impl From<(ParseError<'_, ()>, &str)> for InlineError {
                     Self::ParseError(Cow::Borrowed("Invalid qualified rule"))
                 }
             },
-            ParseErrorKind::Custom(_) => Self::ParseError(Cow::Borrowed("Unknown error")),
+            ParseErrorKind::Custom(()) => Self::ParseError(Cow::Borrowed("Unknown error")),
         };
     }
 }
