@@ -55,5 +55,5 @@ soupsieve==2.4.1
     # via beautifulsoup4
 toronado==0.1.0
     # via -r bench.in
-urllib3==2.0.6
+urllib3==2.0.7
     # via requests
