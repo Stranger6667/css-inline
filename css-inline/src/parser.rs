@@ -42,7 +42,8 @@ impl<'d, 'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'d, 'i> {
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
-        let parser = cssparser::DeclarationListParser::new(input, CSSDeclarationListParser);
+        let mut parser = CSSDeclarationListParser;
+        let parser = cssparser::RuleBodyParser::new(input, &mut parser);
         let start = self.0.len();
         for item in parser.flatten() {
             self.0.push(item);
@@ -76,5 +77,21 @@ impl<'d, 'i> cssparser::AtRuleParser<'i> for CSSRuleListParser<'d, 'i> {
 impl<'i> cssparser::AtRuleParser<'i> for CSSDeclarationListParser {
     type Prelude = String;
     type AtRule = Declaration<'i>;
+    type Error = ();
+}
+
+impl<'i> cssparser::RuleBodyItemParser<'i, Declaration<'i>, ()> for CSSDeclarationListParser {
+    fn parse_declarations(&self) -> bool {
+        true
+    }
+
+    fn parse_qualified(&self) -> bool {
+        true
+    }
+}
+
+impl<'i> cssparser::QualifiedRuleParser<'i> for CSSDeclarationListParser {
+    type Prelude = String;
+    type QualifiedRule = Declaration<'i>;
     type Error = ();
 }

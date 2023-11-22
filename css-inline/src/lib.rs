@@ -287,9 +287,9 @@ impl<'a> CSSInliner<'a> {
                 .max(16),
         );
         let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
-        for rule in cssparser::RuleListParser::new_for_stylesheet(
+        for rule in cssparser::StyleSheetParser::new(
             &mut parser,
-            parser::CSSRuleListParser::new(&mut declarations),
+            &mut parser::CSSRuleListParser::new(&mut declarations),
         )
         .flatten()
         {

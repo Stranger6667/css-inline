@@ -11,7 +11,7 @@ use selectors::SelectorImpl;
 pub(crate) struct InlinerSelectors;
 
 impl SelectorImpl for InlinerSelectors {
-    type ExtraMatchingData = ();
+    type ExtraMatchingData<'a> = std::marker::PhantomData<&'a ()>;
     type AttrValue = AttrValue;
     type Identifier = LocalName;
     type LocalName = LocalName;
