@@ -4,13 +4,14 @@ use super::{
     node::{ElementData, NodeData, NodeId},
     selectors::{AttrValue, InlinerSelectors, LocalName, PseudoClass, PseudoElement, Selector},
 };
+use core::fmt;
 use html5ever::{local_name, namespace_url, ns, Namespace, QualName};
 use selectors::{
     attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
     context::QuirksMode,
     matching, NthIndexCache, OpaqueElement,
 };
-use std::cmp::Ordering;
+use std::{cell::RefCell, cmp::Ordering, rc::Rc};
 
 /// A reference to an element node in a document.
 /// This structure is necessary for accessing and iterating over other nodes in the tree.
@@ -22,6 +23,16 @@ pub(crate) struct Element<'a> {
     pub(crate) node_id: NodeId,
     /// The specific data associated with the element.
     data: &'a ElementData,
+    cache: Cache,
+}
+
+#[derive(Default, Clone)]
+struct Cache(Rc<RefCell<NthIndexCache>>);
+
+impl fmt::Debug for Cache {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_tuple("Cache").finish()
+    }
 }
 
 impl<'a> Element<'a> {
@@ -34,6 +45,7 @@ impl<'a> Element<'a> {
             document,
             node_id,
             data,
+            cache: Cache::default(),
         }
     }
     /// Qualified name of the element.
@@ -73,7 +85,7 @@ impl<'a> Element<'a> {
             .and_then(|node_id| self.document.as_element(node_id))
     }
     pub(crate) fn matches(&self, selector: &Selector) -> bool {
-        let mut cache = NthIndexCache::default();
+        let mut cache = self.cache.0.borrow_mut();
         let mut context = matching::MatchingContext::new(
             matching::MatchingMode::Normal,
             None,
