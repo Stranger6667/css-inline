@@ -28,7 +28,7 @@ http = ["attohttpc"]
 file = []
 
 [dependencies]
-cssparser = "0.31.2"
+cssparser = "0.33.0"
 html5ever = "0.26.0"
 attohttpc = { version = "0.24", default-features = false, features = [
   "compress",
