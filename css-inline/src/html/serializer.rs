@@ -303,9 +303,8 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
     }
 
     fn end_elem(&mut self, name: &QualName) -> Result<(), InlineError> {
-        let info = match self.stack.pop() {
-            Some(info) => info,
-            _ => panic!("no ElemInfo"),
+        let Some(info) = self.stack.pop() else {
+            panic!("no ElemInfo")
         };
         if info.ignore_children {
             return Ok(());
