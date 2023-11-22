@@ -8,6 +8,7 @@
 
 ### Changed
 
+- Update `indexmap` to `2.1`.
 - Update `cssparser` to `0.31.2`.
 - Update `selectors` to `0.25`.
 - Bump MSRV to `1.65`.
