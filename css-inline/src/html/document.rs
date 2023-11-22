@@ -309,12 +309,12 @@ mod tests {
     #[test]
     fn test_collect_styles() {
         let doc = Document::parse_with_options(
-            r#"
+            r"
 <head>
   <style>h1 { color:blue; }</style>
   <style>h1 { color:red }</style>
   <style data-css-inline='ignore'>h1 { color:yellow; }</style>
-</head>"#
+</head>"
                 .as_bytes(),
             0,
         );
@@ -327,13 +327,13 @@ mod tests {
     #[test]
     fn test_collect_stylesheets() {
         let doc = Document::parse_with_options(
-            r#"
+            r"
 <head>
   <link href='styles1.css' rel='stylesheet' type='text/css'>
   <link href='styles2.css' rel='stylesheet' type='text/css'>
   <link href='' rel='stylesheet' type='text/css'>
   <link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'>
-</head>"#
+</head>"
                 .as_bytes(),
             0,
         );

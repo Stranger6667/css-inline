@@ -432,8 +432,8 @@ fn merge_styles<Wr: Write>(
     // We start by parsing the current declarations in the "style" attribute
     let mut parser_input = cssparser::ParserInput::new(current_style);
     let mut parser = cssparser::Parser::new(&mut parser_input);
-    let current_declarations =
-        cssparser::DeclarationListParser::new(&mut parser, parser::CSSDeclarationListParser);
+    let mut declaration_parser = parser::CSSDeclarationListParser;
+    let current_declarations = cssparser::RuleBodyParser::new(&mut parser, &mut declaration_parser);
     // We manually manage the length of our buffer. The buffer may contain slots used
     // in previous runs, and we want to access only the portion that we build in this iteration
     let mut parsed_declarations_count: usize = 0;

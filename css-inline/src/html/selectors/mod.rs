@@ -12,7 +12,7 @@ pub(super) use pseudo_elements::PseudoElement;
 pub(super) use selector_impl::InlinerSelectors;
 
 use selectors::{
-    parser::{Selector as GenericSelector, SelectorParseErrorKind},
+    parser::{ParseRelative, Selector as GenericSelector, SelectorParseErrorKind},
     SelectorList,
 };
 use smallvec::SmallVec;
@@ -42,7 +42,7 @@ pub(crate) type ParseError<'i> = cssparser::ParseError<'i, SelectorParseErrorKin
 fn parse(selectors: &str) -> Result<SelectorList<InlinerSelectors>, ParseError<'_>> {
     let mut input = cssparser::ParserInput::new(selectors);
     let parser = &mut cssparser::Parser::new(&mut input);
-    SelectorList::parse(&parser::SelectorParser, parser)
+    SelectorList::parse(&parser::SelectorParser, parser, ParseRelative::No)
 }
 
 impl Selectors {

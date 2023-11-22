@@ -8,7 +8,7 @@ use html5ever::{local_name, namespace_url, ns, Namespace, QualName};
 use selectors::{
     attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
     context::QuirksMode,
-    matching, OpaqueElement,
+    matching, NthIndexCache, OpaqueElement,
 };
 use std::cmp::Ordering;
 
@@ -73,13 +73,16 @@ impl<'a> Element<'a> {
             .and_then(|node_id| self.document.as_element(node_id))
     }
     pub(crate) fn matches(&self, selector: &Selector) -> bool {
+        let mut cache = NthIndexCache::default();
         let mut context = matching::MatchingContext::new(
             matching::MatchingMode::Normal,
             None,
-            None,
+            &mut cache,
             QuirksMode::NoQuirks,
+            matching::NeedsSelectorFlags::No,
+            matching::IgnoreNthChildForInvalidation::No,
         );
-        matching::matches_selector(selector, 0, None, self, &mut context, &mut |_, _| {})
+        matching::matches_selector(selector, 0, None, self, &mut context)
     }
 }
 
@@ -167,15 +170,11 @@ impl<'a> selectors::Element for Element<'a> {
     }
 
     #[allow(clippy::enum_glob_use)]
-    fn match_non_ts_pseudo_class<F>(
+    fn match_non_ts_pseudo_class(
         &self,
         pseudo: &PseudoClass,
         _context: &mut matching::MatchingContext<'_, InlinerSelectors>,
-        _flags_setter: &mut F,
-    ) -> bool
-    where
-        F: FnMut(&Self, matching::ElementSelectorFlags),
-    {
+    ) -> bool {
         use self::PseudoClass::*;
         match *pseudo {
             Active | Focus | Hover | Enabled | Disabled | Checked | Indeterminate | Visited => {
@@ -269,4 +268,12 @@ impl<'a> selectors::Element for Element<'a> {
             Some(node_id) => matches!(self.document[node_id].data, NodeData::Document),
         }
     }
+
+    fn first_element_child(&self) -> Option<Self> {
+        self.document[self.node_id]
+            .first_child
+            .and_then(|node_id| self.document.as_element(node_id))
+    }
+
+    fn apply_selector_flags(&self, _: matching::ElementSelectorFlags) {}
 }

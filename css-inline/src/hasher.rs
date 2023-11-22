@@ -57,7 +57,7 @@ mod tests {
                     use std::hash::Hasher;
 
                     #[test]
-                    #[should_panic]
+                    #[should_panic(expected = "Should not be used")]
                     fn test_panic() {
                         let mut hasher = NoHashHasher::default();
                         hasher.$method(42);
@@ -80,7 +80,7 @@ mod tests {
     );
 
     #[test]
-    #[should_panic]
+    #[should_panic(expected = "Should not be used")]
     fn test_panic_write() {
         let mut hasher = NoHashHasher::default();
         hasher.write(b"a");

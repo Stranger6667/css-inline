@@ -113,6 +113,14 @@ impl TryFrom<Options> for rust_inline::InlineOptions<'_> {
 }
 
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
+///
+/// # Errors
+///
+/// Inlining might fail for the following reasons:
+///   - Missing stylesheet file;
+///   - Remote stylesheet is not available;
+///   - IO errors;
+///   - Internal CSS selector parsing error;
 #[wasm_bindgen(skip_typescript)]
 pub fn inline(html: &str, options: JsValue) -> Result<String, JsValue> {
     let options: Options = if options.is_undefined() {
