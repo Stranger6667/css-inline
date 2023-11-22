@@ -2,8 +2,14 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `getrandom` dependency features.
+
 ### Changed
 
+- Update `cssparser` to `0.31.2`.
+- Update `selectors` to `0.25`.
 - Bump MSRV to `1.65`.
 
 ## [0.11.0] - 2023-09-26
