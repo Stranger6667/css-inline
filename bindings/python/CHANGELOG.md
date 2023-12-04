@@ -5,6 +5,7 @@
 ### Added
 
 - Python 3.12 support.
+- Build wheels for Python 3.10 on PyPy.
 
 ### Changed
 
