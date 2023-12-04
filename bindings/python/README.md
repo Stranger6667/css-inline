@@ -170,17 +170,17 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.10.4` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|             | Size    | `css_inline 0.11.1` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
 |-------------|---------|---------------------|-------------------------|-------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 6.58 µs             | 130.45 µs  (**19.82x**) | 671.87 µs  (**102.06**) | 1.05 ms  (**161.00**)   | 1.23 ms  (**187.51x**)  |
-| Realistic-1 | 8.58 KB | 146.20 µs           | 1.42 ms  (**9.71x**)    | 16.56 ms  (**113.29x**) | 27.45 ms  (**187.78x**) | 51.85 ms  (**354.66x**) |
-| Realistic-2 | 4.3 KB  | 87.91 µs            | 2.71 ms  (**30.90x**)   | ERROR                   | 18.07 ms  (**205.64x**) | ERROR                   |
-| GitHub page | 1.81 MB | 262.74 ms           | 25.38 s  (**96.63x**)   | ERROR                   | ERROR                   | ERROR                   |
+| Basic       | 230 B   | 6.62 µs             | 127.54 µs  (**19.25x**) | 661.58 µs  (**99.86**)  | 1.04 ms  (**157.91**)   | 1.13 ms  (**180.99x**)  |
+| Realistic-1 | 8.58 KB | 145.58 µs           | 1.47 ms  (**10.10x**)   | 17.07 ms  (**117.26x**) | 28.22 ms  (**193.88x**) | 52.96 ms  (**363.81x**) |
+| Realistic-2 | 4.3 KB  | 94.20 µs            | 2.67 ms  (**28.36x**)   | ERROR                   | 17.95 ms  (**190.59x**) | ERROR                   |
+| GitHub page | 1.81 MB | 338.88 ms           | 25.58 s  (**75.49x**)   | ERROR                   | ERROR                   | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado`, `inlinestyler` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
-The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.71.1` on Python `3.11.4`.
+The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.74` on Python `3.11.6`.
 
 ## Comparison with other libraries
 
