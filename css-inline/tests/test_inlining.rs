@@ -224,6 +224,17 @@ fn font_family_quoted() {
 }
 
 #[test]
+fn other_property_quoted() {
+    // When property value contains double quotes
+    assert_inlined!(
+        style = r#"h1 { --bs-font-sant-serif: system-ui,-applie-system,"helvetica neue"; }"#,
+        body = r#"<h1>Hello world!</h1>"#,
+        // Then it should be replaced with single quotes
+        expected = r#"<h1 style="--bs-font-sant-serif: system-ui,-applie-system,'helvetica neue';">Hello world!</h1>"#
+    )
+}
+
+#[test]
 fn href_attribute_unchanged() {
     // All HTML attributes should be serialized as is
     let html = r#"<html>
