@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Python 3.12 support.
+
 ### Changed
 
 - Update `indexmap` to `2.1`.
