@@ -92,7 +92,8 @@ macro_rules! inliner {
 
 #[pymethods]
 impl CSSInliner {
-    #[new(
+    #[new]
+    #[pyo3(
         text_signature = "(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
     )]
     fn new(
