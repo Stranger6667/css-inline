@@ -2,16 +2,21 @@
 
 ## [Unreleased]
 
-### Fixed
-
-- `getrandom` dependency features.
-
 ### Changed
 
 - Update `indexmap` to `2.1`.
 - Update `cssparser` to `0.31.2`.
 - Update `selectors` to `0.25`.
 - Bump MSRV to `1.65`.
+
+### Fixed
+
+- `getrandom` dependency features.
+- Replace double quotes in all property values.
+
+### Performance
+
+- Avoid allocation when replacing double quotes in property values.
 
 ## [0.11.0] - 2023-09-26
 

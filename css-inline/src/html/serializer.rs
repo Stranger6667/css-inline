@@ -366,20 +366,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         Ok(())
     }
 }
-/// Replace double quotes in property values.
-///
-/// This implementation is deliberately simplistic and covers only `font-family`, but escaping
-/// might be needed in other properties that accept strings.
-macro_rules! replace_double_quotes {
-    ($writer:expr, $name:expr, $value:expr) => {
-        // Avoid allocation if there is no double quote in the input string
-        if $name.starts_with("font-family") && $value.as_bytes().contains(&b'"') {
-            $writer.write_all(&$value.replace('"', "\'").as_bytes())?
-        } else {
-            $writer.write_all($value.as_bytes())?
-        };
-    };
-}
+
 const STYLE_SEPARATOR: &[u8] = b": ";
 
 #[inline]
@@ -390,7 +377,29 @@ fn write_declaration<Wr: Write>(
 ) -> Result<(), InlineError> {
     writer.write_all(name.as_bytes())?;
     writer.write_all(STYLE_SEPARATOR)?;
-    replace_double_quotes!(writer, name, value.trim());
+    let value = value.trim();
+    if value.as_bytes().contains(&b'"') {
+        // Roughly based on `str::replace`
+        let mut last_end = 0;
+        for (start, part) in value.match_indices('"') {
+            writer.write_all(
+                value
+                    .get(last_end..start)
+                    .expect("Invalid substring")
+                    .as_bytes(),
+            )?;
+            writer.write_all(b"'")?;
+            last_end = start.checked_add(part.len()).expect("Size overflow");
+        }
+        writer.write_all(
+            value
+                .get(last_end..value.len())
+                .expect("Invalid substring")
+                .as_bytes(),
+        )?;
+    } else {
+        writer.write_all(value.as_bytes())?;
+    };
     Ok(())
 }
 

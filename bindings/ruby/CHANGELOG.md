@@ -9,6 +9,14 @@
 - Update `selectors` to `0.25`.
 - Bump MSRV to `1.65`.
 
+### Fixed
+
+- Replace double quotes in all property values.
+
+### Performance
+
+- Avoid allocation when replacing double quotes in property values.
+
 ## [0.11.0] - 2023-09-26
 
 ### Added
