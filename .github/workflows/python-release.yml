@@ -154,8 +154,8 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          manylinux: auto
-          args: --release -m bindings/python/Cargo.toml  --no-default-features --out dist
+          manylinux: 2_24
+          args: --release -m bindings/python/Cargo.toml --no-default-features --out dist
       - uses: uraimo/run-on-arch-action@v2.0.5
         name: Install built wheel
         with:
@@ -199,7 +199,7 @@ jobs:
           options: -v ${{ github.workspace }}:/io -w /io
           run: |
             apk add py3-pip
-            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links /io/dist/ --force-reinstall
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links /io/dist/ --force-reinstall --break-system-packages
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
@@ -226,7 +226,7 @@ jobs:
           target: ${{ matrix.platform.target }}
           manylinux: musllinux_1_2
           args: --release -m bindings/python/Cargo.toml --out dist
-      - uses: uraimo/run-on-arch-action@master
+      - uses: uraimo/run-on-arch-action@v2.6.0
         name: Install built wheel
         with:
           arch: ${{ matrix.platform.arch }}
@@ -235,7 +235,7 @@ jobs:
           install: |
             apk add py3-pip
           run: |
-            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall --break-system-packages
       - name: Upload wheels
         uses: actions/upload-artifact@v2
         with:
@@ -265,7 +265,7 @@ jobs:
         uses: messense/maturin-action@v1
         with:
           target: ${{ matrix.target }}
-          manylinux: auto
+          manylinux: 2_24
           args: --release -m bindings/python/Cargo.toml --out dist -i pypy${{ matrix.python-version }}
       - name: Install built wheel
         if: matrix.target == 'x86_64'
