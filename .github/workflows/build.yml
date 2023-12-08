@@ -183,8 +183,7 @@ jobs:
         os: [
           ubuntu-22.04,
           macos-12,
-          # Temporary disabled due to compiler errors on newer windows-2022 image
-          # windows-2022
+          windows-2022
         ]
         ruby-version: ['2.7', '3.2']
 
