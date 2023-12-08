@@ -162,11 +162,6 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: bindings/python
-          key: ${{ matrix.os }}-${{ matrix.python-version }}
-
       - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
