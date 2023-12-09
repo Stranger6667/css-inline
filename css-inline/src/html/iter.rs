@@ -5,6 +5,8 @@ use super::{
     selectors::{ParseError, Selectors},
     Specificity,
 };
+use selectors::NthIndexCache;
+use std::cell::RefCell;
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
@@ -24,18 +26,18 @@ pub(crate) fn select<'a, 'b>(
 /// An internal iterator that traverses a document.
 struct Elements<'a> {
     document: &'a Document,
-    iter: std::slice::Iter<'a, NodeId>,
+    iter: std::slice::Iter<'a, (NodeId, RefCell<NthIndexCache>)>,
 }
 
 impl<'a> Iterator for Elements<'a> {
-    type Item = Element<'a>;
+    type Item = (Element<'a>, &'a RefCell<NthIndexCache>);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if let Some(element_id) = self.iter.next() {
+        if let Some((element_id, cache)) = self.iter.next() {
             let NodeData::Element { element, .. } = &self.document[*element_id].data else {
                 unreachable!("Element ids always point to element nodes")
             };
-            Some(Element::new(self.document, *element_id, element))
+            Some((Element::new(self.document, *element_id, element), cache))
         } else {
             // No more elements in the document
             None
@@ -64,9 +66,10 @@ impl<'a> Iterator for Select<'a> {
     #[inline]
     fn next(&mut self) -> Option<Element<'a>> {
         // Filter the underlying iterator to only return elements that match any of the selectors
-        for element in self.elements.by_ref() {
+        for (element, cache) in self.elements.by_ref() {
+            let mut cache = cache.borrow_mut();
             for selector in self.selectors.iter() {
-                if element.matches(selector) {
+                if element.matches(selector, &mut cache) {
                     return Some(element);
                 }
             }

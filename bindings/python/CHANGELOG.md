@@ -5,6 +5,7 @@
 ### Performance
 
 - Avoid iterating over non-Element nodes.
+- Reuse caches for nth index selectors.
 
 ## [0.11.1] - 2023-12-09
 
