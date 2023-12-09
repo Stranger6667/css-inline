@@ -170,17 +170,17 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.11.1` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
+|             | Size    | `css_inline 0.11.2` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
 |-------------|---------|---------------------|-------------------------|-------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 6.62 µs             | 127.54 µs  (**19.25x**) | 661.58 µs  (**99.86x**) | 1.04 ms  (**157.91x**)  | 1.13 ms  (**180.99x**)  |
-| Realistic-1 | 8.58 KB | 145.58 µs           | 1.47 ms  (**10.10x**)   | 17.07 ms  (**117.26x**) | 28.22 ms  (**193.88x**) | 52.96 ms  (**363.81x**) |
-| Realistic-2 | 4.3 KB  | 94.20 µs            | 2.67 ms  (**28.36x**)   | ERROR                   | 17.95 ms  (**190.59x**) | ERROR                   |
+| Basic       | 230 B   | 6.75 µs             | 131.50 µs  (**19.48x**) | 666.20 µs  (**98.70x**) | 1.05 ms  (**155.82x**)  | 1.20 ms  (**178.63x**)  |
+| Realistic-1 | 8.58 KB | 138.79 µs           | 1.43 ms  (**10.34x**)   | 16.52 ms  (**119.07x**) | 27.59 ms  (**198.85x**) | 51.74 ms  (**372.84x**) |
+| Realistic-2 | 4.3 KB  | 86.95 µs            | 2.69 ms  (**31.03x**)   | ERROR                   | 18.06 ms  (**207.76x**) | ERROR                   |
 | GitHub page | 1.81 MB | 338.88 ms           | 25.58 s  (**75.49x**)   | ERROR                   | ERROR                   | ERROR                   |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado`, `inlinestyler` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
-The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.74` on Python `3.11.6`.
+The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.74.1` on Python `3.11.6`.
 
 ## Comparison with other libraries
 
