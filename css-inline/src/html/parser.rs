@@ -40,10 +40,12 @@ impl Sink {
         attributes: Vec<Attribute>,
         inlining_ignored: bool,
     ) -> NodeId {
-        self.push_node(NodeData::Element {
+        let node_id = self.push_node(NodeData::Element {
             element: ElementData::new(name, attributes),
             inlining_ignored,
-        })
+        });
+        self.document.push_element_id(node_id);
+        node_id
     }
 
     fn push_text(&mut self, text: StrTendril) -> NodeId {

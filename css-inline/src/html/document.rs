@@ -38,6 +38,8 @@ use std::{io::Write, iter::successors};
 #[derive(Debug)]
 pub(crate) struct Document {
     pub(crate) nodes: Vec<Node>,
+    /// Ids of Element nodes.
+    pub(crate) elements: Vec<NodeId>,
     /// Ids of `style` nodes.
     styles: Vec<NodeId>,
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
@@ -57,6 +59,7 @@ impl Document {
         nodes.reserve(capacity);
         Document {
             nodes,
+            elements: Vec::with_capacity(capacity),
             styles: Vec::new(),
             linked_stylesheets: Vec::new(),
         }
@@ -104,6 +107,11 @@ impl Document {
         let next_index = self.nodes.len();
         self.nodes.push(Node::new(node));
         NodeId::new(next_index)
+    }
+
+    #[inline]
+    pub(super) fn push_element_id(&mut self, node: NodeId) {
+        self.elements.push(node);
     }
 
     /// Detach a node from its siblings and its parent.
