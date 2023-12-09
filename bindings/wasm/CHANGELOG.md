@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.11.1] - 2023-12-09
+
 ### Changed
 
 - Update `indexmap` to `2.1`.
@@ -219,7 +221,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.11.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.11.1...HEAD
+[0.11.1]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.11.0...wasm-v0.11.1
 [0.11.0]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.5...wasm-v0.11.0
 [0.10.5]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.4...wasm-v0.10.5
 [0.10.4]: https://github.com/Stranger6667/css-inline/compare/wasm-v0.10.3...wasm-v0.10.4
