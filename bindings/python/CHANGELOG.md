@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.11.1] - 2023-12-09
+
 ### Added
 
 - Python 3.12 support.
@@ -356,7 +358,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.11.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.11.1...HEAD
+[0.11.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.11.0...python-v0.11.1
 [0.11.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.10.5...python-v0.11.0
 [0.10.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.10.4...python-v0.10.5
 [0.10.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.10.3...python-v0.10.4

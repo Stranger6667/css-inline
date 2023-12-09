@@ -194,7 +194,7 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 
 ## Python support
 
-`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11 and PyPy 3.7, 3.8, 3.9.
+`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11, 3.12 and PyPy 3.7, 3.8, 3.9, 3.10.
 
 ## Further reading
 
