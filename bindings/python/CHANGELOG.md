@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Avoid iterating over non-Element nodes.
+
 ## [0.11.1] - 2023-12-09
 
 ### Added

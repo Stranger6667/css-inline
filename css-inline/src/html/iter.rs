@@ -1,11 +1,10 @@
 use super::{
     document::Document,
     element::Element,
-    node::{Node, NodeData, NodeId},
+    node::{NodeData, NodeId},
     selectors::{ParseError, Selectors},
     Specificity,
 };
-use std::iter::{Enumerate, Skip};
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
@@ -16,8 +15,7 @@ pub(crate) fn select<'a, 'b>(
     Selectors::compile(selectors).map(|selectors| Select {
         elements: Elements {
             document,
-            // Skip the dummy & document nodes
-            iter: document.nodes.iter().enumerate().skip(2),
+            iter: document.elements.iter(),
         },
         selectors,
     })
@@ -26,24 +24,21 @@ pub(crate) fn select<'a, 'b>(
 /// An internal iterator that traverses a document.
 struct Elements<'a> {
     document: &'a Document,
-    iter: Skip<Enumerate<std::slice::Iter<'a, Node>>>,
+    iter: std::slice::Iter<'a, NodeId>,
 }
 
 impl<'a> Iterator for Elements<'a> {
     type Item = Element<'a>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // Loop until we either run out of nodes or find an element node
-        loop {
-            if let Some((id, node)) = self.iter.next() {
-                // If the current node is an element node, return it, else continue with the loop
-                if let NodeData::Element { element, .. } = &node.data {
-                    return Some(Element::new(self.document, NodeId::new(id), element));
-                }
-            } else {
-                // No more elements in the document
-                return None;
-            }
+        if let Some(element_id) = self.iter.next() {
+            let NodeData::Element { element, .. } = &self.document[*element_id].data else {
+                unreachable!("Element ids always point to element nodes")
+            };
+            Some(Element::new(self.document, *element_id, element))
+        } else {
+            // No more elements in the document
+            None
         }
     }
 }
