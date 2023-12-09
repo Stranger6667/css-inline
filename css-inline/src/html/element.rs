@@ -72,12 +72,11 @@ impl<'a> Element<'a> {
             .next_sibling
             .and_then(|node_id| self.document.as_element(node_id))
     }
-    pub(crate) fn matches(&self, selector: &Selector) -> bool {
-        let mut cache = NthIndexCache::default();
+    pub(crate) fn matches(&self, selector: &Selector, cache: &mut NthIndexCache) -> bool {
         let mut context = matching::MatchingContext::new(
             matching::MatchingMode::Normal,
             None,
-            &mut cache,
+            cache,
             QuirksMode::NoQuirks,
             matching::NeedsSelectorFlags::No,
             matching::IgnoreNthChildForInvalidation::No,

@@ -8,7 +8,8 @@ use super::{
 };
 use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::local_name;
-use std::{io::Write, iter::successors};
+use selectors::NthIndexCache;
+use std::{cell::RefCell, fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// HTML document representation.
 ///
@@ -35,16 +36,26 @@ use std::{io::Write, iter::successors};
 ///
 /// Each Node within the `Document` is interconnected with its siblings, and has a parent-child
 /// relationship with its descendants.
-#[derive(Debug)]
 pub(crate) struct Document {
     pub(crate) nodes: Vec<Node>,
-    /// Ids of Element nodes.
-    pub(crate) elements: Vec<NodeId>,
+    /// Ids of Element nodes & caches for their nth index selectors.
+    pub(crate) elements: Vec<(NodeId, RefCell<NthIndexCache>)>,
     /// Ids of `style` nodes.
     styles: Vec<NodeId>,
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
     /// They represent the locations (URLs) of all linked stylesheet resources in the document.
     linked_stylesheets: Vec<NodeId>,
+}
+
+impl fmt::Debug for Document {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Document")
+            .field("nodes", &self.nodes)
+            .field("styles", &self.styles)
+            .field("linked_stylesheets", &self.linked_stylesheets)
+            .finish_non_exhaustive()?;
+        Ok(())
+    }
 }
 
 impl Document {
@@ -111,7 +122,7 @@ impl Document {
 
     #[inline]
     pub(super) fn push_element_id(&mut self, node: NodeId) {
-        self.elements.push(node);
+        self.elements.push((node, RefCell::default()));
     }
 
     /// Detach a node from its siblings and its parent.
