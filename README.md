@@ -40,6 +40,7 @@ into:
 - Resolves external stylesheets (including local files)
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
+- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/wasm) and [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c)
 
 ## Installation
 
@@ -148,15 +149,6 @@ Benchmarks for `css-inline==0.11.2`:
 - GitHub page: **265.26 ms**, 1.81 MB
 
 These benchmarks, conducted using `rustc 1.74.1`, can be found in `css-inline/benches/inliner.rs`.
-
-## Bindings
-
-`css-inline` is primarily a Rust library, but we also provide bindings for several other languages:
-
-- [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c)
-- [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python)
-- [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby)
-- [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/wasm)
 
 ## Command Line Interface
 
