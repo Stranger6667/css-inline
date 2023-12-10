@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Optimize serialization of attributes and text nodes.
+
 ## [0.11.2] - 2023-12-09
 
 ### Performance
