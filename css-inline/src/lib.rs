@@ -295,11 +295,13 @@ impl<'a> CSSInliner<'a> {
         {
             rule_list.push(rule);
         }
+        let mut caches = document.caches();
+        let mut contexts = document.matching_contexts(&mut caches);
         for (selectors, (start, end)) in &rule_list {
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
             for selector in selectors.split(',') {
-                if let Ok(matching_elements) = document.select(selector) {
+                if let Ok(matching_elements) = document.select(selector, &mut contexts) {
                     let specificity = matching_elements.specificity();
                     for matching_element in matching_elements {
                         let element_styles =

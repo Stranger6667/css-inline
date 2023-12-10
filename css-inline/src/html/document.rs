@@ -6,10 +6,13 @@ use super::{
     selectors::ParseError,
     serializer::serialize_to,
 };
-use crate::{html::DocumentStyleMap, InlineError};
+use crate::{
+    html::{selectors::InlinerSelectors, DocumentStyleMap},
+    InlineError,
+};
 use html5ever::local_name;
-use selectors::NthIndexCache;
-use std::{cell::RefCell, fmt, fmt::Formatter, io::Write, iter::successors};
+use selectors::{context::QuirksMode, matching, matching::MatchingContext, NthIndexCache};
+use std::{fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// HTML document representation.
 ///
@@ -39,7 +42,7 @@ use std::{cell::RefCell, fmt, fmt::Formatter, io::Write, iter::successors};
 pub(crate) struct Document {
     pub(crate) nodes: Vec<Node>,
     /// Ids of Element nodes & caches for their nth index selectors.
-    pub(crate) elements: Vec<(NodeId, RefCell<NthIndexCache>)>,
+    pub(crate) elements: Vec<NodeId>,
     /// Ids of `style` nodes.
     styles: Vec<NodeId>,
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
@@ -122,7 +125,7 @@ impl Document {
 
     #[inline]
     pub(super) fn push_element_id(&mut self, node: NodeId) {
-        self.elements.push((node, RefCell::default()));
+        self.elements.push(node);
     }
 
     /// Detach a node from its siblings and its parent.
@@ -279,11 +282,37 @@ impl Document {
     }
 
     /// Filter this node iterator to elements matching the given selectors.
-    pub(crate) fn select<'a, 'b>(
+    pub(crate) fn select<'a: 'c, 'b, 'c>(
         &'a self,
         selectors: &'b str,
-    ) -> Result<Select<'a>, ParseError<'b>> {
-        select(self, selectors)
+        matching_contexts: &'c mut [MatchingContext<'a, InlinerSelectors>],
+    ) -> Result<Select<'a, 'c>, ParseError<'b>> {
+        select(self, selectors, matching_contexts)
+    }
+    pub(crate) fn caches(&self) -> Vec<NthIndexCache> {
+        let mut caches = Vec::with_capacity(self.elements.len());
+        for _ in 0..self.elements.len() {
+            caches.push(NthIndexCache::default());
+        }
+        caches
+    }
+    pub(crate) fn matching_contexts<'a>(
+        &'a self,
+        caches: &'a mut [NthIndexCache],
+    ) -> Vec<MatchingContext<'a, InlinerSelectors>> {
+        let mut contexts = Vec::with_capacity(self.elements.len());
+        for cache in caches {
+            contexts.push(MatchingContext::new(
+                matching::MatchingMode::Normal,
+                None,
+                cache,
+                QuirksMode::NoQuirks,
+                matching::NeedsSelectorFlags::No,
+                matching::IgnoreNthChildForInvalidation::No,
+            ));
+        }
+
+        contexts
     }
 }
 

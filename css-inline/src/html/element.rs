@@ -7,8 +7,7 @@ use super::{
 use html5ever::{local_name, namespace_url, ns, Namespace, QualName};
 use selectors::{
     attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
-    context::QuirksMode,
-    matching, NthIndexCache, OpaqueElement,
+    matching, OpaqueElement,
 };
 use std::cmp::Ordering;
 
@@ -72,16 +71,12 @@ impl<'a> Element<'a> {
             .next_sibling
             .and_then(|node_id| self.document.as_element(node_id))
     }
-    pub(crate) fn matches(&self, selector: &Selector, cache: &mut NthIndexCache) -> bool {
-        let mut context = matching::MatchingContext::new(
-            matching::MatchingMode::Normal,
-            None,
-            cache,
-            QuirksMode::NoQuirks,
-            matching::NeedsSelectorFlags::No,
-            matching::IgnoreNthChildForInvalidation::No,
-        );
-        matching::matches_selector(selector, 0, None, self, &mut context)
+    pub(crate) fn matches(
+        &self,
+        selector: &Selector,
+        context: &mut matching::MatchingContext<'_, InlinerSelectors>,
+    ) -> bool {
+        matching::matches_selector(selector, 0, None, self, context)
     }
 }
 
