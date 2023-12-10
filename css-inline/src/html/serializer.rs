@@ -156,37 +156,51 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
     }
 
     fn write_escaped(&mut self, text: &str) -> Result<(), InlineError> {
-        // UTF-8 characters are maximum 4 bytes wide.
-        let mut buffer = [0u8; 4];
-        for c in text.chars() {
-            match c {
-                '&' => self.writer.write_all(b"&amp;"),
-                '\u{00A0}' => self.writer.write_all(b"&nbsp;"),
-                '<' => self.writer.write_all(b"&lt;"),
-                '>' => self.writer.write_all(b"&gt;"),
-                c => {
-                    let slice = c.encode_utf8(&mut buffer);
-                    self.writer.write_all(slice.as_bytes())
-                }
-            }?;
+        let mut last_end = 0;
+        for (start, part) in text.match_indices(['&', '\u{00A0}', '<', '>']) {
+            self.writer.write_all(
+                text.get(last_end..start)
+                    .expect("Invalid substring")
+                    .as_bytes(),
+            )?;
+            match part {
+                "&" => self.writer.write_all(b"&amp;")?,
+                "\u{00A0}" => self.writer.write_all(b"&nbsp;")?,
+                "<" => self.writer.write_all(b"&lt;")?,
+                ">" => self.writer.write_all(b"&gt;")?,
+                _ => unreachable!("Only the variants above are searched"),
+            };
+            last_end = start.checked_add(part.len()).expect("Size overflow");
         }
+        self.writer.write_all(
+            text.get(last_end..text.len())
+                .expect("Invalid substring")
+                .as_bytes(),
+        )?;
         Ok(())
     }
 
     fn write_attributes(&mut self, text: &str) -> Result<(), InlineError> {
-        // UTF-8 characters are maximum 4 bytes wide.
-        let mut buffer = [0u8; 4];
-        for c in text.chars() {
-            match c {
-                '&' => self.writer.write_all(b"&amp;"),
-                '\u{00A0}' => self.writer.write_all(b"&nbsp;"),
-                '"' => self.writer.write_all(b"&quot;"),
-                c => {
-                    let slice = c.encode_utf8(&mut buffer);
-                    self.writer.write_all(slice.as_bytes())
-                }
-            }?;
+        let mut last_end = 0;
+        for (start, part) in text.match_indices(['&', '\u{00A0}', '"']) {
+            self.writer.write_all(
+                text.get(last_end..start)
+                    .expect("Invalid substring")
+                    .as_bytes(),
+            )?;
+            match part {
+                "&" => self.writer.write_all(b"&amp;")?,
+                "\u{00A0}" => self.writer.write_all(b"&nbsp;")?,
+                "\"" => self.writer.write_all(b"&quot;")?,
+                _ => unreachable!("Only the variants above are searched"),
+            };
+            last_end = start.checked_add(part.len()).expect("Size overflow");
         }
+        self.writer.write_all(
+            text.get(last_end..text.len())
+                .expect("Invalid substring")
+                .as_bytes(),
+        )?;
         Ok(())
     }
 
@@ -548,5 +562,29 @@ mod tests {
         doc.serialize(&mut buffer, IndexMap::default(), false, false)
             .expect("Should not fail");
         assert_eq!(buffer, b"<html><head></head><body></body></html>");
+    }
+
+    #[test]
+    fn test_escaped() {
+        let doc = Document::parse_with_options(
+            b"<!DOCTYPE html><html><head><title>& < > \xC2\xA0</title></head><body></body></html>",
+            0,
+        );
+        let mut buffer = Vec::new();
+        doc.serialize(&mut buffer, IndexMap::default(), false, false)
+            .expect("Should not fail");
+        assert_eq!(buffer, b"<!DOCTYPE html><html><head><title>&amp; &lt; &gt; &nbsp;</title></head><body></body></html>");
+    }
+
+    #[test]
+    fn test_attributes() {
+        let doc = Document::parse_with_options(
+            b"<!DOCTYPE html><html><head></head><body data-foo='& \xC2\xA0 \"'></body></html>",
+            0,
+        );
+        let mut buffer = Vec::new();
+        doc.serialize(&mut buffer, IndexMap::default(), false, false)
+            .expect("Should not fail");
+        assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
     }
 }
