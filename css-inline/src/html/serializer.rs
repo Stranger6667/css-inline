@@ -121,7 +121,6 @@ impl<'a> Sink<'a> {
     }
 }
 
-#[derive(Default)]
 struct ElemInfo {
     html_name: Option<LocalName>,
     ignore_children: bool,
@@ -383,6 +382,14 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
 
 const STYLE_SEPARATOR: &[u8] = b": ";
 
+fn requires_escaping(haystack: &[u8]) -> bool {
+    if haystack.len() < 16 {
+        haystack.contains(&b'"')
+    } else {
+        memchr::memchr(b'"', haystack).is_some()
+    }
+}
+
 #[inline]
 fn write_declaration<Wr: Write>(
     writer: &mut Wr,
@@ -392,7 +399,7 @@ fn write_declaration<Wr: Write>(
     writer.write_all(name.as_bytes())?;
     writer.write_all(STYLE_SEPARATOR)?;
     let value = value.trim();
-    if value.as_bytes().contains(&b'"') {
+    if requires_escaping(value.as_bytes()) {
         // Roughly based on `str::replace`
         let mut last_end = 0;
         for (start, part) in value.match_indices('"') {

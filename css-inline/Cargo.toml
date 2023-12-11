@@ -28,27 +28,28 @@ http = ["attohttpc"]
 file = []
 
 [dependencies]
-cssparser = "0.31.2"
-html5ever = "0.26.0"
 attohttpc = { version = "0.24", default-features = false, features = [
   "compress",
   "tls-rustls",
 ], optional = true }
-url = "2"
-smallvec = "1"
+cssparser = "0.31.2"
+html5ever = "0.26.0"
 indexmap = "2.1"
+memchr = "2.6.4"
 pico-args = { version = "0.3", optional = true }
 rayon = { version = "1.7", optional = true }
 rustc-hash = "1.1.0"
 selectors = "0.25.0"
+smallvec = "1"
+url = "2"
 
 [dev-dependencies]
 assert_cmd = "2.0.6"
+codspeed-criterion-compat = "2.1.0"
 criterion = { version = "0.5.1", features = [], default-features = false }
-test-case = "3.1.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-codspeed-criterion-compat = "2.1.0"
+test-case = "3.1.0"
 
 [[bench]]
 name = "inliner"
