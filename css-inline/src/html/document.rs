@@ -9,7 +9,7 @@ use super::{
 use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::local_name;
 use selectors::NthIndexCache;
-use std::{cell::RefCell, fmt, fmt::Formatter, io::Write, iter::successors};
+use std::{fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// HTML document representation.
 ///
@@ -39,7 +39,7 @@ use std::{cell::RefCell, fmt, fmt::Formatter, io::Write, iter::successors};
 pub(crate) struct Document {
     pub(crate) nodes: Vec<Node>,
     /// Ids of Element nodes & caches for their nth index selectors.
-    pub(crate) elements: Vec<(NodeId, RefCell<NthIndexCache>)>,
+    pub(crate) elements: Vec<NodeId>,
     /// Ids of `style` nodes.
     styles: Vec<NodeId>,
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
@@ -122,7 +122,7 @@ impl Document {
 
     #[inline]
     pub(super) fn push_element_id(&mut self, node: NodeId) {
-        self.elements.push((node, RefCell::default()));
+        self.elements.push(node);
     }
 
     /// Detach a node from its siblings and its parent.
@@ -279,11 +279,18 @@ impl Document {
     }
 
     /// Filter this node iterator to elements matching the given selectors.
-    pub(crate) fn select<'a, 'b>(
+    pub(crate) fn select<'a, 'b, 'c>(
         &'a self,
         selectors: &'b str,
-    ) -> Result<Select<'a>, ParseError<'b>> {
-        select(self, selectors)
+        caches: &'c mut [NthIndexCache],
+    ) -> Result<Select<'a, 'c>, ParseError<'b>> {
+        select(self, selectors, caches)
+    }
+
+    pub(crate) fn build_caches(&self) -> Vec<NthIndexCache> {
+        (0..self.elements.len())
+            .map(|_| NthIndexCache::default())
+            .collect()
     }
 }
 
