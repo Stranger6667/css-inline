@@ -28,7 +28,7 @@ http = ["attohttpc"]
 file = []
 
 [dependencies]
-attohttpc = { version = "0.24", default-features = false, features = [
+attohttpc = { version = "0.26", default-features = false, features = [
   "compress",
   "tls-rustls",
 ], optional = true }
