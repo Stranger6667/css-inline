@@ -121,7 +121,6 @@ impl<'a> Sink<'a> {
     }
 }
 
-#[derive(Default)]
 struct ElemInfo {
     html_name: Option<LocalName>,
     ignore_children: bool,
