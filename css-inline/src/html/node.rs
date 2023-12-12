@@ -56,7 +56,7 @@ pub(crate) struct NodeId(NonZeroUsize);
 impl NodeId {
     #[inline]
     pub(super) fn new(value: usize) -> NodeId {
-        NodeId(NonZeroUsize::new(value).expect("Value is zero"))
+        unsafe { NodeId(NonZeroUsize::new_unchecked(value)) }
     }
     #[inline]
     pub(super) fn document_id() -> NodeId {
