@@ -18,10 +18,9 @@ jobs:
         run: cargo build --release
         working-directory: ./bindings/c
 
-      - name: Archive build artifacts
-        uses: actions/upload-artifact@v3
+      - name: Release
+        uses: softprops/action-gh-release@v1
         with:
-          name: css-inline
-          path: |
+          files: |
             bindings/c/target/release/libcss_inline.so
             bindings/c/css_inline.h
