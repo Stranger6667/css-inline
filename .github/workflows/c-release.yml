@@ -6,7 +6,7 @@ on:
       - c-v*
 
 jobs:
-  ruby-release:
+  c-release:
     runs-on: ubuntu-22.04
 
     steps:
