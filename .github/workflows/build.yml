@@ -80,6 +80,9 @@ jobs:
         working-directory: ./bindings/c
 
       - run: cargo fmt --all -- --check
+        working-directory: ./bindings/javascript
+
+      - run: cargo fmt --all -- --check
         working-directory: ./bindings/python
 
       - run: cargo fmt --all -- --check
@@ -102,10 +105,12 @@ jobs:
         with:
           workspaces: |
             css-inline
+            bindings/javascript
             bindings/python
             bindings/ruby
             bindings/wasm
             bindings/c
+            bindings/profiler
 
       - name: Rust
         run: cargo clippy -- -D warnings
@@ -118,6 +123,10 @@ jobs:
       - name: Python
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/python
+
+      - name: JavaScript
+        run: cargo clippy -- -D warnings
+        working-directory: ./bindings/javascript
 
       - name: Ruby
         run: cargo clippy -- -D warnings
@@ -147,6 +156,202 @@ jobs:
 
       - run: cargo build
         working-directory: ./css-inline
+
+  test-javascript:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-12
+            target: x86_64-apple-darwin
+            build: |
+              yarn build
+              strip -x *.node
+          - host: windows-2022
+            build: yarn build
+            target: x86_64-pc-windows-msvc
+          - host: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            build: |-
+              set -e &&
+              yarn build --target x86_64-unknown-linux-gnu &&
+              strip *.node
+          - host: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: set -e && yarn build && strip *.node
+          - host: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: |-
+              set -e &&
+              yarn build --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
+          - host: ubuntu-22.04
+            target: armv7-unknown-linux-gnueabihf
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf -y
+            build: |
+              yarn build --target armv7-unknown-linux-gnueabihf
+              arm-linux-gnueabihf-strip *.node
+          - host: ubuntu-22.04
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |-
+              set -e &&
+              rustup target add aarch64-unknown-linux-musl &&
+              yarn build --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+        node:
+          - '18'
+          - '20'
+
+    name: NodeJS ${{ matrix.node }} on ${{ matrix.settings.target }}
+    runs-on: ${{ matrix.settings.host }}
+    env:
+      DEBUG: napi:*
+      APP_NAME: css-inline
+      MACOSX_DEPLOYMENT_TARGET: '10.13'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        if: ${{ !matrix.settings.docker }}
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+          cache-dependency-path: bindings/javascript/yarn.lock
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        if: ${{ !matrix.settings.docker }}
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+
+      - uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        with:
+          version: 0.11.0
+
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
+
+      - name: Config yarn (x86_64-unknown-linux-musl)
+        if: matrix.settings.target == 'x86_64-unknown-linux-musl'
+        run: yarn config set supportedArchitectures.libc "musl"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-unknown-linux-gnu)
+        if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          yarn config set supportedArchitectures.cpu "arm64"
+          yarn config set supportedArchitectures.libc "glibc"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-unknown-linux-musl)
+        if: matrix.settings.target == 'aarch64-unknown-linux-musl'
+        run: |
+          yarn config set supportedArchitectures.cpu "arm64"
+          yarn config set supportedArchitectures.libc "musl"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (armv7-unknown-linux-gnueabihf)
+        if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
+        run: yarn config set supportedArchitectures.cpu "arm"
+        working-directory: bindings/javascript
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: bindings/javascript
+
+      - name: Build in docker
+        uses: addnab/docker-run-action@v3
+        if: ${{ matrix.settings.docker }}
+        with:
+          image: ${{ matrix.settings.docker }}
+          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          run: ${{ matrix.settings.build }}
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
+        working-directory: bindings/javascript
+
+      - name: Set up QEMU (aarch64)
+        uses: docker/setup-qemu-action@v3
+        if: ${{ contains(fromJson('["aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl"]'), matrix.settings.target) }}
+        with:
+          platforms: arm64
+
+      - name: Set up QEMU (armv7-unknown-linux-gnueabihf)
+        uses: docker/setup-qemu-action@v3
+        if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
+        with:
+          platforms: arm
+
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        if: ${{ contains(fromJson('["aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl", "armv7-unknown-linux-gnueabihf"]'), matrix.settings.target) }}
+
+      - name: Test (x86_64-apple-darwin & x86_64-pc-windows-msvc)
+        if: ${{ contains(fromJson('["x86_64-apple-darwin", "x86_64-pc-windows-msvc"]'), matrix.settings.target) }}
+        run: yarn test
+        working-directory: bindings/javascript
+
+      - name: Test (x86_64-unknown-linux-gnu)
+        if: matrix.settings.target == 'x86_64-unknown-linux-gnu'
+        run: docker run --rm -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-slim yarn test
+
+      - name: Test (x86_64-unknown-linux-musl)
+        if: matrix.settings.target == 'x86_64-unknown-linux-musl'
+        run: docker run --rm -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-alpine yarn test
+
+      - name: Test (aarch64-unknown-linux-gnu)
+        if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}-slim
+          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          run: |
+            set -e
+            yarn test
+
+      - name: Test in docker (aarch64-unknown-linux-musl)
+        if: matrix.settings.target == 'aarch64-unknown-linux-musl'
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}-alpine
+          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          run: |
+            set -e
+            yarn test
+
+      - name: Test in docker (armv7-unknown-linux-gnueabihf)
+        if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
+        uses: addnab/docker-run-action@v3
+        with:
+          image: node:${{ matrix.node }}-bullseye-slim
+          options: '--platform linux/arm/v7 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          run: |
+            set -e
+            yarn test
 
   test-python:
     strategy:
