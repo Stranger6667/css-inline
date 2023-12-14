@@ -1,0 +1,194 @@
+name: "[JavaScript] Release"
+
+on:
+  push:
+    tags:
+      - javascript-v*
+
+jobs:
+  artifacts:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-12
+            target: x86_64-apple-darwin
+            build: |
+              yarn build
+              strip -x *.node
+          - host: windows-2022
+            build: yarn build
+            target: x86_64-pc-windows-msvc
+          - host: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            build: |-
+              set -e &&
+              yarn build --target x86_64-unknown-linux-gnu &&
+              strip *.node
+          - host: ubuntu-22.04
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: set -e && yarn build && strip *.node
+          - host: ubuntu-22.04
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: |-
+              set -e &&
+              yarn build --target aarch64-unknown-linux-gnu &&
+              aarch64-unknown-linux-gnu-strip *.node
+          - host: ubuntu-22.04
+            target: armv7-unknown-linux-gnueabihf
+            setup: |
+              sudo apt-get update
+              sudo apt-get install gcc-arm-linux-gnueabihf -y
+            build: |
+              yarn build --target armv7-unknown-linux-gnueabihf
+              arm-linux-gnueabihf-strip *.node
+          - host: ubuntu-22.04
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: |-
+              set -e &&
+              rustup target add aarch64-unknown-linux-musl &&
+              yarn build --target aarch64-unknown-linux-musl &&
+              /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+
+    runs-on: ${{ matrix.settings.host }}
+    env:
+      DEBUG: napi:*
+      APP_NAME: css-inline
+      MACOSX_DEPLOYMENT_TARGET: '10.13'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        if: ${{ !matrix.settings.docker }}
+        with:
+          node-version: ${{ matrix.node }}
+          cache: yarn
+          cache-dependency-path: bindings/javascript/yarn.lock
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        if: ${{ !matrix.settings.docker }}
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+
+      - uses: goto-bus-stop/setup-zig@v2
+        if: ${{ matrix.settings.target == 'armv7-unknown-linux-gnueabihf' }}
+        with:
+          version: 0.11.0
+
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
+
+      - name: Config yarn (x86_64-unknown-linux-musl)
+        if: matrix.settings.target == 'x86_64-unknown-linux-musl'
+        run: yarn config set supportedArchitectures.libc "musl"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-unknown-linux-gnu)
+        if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          yarn config set supportedArchitectures.cpu "arm64"
+          yarn config set supportedArchitectures.libc "glibc"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-unknown-linux-musl)
+        if: matrix.settings.target == 'aarch64-unknown-linux-musl'
+        run: |
+          yarn config set supportedArchitectures.cpu "arm64"
+          yarn config set supportedArchitectures.libc "musl"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (armv7-unknown-linux-gnueabihf)
+        if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
+        run: yarn config set supportedArchitectures.cpu "arm"
+        working-directory: bindings/javascript
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: bindings/javascript
+
+      - name: Build in docker
+        uses: addnab/docker-run-action@v3
+        if: ${{ matrix.settings.docker }}
+        with:
+          image: ${{ matrix.settings.docker }}
+          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          run: ${{ matrix.settings.build }}
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        if: ${{ !matrix.settings.docker }}
+        shell: bash
+        working-directory: bindings/javascript
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: bindings/javascript/${{ env.APP_NAME }}.*.node
+          if-no-files-found: error
+
+  release:
+    name: Release
+    runs-on: ubuntu-22.04
+    needs:
+      - artifacts
+    if: "startsWith(github.ref, 'refs/tags/')"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 16
+          check-latest: true
+          cache: yarn
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: .yarn/cache
+          key: npm-cache-ubuntu-22.04-release
+          restore-keys: |
+            npm-cache-
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: bindings/javascript
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Move Node.js artifacts
+        run: yarn artifacts
+        working-directory: bindings/javascript
+
+      - name: Publish to npm packages
+        run: |
+          echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" >> ~/.npmrc
+          npm publish --access public --provenance
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
