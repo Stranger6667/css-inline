@@ -1,9 +1,7 @@
 name: "[C] Release"
 
 on:
-  push:
-    tags:
-      - c-v*
+  pull_request: {}
 
 jobs:
   ruby-release:
