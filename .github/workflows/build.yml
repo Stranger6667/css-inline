@@ -195,7 +195,6 @@ jobs:
         uses: oxidize-rb/actions/setup-ruby-and-rust@main
         with:
           ruby-version: ${{ matrix.ruby-version }}
-          rubygems: "latest"
           bundler-cache: true
           cargo-cache: true
           cache-version: v1
