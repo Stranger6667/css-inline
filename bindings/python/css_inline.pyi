@@ -22,7 +22,6 @@ def inline(
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
 ) -> str: ...
-
 def inline_many(
     html: list[str],
     inline_style_tags: bool = True,

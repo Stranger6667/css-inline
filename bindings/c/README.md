@@ -12,12 +12,12 @@ For instance, the library transforms HTML like this:
 
 ```html
 <html>
-    <head>
-        <style>h1 { color:blue; }</style>
-    </head>
-    <body>
-        <h1>Big Text</h1>
-    </body>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -25,10 +25,10 @@ into:
 
 ```html
 <html>
-    <head></head>
-    <body>
-        <h1 style="color:blue;">Big Text</h1>
-    </body>
+  <head></head>
+  <body>
+    <h1 style="color:blue;">Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -43,7 +43,7 @@ into:
 
 The C bindings are distributed as a header (`css_inline.h`) along with a dynamic library (`libcss_inline.so`).
 
-To download them, go to [Releases](https://github.com/Stranger6667/css-inline/releases) and get the latest archive with the *[C]* tag.
+To download them, go to [Releases](https://github.com/Stranger6667/css-inline/releases) and get the latest archive with the _[C]_ tag.
 
 ## Usage
 
@@ -115,13 +115,13 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 
 ```html
 <html>
-<head>
+  <head>
     <style>h1 { color:blue; }</style>
-</head>
-<body>
+  </head>
+  <body>
     <!-- The tag below won't receive additional styles -->
     <h1 data-css-inline="ignore">Big Text</h1>
-</body>
+  </body>
 </html>
 ```
 
@@ -129,11 +129,11 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 
 ```html
 <head>
-    <!-- Styles below are ignored -->
-    <style data-css-inline="ignore">h1 { color:blue; }</style>
+  <!-- Styles below are ignored -->
+  <style data-css-inline="ignore">h1 { color:blue; }</style>
 </head>
 <body>
-    <h1>Big Text</h1>
+  <h1>Big Text</h1>
 </body>
 ```
 
