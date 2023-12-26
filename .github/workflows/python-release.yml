@@ -90,7 +90,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        target: [ x64, x86 ]
+        target: [x64, x86]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        target: [ x86_64, i686 ]
+        target: [x86_64, i686]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        target: [ aarch64, armv7 ]
+        target: [aarch64, armv7]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -246,8 +246,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ ubuntu-22.04, macos-latest ]
-        target: [ x86_64, aarch64 ]
+        os: [ubuntu-22.04, macos-latest]
+        target: [x86_64, aarch64]
         python-version:
           - "3.7"
           - "3.8"

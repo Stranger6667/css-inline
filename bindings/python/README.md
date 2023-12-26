@@ -15,12 +15,12 @@ For instance, the library transforms HTML like this:
 
 ```html
 <html>
-    <head>
-        <style>h1 { color:blue; }</style>
-    </head>
-    <body>
-        <h1>Big Text</h1>
-    </body>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -28,10 +28,10 @@ into:
 
 ```html
 <html>
-    <head></head>
-    <body>
-        <h1 style="color:blue;">Big Text</h1>
-    </body>
+  <head></head>
+  <body>
+    <h1 style="color:blue;">Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -48,7 +48,7 @@ into:
 
 Install with `pip`:
 
-```
+```shell
 pip install css_inline
 ```
 
@@ -119,11 +119,11 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 
 ```html
 <head>
-    <style>h1 { color:blue; }</style>
+  <style>h1 { color:blue; }</style>
 </head>
 <body>
-    <!-- The tag below won't receive additional styles -->
-    <h1 data-css-inline="ignore">Big Text</h1>
+  <!-- The tag below won't receive additional styles -->
+  <h1 data-css-inline="ignore">Big Text</h1>
 </body>
 ```
 
@@ -131,11 +131,11 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 
 ```html
 <head>
-    <!-- Styles below are ignored -->
-    <style data-css-inline="ignore">h1 { color:blue; }</style>
+  <!-- Styles below are ignored -->
+  <style data-css-inline="ignore">h1 { color:blue; }</style>
 </head>
 <body>
-    <h1>Big Text</h1>
+  <h1>Big Text</h1>
 </body>
 ```
 
@@ -165,17 +165,17 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 
 ## Performance
 
-`css-inline`  is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed.
+`css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed.
 Most of the time it achieves over a **10x** speed advantage compared to the next fastest alternative.
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.11.2` | `premailer 3.10.0`      | `toronado 0.1.0`        | `inlinestyler 0.2.5`    | `pynliner 0.8.0`        |
-|-------------|---------|---------------------|-------------------------|-------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 6.75 µs             | 131.50 µs  (**19.48x**) | 666.20 µs  (**98.70x**) | 1.05 ms  (**155.82x**)  | 1.20 ms  (**178.63x**)  |
-| Realistic-1 | 8.58 KB | 138.79 µs           | 1.43 ms  (**10.34x**)   | 16.52 ms  (**119.07x**) | 27.59 ms  (**198.85x**) | 51.74 ms  (**372.84x**) |
-| Realistic-2 | 4.3 KB  | 86.95 µs            | 2.69 ms  (**31.03x**)   | ERROR                   | 18.06 ms  (**207.76x**) | ERROR                   |
-| GitHub page | 1.81 MB | 338.88 ms           | 25.58 s  (**75.49x**)   | ERROR                   | ERROR                   | ERROR                   |
+|             | Size    | `css_inline 0.11.2` | `premailer 3.10.0`     | `toronado 0.1.0`       | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
+|-------------|---------|---------------------|------------------------|------------------------|------------------------|------------------------|
+| Basic       | 230 B   | 6.75 µs             | 131.50 µs (**19.48x**) | 666.20 µs (**98.70x**) | 1.05 ms (**155.82x**)  | 1.20 ms (**178.63x**)  |
+| Realistic-1 | 8.58 KB | 138.79 µs           | 1.43 ms (**10.34x**)   | 16.52 ms (**119.07x**) | 27.59 ms (**198.85x**) | 51.74 ms (**372.84x**) |
+| Realistic-2 | 4.3 KB  | 86.95 µs            | 2.69 ms (**31.03x**)   | ERROR                  | 18.06 ms (**207.76x**) | ERROR                  |
+| GitHub page | 1.81 MB | 338.88 ms           | 25.58 s (**75.49x**)   | ERROR                  | ERROR                  | ERROR                  |
 
 The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
 Note that the `toronado`, `inlinestyler` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.

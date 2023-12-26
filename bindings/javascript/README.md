@@ -13,12 +13,12 @@ For instance, the library transforms HTML like this:
 
 ```html
 <html>
-    <head>
-        <style>h1 { color:blue; }</style>
-    </head>
-    <body>
-        <h1>Big Text</h1>
-    </body>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -26,10 +26,10 @@ into:
 
 ```html
 <html>
-    <head></head>
-    <body>
-        <h1 style="color:blue;">Big Text</h1>
-    </body>
+  <head></head>
+  <body>
+    <h1 style="color:blue;">Big Text</h1>
+  </body>
 </html>
 ```
 
@@ -66,7 +66,7 @@ var inlined = inline(
     </body>
   </html>
   `,
-)
+);
 // Do something with the inlined HTML, e.g. send an email
 ```
 
@@ -97,11 +97,11 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 
 ```html
 <head>
-    <!-- Styles below are ignored -->
-    <style data-css-inline="ignore">h1 { color:blue; }</style>
+  <!-- Styles below are ignored -->
+  <style data-css-inline="ignore">h1 { color:blue; }</style>
 </head>
 <body>
-    <h1>Big Text</h1>
+  <h1>Big Text</h1>
 </body>
 ```
 

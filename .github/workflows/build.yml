@@ -8,7 +8,6 @@ on:
   schedule: [cron: "40 1 * * *"]
 
 jobs:
-
   commitsar:
     name: Verify commit messages
     runs-on: ubuntu-22.04
@@ -42,8 +41,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
-          cache: 'pip'
-          cache-dependency-path: '**/requirements-*.txt'
+          cache: "pip"
+          cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
         run: |
@@ -205,15 +204,15 @@ jobs:
               yarn build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
         node:
-          - '18'
-          - '20'
+          - "18"
+          - "20"
 
     name: NodeJS ${{ matrix.node }} on ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
     env:
       DEBUG: napi:*
       APP_NAME: css-inline
-      MACOSX_DEPLOYMENT_TARGET: '10.13'
+      MACOSX_DEPLOYMENT_TARGET: "10.13"
     steps:
       - uses: actions/checkout@v4
 
@@ -286,7 +285,7 @@ jobs:
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: '--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: ${{ matrix.settings.build }}
 
       - name: Build
@@ -328,7 +327,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -338,7 +337,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-alpine
-          options: '--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -348,7 +347,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-bullseye-slim
-          options: '--platform linux/arm/v7 -v ${{ github.workspace }}:/build -w /build/bindings/javascript'
+          options: "--platform linux/arm/v7 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -358,7 +357,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-12, windows-2022]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -371,8 +370,8 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
-          cache: 'pip'
-          cache-dependency-path: '**/requirements-*.txt'
+          cache: "pip"
+          cache-dependency-path: "**/requirements-*.txt"
 
       - run: python -m pip install -r requirements/dev.txt
         working-directory: ./bindings/python
@@ -385,12 +384,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [
-          ubuntu-22.04,
-          macos-12,
-          windows-2022
-        ]
-        ruby-version: ['2.7', '3.2']
+        os: [ubuntu-22.04, macos-12, windows-2022]
+        ruby-version: ["2.7", "3.2"]
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -521,8 +516,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
-          cache: 'pip'
-          cache-dependency-path: '**/requirements-*.txt'
+          cache: "pip"
+          cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
         run: |

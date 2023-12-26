@@ -27,10 +27,10 @@ your commits before merging, depending.
 If you'd like to suggest a feature, feel free to [submit an issue](https://github.com/Stranger6667/css-inline/issues)
 and:
 
-* Write a simple and descriptive title to identify your suggestion.
-* Provide as many details as possible, explain your context, and how the feature should work.
-* Explain why this improvement would be useful.
-* Keep the scope narrow. It will make it easier to implement.
+- Write a simple and descriptive title to identify your suggestion.
+- Provide as many details as possible, explain your context, and how the feature should work.
+- Explain why this improvement would be useful.
+- Keep the scope narrow. It will make it easier to implement.
 
 ## Report bugs
 
@@ -38,11 +38,11 @@ Report bugs for `css-inline` in the [issue tracker](https://github.com/Stranger6
 
 If you are reporting a bug, please:
 
-* Write a simple and descriptive title to identify the problem.
-* Describe the exact steps which reproduce the problem in as many details as possible.
-* Describe the behavior you observed after following the steps and point out the problem with that behavior.
-* Explain which behavior you expected to see instead and why.
-* Include your Rust and `css-inline` version. Additionally include your Python version if you use our Python bindings.
+- Write a simple and descriptive title to identify the problem.
+- Describe the exact steps which reproduce the problem in as many details as possible.
+- Describe the behavior you observed after following the steps and point out the problem with that behavior.
+- Explain which behavior you expected to see instead and why.
+- Include your Rust and `css-inline` version. Additionally include your Python version if you use our Python bindings.
 
 It would be awesome if you can submit a failing test that demonstrates the problem.
 
