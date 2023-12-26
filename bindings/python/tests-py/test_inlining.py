@@ -89,6 +89,37 @@ def test_file_scheme():
     )
 
 
+def test_network_stylesheet():
+    inlined = css_inline.inline(
+        """<html>
+<head>
+<link href="http://127.0.0.1:5000/external.css" rel="stylesheet" type="text/css">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style type="text/css">
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>""",
+    )
+    assert (
+        inlined
+        == """<html><head>
+
+<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"""
+    )
+
+
 def test_invalid_base_url():
     with pytest.raises(ValueError):
         css_inline.CSSInliner(base_url="foo")
