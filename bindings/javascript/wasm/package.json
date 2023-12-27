@@ -3,7 +3,6 @@
   "version": "0.11.2",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
-  "module": "index.mjs",
   "unpkg": "index.min.js",
   "types": "index.d.ts",
   "exports": {
@@ -34,6 +33,17 @@
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
     "access": "public"
+  },
+  "ava": {
+    "require": [
+      "@swc-node/register"
+    ],
+    "typescript": {
+      "rewritePaths": {
+        "src/": "build/"
+      },
+      "compile": false
+    }
   },
   "repository": "git@github.com:Stranger6667/css-inline.git",
   "sideEffects": false
