@@ -403,7 +403,7 @@ jobs:
         working-directory: ./bindings/ruby
 
   test-wasm:
-    name: Tests for WASM crate
+    name: WASM module tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
@@ -441,7 +441,7 @@ jobs:
         working-directory: ./bindings/javascript
 
   test-c:
-    name: Tests for C crate
+    name: C bindings tests
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4

@@ -11,6 +11,12 @@
     "stylesheet",
     "inlining"
   ],
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "js-binding.js",
+    "js-binding.d.ts"
+  ],
   "types": "index.d.ts",
   "napi": {
     "name": "css-inline",
@@ -51,6 +57,10 @@
   },
   "engines": {
     "node": ">= 10"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
   },
   "scripts": {
     "artifacts": "napi artifacts",
