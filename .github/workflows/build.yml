@@ -87,9 +87,6 @@ jobs:
       - run: cargo fmt --all -- --check
         working-directory: ./bindings/ruby
 
-      - run: cargo fmt --all -- --check
-        working-directory: ./bindings/wasm
-
   clippy:
     name: Clippy
     runs-on: ubuntu-22.04
@@ -107,7 +104,6 @@ jobs:
             bindings/javascript
             bindings/python
             bindings/ruby
-            bindings/wasm
             bindings/c
             bindings/profiler
 
@@ -130,10 +126,6 @@ jobs:
       - name: Ruby
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/ruby
-
-      - name: WASM
-        run: cargo clippy -- -D warnings
-        working-directory: ./bindings/wasm
 
       - name: C
         run: cargo clippy -- -D warnings
@@ -419,7 +411,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: bindings/wasm
+          workspaces: bindings/javascript
           cache-all-crates: "true"
 
       - name: Install wasm-pack
