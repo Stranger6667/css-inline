@@ -1,0 +1,20 @@
+name: Update Github Pages
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  docs:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Upload docs
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          mv bindings/javascript/wasm/ docs/
+          touch docs/.nojekyll
+          git add --force docs/
+          git commit -m "chore: build pages"
+          git push --force origin HEAD:gh-pages
