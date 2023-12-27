@@ -43,7 +43,8 @@
         "src/": "build/"
       },
       "compile": false
-    }
+    },
+    "timeout": "3m"
   },
   "repository": "git@github.com:Stranger6667/css-inline.git",
   "sideEffects": false

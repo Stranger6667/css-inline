@@ -53,7 +53,8 @@
         "src/": "build/"
       },
       "compile": false
-    }
+    },
+    "timeout": "3m"
   },
   "engines": {
     "node": ">= 10"

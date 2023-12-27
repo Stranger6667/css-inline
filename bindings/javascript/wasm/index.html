@@ -37,31 +37,44 @@
         const inlinedCodeContainer = document.getElementById(
           "css-inline-result-container",
         );
+        const inlinedErrorContainer = document.getElementById(
+          "css-inline-error-container",
+        );
+        const inlinedErrorText = document.getElementById(
+          "css-inline-error-text",
+        );
         const outputSizeSpan = document.getElementById(
           "css-inline-output-size",
         );
         const callTimeSpan = document.getElementById("css-inline-call-time");
 
         submitButton.addEventListener("click", function () {
-          const startTime = performance.now();
-          const inlinedHtml = cssInline.inline(html.value);
-          const durationMs = (performance.now() - startTime).toFixed(2);
+          try {
+            const startTime = performance.now();
+            const inlinedHtml = cssInline.inline(html.value);
+            const durationMs = (performance.now() - startTime).toFixed(2);
 
-          const blob = new Blob([inlinedHtml], { type: "text/html" });
-          const sizeInBytes = blob.size;
-          let sizeText;
+            const blob = new Blob([inlinedHtml], { type: "text/html" });
+            const sizeInBytes = blob.size;
+            let sizeText;
 
-          if (sizeInBytes < 1024) {
-            sizeText = `${sizeInBytes} bytes`;
-          } else if (sizeInBytes < 1048576) {
-            sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
-          } else {
-            sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
+            if (sizeInBytes < 1024) {
+              sizeText = `${sizeInBytes} bytes`;
+            } else if (sizeInBytes < 1048576) {
+              sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
+            } else {
+              sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
+            }
+            outputSizeSpan.textContent = sizeText;
+            callTimeSpan.textContent = `${durationMs} ms`;
+            inlinedCodeElement.textContent = inlinedHtml;
+            inlinedErrorContainer.classList.add("hidden");
+            inlinedCodeContainer.classList.remove("hidden");
+          } catch (error) {
+            inlinedCodeContainer.classList.add("hidden");
+            inlinedErrorContainer.classList.remove("hidden");
+            inlinedErrorText.textContent = error;
           }
-          outputSizeSpan.textContent = sizeText;
-          callTimeSpan.textContent = `${durationMs} ms`;
-          inlinedCodeElement.textContent = inlinedHtml;
-          inlinedCodeContainer.classList.remove("hidden");
         });
       });
     </script>
@@ -143,6 +156,18 @@
       </button>
     </div>
 
+    <div id="css-inline-error-container" class="hidden">
+      <div class="mx-6 mb-4 rounded-md bg-red-100 p-4">
+        <div class="flex">
+          <div class="ml-3">
+            <p class="text-md font-medium text-red-800">
+              <strong>Error!</strong> <span id="css-inline-error-text"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div id="css-inline-result-container" class="hidden">
       <div class="mx-6 mb-4 rounded-md bg-green-100 p-4">
         <div class="flex">
@@ -172,9 +197,7 @@
 
     <footer class="bg-white">
       <hr />
-      <div
-        class="px-6 py-6 md:flex md:items-center md:justify-between"
-      >
+      <div class="px-6 py-6 md:flex md:items-center md:justify-between">
         <div class="mt-4 md:order-1 md:mt-0">
           <p class="text-center text-md leading-5 text-gray-500">
             © css-inline.org by
