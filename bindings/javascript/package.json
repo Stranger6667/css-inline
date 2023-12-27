@@ -1,7 +1,10 @@
 {
-  "name": "css-inline",
+  "name": "@css-inline/css-inline",
   "version": "0.11.2",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
+  "repository": "git@github.com:Stranger6667/css-inline.git",
+  "keywords": ["css", "html", "email", "stylesheet", "inlining"],
   "types": "index.d.ts",
   "napi": {
     "name": "css-inline",
@@ -30,6 +33,7 @@
     "artifacts": "napi artifacts",
     "build": "napi build --platform --release",
     "build:debug": "napi build --platform",
+    "build:wasm-web": "wasm-pack build --target web --out-name index --out-dir wasm/dist --release",
     "prepublishOnly": "napi prepublish -t npm",
     "test": "ava",
     "universal": "napi universal",
