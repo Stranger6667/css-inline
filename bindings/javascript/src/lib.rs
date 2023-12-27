@@ -27,22 +27,20 @@ pub fn inline(html: String, options: JsValue) -> Result<String, errors::JsError>
     inline_inner(html, options)
 }
 
-// TODO: Re-check + adjust naming to camel case
+/// Manually write TypeScript section to provide proper definitions for `InlineOptions`.
 #[cfg(target_arch = "wasm32")]
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(typescript_custom_section))]
-const INLINE: &'static str = r#"
-interface InlineOptions {
-    inline_style_tags?: boolean,
-    keep_style_tags?: boolean,
-    keep_link_tags?: boolean,
-    base_url?: string,
-    load_remote_stylesheets?: boolean,
-    extra_css?: string,
-    preallocate_node_capacity?: number,
+const INLINE: &'static str = r#"export interface InlineOptions {
+    inlineStyleTags?: boolean,
+    keepStyleTags?: boolean,
+    keepLinkTags?: boolean,
+    baseUrl?: string,
+    loadRemoteStylesheets?: boolean,
+    extraCss?: string,
+    preallocateNodeCapacity?: number,
 }
 
-export function inline(html: string, options?: InlineOptions): string;
-"#;
+export function inline(html: string, options?: InlineOptions): string;"#;
 
 fn inline_inner(html: String, options: Options) -> std::result::Result<String, errors::JsError> {
     let inliner = css_inline::CSSInliner::new(options.try_into()?);

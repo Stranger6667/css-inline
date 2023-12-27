@@ -72,13 +72,13 @@ var inlined = inline(
 
 ### Configuration
 
-- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `true`
-- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
-- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
-- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
-- `extra_css`. Extra CSS to be inlined. Default: `null`
-- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
+- `inlineStyleTags`. Specifies whether to inline CSS from "style" tags. Default: `true`
+- `keepStyleTags`. Specifies whether to keep "style" tags after inlining. Default: `false`
+- `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
+- `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
+- `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `extraCss`. Extra CSS to be inlined. Default: `null`
+- `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
 You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 

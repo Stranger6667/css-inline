@@ -13,7 +13,11 @@ fn parse_url(url: Option<String>) -> std::result::Result<Option<css_inline::Url>
     })
 }
 
-#[cfg_attr(target_arch = "wasm32", derive(serde::Deserialize), serde(default))]
+#[cfg_attr(
+    target_arch = "wasm32",
+    derive(serde::Deserialize),
+    serde(default, rename_all = "camelCase", deny_unknown_fields)
+)]
 #[cfg_attr(not(target_arch = "wasm32"), napi(object))]
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Default)]

@@ -1,7 +1,16 @@
 [package]
-edition = "2021"
 name = "css-inline-js"
 version = "0.11.2"
+authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
+edition = "2021"
+readme = "README.md"
+description = "High-performance library for inlining CSS into HTML 'style' attributes"
+repository = "https://github.com/Stranger6667/css-inline"
+keywords = ["css", "html", "email", "stylesheet", "inlining"]
+categories = ["web-programming"]
+license = "MIT"
+rust-version = "1.65"
+include = ["src/*.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
 [lib]
 crate-type = ["cdylib"]
@@ -13,7 +22,6 @@ napi-derive = "2.14.4"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2.87"
 serde-wasm-bindgen = "0.6"
-js-sys = "0.3.64"
 getrandom = { version = "0.2", features = ["js"] }
 serde = { version = "1", features = ["derive"], default-features = false }
 

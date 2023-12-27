@@ -237,35 +237,6 @@ switch (platform) {
           loadError = e
         }
         break
-      case 'riscv64':
-        if (isMusl()) {
-          localFileExisted = existsSync(
-            join(__dirname, 'css-inline.linux-riscv64-musl.node')
-          )
-          try {
-            if (localFileExisted) {
-              nativeBinding = require('./css-inline.linux-riscv64-musl.node')
-            } else {
-              nativeBinding = require('@css-inline/css-inline-linux-riscv64-musl')
-            }
-          } catch (e) {
-            loadError = e
-          }
-        } else {
-          localFileExisted = existsSync(
-            join(__dirname, 'css-inline.linux-riscv64-gnu.node')
-          )
-          try {
-            if (localFileExisted) {
-              nativeBinding = require('./css-inline.linux-riscv64-gnu.node')
-            } else {
-              nativeBinding = require('@css-inline/css-inline-linux-riscv64-gnu')
-            }
-          } catch (e) {
-            loadError = e
-          }
-        }
-        break
       default:
         throw new Error(`Unsupported architecture on Linux: ${arch}`)
     }

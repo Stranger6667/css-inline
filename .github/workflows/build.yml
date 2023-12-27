@@ -408,6 +408,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: bindings/javascript/yarn.lock
+
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
@@ -421,42 +428,17 @@ jobs:
           command: install
           args: wasm-pack
 
-      - name: Run tests
-        run: wasm-pack test --node --release
-        working-directory: ./bindings/wasm
-
-  test-wasm-typescript:
-    name: TypeScript tests for WASM crate
-    runs-on: ubuntu-22.04
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            css-inline
-            bindings/wasm
-          cache-all-crates: "true"
-
-      - name: Install wasm-pack
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
-
-      - name: Build package
-        run: wasm-pack build -t nodejs
-        working-directory: ./bindings/wasm
-
       - name: Install dependencies
-        run: npm install
-        working-directory: ./bindings/wasm
+        run: yarn install
+        working-directory: ./bindings/javascript
 
-      - name: Run tests
-        run: npm run test
-        working-directory: ./bindings/wasm
+      - name: Build Wasm
+        run: yarn build:wasm
+        working-directory: ./bindings/javascript
+
+      - name: Test Wasm
+        run: yarn test:wasm
+        working-directory: ./bindings/javascript
 
   test-c:
     name: Tests for C crate
