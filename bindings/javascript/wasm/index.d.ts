@@ -19,5 +19,6 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
  */
 export declare const initWasm: (module_or_path: Promise<InitInput> | InitInput) => Promise<void>;
 export declare function inline(html: string, options?: InlineOptions): string;
+export declare function version(): string;
 
 export {};

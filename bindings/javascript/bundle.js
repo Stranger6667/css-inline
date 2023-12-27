@@ -23,6 +23,6 @@ buildSync({
   ...commonOptions,
   format: "iife",
   minify: true,
-  globalName: "cssinline",
+  globalName: "cssInline",
   outfile: "wasm/index.min.js",
 });

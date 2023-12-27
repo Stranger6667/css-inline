@@ -105,6 +105,29 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
+## WebAssembly
+
+`css-inline` also ships a WebAssembly module built with `wasm-bindgen` to run in browsers.
+
+```html
+<script src="https://unpkg.com/@css-inline/css-inline-wasm"></script>
+<script>
+    // Initialize the WASM module first
+    cssInline.initWasm(fetch('https://unpkg.com/@css-inline/css-inline-wasm/index_bg.wasm'));
+
+    const inlinedHtml = cssInline.inline(`<html>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
+</html>`);
+
+    document.getElementById('output').src = inlinedHtml
+</script>
+```
+
 ## License
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).

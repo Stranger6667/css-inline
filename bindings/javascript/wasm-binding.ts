@@ -2,6 +2,7 @@ import init, {
   InitInput,
   InlineOptions,
   inline as __inline,
+  version as __version,
 } from "./wasm/dist";
 
 let initialized = false;
@@ -25,4 +26,8 @@ export const initWasm = async (
 
 export function inline(html: string, options?: InlineOptions): string {
   return __inline(html, options);
+}
+
+export function version(): string {
+  return __version();
 }
