@@ -4,7 +4,13 @@
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
   "repository": "git@github.com:Stranger6667/css-inline.git",
-  "keywords": ["css", "html", "email", "stylesheet", "inlining"],
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
   "types": "index.d.ts",
   "napi": {
     "name": "css-inline",

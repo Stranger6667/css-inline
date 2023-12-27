@@ -10,10 +10,7 @@ use options::Options;
 #[cfg(not(target_arch = "wasm32"))]
 #[napi]
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
-pub fn inline(
-    html: String,
-    options: Option<Options>,
-) -> std::result::Result<String, errors::JsError> {
+pub fn inline(html: String, options: Option<Options>) -> Result<String, errors::JsError> {
     let options = options.unwrap_or_default();
     inline_inner(html, options)
 }
@@ -21,7 +18,7 @@ pub fn inline(
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(skip_typescript)]
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
-pub fn inline(html: String, options: JsValue) -> std::result::Result<String, errors::JsError> {
+pub fn inline(html: String, options: JsValue) -> Result<String, errors::JsError> {
     let options: Options = if options.is_undefined() {
         Options::default()
     } else {

@@ -5,6 +5,15 @@ __metadata:
   version: 8
   cacheKey: 10c0
 
+"@css-inline/css-inline@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@css-inline/css-inline@workspace:."
+  dependencies:
+    "@napi-rs/cli": "npm:^2.17.0"
+    ava: "npm:^5.1.1"
+  languageName: unknown
+  linkType: soft
+
 "@isaacs/cliui@npm:^8.0.2":
   version: 8.0.2
   resolution: "@isaacs/cliui@npm:8.0.2"
@@ -503,15 +512,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"css-inline@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "css-inline@workspace:."
-  dependencies:
-    "@napi-rs/cli": "npm:^2.17.0"
-    ava: "npm:^5.1.1"
-  languageName: unknown
-  linkType: soft
-
 "currently-unhandled@npm:^0.4.1":
   version: 0.4.1
   resolution: "currently-unhandled@npm:0.4.1"
@@ -668,11 +668,11 @@ __metadata:
   linkType: hard
 
 "fastq@npm:^1.6.0":
-  version: 1.15.0
-  resolution: "fastq@npm:1.15.0"
+  version: 1.16.0
+  resolution: "fastq@npm:1.16.0"
   dependencies:
     reusify: "npm:^1.0.4"
-  checksum: 5ce4f83afa5f88c9379e67906b4d31bc7694a30826d6cc8d0f0473c966929017fda65c2174b0ec89f064ede6ace6c67f8a4fe04cef42119b6a55b0d465554c24
+  checksum: 38c1b49adba639af020727284a02af021acab764efd7f088bc31364e8a5b01ce9031eb6c5f7f304019b8267c3b7c236e79d6904884f50f94f83b1700b8a6619a
   languageName: node
   linkType: hard
 
