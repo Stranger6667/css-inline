@@ -22,59 +22,60 @@
     <script src="./index.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      cssInline.initWasm(fetch("./index_bg.wasm"));
-      // Set the package version
       document.addEventListener("DOMContentLoaded", () => {
-        const versionElement = document.getElementById(
-          "css-inline-package-version",
-        );
-        if (versionElement) {
-          versionElement.textContent = `css-inline ${cssInline.version()}`;
-        }
-        const submitButton = document.getElementById("css-inline-submit");
-        const html = document.getElementById("css-inline-html");
-        const inlinedCodeElement = document.getElementById("css-inline-result");
-        const inlinedCodeContainer = document.getElementById(
-          "css-inline-result-container",
-        );
-        const inlinedErrorContainer = document.getElementById(
-          "css-inline-error-container",
-        );
-        const inlinedErrorText = document.getElementById(
-          "css-inline-error-text",
-        );
-        const outputSizeSpan = document.getElementById(
-          "css-inline-output-size",
-        );
-        const callTimeSpan = document.getElementById("css-inline-call-time");
-
-        submitButton.addEventListener("click", function () {
-          try {
-            const startTime = performance.now();
-            const inlinedHtml = cssInline.inline(html.value);
-            const durationMs = (performance.now() - startTime).toFixed(2);
-
-            const blob = new Blob([inlinedHtml], { type: "text/html" });
-            const sizeInBytes = blob.size;
-            let sizeText;
-
-            if (sizeInBytes < 1024) {
-              sizeText = `${sizeInBytes} bytes`;
-            } else if (sizeInBytes < 1048576) {
-              sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
-            } else {
-              sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
-            }
-            outputSizeSpan.textContent = sizeText;
-            callTimeSpan.textContent = `${durationMs} ms`;
-            inlinedCodeElement.textContent = inlinedHtml;
-            inlinedErrorContainer.classList.add("hidden");
-            inlinedCodeContainer.classList.remove("hidden");
-          } catch (error) {
-            inlinedCodeContainer.classList.add("hidden");
-            inlinedErrorContainer.classList.remove("hidden");
-            inlinedErrorText.textContent = error;
+        cssInline.initWasm(fetch("./index_bg.wasm")).then(() => {
+          const versionElement = document.getElementById(
+            "css-inline-package-version",
+          );
+          if (versionElement) {
+            versionElement.textContent = `css-inline ${cssInline.version()}`;
           }
+          const submitButton = document.getElementById("css-inline-submit");
+          const html = document.getElementById("css-inline-html");
+          const inlinedCodeElement =
+            document.getElementById("css-inline-result");
+          const inlinedCodeContainer = document.getElementById(
+            "css-inline-result-container",
+          );
+          const inlinedErrorContainer = document.getElementById(
+            "css-inline-error-container",
+          );
+          const inlinedErrorText = document.getElementById(
+            "css-inline-error-text",
+          );
+          const outputSizeSpan = document.getElementById(
+            "css-inline-output-size",
+          );
+          const callTimeSpan = document.getElementById("css-inline-call-time");
+
+          submitButton.addEventListener("click", function () {
+            try {
+              const startTime = performance.now();
+              const inlinedHtml = cssInline.inline(html.value);
+              const durationMs = (performance.now() - startTime).toFixed(2);
+
+              const blob = new Blob([inlinedHtml], { type: "text/html" });
+              const sizeInBytes = blob.size;
+              let sizeText;
+
+              if (sizeInBytes < 1024) {
+                sizeText = `${sizeInBytes} bytes`;
+              } else if (sizeInBytes < 1048576) {
+                sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
+              } else {
+                sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
+              }
+              outputSizeSpan.textContent = sizeText;
+              callTimeSpan.textContent = `${durationMs} ms`;
+              inlinedCodeElement.textContent = inlinedHtml;
+              inlinedErrorContainer.classList.add("hidden");
+              inlinedCodeContainer.classList.remove("hidden");
+            } catch (error) {
+              inlinedCodeContainer.classList.add("hidden");
+              inlinedErrorContainer.classList.remove("hidden");
+              inlinedErrorText.textContent = error;
+            }
+          });
         });
       });
     </script>
