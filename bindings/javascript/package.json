@@ -1,7 +1,22 @@
 {
-  "name": "css-inline",
+  "name": "@css-inline/css-inline",
   "version": "0.11.2",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
+  "repository": "git@github.com:Stranger6667/css-inline.git",
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "js-binding.js",
+    "js-binding.d.ts"
+  ],
   "types": "index.d.ts",
   "napi": {
     "name": "css-inline",
@@ -17,21 +32,50 @@
   },
   "license": "MIT",
   "devDependencies": {
+    "@ava/typescript": "^4.1.0",
     "@napi-rs/cli": "^2.17.0",
-    "ava": "^5.1.1"
+    "@swc-node/register": "^1.6.8",
+    "@swc/core": "^1.3.101",
+    "@types/copyfiles": "^2",
+    "ava": "^6.0.1",
+    "copyfiles": "^2.4.1",
+    "dts-bundle-generator": "^9.1.0",
+    "esbuild": "^0.19.10",
+    "npm-run-all2": "^6.1.1",
+    "typescript": "^5.3.3"
   },
   "ava": {
+    "require": [
+      "@swc-node/register"
+    ],
+    "typescript": {
+      "rewritePaths": {
+        "src/": "build/"
+      },
+      "compile": false
+    },
     "timeout": "3m"
   },
   "engines": {
     "node": ">= 10"
   },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "scripts": {
     "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
-    "build:debug": "napi build --platform",
+    "bundle": "run-p 'bundle:*'",
+    "bundle:js": "node bundle.js",
+    "bundle:dts": "dts-bundle-generator --external-types -o wasm/index.d.ts wasm-binding.ts",
+    "build": "napi build --platform --release --js js-binding.js --dts js-binding.d.ts",
+    "build:debug": "napi build --platform --js js-binding.js --dts js-binding.d.ts",
+    "build:wasm": "run-s build:wasm-web copy-wasm bundle",
+    "build:wasm-web": "wasm-pack build --target web --out-name index --out-dir wasm/dist --release",
+    "copy-wasm": "copyfiles -f wasm/dist/index_bg.wasm ./wasm",
     "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
+    "test": "ava __test__/index*.*",
+    "test:wasm": "ava __test__/**/wasm*.*",
     "universal": "napi universal",
     "version": "napi version"
   },

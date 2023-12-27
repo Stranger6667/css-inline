@@ -148,11 +148,52 @@ jobs:
           path: bindings/javascript/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
 
+  artifacts-wasm:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: yarn
+          cache-dependency-path: bindings/javascript/yarn.lock
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/javascript
+          cache-all-crates: "true"
+
+      - name: Install wasm-pack
+        uses: actions-rs/cargo@v1
+        with:
+          command: install
+          args: wasm-pack
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: ./bindings/javascript
+
+      - name: Build Wasm
+        run: yarn build:wasm
+        working-directory: ./bindings/javascript
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bindings-wasm32
+          path: bindings/javascript/wasm/dist/*.wasm
+          if-no-files-found: error
+
   release:
     name: Release
     runs-on: ubuntu-22.04
     needs:
       - artifacts
+      - artifacts-wasm
     if: "startsWith(github.ref, 'refs/tags/')"
     steps:
       - uses: actions/checkout@v4
@@ -181,6 +222,9 @@ jobs:
         with:
           path: artifacts
 
+      - name: Move Wasm artifacts
+        run: mv -f ./artifacts/wasm32/*.wasm ./wasm
+
       - name: Move Node.js artifacts
         run: yarn artifacts
         working-directory: bindings/javascript
@@ -189,6 +233,8 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" >> ~/.npmrc
           npm publish --access public --provenance
+          cd wasm
+          npm publish --access public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

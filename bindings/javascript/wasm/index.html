@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Inline CSS directly within HTML tags. Try the WebAssembly-powered playground to see instant results."
+    />
+    <meta
+      name="keywords"
+      content="CSS inlining, WebAssembly, browser playground, Rust, Python, Ruby, JavaScript, style attribute, HTML, CSS"
+    />
+    <title>CSS Inline | High-performance CSS inlining</title>
+    <link
+      rel="preload"
+      as="fetch"
+      type="application/wasm"
+      href="./index_bg.wasm"
+      crossorigin
+    />
+    <script src="./index.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      cssInline.initWasm(fetch("./index_bg.wasm"));
+      // Set the package version
+      document.addEventListener("DOMContentLoaded", () => {
+        const versionElement = document.getElementById(
+          "css-inline-package-version",
+        );
+        if (versionElement) {
+          versionElement.textContent = `css-inline ${cssInline.version()}`;
+        }
+        const submitButton = document.getElementById("css-inline-submit");
+        const html = document.getElementById("css-inline-html");
+        const inlinedCodeElement = document.getElementById("css-inline-result");
+        const inlinedCodeContainer = document.getElementById(
+          "css-inline-result-container",
+        );
+        const inlinedErrorContainer = document.getElementById(
+          "css-inline-error-container",
+        );
+        const inlinedErrorText = document.getElementById(
+          "css-inline-error-text",
+        );
+        const outputSizeSpan = document.getElementById(
+          "css-inline-output-size",
+        );
+        const callTimeSpan = document.getElementById("css-inline-call-time");
+
+        submitButton.addEventListener("click", function () {
+          try {
+            const startTime = performance.now();
+            const inlinedHtml = cssInline.inline(html.value);
+            const durationMs = (performance.now() - startTime).toFixed(2);
+
+            const blob = new Blob([inlinedHtml], { type: "text/html" });
+            const sizeInBytes = blob.size;
+            let sizeText;
+
+            if (sizeInBytes < 1024) {
+              sizeText = `${sizeInBytes} bytes`;
+            } else if (sizeInBytes < 1048576) {
+              sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
+            } else {
+              sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
+            }
+            outputSizeSpan.textContent = sizeText;
+            callTimeSpan.textContent = `${durationMs} ms`;
+            inlinedCodeElement.textContent = inlinedHtml;
+            inlinedErrorContainer.classList.add("hidden");
+            inlinedCodeContainer.classList.remove("hidden");
+          } catch (error) {
+            inlinedCodeContainer.classList.add("hidden");
+            inlinedErrorContainer.classList.remove("hidden");
+            inlinedErrorText.textContent = error;
+          }
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <header class="bg-white">
+      <nav
+        class="mx-auto flex items-center justify-between p-6"
+        aria-label="Global"
+      >
+        <h1 class="text-4xl font-semibold leading-6 text-gray-900">
+          CSS-Inline
+        </h1>
+        <div>
+          <a
+            href="https://github.com/Stranger6667/css-inline"
+            class="text-gray-400 hover:text-gray-500"
+            target="_blank"
+          >
+            <span class="sr-only">GitHub</span>
+            <svg
+              class="h-10 w-10"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <div class="mx-6">
+      <p class="mt-6 text-2xl leading-8 text-gray-800">
+        High-performance library for inlining CSS into HTML 'style' attributes
+      </p>
+      <p class="mt-2 text-md leading-8 text-gray-900">
+        css-inline leverages Mozilla's Servo project components and works with
+        Rust, Python, Ruby, JavaScript, and C. The playground below is powered
+        by WebAssembly allows direct browser interaction with the library. Edit
+        the HTML in the text area and click "Inline" to view the results
+        instantly.
+      </p>
+    </div>
+
+    <div class="mx-6 my-4">
+      <label
+        for="css-inline-html"
+        class="block md font-medium leading-6 text-gray-900"
+      ></label>
+      <div class="mt-2">
+        <textarea
+          rows="8"
+          name="html"
+          id="css-inline-html"
+          class="block bg-gray-100 w-full rounded-md border-0 p-3 text-gray-900 shadow-sm font-mono ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        >
+<html>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
+</html></textarea
+        >
+      </div>
+      <button
+        type="submit"
+        id="css-inline-submit"
+        class="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-8 py-3 text-md font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+      >
+        Inline
+      </button>
+    </div>
+
+    <div id="css-inline-error-container" class="hidden">
+      <div class="mx-6 mb-4 rounded-md bg-red-100 p-4">
+        <div class="flex">
+          <div class="ml-3">
+            <p class="text-md font-medium text-red-800">
+              <strong>Error!</strong> <span id="css-inline-error-text"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="css-inline-result-container" class="hidden">
+      <div class="mx-6 mb-4 rounded-md bg-green-100 p-4">
+        <div class="flex">
+          <div class="ml-3">
+            <p class="text-md font-medium text-green-800">
+              <strong>Success!</strong> Below is your HTML with inlined CSS
+              styles
+            </p>
+          </div>
+        </div>
+      </div>
+      <div
+        class="mx-6 block bg-gray-100 rounded-md border-0 p-3 text-gray-900 shadow-sm font-mono ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+      >
+        <pre
+          id="css-inline-result"
+          class="overflow-x-auto whitespace-pre-wrap"
+        ></pre>
+      </div>
+      <div class="mx-6 flex justify-end">
+        <p class="m-2 text-md leading-8 text-black">
+          <strong><span id="css-inline-output-size">124 Kb</span></strong> in
+          <strong><span id="css-inline-call-time">2.1 ms</span></strong>
+        </p>
+      </div>
+    </div>
+
+    <footer class="bg-white">
+      <hr />
+      <div class="px-6 py-6 md:flex md:items-center md:justify-between">
+        <div class="mt-4 md:order-1 md:mt-0">
+          <p class="text-center text-md leading-5 text-gray-500">
+            © css-inline.org by
+            <a
+              href="https://github.com/Stranger6667"
+              class="text-blue-400 hover:text-blue-500"
+              target="_blank"
+              >Dmitry Dygalo</a
+            >
+          </p>
+        </div>
+        <div class="mt-4 md:order-1 md:mt-0">
+          <p
+            id="css-inline-package-version"
+            class="text-center text-md leading-5 text-gray-500"
+          >
+            ...
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
