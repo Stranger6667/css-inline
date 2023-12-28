@@ -20,7 +20,12 @@ pub enum InlineError {
     IO(io::Error),
     /// Network-related problem. E.g. resource is not available.
     #[cfg(feature = "http")]
-    Network(attohttpc::Error),
+    Network {
+        /// Original network error.
+        error: attohttpc::Error,
+        /// The stylesheet location caused the error.
+        location: String,
+    },
     /// Syntax errors or unsupported selectors.
     ParseError(Cow<'static, str>),
 }
@@ -31,13 +36,6 @@ impl From<io::Error> for InlineError {
     }
 }
 
-#[cfg(feature = "http")]
-impl From<attohttpc::Error> for InlineError {
-    fn from(error: attohttpc::Error) -> Self {
-        Self::Network(error)
-    }
-}
-
 impl Error for InlineError {}
 
 impl Display for InlineError {
@@ -45,7 +43,7 @@ impl Display for InlineError {
         match self {
             Self::IO(error) => error.fmt(f),
             #[cfg(feature = "http")]
-            Self::Network(error) => error.fmt(f),
+            Self::Network { error, location } => f.write_fmt(format_args!("{error}: {location}")),
             Self::ParseError(error) => f.write_str(error),
             Self::MissingStyleSheet { path } => {
                 f.write_fmt(format_args!("Missing stylesheet file: {path}"))

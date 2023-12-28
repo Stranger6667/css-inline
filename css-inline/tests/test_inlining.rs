@@ -661,7 +661,12 @@ fn remote_network_stylesheet_invalid_url() {
 <body>
 </body>
 </html>"#;
-    assert!(inline(html).is_err());
+    let error = inline(html).expect_err("Should fail");
+    #[cfg(feature = "http")]
+    let expected = "Invalid base URL: http:";
+    #[cfg(not(feature = "http"))]
+    let expected = "Loading external URLs requires the `http` feature";
+    assert_eq!(error.to_string(), expected);
 }
 
 #[test]

@@ -3,19 +3,25 @@ use napi::bindgen_prelude::Status;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::JsValue;
 
-pub(crate) struct UrlError(pub(crate) css_inline::ParseError);
+pub(crate) struct UrlError {
+    pub(crate) error: css_inline::ParseError,
+    pub(crate) url: String,
+}
 
 #[cfg(not(target_arch = "wasm32"))]
 impl From<UrlError> for napi::Error {
-    fn from(err: UrlError) -> Self {
-        napi::Error::new(Status::InvalidArg, err.0.to_string())
+    fn from(error: UrlError) -> Self {
+        napi::Error::new(
+            Status::InvalidArg,
+            format!("{}: {}", error.error, error.url),
+        )
     }
 }
 
 #[cfg(target_arch = "wasm32")]
 impl From<UrlError> for JsValue {
     fn from(error: UrlError) -> Self {
-        JsValue::from_str(error.0.to_string().as_str())
+        JsValue::from_str(format!("{}: {}", error.error, error.url).as_str())
     }
 }
 

@@ -7,7 +7,7 @@ use wasm_bindgen::prelude::JsValue;
 
 fn parse_url(url: Option<String>) -> std::result::Result<Option<css_inline::Url>, JsError> {
     Ok(if let Some(url) = url {
-        Some(css_inline::Url::parse(url.as_str()).map_err(UrlError)?)
+        Some(css_inline::Url::parse(url.as_str()).map_err(|error| UrlError { error, url })?)
     } else {
         None
     })

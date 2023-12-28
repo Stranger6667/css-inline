@@ -92,9 +92,10 @@ impl From<InlineErrorWrapper> for magnus::Error {
             rust_inline::InlineError::IO(error) => {
                 magnus::Error::new(magnus::exception::arg_error(), error.to_string())
             }
-            rust_inline::InlineError::Network(error) => {
-                magnus::Error::new(magnus::exception::arg_error(), error.to_string())
-            }
+            rust_inline::InlineError::Network { error, location } => magnus::Error::new(
+                magnus::exception::arg_error(),
+                format!("{error}: {location}"),
+            ),
             rust_inline::InlineError::ParseError(message) => {
                 magnus::Error::new(magnus::exception::arg_error(), message.to_string())
             }
@@ -105,17 +106,23 @@ impl From<InlineErrorWrapper> for magnus::Error {
     }
 }
 
-struct UrlError(rust_inline::ParseError);
+struct UrlError {
+    error: rust_inline::ParseError,
+    url: String,
+}
 
 impl From<UrlError> for magnus::Error {
     fn from(error: UrlError) -> magnus::Error {
-        magnus::Error::new(magnus::exception::arg_error(), error.0.to_string())
+        magnus::Error::new(
+            magnus::exception::arg_error(),
+            format!("{}: {}", error.error, error.url),
+        )
     }
 }
 
 fn parse_url(url: Option<String>) -> RubyResult<Option<rust_inline::Url>> {
     Ok(if let Some(url) = url {
-        Some(rust_inline::Url::parse(url.as_str()).map_err(UrlError)?)
+        Some(rust_inline::Url::parse(url.as_str()).map_err(|error| UrlError { error, url })?)
     } else {
         None
     })

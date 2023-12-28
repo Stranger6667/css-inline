@@ -363,9 +363,14 @@ fn load_external(location: &str) -> Result<String> {
     if location.starts_with("https") | location.starts_with("http") {
         #[cfg(feature = "http")]
         {
-            let request = attohttpc::RequestBuilder::try_new(attohttpc::Method::GET, location)?;
-            let response = request.send()?;
-            Ok(response.text()?)
+            let into_error = |error| InlineError::Network {
+                error,
+                location: location.to_string(),
+            };
+            let request = attohttpc::RequestBuilder::try_new(attohttpc::Method::GET, location)
+                .map_err(into_error)?;
+            let response = request.send().map_err(into_error)?;
+            Ok(response.text().map_err(into_error)?)
         }
 
         #[cfg(not(feature = "http"))]
