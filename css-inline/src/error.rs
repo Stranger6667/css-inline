@@ -36,7 +36,16 @@ impl From<io::Error> for InlineError {
     }
 }
 
-impl Error for InlineError {}
+impl Error for InlineError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            InlineError::IO(error) => Some(error),
+            #[cfg(feature = "http")]
+            InlineError::Network { error, .. } => Some(error),
+            InlineError::MissingStyleSheet { .. } | InlineError::ParseError(_) => None,
+        }
+    }
+}
 
 impl Display for InlineError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {

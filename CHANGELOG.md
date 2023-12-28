@@ -5,6 +5,7 @@
 ### Changed
 
 - Display stylesheet location in network-related errors.
+- Implement `std::error::Error::source` for `InlineError`.
 
 ### Performance
 

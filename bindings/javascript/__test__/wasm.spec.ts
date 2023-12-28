@@ -84,5 +84,8 @@ test("unsupported network operation", (t) => {
     },
     { any: true },
   );
-  t.is(error, "Loading remote stylesheets is not supported on WASM");
+  t.is(
+    error,
+    "Loading remote stylesheets is not supported on WASM: http://127.0.0.1:5000/external.css",
+  );
 });
