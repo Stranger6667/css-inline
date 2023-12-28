@@ -168,10 +168,7 @@ jobs:
           cache-all-crates: "true"
 
       - name: Install wasm-pack
-        uses: actions-rs/cargo@v1
-        with:
-          command: install
-          args: wasm-pack
+        run: cargo install wasm-pack
 
       - name: Install dependencies
         run: yarn install
