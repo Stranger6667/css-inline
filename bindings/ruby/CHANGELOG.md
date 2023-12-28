@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.12.0] - 2023-12-28
+
 ### Changed
 
 - Display stylesheet location in network-related errors.
@@ -110,7 +112,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.12.0...HEAD
+[0.12.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.2...ruby-v0.12.0
 [0.11.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.1...ruby-v0.11.2
 [0.11.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.0...ruby-v0.11.1
 [0.11.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.10.5...ruby-v0.11.0
