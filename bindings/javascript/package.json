@@ -3,7 +3,10 @@
   "version": "0.11.2",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
-  "repository": "git@github.com:Stranger6667/css-inline.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Stranger6667/css-inline.git"
+  },
   "keywords": [
     "css",
     "html",

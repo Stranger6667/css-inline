@@ -46,6 +46,9 @@
     },
     "timeout": "3m"
   },
-  "repository": "git@github.com:Stranger6667/css-inline.git",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Stranger6667/css-inline.git"
+  },
   "sideEffects": false
 }
