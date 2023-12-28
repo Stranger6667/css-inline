@@ -141,7 +141,7 @@ Most of the time it achieves over a **4x** speed advantage compared to the next 
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.11.2` | `css-inline-wasm 0.11.2` | `juice 10.0.0`        | `inline-css 4.0.2`     |
+|             | Size    | `css-inline 0.12.0` | `css-inline-wasm 0.12.0` | `juice 10.0.0`        | `inline-css 4.0.2`     |
 |-------------|---------|---------------------|--------------------------|-----------------------|------------------------|
 | Basic       | 230 B   | 15.06 µs            | 29.33 µs (**1.94x**)     | 142.53 µs (**9.46x**) | 163.77 µs (**10.87x**) |
 | Realistic-1 | 8.58 KB | 320.71 µs           | 638.97 µs (**1.99x**)    | 1.28 ms (**4.01x**)   | 1.87 ms (**5.85x**)    |
