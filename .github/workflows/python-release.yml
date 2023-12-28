@@ -299,6 +299,7 @@ jobs:
         run: |
           mkdir dist
           mv all/*/* dist
+          rm -rf all
       - uses: actions/setup-python@v5
       - name: Publish to PyPi
         env:
