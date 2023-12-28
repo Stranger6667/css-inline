@@ -181,7 +181,7 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: bindings-wasm32
+          name: wasm32
           path: bindings/javascript/wasm/dist/*.wasm
           if-no-files-found: error
 
@@ -220,11 +220,10 @@ jobs:
         with:
           path: artifacts
 
-      - run: ls -lh
+      - run: mv -f ./artifacts ./bindings/javascript
 
       - name: Move Wasm artifacts
-        run: mv -f ./artifacts/wasm32/*.wasm ./wasm
-        working-directory: bindings/javascript
+        run: mv -f ./artifacts/wasm32/*.wasm ./bindings/javascript/wasm
 
       - name: Move Node.js artifacts
         run: yarn artifacts
