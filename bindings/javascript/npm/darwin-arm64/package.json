@@ -1,6 +1,19 @@
 {
-  "name": "css-inline-darwin-arm64",
+  "name": "@css-inline/css-inline-darwin-arm64",
   "version": "0.0.0",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
+  "repository": "https://github.com/Stranger6667/css-inline",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
   "os": [
     "darwin"
   ],
