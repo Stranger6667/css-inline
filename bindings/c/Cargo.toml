@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-c"
-version = "0.11.3"
+version = "0.12.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 
