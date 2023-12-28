@@ -38,7 +38,7 @@ jobs:
       - name: Upload sdist
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: sdist
           path: dist
 
   macos-x86_64:
@@ -61,7 +61,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-macos-x86_64
           path: dist
 
   macos-universal:
@@ -83,7 +83,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-macos-universal
           path: dist
 
   windows:
@@ -110,7 +110,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-windows-${{ matrix.target }}
           path: dist
 
   linux:
@@ -137,7 +137,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-linux-${{ matrix.target }}
           path: dist
 
   linux-cross:
@@ -171,7 +171,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-linux-cross-${{ matrix.target }}
           path: dist
 
   musllinux:
@@ -203,7 +203,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-musllinux-${{ matrix.target }}
           path: dist
 
   musllinux-cross:
@@ -239,7 +239,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-musllinux-cross-${{ matrix.platform.target }}-${{ matrix.platform.arch }}
           path: dist
 
   pypy:
@@ -274,7 +274,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: dist
+          name: wheel-pypy-${{ matrix.os }}-${{ matrix.target }}-${{ matrix.python-version }}
           path: dist
 
   release:
@@ -294,7 +294,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: dist
+          path: all
+      - name: Merge files
+        run: |
+          mkdir dist
+          mv all/*/* dist
       - uses: actions/setup-python@v5
       - name: Publish to PyPi
         env:
