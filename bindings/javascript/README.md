@@ -57,7 +57,7 @@ npm i @css-inline/css-inline
 ## Usage
 
 ```typescript
-import { inline } from "css-inline";
+import { inline } from "@css-inline/css-inline";
 
 var inlined = inline(
   `
