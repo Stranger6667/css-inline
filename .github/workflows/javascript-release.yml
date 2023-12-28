@@ -223,7 +223,7 @@ jobs:
       - run: mv -f ./artifacts ./bindings/javascript
 
       - name: Move Wasm artifacts
-        run: mv -f ./artifacts/wasm32/*.wasm ./bindings/javascript/wasm
+        run: mv -f ./bindings/javascript/artifacts/wasm32/*.wasm ./bindings/javascript/wasm
 
       - name: Move Node.js artifacts
         run: yarn artifacts
