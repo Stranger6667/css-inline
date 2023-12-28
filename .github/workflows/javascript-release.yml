@@ -198,9 +198,10 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v4
         with:
-          node-version: 16
+          node-version: 20
           check-latest: true
           cache: yarn
+          cache-dependency-path: bindings/javascript/yarn.lock
 
       - name: Cache NPM dependencies
         uses: actions/cache@v3
