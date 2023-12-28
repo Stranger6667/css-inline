@@ -1,8 +1,9 @@
 import { promises as fs } from "fs";
 import { join } from "path";
+
 import b from "benny";
-import juice from "juice";
 import inlineCss from "inline-css";
+import juice from "juice";
 
 import { inline } from "../index";
 import { initWasm, inline as wasmInline } from "../wasm";

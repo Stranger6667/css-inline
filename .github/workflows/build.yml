@@ -32,6 +32,32 @@ jobs:
       - run: pip install pre-commit
       - run: SKIP=fmt,cargo-check,clippy pre-commit run --all-files
 
+  eslint:
+    name: ESLint
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache NPM dependencies
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: npm-cache-lint-node@16-${{ hashFiles('yarn.lock') }}
+          working-directory: ./bindings/javascript
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile --registry https://registry.npmjs.org --network-timeout 300000
+        working-directory: ./bindings/javascript
+
+      - name: ESLint
+        run: yarn lint
+        working-directory: ./bindings/javascript
+
   test-stable:
     name: Test (stable)
     runs-on: ubuntu-22.04
