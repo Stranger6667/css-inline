@@ -7,6 +7,15 @@ mod errors;
 mod options;
 use options::Options;
 
+#[cfg(all(
+    not(target_arch = "wasm32"),
+    not(debug_assertions),
+    not(all(target_os = "windows", target_arch = "aarch64")),
+    not(all(target_os = "linux", target_arch = "aarch64", target_env = "musl")),
+))]
+#[global_allocator]
+static ALLOC: mimalloc_rust::GlobalMiMalloc = mimalloc_rust::GlobalMiMalloc;
+
 #[cfg(not(target_arch = "wasm32"))]
 #[napi]
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
