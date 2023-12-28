@@ -74,3 +74,15 @@ test("invalid style", (t) => {
   );
   t.is(error, "Invalid @ rule: wrong");
 });
+
+test("unsupported network operation", (t) => {
+  const error = t.throws(
+    () => {
+      inline(
+        "<html><head><link href='http://127.0.0.1:5000/external.css' rel='stylesheet' type='text/css'></head><body></body></html>",
+      );
+    },
+    { any: true },
+  );
+  t.is(error, "Loading remote stylesheets is not supported on WASM");
+});
