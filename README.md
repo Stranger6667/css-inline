@@ -40,7 +40,7 @@ into:
 - Resolves external stylesheets (including local files)
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
-- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), and [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript) module to run in browsers.
+- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
 
 ## Installation
 
