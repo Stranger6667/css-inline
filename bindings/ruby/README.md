@@ -141,7 +141,7 @@ It consistently outperforms `premailer`, offering speed increases often exceedin
 
 The table below provides a detailed comparison between `css_inline` and `premailer` when inlining CSS into an HTML document (like in the Usage section above):
 
-|                   | Size    | `css_inline 0.11.2` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
+|                   | Size    | `css_inline 0.12.0` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
 |-------------------|---------|---------------------|------------------------------------------------|------------|
 | Basic usage       | 230 B   | 8.27 µs             | 433.55 µs                                      | **52.35x** |
 | Realistic email 1 | 8.58 KB | 159.20 µs           | 9.88 ms                                        | **62.10x** |

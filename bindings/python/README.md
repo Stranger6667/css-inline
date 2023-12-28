@@ -174,7 +174,7 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.11.2` | `premailer 3.10.0`     | `toronado 0.1.0`       | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
+|             | Size    | `css_inline 0.12.0` | `premailer 3.10.0`     | `toronado 0.1.0`       | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
 |-------------|---------|---------------------|------------------------|------------------------|------------------------|------------------------|
 | Basic       | 230 B   | 6.75 µs             | 131.50 µs (**19.48x**) | 666.20 µs (**98.70x**) | 1.05 ms (**155.82x**)  | 1.20 ms (**178.63x**)  |
 | Realistic-1 | 8.58 KB | 138.79 µs           | 1.43 ms (**10.34x**)   | 16.52 ms (**119.07x**) | 27.59 ms (**198.85x**) | 51.74 ms (**372.84x**) |

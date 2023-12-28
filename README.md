@@ -53,7 +53,7 @@ To include it in your project, add the following line to the dependencies sectio
 
 ```toml
 [dependencies]
-css-inline = "0.11"
+css-inline = "0.12"
 ```
 
 The Minimum Supported Rust Version is 1.65.
@@ -146,7 +146,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.11.2`:
+Benchmarks for `css-inline==0.12.0`:
 
 - Basic: **6.51 µs**, 230 bytes
 - Realistic-1: **137.91 µs**, 8.58 KB
