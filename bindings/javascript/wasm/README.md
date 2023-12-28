@@ -11,6 +11,10 @@
 
 This is the **WebAssembly** module for [`css-inline`](https://github.com/Stranger6667/css-inline)
 
+## Playground
+
+If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+
 ## License
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).

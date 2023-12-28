@@ -42,6 +42,10 @@ into:
 - Supports HTML5 & CSS3
 - Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
 
+## Playground
+
+If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+
 ## Installation
 
 To include it in your project, add the following line to the dependencies section in your project's `Cargo.toml` file:

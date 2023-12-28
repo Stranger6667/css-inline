@@ -40,6 +40,10 @@ into:
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 
+## Playground
+
+If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+
 ## Installation
 
 ### Node.js
