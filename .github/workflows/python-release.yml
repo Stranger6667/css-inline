@@ -299,7 +299,6 @@ jobs:
         run: |
           mkdir dist
           mv all/*/* dist
-          rm -rf all
       - uses: actions/setup-python@v5
       - name: Publish to PyPi
         env:
@@ -307,4 +306,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           pip install --upgrade twine
-          twine upload --skip-existing *
+          twine upload --skip-existing dist/*
