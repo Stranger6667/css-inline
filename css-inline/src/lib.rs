@@ -388,6 +388,11 @@ fn load_external(location: &str) -> Result<String> {
                 ErrorKind::NotFound => InlineError::MissingStyleSheet {
                     path: location.to_string(),
                 },
+                #[cfg(target_family = "wasm")]
+                ErrorKind::Unsupported => InlineError::IO(std::io::Error::new(
+                    ErrorKind::Unsupported,
+                    format!("Loading local files is not supported on WASM: {location}"),
+                )),
                 _ => InlineError::IO(error),
             })
         }

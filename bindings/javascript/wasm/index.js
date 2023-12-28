@@ -274,14 +274,14 @@ function __wbg_get_imports() {
     const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
     return ret;
   };
+  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
+    const ret = getStringFromWasm0(arg0, arg1);
+    return addHeapObject(ret);
+  };
   imports.wbg.__wbindgen_is_object = function(arg0) {
     const val = getObject(arg0);
     const ret = typeof val === "object" && val !== null;
     return ret;
-  };
-  imports.wbg.__wbindgen_string_new = function(arg0, arg1) {
-    const ret = getStringFromWasm0(arg0, arg1);
-    return addHeapObject(ret);
   };
   imports.wbg.__wbindgen_object_clone_ref = function(arg0) {
     const ret = getObject(arg0);
