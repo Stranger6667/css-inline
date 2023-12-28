@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Display stylesheet location in network-related errors.
+
 ## [0.11.3] - 2023-12-14
 
 - Initial public release

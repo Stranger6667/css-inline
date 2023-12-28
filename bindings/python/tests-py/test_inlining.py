@@ -90,8 +90,35 @@ def test_file_scheme():
 
 
 def test_invalid_base_url():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="relative URL without a base: foo"):
         css_inline.CSSInliner(base_url="foo")
+
+
+def test_invalid_href():
+    with pytest.raises(ValueError, match="Invalid base URL: http:"):
+        css_inline.inline(
+            """<html>
+    <head>
+    <link href="http:" rel="stylesheet" type="text/css">
+    </head>
+    <body>
+    </body>
+    </html>"""
+        )
+
+
+def test_invalid_style():
+    with pytest.raises(ValueError, match="Invalid @ rule: wrong"):
+        css_inline.inline(
+            """<html>
+    <head>
+    </head>
+    <style>h1, h2 { color:red; }</style>
+    <body>
+    <h1 style="@wrong { color: --- }">Hello world!</h1>
+    </body>
+    </html>"""
+        )
 
 
 @given(

@@ -90,7 +90,7 @@ pub unsafe extern "C" fn css_inline_to(
     if let Err(e) = options.inline_to(html, &mut buffer) {
         return match e {
             InlineError::IO(_) => CssResult::IoError,
-            InlineError::Network(_) => CssResult::RemoteStylesheetNotAvailable,
+            InlineError::Network { .. } => CssResult::RemoteStylesheetNotAvailable,
             InlineError::ParseError(_) => CssResult::InternalSelectorParseError,
             InlineError::MissingStyleSheet { .. } => CssResult::MissingStylesheet,
         };

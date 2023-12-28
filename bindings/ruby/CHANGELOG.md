@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Display stylesheet location in network-related errors.
+
 ### Performance
 
 - Optimize serialization of attributes and text nodes.

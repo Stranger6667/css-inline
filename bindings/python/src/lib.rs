@@ -40,7 +40,7 @@ impl From<InlineErrorWrapper> for PyErr {
     fn from(error: InlineErrorWrapper) -> Self {
         match error.0 {
             rust_inline::InlineError::IO(error) => InlineError::new_err(error.to_string()),
-            rust_inline::InlineError::Network(error) => InlineError::new_err(error.to_string()),
+            rust_inline::InlineError::Network { .. } => InlineError::new_err(error.0.to_string()),
             rust_inline::InlineError::ParseError(message) => {
                 InlineError::new_err(message.to_string())
             }
@@ -51,17 +51,20 @@ impl From<InlineErrorWrapper> for PyErr {
     }
 }
 
-struct UrlError(url::ParseError);
+struct UrlError {
+    error: rust_inline::ParseError,
+    url: String,
+}
 
 impl From<UrlError> for PyErr {
     fn from(error: UrlError) -> Self {
-        exceptions::PyValueError::new_err(error.0.to_string())
+        exceptions::PyValueError::new_err(format!("{}: {}", error.error, error.url))
     }
 }
 
-fn parse_url(url: Option<String>) -> PyResult<Option<url::Url>> {
+fn parse_url(url: Option<String>) -> PyResult<Option<rust_inline::Url>> {
     Ok(if let Some(url) = url {
-        Some(url::Url::parse(url.as_str()).map_err(UrlError)?)
+        Some(rust_inline::Url::parse(url.as_str()).map_err(|error| UrlError { error, url })?)
     } else {
         None
     })

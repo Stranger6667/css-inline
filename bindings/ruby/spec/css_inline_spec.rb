@@ -64,4 +64,37 @@ RSpec.describe 'CssInline' do
     expect(inlined[1]).to eq(expected)
   end
 
+  it 'Shows the stylesheet location in base url errors' do
+    expect { CSSInline::CSSInliner.new(base_url: 'foo') }.to raise_error('relative URL without a base: foo')
+  end
+
+  it 'Shows the stylesheet location in network errors' do
+    expect {
+        CSSInline::CSSInliner.new.inline('''
+        <html>
+        <head>
+        <link href="http:" rel="stylesheet" type="text/css">
+        </head>
+        <body>
+        </body>
+        </html>
+        ''')
+    }.to raise_error('Invalid base URL: http:')
+  end
+
+  it 'Shows the CSS parsing errors' do
+    expect {
+        CSSInline::CSSInliner.new.inline('''
+        <html>
+    <head>
+    </head>
+    <style>h1, h2 { color:red; }</style>
+    <body>
+    <h1 style="@wrong { color: --- }">Hello world!</h1>
+    </body>
+    </html>
+        ''')
+    }.to raise_error('Invalid @ rule: wrong')
+  end
+
 end
