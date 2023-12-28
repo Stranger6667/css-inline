@@ -132,6 +132,8 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </script>
 ```
 
+**NOTE**: WASM module currently lacks support for fetching stylesheets from network or filesystem.
+
 ## Performance
 
 `css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other JavaScript alternatives in terms of speed.
