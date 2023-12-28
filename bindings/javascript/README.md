@@ -132,6 +132,23 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </script>
 ```
 
+## Performance
+
+`css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other JavaScript alternatives in terms of speed.
+Most of the time it achieves over a **4x** speed advantage compared to the next fastest alternative.
+
+Here is the performance comparison:
+
+|             | Size    | `css-inline 0.11.2` | `css-inline-wasm 0.11.2` | `juice 10.0.0`        | `inline-css 4.0.2`     |
+|-------------|---------|---------------------|--------------------------|-----------------------|------------------------|
+| Basic       | 230 B   | 15.19 µs            | 29.33 µs (**1.93x**)     | 142.53 µs (**9.38x**) | 163.77 µs (**10.78x**) |
+| Realistic-1 | 8.58 KB | 336.81 µs           | 638.97 µs (**1.90x**)    | 1.28 ms (**3.80x**)   | 1.87 ms (**5.57x**)    |
+| Realistic-2 | 4.3 KB  | 210.52 µs           | 385.20 µs (**1.82x**)    | 1.72 ms (**8.18x**)   | 1.56 ms (**7.44x**)    |
+
+The "Basic" case was obtained from benchmarking the example from the Usage section.
+
+The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.74.1` on Node.js `v21.4.0`.
+
 ## License
 
 This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).

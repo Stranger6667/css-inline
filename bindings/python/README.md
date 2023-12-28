@@ -181,7 +181,7 @@ Here is the performance comparison:
 | Realistic-2 | 4.3 KB  | 86.95 µs            | 2.69 ms (**31.03x**)   | ERROR                  | 18.06 ms (**207.76x**) | ERROR                  |
 | GitHub page | 1.81 MB | 338.88 ms           | 25.58 s (**75.49x**)   | ERROR                  | ERROR                  | ERROR                  |
 
-The above data was obtained from benchmarking the inlining of CSS in HTML, as described in the Usage section.
+The "Basic" case was obtained from benchmarking the example from the Usage section.
 Note that the `toronado`, `inlinestyler` and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
 The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.74.1` on Python `3.11.6`.
