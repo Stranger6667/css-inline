@@ -220,8 +220,11 @@ jobs:
         with:
           path: artifacts
 
+      - run: ls -lh
+
       - name: Move Wasm artifacts
         run: mv -f ./artifacts/wasm32/*.wasm ./wasm
+        working-directory: bindings/javascript
 
       - name: Move Node.js artifacts
         run: yarn artifacts
@@ -236,3 +239,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
+        working-directory: bindings/javascript
