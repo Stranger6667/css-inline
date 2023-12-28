@@ -89,3 +89,18 @@ test("unsupported network operation", (t) => {
     "Loading remote stylesheets is not supported on WASM: http://127.0.0.1:5000/external.css",
   );
 });
+
+test("unsupported filesystem operation", (t) => {
+  const error = t.throws(
+    () => {
+      inline(
+        "<html><head><link href='tests/external.css' rel='stylesheet' type='text/css'></head><body></body></html>",
+      );
+    },
+    { any: true },
+  );
+  t.is(
+    error,
+    "Loading local files is not supported on WASM: tests/external.css",
+  );
+});

@@ -37,11 +37,13 @@ impl From<InlineError> for napi::Error {
 #[cfg(target_arch = "wasm32")]
 impl From<InlineError> for JsValue {
     fn from(error: InlineError) -> Self {
-        if let css_inline::InlineError::IO(error) = &error.0 {
-            panic!("{}", error);
-        }
         match &error.0 {
             css_inline::InlineError::ParseError(e) => JsValue::from_str(e),
+            css_inline::InlineError::IO(io_error)
+                if io_error.kind() == std::io::ErrorKind::Unsupported =>
+            {
+                JsValue::from_str(io_error.to_string().as_str())
+            }
             css_inline::InlineError::Network {
                 error: network_error,
                 location,
