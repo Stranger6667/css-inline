@@ -1,7 +1,7 @@
 use crate::errors::{JsError, UrlError};
 #[cfg(not(target_arch = "wasm32"))]
 use napi_derive::napi;
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::JsValue;
 
@@ -67,6 +67,31 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                 })?
             } else {
                 32
+            },
+            resolver: {
+                #[cfg(target_arch = "wasm32")]
+                {
+                    #[derive(Debug, Default)]
+                    pub struct UnsupportedResolver;
+
+                    impl css_inline::StylesheetResolver for UnsupportedResolver {
+                        fn retrieve(&self, location: &str) -> css_inline::Result<String> {
+                            let message = if location.starts_with("https")
+                                | location.starts_with("http")
+                            {
+                                format!("Loading remote stylesheets is not supported on WASM: {location}")
+                            } else {
+                                format!("Loading local files is not supported on WASM: {location}")
+                            };
+                            Err(self.unsupported(&message))
+                        }
+                    }
+                    Arc::new(UnsupportedResolver)
+                }
+                #[cfg(not(target_arch = "wasm32"))]
+                {
+                    Arc::new(css_inline::DefaultStylesheetResolver)
+                }
             },
         })
     }

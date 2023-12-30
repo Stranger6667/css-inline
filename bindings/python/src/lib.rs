@@ -23,7 +23,6 @@
     rust_2018_compatibility,
     rust_2021_compatibility
 )]
-#[allow(clippy::module_name_repetitions)]
 use ::css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
@@ -88,6 +87,7 @@ macro_rules! inliner {
             load_remote_stylesheets: $load_remote_stylesheets.unwrap_or(true),
             extra_css: $extra_css.map(Into::into),
             preallocate_node_capacity: $preallocate_node_capacity.unwrap_or(32),
+            resolver: std::sync::Arc::new(rust_inline::DefaultStylesheetResolver),
         };
         rust_inline::CSSInliner::new(options)
     }};

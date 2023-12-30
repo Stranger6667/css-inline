@@ -1,3 +1,6 @@
+use css_inline::DefaultStylesheetResolver;
+use std::sync::Arc;
+
 #[cfg(not(feature = "cli"))]
 fn main() {
     eprintln!("`css-inline` CLI is only available with the `cli` feature");
@@ -131,6 +134,7 @@ OPTIONS:
             load_remote_stylesheets: args.load_remote_stylesheets,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
             preallocate_node_capacity: 32,
+            resolver: Arc::new(DefaultStylesheetResolver),
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {
