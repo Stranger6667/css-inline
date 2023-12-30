@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Avoid loading additional dependencies for WASM resulting in ~6% module size reduction.
+
 ## [0.12.0] - 2023-12-28
 
 - Initial public release

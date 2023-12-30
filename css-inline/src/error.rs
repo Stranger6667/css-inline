@@ -16,7 +16,8 @@ pub enum InlineError {
         /// Path to the missing file.
         path: String,
     },
-    /// Input-output error. May happen during writing the resulting HTML.
+    /// Input-output error. May happen during writing the resulting HTML or retrieving a stylesheet
+    /// from the filesystem.
     IO(io::Error),
     /// Network-related problem. E.g. resource is not available.
     #[cfg(feature = "http")]

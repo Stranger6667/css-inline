@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- A way to customize resolving remote stylesheets.
+
 ## [0.12.0] - 2023-12-28
 
 ### Changed

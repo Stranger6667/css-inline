@@ -26,27 +26,24 @@
     rust_2018_compatibility,
     rust_2021_compatibility
 )]
-#[allow(clippy::module_name_repetitions)]
+#![allow(clippy::module_name_repetitions)]
 pub mod error;
 mod hasher;
 mod html;
 mod parser;
+mod resolver;
 
 pub use error::InlineError;
 use indexmap::IndexMap;
-use std::{
-    borrow::Cow,
-    hash::BuildHasherDefault,
-    io::{ErrorKind, Write},
-};
+use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync::Arc};
 
 use crate::html::ElementStyleMap;
 use hasher::BuildNoHashHasher;
 use html::Document;
+pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 pub use url::{ParseError, Url};
 
 /// Configuration options for CSS inlining process.
-#[derive(Debug)]
 #[allow(clippy::struct_excessive_bools)]
 pub struct InlineOptions<'a> {
     /// Whether to inline CSS from "style" tags.
@@ -70,6 +67,22 @@ pub struct InlineOptions<'a> {
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     pub preallocate_node_capacity: usize,
+    /// A way to resolve stylesheets from various sources.
+    pub resolver: Arc<dyn StylesheetResolver>,
+}
+
+impl<'a> std::fmt::Debug for InlineOptions<'a> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InlineOptions")
+            .field("inline_style_tags", &self.inline_style_tags)
+            .field("keep_style_tags", &self.keep_style_tags)
+            .field("keep_link_tags", &self.keep_link_tags)
+            .field("base_url", &self.base_url)
+            .field("load_remote_stylesheets", &self.load_remote_stylesheets)
+            .field("extra_css", &self.extra_css)
+            .field("preallocate_node_capacity", &self.preallocate_node_capacity)
+            .finish_non_exhaustive()
+    }
 }
 
 impl<'a> InlineOptions<'a> {
@@ -122,6 +135,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Set the way to resolve stylesheets from various sources.
+    #[must_use]
+    pub fn resolver(mut self, resolver: Arc<dyn StylesheetResolver>) -> Self {
+        self.resolver = resolver;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -140,11 +160,13 @@ impl Default for InlineOptions<'_> {
             load_remote_stylesheets: true,
             extra_css: None,
             preallocate_node_capacity: 32,
+            resolver: Arc::new(DefaultStylesheetResolver),
         }
     }
 }
 
-type Result<T> = std::result::Result<T, InlineError>;
+/// A specialized `Result` type for CSS inlining operations.
+pub type Result<T> = std::result::Result<T, InlineError>;
 
 /// Customizable CSS inliner.
 #[derive(Debug)]
@@ -263,7 +285,7 @@ impl<'a> CSSInliner<'a> {
             links.dedup();
             for href in &links {
                 let url = self.get_full_url(href);
-                let css = load_external(url.as_ref())?;
+                let css = self.options.resolver.retrieve(url.as_ref())?;
                 raw_styles.push_str(&css);
                 raw_styles.push('\n');
             }
@@ -356,53 +378,6 @@ impl<'a> CSSInliner<'a> {
         };
         // If it is not a valid URL and there is no base URL specified, we assume a local path
         Cow::Borrowed(href)
-    }
-}
-
-fn load_external(location: &str) -> Result<String> {
-    if location.starts_with("https") | location.starts_with("http") {
-        #[cfg(feature = "http")]
-        {
-            let into_error = |error| InlineError::Network {
-                error,
-                location: location.to_string(),
-            };
-            let request = attohttpc::RequestBuilder::try_new(attohttpc::Method::GET, location)
-                .map_err(into_error)?;
-            let response = request.send().map_err(into_error)?;
-            Ok(response.text().map_err(into_error)?)
-        }
-
-        #[cfg(not(feature = "http"))]
-        {
-            Err(InlineError::IO(std::io::Error::new(
-                ErrorKind::Unsupported,
-                "Loading external URLs requires the `http` feature",
-            )))
-        }
-    } else {
-        #[cfg(feature = "file")]
-        {
-            let location = location.trim_start_matches("file://");
-            std::fs::read_to_string(location).map_err(|error| match error.kind() {
-                ErrorKind::NotFound => InlineError::MissingStyleSheet {
-                    path: location.to_string(),
-                },
-                #[cfg(target_family = "wasm")]
-                ErrorKind::Unsupported => InlineError::IO(std::io::Error::new(
-                    ErrorKind::Unsupported,
-                    format!("Loading local files is not supported on WASM: {location}"),
-                )),
-                _ => InlineError::IO(error),
-            })
-        }
-        #[cfg(not(feature = "file"))]
-        {
-            Err(InlineError::IO(std::io::Error::new(
-                ErrorKind::Unsupported,
-                "Loading local files requires the `file` feature",
-            )))
-        }
     }
 }
 

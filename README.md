@@ -70,7 +70,7 @@ const HTML: &str = r#"<html>
 </body>
 </html>"#;
 
-fn main() -> Result<(), css_inline::InlineError> {
+fn main() -> css_inline::Result<()> {
     let inlined = css_inline::inline(HTML)?;
     // Do something with inlined HTML, e.g. send an email
     Ok(())
@@ -84,7 +84,7 @@ fn main() -> Result<(), css_inline::InlineError> {
 ```rust
 const HTML: &str = "...";
 
-fn main() -> Result<(), css_inline::InlineError> {
+fn main() -> css_inline::Result<()> {
     let inliner = css_inline::CSSInliner::options()
         .load_remote_stylesheets(false)
         .build();
@@ -131,13 +131,33 @@ If you'd like to load stylesheets from your filesystem, use the `file://` scheme
 ```rust
 const HTML: &str = "...";
 
-fn main() -> Result<(), css_inline::InlineError> {
+fn main() -> css_inline::Result<()> {
     let base_url = css_inline::Url::parse("file://styles/email/").expect("Invalid URL");
     let inliner = css_inline::CSSInliner::options()
         .base_url(Some(base_url))
         .build();
     let inlined = inliner.inline(HTML);
     // Do something with inlined HTML, e.g. send an email
+    Ok(())
+}
+```
+
+For resolving remote stylesheets it is possible to implement a custom resolver:
+
+```rust
+#[derive(Debug, Default)]
+pub struct CustomStylesheetResolver;
+
+impl css_inline::StylesheetResolver for CustomStylesheetResolver {
+    fn retrieve(&self, location: &str) -> css_inline::Result<String> {
+        Err(self.unsupported("External stylesheets are not supported"))
+    }
+}
+
+fn main() -> css_inline::Result<()> {
+    let inliner = css_inline::CSSInliner::options()
+        .resolver(std::sync::Arc::new(CustomStylesheetResolver))
+        .build();
     Ok(())
 }
 ```

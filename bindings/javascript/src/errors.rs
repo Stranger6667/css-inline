@@ -44,22 +44,6 @@ impl From<InlineError> for JsValue {
             {
                 JsValue::from_str(io_error.to_string().as_str())
             }
-            css_inline::InlineError::Network {
-                error: network_error,
-                location,
-            } => {
-                if let attohttpc::ErrorKind::Io(io_error) = network_error.kind() {
-                    if io_error.kind() == std::io::ErrorKind::Unsupported {
-                        return JsValue::from_str(
-                            format!(
-                                "Loading remote stylesheets is not supported on WASM: {location}"
-                            )
-                            .as_str(),
-                        );
-                    }
-                }
-                JsValue::from_str(error.0.to_string().as_str())
-            }
             _ => JsValue::from_str(error.0.to_string().as_str()),
         }
     }

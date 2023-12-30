@@ -15,25 +15,29 @@ include = ["src/*.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 [lib]
 crate-type = ["cdylib"]
 
+[target.'cfg(all(not(all(target_os = "linux", target_arch = "aarch64", target_env = "musl")), not(all(target_os = "windows", target_arch = "aarch64")), not(target_arch = "wasm32")))'.dependencies]
+mimalloc-rust = { version = "0.2" }
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 napi = { version = "2.14.1", default-features = false, features = ["napi4"] }
 napi-derive = "2.14.4"
 
-[target.'cfg(all(not(all(target_os = "linux", target_arch = "aarch64", target_env = "musl")), not(all(target_os = "windows", target_arch = "aarch64")), not(target_arch = "wasm32")))'.dependencies]
-mimalloc-rust = { version = "0.2" }
-
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-attohttpc = { version = "0.24", default-features = false }
 wasm-bindgen = "0.2.87"
 serde-wasm-bindgen = "0.6"
 getrandom = { version = "0.2", features = ["js"] }
 serde = { version = "1", features = ["derive"], default-features = false }
 
-[dependencies.css-inline]
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
 path = "../../css-inline"
 version = "*"
 default-features = false
 features = ["http", "file"]
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
+path = "../../css-inline"
+version = "*"
+default-features = false
 
 [build-dependencies]
 napi-build = "2.1.0"

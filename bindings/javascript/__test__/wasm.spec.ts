@@ -60,7 +60,7 @@ test("invalid href", (t) => {
     },
     { any: true },
   );
-  t.is(error, "Invalid base URL: http:");
+  t.is(error, "Loading remote stylesheets is not supported on WASM: http:");
 });
 
 test("invalid style", (t) => {

@@ -1,10 +1,6 @@
-use css_inline::{CSSInliner, InlineError, InlineOptions, Url};
+use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineError, InlineOptions, Url};
 use libc::{c_char, size_t};
-use std::borrow::Cow;
-use std::cmp;
-use std::ffi::CStr;
-use std::io::Write;
-use std::ptr;
+use std::{borrow::Cow, cmp, ffi::CStr, io::Write, ptr, sync::Arc};
 
 /// Result of CSS inlining operations
 #[repr(C)]
@@ -157,6 +153,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             load_remote_stylesheets: value.load_remote_stylesheets,
             extra_css: extra_css.map(Cow::Borrowed),
             preallocate_node_capacity: value.preallocate_node_capacity,
+            resolver: Arc::new(DefaultStylesheetResolver),
         })
     }
 }

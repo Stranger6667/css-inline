@@ -25,7 +25,6 @@
     rust_2018_compatibility,
     rust_2021_compatibility
 )]
-#[allow(clippy::module_name_repetitions)]
 use css_inline as rust_inline;
 use magnus::{
     class, define_module, function, method,
@@ -34,7 +33,7 @@ use magnus::{
     RHash, Value,
 };
 use rayon::prelude::*;
-use std::borrow::Cow;
+use std::{borrow::Cow, sync::Arc};
 
 type RubyResult<T> = Result<T, magnus::Error>;
 
@@ -76,6 +75,7 @@ fn parse_options<Req>(
         load_remote_stylesheets: kwargs.4.unwrap_or(true),
         extra_css: kwargs.5.map(Cow::Owned),
         preallocate_node_capacity: kwargs.6.unwrap_or(32),
+        resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
     })
 }
 
