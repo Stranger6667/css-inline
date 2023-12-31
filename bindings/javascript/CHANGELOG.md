@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Package for `aarch64-apple-darwin`.
+
 ### Changed
 
 - Avoid loading additional dependencies for WASM resulting in ~6% module size reduction.
