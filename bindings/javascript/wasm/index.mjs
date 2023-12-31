@@ -5,18 +5,6 @@ heap.push(void 0, null, true, false);
 function getObject(idx) {
   return heap[idx];
 }
-var heap_next = heap.length;
-function dropObject(idx) {
-  if (idx < 132)
-    return;
-  heap[idx] = heap_next;
-  heap_next = idx;
-}
-function takeObject(idx) {
-  const ret = getObject(idx);
-  dropObject(idx);
-  return ret;
-}
 var WASM_VECTOR_LEN = 0;
 var cachedUint8Memory0 = null;
 function getUint8Memory0() {
@@ -88,6 +76,7 @@ function getStringFromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return cachedTextDecoder.decode(getUint8Memory0().subarray(ptr, ptr + len));
 }
+var heap_next = heap.length;
 function addHeapObject(obj) {
   if (heap_next === heap.length)
     heap.push(heap.length + 1);
@@ -95,6 +84,17 @@ function addHeapObject(obj) {
   heap_next = heap[idx];
   heap[idx] = obj;
   return idx;
+}
+function dropObject(idx) {
+  if (idx < 132)
+    return;
+  heap[idx] = heap_next;
+  heap_next = idx;
+}
+function takeObject(idx) {
+  const ret = getObject(idx);
+  dropObject(idx);
+  return ret;
 }
 var cachedFloat64Memory0 = null;
 function getFloat64Memory0() {
@@ -233,14 +233,6 @@ function __wbg_get_imports() {
     const ret = getObject(arg0) === void 0;
     return ret;
   };
-  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-  };
-  imports.wbg.__wbindgen_boolean_get = function(arg0) {
-    const v = getObject(arg0);
-    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
-    return ret;
-  };
   imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
     const obj = getObject(arg1);
     const ret = typeof obj === "string" ? obj : void 0;
@@ -248,6 +240,11 @@ function __wbg_get_imports() {
     var len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
+  };
+  imports.wbg.__wbindgen_boolean_get = function(arg0) {
+    const v = getObject(arg0);
+    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
+    return ret;
   };
   imports.wbg.__wbindgen_is_object = function(arg0) {
     const val = getObject(arg0);
@@ -277,6 +274,9 @@ function __wbg_get_imports() {
   imports.wbg.__wbindgen_as_number = function(arg0) {
     const ret = +getObject(arg0);
     return ret;
+  };
+  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
   };
   imports.wbg.__wbg_length_1d25fa9e4ac21ce7 = function(arg0) {
     const ret = getObject(arg0).length;
