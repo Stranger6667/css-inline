@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.12.1] - 2023-12-31
+
 ### Added
 
 - Package for `aarch64-apple-darwin`.
@@ -15,3 +17,4 @@
 - Initial public release
 
 [Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.12.0...HEAD
+[0.12.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.12.0...javascript-v0.12.1
