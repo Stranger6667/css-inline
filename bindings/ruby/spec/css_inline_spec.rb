@@ -64,14 +64,18 @@ RSpec.describe 'CssInline' do
     expect(inlined[1]).to eq(expected)
   end
 
-  it 'Resolves remote stylesheets' do
-    # Fails with the following on Windows:
-    # error trying to connect: tcp set_nonblocking error: An operation was attempted on something that is not a socket. (os error 10038)
-    skip 'Skipping on Windows' if RUBY_PLATFORM =~ /mswin|mingw|cygwin/
-    inlined = CSSInline::inline('''<html>
+  [
+    ["http://127.0.0.1:1234/external.css", {}],
+    ["../../css-inline/tests/external.css", {}],
+    ["external.css", {"base_url": "http://127.0.0.1:1234"}]
+  ].each do |href, kwargs|
+      it "Resolves remote stylesheets: #{href}" do
+        # Fails with the following on Windows:
+        # error trying to connect: tcp set_nonblocking error: An operation was attempted on something that is not a socket. (os error 10038)
+        skip 'Skipping on Windows' if RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+        inlined = CSSInline::inline("<html>
 <head>
-<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
-<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<link href=\"#{href}\" rel=\"stylesheet\">
 <style>
 h2 { color: red; }
 </style>
@@ -80,10 +84,9 @@ h2 { color: red; }
 <h1>Big Text</h1>
 <h2>Smaller Text</h2>
 </body>
-</html>''')
-    expect(inlined).to eq('''<html><head>
+</html>", **kwargs)
+        expect(inlined).to eq('''<html><head>
 
-<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
 
 </head>
 <body>
@@ -91,6 +94,7 @@ h2 { color: red; }
 <h2 style="color: red;">Smaller Text</h2>
 
 </body></html>''')
+      end
   end
 
   it 'Shows the stylesheet location in base url errors' do

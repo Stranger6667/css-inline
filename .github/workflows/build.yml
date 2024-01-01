@@ -74,6 +74,7 @@ jobs:
           python -m pip install -r ./css-inline/tests/requirements-test.txt
           # Starts the server in background
           python ./css-inline/tests/server.py &
+        shell: bash
 
       - uses: dtolnay/rust-toolchain@stable
 
@@ -251,6 +252,19 @@ jobs:
           cache: yarn
           cache-dependency-path: bindings/javascript/yarn.lock
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+          cache: "pip"
+          cache-dependency-path: "**/requirements-*.txt"
+
+      - name: Start background server
+        run: |
+          python -m pip install -r ./css-inline/tests/requirements-test.txt
+          # Starts the server in background
+          python ./css-inline/tests/server.py &
+        shell: bash
+
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         if: ${{ !matrix.settings.docker }}
@@ -343,18 +357,18 @@ jobs:
 
       - name: Test (x86_64-unknown-linux-gnu)
         if: matrix.settings.target == 'x86_64-unknown-linux-gnu'
-        run: docker run --rm -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-slim yarn test
+        run: docker run --rm --network host -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-slim yarn test
 
       - name: Test (x86_64-unknown-linux-musl)
         if: matrix.settings.target == 'x86_64-unknown-linux-musl'
-        run: docker run --rm -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-alpine yarn test
+        run: docker run --rm --network host -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-alpine yarn test
 
       - name: Test (aarch64-unknown-linux-gnu)
         if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -364,7 +378,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-alpine
-          options: "--platform linux/arm64 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -374,7 +388,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-bullseye-slim
-          options: "--platform linux/arm/v7 -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm/v7 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
           run: |
             set -e
             yarn test
@@ -551,6 +565,7 @@ jobs:
           python -m pip install -r ./css-inline/tests/requirements-test.txt
           # Starts the server in background
           python ./css-inline/tests/server.py &
+        shell: bash
 
       - name: Run tests
         run: cargo hack llvm-cov --no-report --feature-powerset
