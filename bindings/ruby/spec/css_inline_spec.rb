@@ -64,6 +64,35 @@ RSpec.describe 'CssInline' do
     expect(inlined[1]).to eq(expected)
   end
 
+  it 'Resolves remote stylesheets' do
+    # Fails with the following on Windows:
+    # error trying to connect: tcp set_nonblocking error: An operation was attempted on something that is not a socket. (os error 10038)
+    skip 'Skipping on Windows' if RUBY_PLATFORM =~ /mswin|mingw|cygwin/
+    inlined = CSSInline::inline('''<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style>
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>''')
+    expect(inlined).to eq('''<html><head>
+
+<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>''')
+  end
+
   it 'Shows the stylesheet location in base url errors' do
     expect { CSSInline::CSSInliner.new(base_url: 'foo') }.to raise_error('relative URL without a base: foo')
   end
@@ -73,7 +102,7 @@ RSpec.describe 'CssInline' do
         CSSInline::CSSInliner.new.inline('''
         <html>
         <head>
-        <link href="http:" rel="stylesheet" type="text/css">
+        <link href="http:" rel="stylesheet">
         </head>
         <body>
         </body>

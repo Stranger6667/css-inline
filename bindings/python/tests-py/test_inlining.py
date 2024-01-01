@@ -66,7 +66,7 @@ def test_missing_stylesheet():
         css_inline.inline(
             """<html>
 <head>
-<link href="tests/missing.css" rel="stylesheet" type="text/css">
+<link href="tests/missing.css" rel="stylesheet">
 </head>
 <body>
 <h1>Big Text</h1>
@@ -79,13 +79,44 @@ def test_file_scheme():
     css_inline.inline(
         """<html>
 <head>
-<link href="external.css" rel="stylesheet" type="text/css">
+<link href="external.css" rel="stylesheet">
 </head>
 <body>
 <h1>Big Text</h1>
 </body>
 </html>""",
         base_url="file://tests-py/",
+    )
+
+
+def test_network_stylesheet():
+    inlined = css_inline.inline(
+        """<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style>
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>""",
+    )
+    assert (
+        inlined
+        == """<html><head>
+
+<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"""
     )
 
 
@@ -99,7 +130,7 @@ def test_invalid_href():
         css_inline.inline(
             """<html>
     <head>
-    <link href="http:" rel="stylesheet" type="text/css">
+    <link href="http:" rel="stylesheet">
     </head>
     <body>
     </body>

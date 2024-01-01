@@ -400,6 +400,13 @@ jobs:
           cache: "pip"
           cache-dependency-path: "**/requirements-*.txt"
 
+      - name: Start background server
+        run: |
+          python -m pip install -r ./css-inline/tests/requirements-test.txt
+          # Starts the server in background
+          python ./css-inline/tests/server.py &
+        shell: bash
+
       - run: python -m pip install -r requirements/dev.txt
         working-directory: ./bindings/python
 
@@ -426,6 +433,20 @@ jobs:
           cargo-cache: true
           cache-version: v1
           working-directory: ./bindings/ruby
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.11
+          cache: "pip"
+          cache-dependency-path: "**/requirements-*.txt"
+
+      - name: Start background server
+        run: |
+          python -m pip install -r ./css-inline/tests/requirements-test.txt
+          # Starts the server in background
+          python ./css-inline/tests/server.py &
+        shell: bash
+
       - run: bundle exec rake test
         working-directory: ./bindings/ruby
 

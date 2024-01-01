@@ -59,7 +59,7 @@ pub mod tests {
     fn wrong_base_url() {
         css_inline()
             .arg("--base-url=https://:::::")
-            .write_stdin(r#"<html><head><link href="external.css" rel="stylesheet" type="text/css"></head><body><h1>Hello world!</h1></body></html>"#)
+            .write_stdin(r#"<html><head><link href="external.css" rel="stylesheet"></head><body><h1>Hello world!</h1></body></html>"#)
             .assert()
             .failure()
             .stderr("Status: ERROR\nDetails: empty host\n");
