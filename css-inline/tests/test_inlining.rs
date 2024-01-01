@@ -73,7 +73,7 @@ fn ignore_inlining_attribute_style() {
     let html = r#"
 <html>
 <head>
-<style type="text/css" data-css-inline="ignore">
+<style data-css-inline="ignore">
 h1 { color: blue; }
 </style>
 </head>
@@ -97,7 +97,7 @@ fn ignore_inlining_attribute_link() {
     let html = r#"
 <html>
 <head>
-<link href="tests/external.css" rel="stylesheet" type="text/css" data-css-inline="ignore">
+<link href="tests/external.css" rel="stylesheet" data-css-inline="ignore">
 </head>
 <body>
 <h1>Big Text</h1>
@@ -550,9 +550,9 @@ fn remote_file_stylesheet() {
     let html = r#"
 <html>
 <head>
-<link href="tests/external.css" rel="stylesheet" type="text/css">
+<link href="tests/external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -577,7 +577,7 @@ fn missing_stylesheet() {
     let html = r#"
 <html>
 <head>
-<link href="tests/missing.css" rel="stylesheet" type="text/css">
+<link href="tests/missing.css" rel="stylesheet">
 </head>
 <body>
 <h1>Big Text</h1>
@@ -602,9 +602,9 @@ fn remote_file_stylesheet_disable() {
     let html = r#"
 <html>
 <head>
-<link href="tests/external.css" rel="stylesheet" type="text/css">
+<link href="tests/external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -629,9 +629,9 @@ fn remote_network_stylesheet() {
     let html = r#"
 <html>
 <head>
-<link href="http://127.0.0.1:5000/external.css" rel="stylesheet" type="text/css">
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -656,7 +656,7 @@ fn remote_network_stylesheet_invalid_url() {
     let html = r#"
 <html>
 <head>
-<link href="http:" rel="stylesheet" type="text/css">
+<link href="http:" rel="stylesheet">
 </head>
 <body>
 </body>
@@ -674,9 +674,9 @@ fn remote_network_stylesheet_same_scheme() {
     let html = r#"
 <html>
 <head>
-<link href="//127.0.0.1:5000/external.css" rel="stylesheet" type="text/css">
+<link href="//127.0.0.1:1234/external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -686,7 +686,7 @@ h2 { color: red; }
 </body>
 </html>"#;
     let inliner = CSSInliner::options()
-        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .build();
     let inlined = inliner.inline(html);
     assert_http(
@@ -704,9 +704,9 @@ fn remote_network_relative_stylesheet() {
     let html = r#"
 <html>
 <head>
-<link href="external.css" rel="stylesheet" type="text/css">
+<link href="external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -716,7 +716,7 @@ h2 { color: red; }
 </body>
 </html>"#;
     let inliner = CSSInliner::options()
-        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .build();
     let inlined = inliner.inline(html);
     assert_http(
@@ -734,9 +734,9 @@ fn file_scheme() {
     let html = r#"
 <html>
 <head>
-<link href="external.css" rel="stylesheet" type="text/css">
+<link href="external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -802,7 +802,7 @@ fn keep_style_tags() {
     let html = r#"
 <html>
 <head>
-<style type="text/css">
+<style>
 h2 { color: red; }
 </style>
 </head>
@@ -811,19 +811,19 @@ h2 { color: red; }
 </body>
 </html>"#;
     let inlined = inliner.inline(html).unwrap();
-    assert_eq!(inlined, "<html><head>\n<style type=\"text/css\">\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
+    assert_eq!(inlined, "<html><head>\n<style>\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
 }
 
 #[test]
 fn keep_link_tags() {
     let inliner = CSSInliner::options()
-        .base_url(Some(Url::parse("http://127.0.0.1:5000").unwrap()))
+        .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .keep_link_tags(true)
         .build();
     let html = r#"
 <html>
 <head>
-<link href="external.css" rel="stylesheet" type="text/css">
+<link href="external.css" rel="stylesheet">
 </head>
 <body>
 <h1></h1>
@@ -832,6 +832,6 @@ fn keep_link_tags() {
     let inlined = inliner.inline(html);
     assert_http(
         inlined,
-        "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\" type=\"text/css\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",
+        "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",
     );
 }

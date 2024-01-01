@@ -66,7 +66,7 @@ def test_missing_stylesheet():
         css_inline.inline(
             """<html>
 <head>
-<link href="tests/missing.css" rel="stylesheet" type="text/css">
+<link href="tests/missing.css" rel="stylesheet">
 </head>
 <body>
 <h1>Big Text</h1>
@@ -79,13 +79,53 @@ def test_file_scheme():
     css_inline.inline(
         """<html>
 <head>
-<link href="external.css" rel="stylesheet" type="text/css">
+<link href="external.css" rel="stylesheet">
 </head>
 <body>
 <h1>Big Text</h1>
 </body>
 </html>""",
         base_url="file://tests-py/",
+    )
+
+
+@pytest.mark.parametrize(
+    "href, kwargs",
+    (
+        ("http://127.0.0.1:1234/external.css", {}),
+        ("../../css-inline/tests/external.css", {}),
+        ("external.css", {"base_url": "http://127.0.0.1:1234"}),
+    ),
+)
+def test_remote_stylesheet(href, kwargs):
+    inlined = css_inline.inline(
+        f"""<html>
+<head>
+<link href="{href}" rel="stylesheet">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style>
+h2 {{ color: red; }}
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>""",
+        **kwargs,
+    )
+    assert (
+        inlined
+        == """<html><head>
+
+<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"""
     )
 
 
@@ -99,7 +139,7 @@ def test_invalid_href():
         css_inline.inline(
             """<html>
     <head>
-    <link href="http:" rel="stylesheet" type="text/css">
+    <link href="http:" rel="stylesheet">
     </head>
     <body>
     </body>
