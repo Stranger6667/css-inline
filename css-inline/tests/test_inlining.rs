@@ -38,8 +38,8 @@ fn assert_http(inlined: Result<String, css_inline::InlineError>, expected: &str)
     }
 }
 
-#[test]
-fn no_existing_style() {
+#[tokio::test]
+async fn no_existing_style() {
     // When no "style" attributes exist
     assert_inlined!(
         style = r#"h1, h2 { color:red; }
@@ -56,8 +56,8 @@ p.footer { font-size: 1px}"#,
     )
 }
 
-#[test]
-fn ignore_inlining_attribute_tag() {
+#[tokio::test]
+async fn ignore_inlining_attribute_tag() {
     // When an HTML tag contains `data-css-inline="ignore"`
     assert_inlined!(
         style = "h1 { color:blue; }",
@@ -67,8 +67,8 @@ fn ignore_inlining_attribute_tag() {
     )
 }
 
-#[test]
-fn ignore_inlining_attribute_style() {
+#[tokio::test]
+async fn ignore_inlining_attribute_style() {
     // When a `style` tag contains `data-css-inline="ignore"`
     let html = r#"
 <html>
@@ -81,7 +81,7 @@ h1 { color: blue; }
 <h1>Big Text</h1>
 </body>
 </html>"#;
-    let result = inline(html).unwrap();
+    let result = inline(html).await.unwrap();
     // Then it should be skipped
     assert!(result.ends_with(
         r#"<body>
@@ -91,8 +91,8 @@ h1 { color: blue; }
     ))
 }
 
-#[test]
-fn ignore_inlining_attribute_link() {
+#[tokio::test]
+async fn ignore_inlining_attribute_link() {
     // When a `link` tag contains `data-css-inline="ignore"`
     let html = r#"
 <html>
@@ -103,7 +103,7 @@ fn ignore_inlining_attribute_link() {
 <h1>Big Text</h1>
 </body>
 </html>"#;
-    let result = inline(html).unwrap();
+    let result = inline(html).await.unwrap();
     // Then it should be skipped
     assert!(result.ends_with(
         r#"<body>
@@ -113,8 +113,8 @@ fn ignore_inlining_attribute_link() {
     ))
 }
 
-#[test]
-fn specificity_same_selector() {
+#[tokio::test]
+async fn specificity_same_selector() {
     assert_inlined!(
         style = r#"
 .test-class {
@@ -128,8 +128,8 @@ fn specificity_same_selector() {
     )
 }
 
-#[test]
-fn specificity_different_selectors() {
+#[tokio::test]
+async fn specificity_different_selectors() {
     assert_inlined!(
         style = r#"
 .test { padding-left: 16px; }
@@ -139,8 +139,8 @@ h1 { padding: 0; }"#,
     )
 }
 
-#[test]
-fn specificity_different_selectors_existing_style() {
+#[tokio::test]
+async fn specificity_different_selectors_existing_style() {
     assert_inlined!(
         style = r#"
 .test { padding-left: 16px; }
@@ -150,8 +150,8 @@ h1 { padding: 0; }"#,
     )
 }
 
-#[test]
-fn overlap_styles() {
+#[tokio::test]
+async fn overlap_styles() {
     // When two selectors match the same element
     assert_inlined!(
         style = r#"
@@ -168,12 +168,12 @@ a {
     )
 }
 
-#[test]
-fn simple_merge() {
+#[tokio::test]
+async fn simple_merge() {
     // When "style" attributes exist and collides with values defined in "style" tag
     let style = "h1 { color:red; }";
     let html = html!(style, r#"<h1 style="font-size: 1px">Big Text</h1>"#);
-    let inlined = inline(&html).unwrap();
+    let inlined = inline(&html).await.unwrap();
     // Then new styles should be merged with the existing ones
     let option_1 = html!(r#"<h1 style="font-size: 1px;color: red">Big Text</h1>"#);
     let option_2 = html!(r#"<h1 style="color: red;font-size: 1px">Big Text</h1>"#);
@@ -181,8 +181,8 @@ fn simple_merge() {
     assert!(valid, "{}", inlined);
 }
 
-#[test]
-fn overloaded_styles() {
+#[tokio::test]
+async fn overloaded_styles() {
     // When there is a style, applied to an ID
     assert_inlined!(
         style = "h1 { color: red; } #test { color: blue; }",
@@ -192,8 +192,8 @@ fn overloaded_styles() {
     )
 }
 
-#[test]
-fn important() {
+#[tokio::test]
+async fn important() {
     // `!important` rules should override existing inline styles
     assert_inlined!(
         style = "h1 { color: blue !important; }",
@@ -202,8 +202,8 @@ fn important() {
     )
 }
 
-#[test]
-fn important_no_rule_exists() {
+#[tokio::test]
+async fn important_no_rule_exists() {
     // `!important` rules should override existing inline styles
     assert_inlined!(
         style = "h1 { color: blue !important; }",
@@ -212,8 +212,8 @@ fn important_no_rule_exists() {
     )
 }
 
-#[test]
-fn font_family_quoted() {
+#[tokio::test]
+async fn font_family_quoted() {
     // When property value contains double quotes
     assert_inlined!(
         style = r#"h1 { font-family: "Open Sans", sans-serif; }"#,
@@ -223,8 +223,8 @@ fn font_family_quoted() {
     )
 }
 
-#[test]
-fn other_property_quoted() {
+#[tokio::test]
+async fn other_property_quoted() {
     // When property value contains double quotes
     assert_inlined!(
         style = r#"h1 { --bs-font-sant-serif: system-ui,-applie-system,"helvetica neue"; }"#,
@@ -234,8 +234,8 @@ fn other_property_quoted() {
     )
 }
 
-#[test]
-fn href_attribute_unchanged() {
+#[tokio::test]
+async fn href_attribute_unchanged() {
     // All HTML attributes should be serialized as is
     let html = r#"<html>
 <head>
@@ -246,7 +246,7 @@ fn href_attribute_unchanged() {
     <a href="https://example.org/test?a=b&c=d">Link</a>
 </body>
 </html>"#;
-    let inlined = inline(html).unwrap();
+    let inlined = inline(html).await.unwrap();
     assert_eq!(
         inlined,
         r#"<html><head>
@@ -260,8 +260,8 @@ fn href_attribute_unchanged() {
     );
 }
 
-#[test]
-fn complex_child_selector() {
+#[tokio::test]
+async fn complex_child_selector() {
     let html = r#"<html>
    <head>
       <style>.parent {
@@ -288,7 +288,7 @@ fn complex_child_selector() {
             </tbody>
          </table>
       </div></body></html>"#;
-    let inlined = inline(html).unwrap();
+    let inlined = inline(html).await.unwrap();
     assert_eq!(
         inlined,
         r#"<html><head>
@@ -311,8 +311,8 @@ fn complex_child_selector() {
     );
 }
 
-#[test]
-fn existing_styles() {
+#[tokio::test]
+async fn existing_styles() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag
     assert_inlined!(
@@ -323,8 +323,8 @@ fn existing_styles() {
     )
 }
 
-#[test]
-fn existing_styles_multiple_tags() {
+#[tokio::test]
+async fn existing_styles_multiple_tags() {
     // When there are `style` attribute on tags that contains rules
     // And the `style` tag contains the same rule applicable to those tags
     assert_inlined!(
@@ -337,8 +337,8 @@ fn existing_styles_multiple_tags() {
     )
 }
 
-#[test]
-fn existing_styles_with_merge() {
+#[tokio::test]
+async fn existing_styles_with_merge() {
     // When there is a `style` attribute on a tag that contains a rule
     // And the `style` tag contains the same rule applicable to that tag
     // And there is a new rule in the `style` tag
@@ -351,8 +351,8 @@ fn existing_styles_with_merge() {
     )
 }
 
-#[test]
-fn existing_styles_with_merge_multiple_tags() {
+#[tokio::test]
+async fn existing_styles_with_merge_multiple_tags() {
     // When there are non-empty `style` attributes on tags
     // And the `style` tag contains the same rule applicable to those tags
     // And there is a new rule in the `style` tag
@@ -366,8 +366,8 @@ fn existing_styles_with_merge_multiple_tags() {
     )
 }
 
-#[test]
-fn remove_multiple_style_tags_without_inlining() {
+#[tokio::test]
+async fn remove_multiple_style_tags_without_inlining() {
     let html = r#"
 <html>
 <head>
@@ -395,7 +395,7 @@ a {
         .keep_style_tags(false)
         .inline_style_tags(false)
         .build();
-    let result = inliner.inline(html).unwrap();
+    let result = inliner.inline(html).await.unwrap();
     assert_eq!(
         result,
         r#"<html><head>
@@ -411,8 +411,8 @@ a {
     )
 }
 
-#[test]
-fn do_not_process_style_tag() {
+#[tokio::test]
+async fn do_not_process_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         inline_style_tags: false,
@@ -420,15 +420,15 @@ fn do_not_process_style_tag() {
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(&html).await.unwrap();
     assert_eq!(
         result,
         "<html><head><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
-#[test]
-fn do_not_process_style_tag_and_remove() {
+#[tokio::test]
+async fn do_not_process_style_tag_and_remove() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         keep_style_tags: false,
@@ -436,15 +436,15 @@ fn do_not_process_style_tag_and_remove() {
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(&html).await.unwrap();
     assert_eq!(
         result,
         "<html><head></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
-#[test]
-fn empty_style() {
+#[tokio::test]
+async fn empty_style() {
     // When the style tag is empty
     assert_inlined!(
         style = "",
@@ -454,8 +454,8 @@ fn empty_style() {
     )
 }
 
-#[test]
-fn media_query_ignore() {
+#[tokio::test]
+async fn media_query_ignore() {
     // When the style value includes @media query
     assert_inlined!(
         style = r#"@media screen and (max-width: 992px) {
@@ -471,25 +471,26 @@ fn media_query_ignore() {
 #[test_case("@wrong { color: --- }", "Invalid @ rule: wrong")]
 #[test_case("ttt { 123 }", "Unexpected token: CurlyBracketBlock")]
 #[test_case("----", "End of input")]
-fn invalid_rule(style: &str, expected: &str) {
+#[tokio::test]
+async fn invalid_rule(style: &str, expected: &str) {
     let html = html!(
         "h1 {background-color: blue;}",
         format!(r#"<h1 style="{}">Hello world!</h1>"#, style)
     );
-    let result = inline(&html);
+    let result = inline(&html).await;
     assert!(result.is_err());
     assert_eq!(result.unwrap_err().to_string(), expected);
 }
 
-#[test]
-fn remove_style_tag() {
+#[tokio::test]
+async fn remove_style_tag() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
-    let result = inline(&html).unwrap();
+    let result = inline(&html).await.unwrap();
     assert_eq!(result, "<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }
 
-#[test]
-fn remove_multiple_style_tags() {
+#[tokio::test]
+async fn remove_multiple_style_tags() {
     let html = r#"
 <html>
 <head>
@@ -513,7 +514,7 @@ a {
 </body>
 </html>
     "#;
-    let result = inline(html).unwrap();
+    let result = inline(html).await.unwrap();
     assert_eq!(
         result,
         r#"<html><head>
@@ -529,8 +530,8 @@ a {
     )
 }
 
-#[test]
-fn extra_css() {
+#[tokio::test]
+async fn extra_css() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         inline_style_tags: false,
@@ -538,15 +539,15 @@ fn extra_css() {
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let result = inliner.inline(&html).unwrap();
+    let result = inliner.inline(&html).await.unwrap();
     assert_eq!(
         result,
         "<html><head></head><body><h1 style=\"background-color: green;\">Hello world!</h1></body></html>"
     )
 }
 
-#[test]
-fn remote_file_stylesheet() {
+#[tokio::test]
+async fn remote_file_stylesheet() {
     let html = r#"
 <html>
 <head>
@@ -561,7 +562,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let inlined = inline(html);
+    let inlined = inline(html).await;
     assert_file(
         inlined,
         r#"<body>
@@ -572,8 +573,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn missing_stylesheet() {
+#[tokio::test]
+async fn missing_stylesheet() {
     let html = r#"
 <html>
 <head>
@@ -583,7 +584,7 @@ fn missing_stylesheet() {
 <h1>Big Text</h1>
 </body>
 </html>"#;
-    let inlined = inline(html);
+    let inlined = inline(html).await;
     #[cfg(feature = "file")]
     {
         assert_eq!(
@@ -597,8 +598,8 @@ fn missing_stylesheet() {
     }
 }
 
-#[test]
-fn remote_file_stylesheet_disable() {
+#[tokio::test]
+async fn remote_file_stylesheet_disable() {
     let html = r#"
 <html>
 <head>
@@ -613,7 +614,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let inlined = inline(html);
+    let inlined = inline(html).await;
     assert_file(
         inlined,
         r#"<body>
@@ -624,8 +625,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn remote_network_stylesheet() {
+#[tokio::test]
+async fn remote_network_stylesheet() {
     let html = r#"
 <html>
 <head>
@@ -640,7 +641,7 @@ h2 { color: red; }
 <h2>Smaller Text</h2>
 </body>
 </html>"#;
-    let inlined = inline(html);
+    let inlined = inline(html).await;
     assert_http(
         inlined,
         r#"<body>
@@ -651,8 +652,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn remote_network_stylesheet_invalid_url() {
+#[tokio::test]
+async fn remote_network_stylesheet_invalid_url() {
     let html = r#"
 <html>
 <head>
@@ -661,7 +662,7 @@ fn remote_network_stylesheet_invalid_url() {
 <body>
 </body>
 </html>"#;
-    let error = inline(html).expect_err("Should fail");
+    let error = inline(html).await.expect_err("Should fail");
     #[cfg(feature = "http")]
     let expected = "builder error: empty host: http:";
     #[cfg(not(feature = "http"))]
@@ -669,8 +670,8 @@ fn remote_network_stylesheet_invalid_url() {
     assert_eq!(error.to_string(), expected);
 }
 
-#[test]
-fn remote_network_stylesheet_same_scheme() {
+#[tokio::test]
+async fn remote_network_stylesheet_same_scheme() {
     let html = r#"
 <html>
 <head>
@@ -688,7 +689,7 @@ h2 { color: red; }
     let inliner = CSSInliner::options()
         .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .build();
-    let inlined = inliner.inline(html);
+    let inlined = inliner.inline(html).await;
     assert_http(
         inlined,
         r#"<body>
@@ -699,8 +700,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn remote_network_relative_stylesheet() {
+#[tokio::test]
+async fn remote_network_relative_stylesheet() {
     let html = r#"
 <html>
 <head>
@@ -718,7 +719,7 @@ h2 { color: red; }
     let inliner = CSSInliner::options()
         .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .build();
-    let inlined = inliner.inline(html);
+    let inlined = inliner.inline(html).await;
     assert_http(
         inlined,
         r#"<body>
@@ -729,8 +730,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn file_scheme() {
+#[tokio::test]
+async fn file_scheme() {
     let html = r#"
 <html>
 <head>
@@ -750,7 +751,7 @@ h2 { color: red; }
         ..Default::default()
     };
     let inliner = CSSInliner::new(options);
-    let inlined = inliner.inline(html);
+    let inlined = inliner.inline(html).await;
     assert_file(
         inlined,
         r#"<body>
@@ -761,8 +762,8 @@ h2 { color: red; }
     );
 }
 
-#[test]
-fn customize_inliner() {
+#[tokio::test]
+async fn customize_inliner() {
     let options = InlineOptions {
         load_remote_stylesheets: false,
         ..Default::default()
@@ -774,8 +775,8 @@ fn customize_inliner() {
     assert_eq!(options.preallocate_node_capacity, 25);
 }
 
-#[test]
-fn use_builder() {
+#[tokio::test]
+async fn use_builder() {
     let url = Url::parse("https://api.example.com").unwrap();
     let _ = CSSInliner::options()
         .keep_style_tags(true)
@@ -785,19 +786,19 @@ fn use_builder() {
         .build();
 }
 
-#[test]
-fn inline_to() {
+#[tokio::test]
+async fn inline_to() {
     let html = html!("h1 { color: blue }", r#"<h1>Big Text</h1>"#);
     let mut out = Vec::new();
-    css_inline::inline_to(&html, &mut out).unwrap();
+    css_inline::inline_to(&html, &mut out).await.unwrap();
     assert_eq!(
         String::from_utf8_lossy(&out),
         "<html><head></head><body><h1 style=\"color: blue;\">Big Text</h1></body></html>"
     )
 }
 
-#[test]
-fn keep_style_tags() {
+#[tokio::test]
+async fn keep_style_tags() {
     let inliner = CSSInliner::options().keep_style_tags(true).build();
     let html = r#"
 <html>
@@ -810,12 +811,12 @@ h2 { color: red; }
 <h2></h2>
 </body>
 </html>"#;
-    let inlined = inliner.inline(html).unwrap();
+    let inlined = inliner.inline(html).await.unwrap();
     assert_eq!(inlined, "<html><head>\n<style>\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
 }
 
-#[test]
-fn keep_link_tags() {
+#[tokio::test]
+async fn keep_link_tags() {
     let inliner = CSSInliner::options()
         .base_url(Some(Url::parse("http://127.0.0.1:1234").unwrap()))
         .keep_link_tags(true)
@@ -829,7 +830,7 @@ fn keep_link_tags() {
 <h1></h1>
 </body>
 </html>"#;
-    let inlined = inliner.inline(html);
+    let inlined = inliner.inline(html).await;
     assert_http(
         inlined,
         "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",

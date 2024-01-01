@@ -60,6 +60,6 @@ export function inline(html: string, options?: InlineOptions): string;
 export function version(): string;"#;
 
 fn inline_inner(html: String, options: Options) -> std::result::Result<String, errors::JsError> {
-    let inliner = css_inline::CSSInliner::new(options.try_into()?);
+    let inliner = css_inline::blocking::CSSInliner::new(options.try_into()?);
     Ok(inliner.inline(&html).map_err(errors::InlineError)?)
 }

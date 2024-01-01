@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for _ in 0..args.iterations {
             #[cfg(feature = "dhat-heap")]
             let _profiler = dhat::Profiler::new_heap();
-            css_inline::inline_to(&benchmark.html, &mut output).expect("Inlining failed");
+            css_inline::blocking::inline_to(&benchmark.html, &mut output).expect("Inlining failed");
             output.clear();
         }
     } else {

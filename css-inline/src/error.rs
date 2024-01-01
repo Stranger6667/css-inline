@@ -20,7 +20,7 @@ pub enum InlineError {
     /// from the filesystem.
     IO(io::Error),
     /// Network-related problem. E.g. resource is not available.
-    #[cfg(feature = "http")]
+    #[cfg(any(feature = "http", feature = "http-blocking"))]
     Network {
         /// Original network error.
         error: reqwest::Error,
@@ -41,7 +41,7 @@ impl Error for InlineError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             InlineError::IO(error) => Some(error),
-            #[cfg(feature = "http")]
+            #[cfg(any(feature = "http", feature = "http-blocking"))]
             InlineError::Network { error, .. } => Some(error),
             InlineError::MissingStyleSheet { .. } | InlineError::ParseError(_) => None,
         }
@@ -52,7 +52,7 @@ impl Display for InlineError {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         match self {
             Self::IO(error) => error.fmt(f),
-            #[cfg(feature = "http")]
+            #[cfg(any(feature = "http", feature = "http-blocking"))]
             Self::Network { error, location } => f.write_fmt(format_args!("{error}: {location}")),
             Self::ParseError(error) => f.write_str(error),
             Self::MissingStyleSheet { path } => {

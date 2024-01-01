@@ -70,8 +70,21 @@ const HTML: &str = r#"<html>
 </body>
 </html>"#;
 
+#[tokio::main]
+async fn main() -> css_inline::Result<()> {
+    let inlined = css_inline::inline(HTML).await?;
+    // Do something with inlined HTML, e.g. send an email
+    Ok(())
+}
+```
+
+There is also a "blocking" API for inlining:
+
+```rust
+const HTML: &str = "...";
+
 fn main() -> css_inline::Result<()> {
-    let inlined = css_inline::inline(HTML)?;
+    let inlined = css_inline::blocking::inline(HTML)?;
     // Do something with inlined HTML, e.g. send an email
     Ok(())
 }
@@ -84,11 +97,12 @@ fn main() -> css_inline::Result<()> {
 ```rust
 const HTML: &str = "...";
 
-fn main() -> css_inline::Result<()> {
+#[tokio::main]
+async fn main() -> css_inline::Result<()> {
     let inliner = css_inline::CSSInliner::options()
         .load_remote_stylesheets(false)
         .build();
-    let inlined = inliner.inline(HTML)?;
+    let inlined = inliner.inline(HTML).await?;
     // Do something with inlined HTML, e.g. send an email
     Ok(())
 }
@@ -131,12 +145,28 @@ If you'd like to load stylesheets from your filesystem, use the `file://` scheme
 ```rust
 const HTML: &str = "...";
 
-fn main() -> css_inline::Result<()> {
+#[tokio::main]
+async fn main() -> css_inline::Result<()> {
     let base_url = css_inline::Url::parse("file://styles/email/").expect("Invalid URL");
     let inliner = css_inline::CSSInliner::options()
         .base_url(Some(base_url))
         .build();
-    let inlined = inliner.inline(HTML);
+    let inlined = inliner.inline(HTML).await?;
+    // Do something with inlined HTML, e.g. send an email
+    Ok(())
+}
+```
+
+The blocking version is available as well:
+
+```rust
+const HTML: &str = "...";
+
+fn main() -> css_inline::Result<()> {
+    let inliner = css_inline::blocking::CSSInliner::options()
+        .load_remote_stylesheets(false)
+        .build();
+    let inlined = inliner.inline(HTML)?;
     // Do something with inlined HTML, e.g. send an email
     Ok(())
 }
@@ -149,7 +179,7 @@ For resolving remote stylesheets it is possible to implement a custom resolver:
 pub struct CustomStylesheetResolver;
 
 impl css_inline::StylesheetResolver for CustomStylesheetResolver {
-    fn retrieve(&self, location: &str) -> css_inline::Result<String> {
+    fn retrieve_blocking(&self, location: &str) -> css_inline::Result<String> {
         Err(self.unsupported("External stylesheets are not supported"))
     }
 }

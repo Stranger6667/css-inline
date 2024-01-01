@@ -42,11 +42,11 @@ pub struct Options {
     pub preallocate_node_capacity: Option<u32>,
 }
 
-impl TryFrom<Options> for css_inline::InlineOptions<'_> {
+impl TryFrom<Options> for css_inline::blocking::InlineOptions<'_> {
     type Error = JsError;
 
     fn try_from(value: Options) -> std::result::Result<Self, Self::Error> {
-        Ok(css_inline::InlineOptions {
+        Ok(css_inline::blocking::InlineOptions {
             inline_style_tags: value.inline_style_tags.unwrap_or(true),
             keep_style_tags: value.keep_style_tags.unwrap_or(false),
             keep_link_tags: value.keep_link_tags.unwrap_or(false),
@@ -75,7 +75,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                     pub struct UnsupportedResolver;
 
                     impl css_inline::StylesheetResolver for UnsupportedResolver {
-                        fn retrieve(&self, location: &str) -> css_inline::Result<String> {
+                        fn retrieve_blocking(&self, location: &str) -> css_inline::Result<String> {
                             let message = if location.starts_with("https")
                                 | location.starts_with("http")
                             {

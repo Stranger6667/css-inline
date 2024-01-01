@@ -39,7 +39,7 @@ type RubyResult<T> = Result<T, magnus::Error>;
 
 fn parse_options<Req>(
     args: &Args<Req, (), (), (), RHash, ()>,
-) -> RubyResult<rust_inline::InlineOptions<'static>> {
+) -> RubyResult<rust_inline::blocking::InlineOptions<'static>> {
     let kwargs = get_kwargs::<
         _,
         (),
@@ -67,7 +67,7 @@ fn parse_options<Req>(
         ],
     )?;
     let kwargs = kwargs.optional;
-    Ok(rust_inline::InlineOptions {
+    Ok(rust_inline::blocking::InlineOptions {
         inline_style_tags: kwargs.0.unwrap_or(true),
         keep_style_tags: kwargs.1.unwrap_or(false),
         keep_link_tags: kwargs.2.unwrap_or(false),
@@ -81,7 +81,7 @@ fn parse_options<Req>(
 
 #[magnus::wrap(class = "CSSInline::CSSInliner")]
 struct CSSInliner {
-    inner: rust_inline::CSSInliner<'static>,
+    inner: rust_inline::blocking::CSSInliner<'static>,
 }
 
 struct InlineErrorWrapper(rust_inline::InlineError);
@@ -133,7 +133,7 @@ impl CSSInliner {
         let args = scan_args::<(), _, _, _, _, _>(args)?;
         let options = parse_options(&args)?;
         Ok(CSSInliner {
-            inner: rust_inline::CSSInliner::new(options),
+            inner: rust_inline::blocking::CSSInliner::new(options),
         })
     }
 
@@ -152,7 +152,7 @@ fn inline(args: &[Value]) -> RubyResult<String> {
     let args = scan_args::<(String,), _, _, _, _, _>(args)?;
     let options = parse_options(&args)?;
     let html = args.required.0;
-    Ok(rust_inline::CSSInliner::new(options)
+    Ok(rust_inline::blocking::CSSInliner::new(options)
         .inline(&html)
         .map_err(InlineErrorWrapper)?)
 }
@@ -160,13 +160,13 @@ fn inline(args: &[Value]) -> RubyResult<String> {
 fn inline_many(args: &[Value]) -> RubyResult<Vec<String>> {
     let args = scan_args::<(Vec<String>,), _, _, _, _, _>(args)?;
     let options = parse_options(&args)?;
-    let inliner = rust_inline::CSSInliner::new(options);
+    let inliner = rust_inline::blocking::CSSInliner::new(options);
     inline_many_impl(&args.required.0, &inliner)
 }
 
 fn inline_many_impl(
     htmls: &[String],
-    inliner: &rust_inline::CSSInliner<'static>,
+    inliner: &rust_inline::blocking::CSSInliner<'static>,
 ) -> RubyResult<Vec<String>> {
     let output: Result<Vec<_>, _> = htmls.par_iter().map(|html| inliner.inline(html)).collect();
     Ok(output.map_err(InlineErrorWrapper)?)

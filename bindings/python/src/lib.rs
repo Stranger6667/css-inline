@@ -74,12 +74,12 @@ fn parse_url(url: Option<String>) -> PyResult<Option<rust_inline::Url>> {
 /// Customizable CSS inliner.
 #[pyclass]
 struct CSSInliner {
-    inner: rust_inline::CSSInliner<'static>,
+    inner: rust_inline::blocking::CSSInliner<'static>,
 }
 
 macro_rules! inliner {
     ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $base_url:expr, $load_remote_stylesheets:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
-        let options = rust_inline::InlineOptions {
+        rust_inline::blocking::InlineOptions {
             inline_style_tags: $inline_style_tags.unwrap_or(true),
             keep_style_tags: $keep_style_tags.unwrap_or(false),
             keep_link_tags: $keep_link_tags.unwrap_or(false),
@@ -88,8 +88,8 @@ macro_rules! inliner {
             extra_css: $extra_css.map(Into::into),
             preallocate_node_capacity: $preallocate_node_capacity.unwrap_or(32),
             resolver: std::sync::Arc::new(rust_inline::DefaultStylesheetResolver),
-        };
-        rust_inline::CSSInliner::new(options)
+        }
+        .build()
     }};
 }
 
@@ -198,7 +198,7 @@ fn inline_many(
 }
 
 fn inline_many_impl(
-    inliner: &rust_inline::CSSInliner<'_>,
+    inliner: &rust_inline::blocking::CSSInliner<'_>,
     htmls: &PyList,
 ) -> PyResult<Vec<String>> {
     // Extract strings from the list. It will fail if there is any non-string value
