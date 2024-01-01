@@ -6,6 +6,10 @@
 
 - A way to customize resolving remote stylesheets.
 
+### Changed
+
+- Replace `attohttpc` with `reqwest` to simplify implementing non-blocking stylesheet resolving in the future release.
+
 ## [0.12.0] - 2023-12-28
 
 ### Changed

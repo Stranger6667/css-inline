@@ -1,6 +1,3 @@
-use css_inline::DefaultStylesheetResolver;
-use std::sync::Arc;
-
 #[cfg(not(feature = "cli"))]
 fn main() {
     eprintln!("`css-inline` CLI is only available with the `cli` feature");
@@ -9,7 +6,7 @@ fn main() {
 
 #[cfg(feature = "cli")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use css_inline::{CSSInliner, InlineOptions};
+    use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineOptions};
     use rayon::prelude::*;
     use std::{
         borrow::Cow,
@@ -18,7 +15,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fs::{read_to_string, File},
         io::{self, Read, Write},
         path::Path,
-        sync::atomic::{AtomicI32, Ordering},
+        sync::{
+            atomic::{AtomicI32, Ordering},
+            Arc,
+        },
     };
 
     const VERSION_MESSAGE: &[u8] =

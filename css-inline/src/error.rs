@@ -23,7 +23,7 @@ pub enum InlineError {
     #[cfg(feature = "http")]
     Network {
         /// Original network error.
-        error: attohttpc::Error,
+        error: reqwest::Error,
         /// The stylesheet location caused the error.
         location: String,
     },

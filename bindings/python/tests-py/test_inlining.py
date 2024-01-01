@@ -95,7 +95,7 @@ def test_invalid_base_url():
 
 
 def test_invalid_href():
-    with pytest.raises(ValueError, match="Invalid base URL: http:"):
+    with pytest.raises(ValueError, match="builder error: empty host: http:"):
         css_inline.inline(
             """<html>
     <head>

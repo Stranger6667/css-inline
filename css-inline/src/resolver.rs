@@ -79,9 +79,9 @@ impl StylesheetResolver for DefaultStylesheetResolver {
             error,
             location: url.to_string(),
         };
-        let request =
-            attohttpc::RequestBuilder::try_new(attohttpc::Method::GET, url).map_err(into_error)?;
-        let response = request.send().map_err(into_error)?;
-        response.text().map_err(into_error)
+        reqwest::blocking::get(url)
+            .map_err(into_error)?
+            .text()
+            .map_err(into_error)
     }
 }
