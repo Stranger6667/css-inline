@@ -403,6 +403,7 @@ pub fn inline(html: &str) -> Result<String> {
 }
 
 /// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
+///
 /// # Errors
 ///
 /// Inlining might fail for the following reasons:

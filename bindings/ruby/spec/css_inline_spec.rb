@@ -79,7 +79,7 @@ RSpec.describe 'CssInline' do
         </body>
         </html>
         ''')
-    }.to raise_error('Invalid base URL: http:')
+    }.to raise_error('builder error: empty host: http:')
   end
 
   it 'Shows the CSS parsing errors' do

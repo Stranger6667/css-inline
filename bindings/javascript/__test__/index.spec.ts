@@ -49,7 +49,7 @@ test("invalid href", (t) => {
     );
   });
   t.is(error.code, "GenericFailure");
-  t.is(error.message, "Invalid base URL: http:");
+  t.is(error.message, "builder error: empty host: http:");
 });
 
 test("invalid style", (t) => {
