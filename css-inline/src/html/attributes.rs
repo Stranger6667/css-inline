@@ -160,30 +160,27 @@ impl Attributes {
             let attr = attributes.swap_remove(idx);
             class = Some(Class::new(attr.value));
         }
-        attributes.sort_unstable_by(|a, b| a.name.cmp(&b.name));
         Attributes { attributes, class }
     }
 
-    pub(crate) fn find(&self, needle: &QualName) -> Option<usize> {
-        if let Ok(idx) = self
-            .attributes
-            .binary_search_by(|probe| probe.name.cmp(needle))
-        {
-            Some(idx)
-        } else {
-            None
-        }
+    pub(crate) fn find(&self, needle: &QualName) -> Option<&str> {
+        self.attributes.iter().find_map(|probe| {
+            if probe.name == *needle {
+                Some(&*probe.value)
+            } else {
+                None
+            }
+        })
     }
 
     /// Checks if the attributes map contains a given local name.
     pub(crate) fn contains(&self, local: html5ever::LocalName) -> bool {
-        let needle = QualName::new(None, ns!(), local);
-        self.find(&needle).is_some()
+        self.get(local).is_some()
     }
 
     /// Get the value of the attribute with the given local name, if it exists.
     pub(crate) fn get(&self, local: html5ever::LocalName) -> Option<&str> {
         let needle = QualName::new(None, ns!(), local);
-        self.find(&needle).map(|idx| &*self.attributes[idx].value)
+        self.find(&needle)
     }
 }

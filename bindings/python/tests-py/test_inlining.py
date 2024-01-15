@@ -118,7 +118,7 @@ h2 {{ color: red; }}
         inlined
         == """<html><head>
 
-<link href="/rss.xml" rel="alternate" title="RSS" type="application/rss+xml">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 
 </head>
 <body>

@@ -163,7 +163,6 @@ impl<'a> selectors::Element for Element<'a> {
                     ns_url.clone(),
                     local_name.clone().into_inner(),
                 ))
-                .map(|idx| &*attrs.attributes[idx].value)
                 .map_or(false, |value| operation.eval_str(value)),
         }
     }
