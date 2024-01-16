@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Avoid using binary search on attributes.
+
 ## [0.12.1] - 2023-12-31
 
 ### Added

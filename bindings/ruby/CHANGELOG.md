@@ -1,5 +1,9 @@
 # Changelog
 
+### Performance
+
+- Avoid using binary search on attributes.
+
 ## [Unreleased]
 
 ## [0.12.0] - 2023-12-28

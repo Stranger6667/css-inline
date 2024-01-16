@@ -10,6 +10,10 @@
 
 - Replace `attohttpc` with `reqwest` to simplify implementing non-blocking stylesheet resolving in the future release.
 
+### Performance
+
+- Avoid using binary search on attributes.
+
 ## [0.12.0] - 2023-12-28
 
 ### Changed
