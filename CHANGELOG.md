@@ -5,6 +5,7 @@
 ### Added
 
 - A way to customize resolving remote stylesheets.
+- Non-blocking stylesheet resolving by default.
 
 ### Changed
 

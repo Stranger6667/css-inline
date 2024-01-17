@@ -1,5 +1,5 @@
 use codspeed_criterion_compat::{black_box, criterion_group, criterion_main, Criterion};
-use css_inline::inline_to;
+use css_inline::blocking::inline_to;
 use std::fs;
 
 #[derive(serde::Deserialize, Debug)]

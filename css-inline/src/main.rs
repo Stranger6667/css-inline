@@ -6,7 +6,10 @@ fn main() {
 
 #[cfg(feature = "cli")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineOptions};
+    use css_inline::{
+        blocking::{CSSInliner, InlineOptions},
+        DefaultStylesheetResolver,
+    };
     use rayon::prelude::*;
     use std::{
         borrow::Cow,

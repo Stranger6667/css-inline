@@ -34,8 +34,7 @@ mod parser;
 mod resolver;
 
 pub use error::InlineError;
-use indexmap::IndexMap;
-use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync::Arc};
+use std::{hash::BuildHasherDefault, io::Write};
 
 use crate::html::ElementStyleMap;
 use hasher::BuildNoHashHasher;
@@ -43,214 +42,32 @@ use html::Document;
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 pub use url::{ParseError, Url};
 
-/// Configuration options for CSS inlining process.
-#[allow(clippy::struct_excessive_bools)]
-pub struct InlineOptions<'a> {
-    /// Whether to inline CSS from "style" tags.
-    ///
-    /// Sometimes HTML may include a lot of boilerplate styles, that are not applicable in every
-    /// scenario and it is useful to ignore them and use `extra_css` instead.
-    pub inline_style_tags: bool,
-    /// Keep "style" tags after inlining.
-    pub keep_style_tags: bool,
-    /// Keep "link" tags after inlining.
-    pub keep_link_tags: bool,
-    /// Used for loading external stylesheets via relative URLs.
-    pub base_url: Option<Url>,
-    /// Whether remote stylesheets should be loaded or not.
-    pub load_remote_stylesheets: bool,
-    // The point of using `Cow` here is Python bindings, where it is problematic to pass a reference
-    // without dealing with memory leaks & unsafe. With `Cow` we can use moved values as `String` in
-    // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
-    /// Additional CSS to inline.
-    pub extra_css: Option<Cow<'a, str>>,
-    /// Pre-allocate capacity for HTML nodes during parsing.
-    /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
-    pub preallocate_node_capacity: usize,
-    /// A way to resolve stylesheets from various sources.
-    pub resolver: Arc<dyn StylesheetResolver>,
-}
-
-impl<'a> std::fmt::Debug for InlineOptions<'a> {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("InlineOptions")
-            .field("inline_style_tags", &self.inline_style_tags)
-            .field("keep_style_tags", &self.keep_style_tags)
-            .field("keep_link_tags", &self.keep_link_tags)
-            .field("base_url", &self.base_url)
-            .field("load_remote_stylesheets", &self.load_remote_stylesheets)
-            .field("extra_css", &self.extra_css)
-            .field("preallocate_node_capacity", &self.preallocate_node_capacity)
-            .finish_non_exhaustive()
-    }
-}
-
-impl<'a> InlineOptions<'a> {
-    /// Override whether "style" tags should be inlined.
-    #[must_use]
-    pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
-        self.inline_style_tags = inline_style_tags;
-        self
-    }
-
-    /// Override whether "style" tags should be kept after processing.
-    #[must_use]
-    pub fn keep_style_tags(mut self, keep_style_tags: bool) -> Self {
-        self.keep_style_tags = keep_style_tags;
-        self
-    }
-
-    /// Override whether "link" tags should be kept after processing.
-    #[must_use]
-    pub fn keep_link_tags(mut self, keep_link_tags: bool) -> Self {
-        self.keep_link_tags = keep_link_tags;
-        self
-    }
-
-    /// Set base URL that will be used for loading external stylesheets via relative URLs.
-    #[must_use]
-    pub fn base_url(mut self, base_url: Option<Url>) -> Self {
-        self.base_url = base_url;
-        self
-    }
-
-    /// Override whether remote stylesheets should be loaded.
-    #[must_use]
-    pub fn load_remote_stylesheets(mut self, load_remote_stylesheets: bool) -> Self {
-        self.load_remote_stylesheets = load_remote_stylesheets;
-        self
-    }
-
-    /// Set additional CSS to inline.
-    #[must_use]
-    pub fn extra_css(mut self, extra_css: Option<Cow<'a, str>>) -> Self {
-        self.extra_css = extra_css;
-        self
-    }
-
-    /// Set the initial node capacity for HTML tree.
-    #[must_use]
-    pub fn preallocate_node_capacity(mut self, preallocate_node_capacity: usize) -> Self {
-        self.preallocate_node_capacity = preallocate_node_capacity;
-        self
-    }
-
-    /// Set the way to resolve stylesheets from various sources.
-    #[must_use]
-    pub fn resolver(mut self, resolver: Arc<dyn StylesheetResolver>) -> Self {
-        self.resolver = resolver;
-        self
-    }
-
-    /// Create a new `CSSInliner` instance from this options.
-    #[must_use]
-    pub const fn build(self) -> CSSInliner<'a> {
-        CSSInliner::new(self)
-    }
-}
-
-impl Default for InlineOptions<'_> {
-    #[inline]
-    fn default() -> Self {
-        InlineOptions {
-            inline_style_tags: true,
-            keep_style_tags: false,
-            keep_link_tags: false,
-            base_url: None,
-            load_remote_stylesheets: true,
-            extra_css: None,
-            preallocate_node_capacity: 32,
-            resolver: Arc::new(DefaultStylesheetResolver),
-        }
-    }
-}
-
 /// A specialized `Result` type for CSS inlining operations.
 pub type Result<T> = std::result::Result<T, InlineError>;
-
-/// Customizable CSS inliner.
-#[derive(Debug)]
-pub struct CSSInliner<'a> {
-    options: InlineOptions<'a>,
-}
 
 const GROWTH_COEFFICIENT: f64 = 1.5;
 // A rough coefficient to calculate the number of individual declarations based on the total CSS size.
 const DECLARATION_SIZE_COEFFICIENT: f64 = 30.0;
 
-impl<'a> CSSInliner<'a> {
-    /// Create a new `CSSInliner` instance with given options.
-    #[must_use]
-    #[inline]
-    pub const fn new(options: InlineOptions<'a>) -> Self {
-        CSSInliner { options }
-    }
+#[inline]
+fn build_output_buffer(input_length: usize) -> Vec<u8> {
+    // Allocating more memory than the input HTML, as the inlined version is usually bigger
+    #[allow(
+        clippy::cast_precision_loss,
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation
+    )]
+    Vec::with_capacity(
+        (input_length as f64 * GROWTH_COEFFICIENT)
+            .min(usize::MAX as f64)
+            .round() as usize,
+    )
+}
 
-    /// Return a default `InlineOptions` that can fully configure the CSS inliner.
-    ///
-    /// # Examples
-    ///
-    /// Get default `InlineOptions`, then change base url
-    ///
-    /// ```rust
-    /// use css_inline::{CSSInliner, Url};
-    /// # use url::ParseError;
-    /// # fn run() -> Result<(), ParseError> {
-    /// let url = Url::parse("https://api.example.com")?;
-    /// let inliner = CSSInliner::options()
-    ///     .base_url(Some(url))
-    ///     .build();
-    /// # Ok(())
-    /// # }
-    /// # run().unwrap();
-    /// ```
-    #[must_use]
-    #[inline]
-    pub fn options() -> InlineOptions<'a> {
-        InlineOptions::default()
-    }
-
-    /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
-    /// string.
-    ///
-    /// # Errors
-    ///
-    /// Inlining might fail for the following reasons:
-    ///   - Missing stylesheet file;
-    ///   - Remote stylesheet is not available;
-    ///   - IO errors;
-    ///   - Internal CSS selector parsing error;
-    #[inline]
-    pub fn inline(&self, html: &str) -> Result<String> {
-        // Allocating more memory than the input HTML, as the inlined version is usually bigger
-        #[allow(
-            clippy::cast_precision_loss,
-            clippy::cast_sign_loss,
-            clippy::cast_possible_truncation
-        )]
-        let mut out = Vec::with_capacity(
-            (html.len() as f64 * GROWTH_COEFFICIENT)
-                .min(usize::MAX as f64)
-                .round() as usize,
-        );
-        self.inline_to(html, &mut out)?;
-        Ok(String::from_utf8_lossy(&out).to_string())
-    }
-
-    /// Inline CSS & write the result to a generic writer. Use it if you want to write
-    /// the inlined document to a file.
-    ///
-    /// # Errors
-    ///
-    /// Inlining might fail for the following reasons:
-    ///   - Missing stylesheet file;
-    ///   - Remote stylesheet is not available;
-    ///   - IO errors;
-    ///   - Internal CSS selector parsing error;
-    #[inline]
-    pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
+macro_rules! inline_to_impl {
+    ($self:expr, $html:expr, $target:expr, $retrieve:expr, $($_await:tt)*) => {{
         let document =
-            Document::parse_with_options(html.as_bytes(), self.options.preallocate_node_capacity);
+            $crate::Document::parse_with_options($html.as_bytes(), $self.options.preallocate_node_capacity);
         // CSS rules may overlap, and the final set of rules applied to an element depend on
         // selectors' specificity - selectors with higher specificity have more priority.
         // Inlining happens in two major steps:
@@ -258,7 +75,7 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        let mut size_estimate: usize = if self.options.inline_style_tags {
+        let mut size_estimate: usize = if $self.options.inline_style_tags {
             document
                 .styles()
                 .map(|s| {
@@ -269,31 +86,32 @@ impl<'a> CSSInliner<'a> {
         } else {
             0
         };
-        if let Some(extra_css) = &self.options.extra_css {
+        if let Some(extra_css) = &$self.options.extra_css {
             size_estimate = size_estimate.saturating_add(extra_css.len());
         }
         let mut raw_styles = String::with_capacity(size_estimate);
-        if self.options.inline_style_tags {
+        if $self.options.inline_style_tags {
             for style in document.styles() {
                 raw_styles.push_str(style);
                 raw_styles.push('\n');
             }
         }
-        if self.options.load_remote_stylesheets {
+        if $self.options.load_remote_stylesheets {
             let mut links = document.stylesheets().collect::<Vec<&str>>();
             links.sort_unstable();
             links.dedup();
             for href in &links {
-                let url = self.get_full_url(href);
-                let css = self.options.resolver.retrieve(url.as_ref())?;
-                raw_styles.push_str(&css);
+                let url = $self.get_full_url(href);
+                #[allow(clippy::redundant_closure_call)]
+                let css = $retrieve(url.as_ref())$($_await)*;
+                raw_styles.push_str(css.as_str());
                 raw_styles.push('\n');
             }
         }
-        if let Some(extra_css) = &self.options.extra_css {
+        if let Some(extra_css) = &$self.options.extra_css {
             raw_styles.push_str(extra_css);
         }
-        let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
+        let mut styles = indexmap::IndexMap::with_capacity_and_hasher(128, $crate::BuildNoHashHasher::default());
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
         let mut parser = cssparser::Parser::new(&mut parse_input);
         // Allocating some memory for all the parsed declarations
@@ -303,7 +121,7 @@ impl<'a> CSSInliner<'a> {
             clippy::cast_possible_truncation
         )]
         let mut declarations = Vec::with_capacity(
-            ((raw_styles.len() as f64 / DECLARATION_SIZE_COEFFICIENT)
+            ((raw_styles.len() as f64 / $crate::DECLARATION_SIZE_COEFFICIENT)
                 .min(usize::MAX as f64)
                 .round() as usize)
                 .max(16),
@@ -311,7 +129,7 @@ impl<'a> CSSInliner<'a> {
         let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
         for rule in cssparser::StyleSheetParser::new(
             &mut parser,
-            &mut parser::CSSRuleListParser::new(&mut declarations),
+            &mut $crate::parser::CSSRuleListParser::new(&mut declarations),
         )
         .flatten()
         {
@@ -327,9 +145,9 @@ impl<'a> CSSInliner<'a> {
                     for matching_element in matching_elements {
                         let element_styles =
                             styles.entry(matching_element.node_id).or_insert_with(|| {
-                                ElementStyleMap::with_capacity_and_hasher(
+                                $crate::ElementStyleMap::with_capacity_and_hasher(
                                     end.saturating_sub(*start).saturating_add(4),
-                                    BuildHasherDefault::default(),
+                                    $crate::BuildHasherDefault::default(),
                                 )
                             });
                         // Iterate over pairs of property name & value
@@ -353,38 +171,242 @@ impl<'a> CSSInliner<'a> {
             }
         }
         document.serialize(
-            target,
+            $target,
             styles,
-            self.options.keep_style_tags,
-            self.options.keep_link_tags,
+            $self.options.keep_style_tags,
+            $self.options.keep_link_tags,
         )?;
         Ok(())
-    }
-
-    fn get_full_url<'u>(&self, href: &'u str) -> Cow<'u, str> {
-        // Valid absolute URL
-        if Url::parse(href).is_ok() {
-            return Cow::Borrowed(href);
-        };
-        if let Some(base_url) = &self.options.base_url {
-            // Use the same scheme as the base URL
-            if href.starts_with("//") {
-                return Cow::Owned(format!("{}:{}", base_url.scheme(), href));
-            }
-            // Not a URL, then it is a relative URL
-            if let Ok(new_url) = base_url.join(href) {
-                return Cow::Owned(new_url.into());
-            }
-        };
-        // If it is not a valid URL and there is no base URL specified, we assume a local path
-        Cow::Borrowed(href)
-    }
+    }};
 }
 
-impl Default for CSSInliner<'_> {
+macro_rules! inliner_impl {
+    () => {
+        /// Configuration options for CSS inlining process.
+        #[allow(clippy::struct_excessive_bools)]
+        pub struct InlineOptions<'a> {
+            /// Whether to inline CSS from "style" tags.
+            ///
+            /// Sometimes HTML may include a lot of boilerplate styles, that are not applicable in every
+            /// scenario and it is useful to ignore them and use `extra_css` instead.
+            pub inline_style_tags: bool,
+            /// Keep "style" tags after inlining.
+            pub keep_style_tags: bool,
+            /// Keep "link" tags after inlining.
+            pub keep_link_tags: bool,
+            /// Used for loading external stylesheets via relative URLs.
+            #[allow(unused_qualifications)]
+            pub base_url: Option<url::Url>,
+            /// Whether remote stylesheets should be loaded or not.
+            pub load_remote_stylesheets: bool,
+            // The point of using `Cow` here is Python bindings, where it is problematic to pass a reference
+            // without dealing with memory leaks & unsafe. With `Cow` we can use moved values as `String` in
+            // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
+            /// Additional CSS to inline.
+            pub extra_css: Option<std::borrow::Cow<'a, str>>,
+            /// Pre-allocate capacity for HTML nodes during parsing.
+            /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
+            pub preallocate_node_capacity: usize,
+            /// A way to resolve stylesheets from various sources.
+            pub resolver: std::sync::Arc<dyn $crate::resolver::StylesheetResolver>,
+        }
+
+        impl<'a> std::fmt::Debug for InlineOptions<'a> {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                f.debug_struct("InlineOptions")
+                    .field("inline_style_tags", &self.inline_style_tags)
+                    .field("keep_style_tags", &self.keep_style_tags)
+                    .field("keep_link_tags", &self.keep_link_tags)
+                    .field("base_url", &self.base_url)
+                    .field("load_remote_stylesheets", &self.load_remote_stylesheets)
+                    .field("extra_css", &self.extra_css)
+                    .field("preallocate_node_capacity", &self.preallocate_node_capacity)
+                    .finish_non_exhaustive()
+            }
+        }
+
+        impl<'a> InlineOptions<'a> {
+            /// Override whether "style" tags should be inlined.
+            #[must_use]
+            pub fn inline_style_tags(mut self, inline_style_tags: bool) -> Self {
+                self.inline_style_tags = inline_style_tags;
+                self
+            }
+
+            /// Override whether "style" tags should be kept after processing.
+            #[must_use]
+            pub fn keep_style_tags(mut self, keep_style_tags: bool) -> Self {
+                self.keep_style_tags = keep_style_tags;
+                self
+            }
+
+            /// Override whether "link" tags should be kept after processing.
+            #[must_use]
+            pub fn keep_link_tags(mut self, keep_link_tags: bool) -> Self {
+                self.keep_link_tags = keep_link_tags;
+                self
+            }
+
+            /// Set base URL that will be used for loading external stylesheets via relative URLs.
+            #[must_use]
+            #[allow(unused_qualifications)]
+            pub fn base_url(mut self, base_url: Option<url::Url>) -> Self {
+                self.base_url = base_url;
+                self
+            }
+
+            /// Override whether remote stylesheets should be loaded.
+            #[must_use]
+            pub fn load_remote_stylesheets(mut self, load_remote_stylesheets: bool) -> Self {
+                self.load_remote_stylesheets = load_remote_stylesheets;
+                self
+            }
+
+            /// Set additional CSS to inline.
+            #[must_use]
+            pub fn extra_css(mut self, extra_css: Option<std::borrow::Cow<'a, str>>) -> Self {
+                self.extra_css = extra_css;
+                self
+            }
+
+            /// Set the initial node capacity for HTML tree.
+            #[must_use]
+            pub fn preallocate_node_capacity(mut self, preallocate_node_capacity: usize) -> Self {
+                self.preallocate_node_capacity = preallocate_node_capacity;
+                self
+            }
+
+            /// Set the way to resolve stylesheets from various sources.
+            #[must_use]
+            pub fn resolver(
+                mut self,
+                resolver: std::sync::Arc<dyn $crate::resolver::StylesheetResolver>,
+            ) -> Self {
+                self.resolver = resolver;
+                self
+            }
+
+            /// Create a new `CSSInliner` instance from this options.
+            #[must_use]
+            pub const fn build(self) -> CSSInliner<'a> {
+                CSSInliner::new(self)
+            }
+        }
+
+        impl Default for InlineOptions<'_> {
+            #[inline]
+            fn default() -> Self {
+                InlineOptions {
+                    inline_style_tags: true,
+                    keep_style_tags: false,
+                    keep_link_tags: false,
+                    base_url: None,
+                    load_remote_stylesheets: true,
+                    extra_css: None,
+                    preallocate_node_capacity: 32,
+                    resolver: std::sync::Arc::new($crate::DefaultStylesheetResolver),
+                }
+            }
+        }
+        /// Customizable CSS inliner.
+        #[derive(Debug)]
+        pub struct CSSInliner<'a> {
+            options: InlineOptions<'a>,
+        }
+
+        impl<'a> CSSInliner<'a> {
+            /// Create a new `CSSInliner` instance with given options.
+            #[must_use]
+            #[inline]
+            pub const fn new(options: InlineOptions<'a>) -> Self {
+                CSSInliner { options }
+            }
+
+            /// Return a default `InlineOptions` that can fully configure the CSS inliner.
+            ///
+            /// # Examples
+            ///
+            /// Get default `InlineOptions`, then change base url
+            ///
+            /// ```rust
+            /// use css_inline::{CSSInliner, Url};
+            /// # use url::ParseError;
+            /// # fn run() -> Result<(), ParseError> {
+            /// let url = Url::parse("https://api.example.com")?;
+            /// let inliner = CSSInliner::options()
+            ///     .base_url(Some(url))
+            ///     .build();
+            /// # Ok(())
+            /// # }
+            /// # run().unwrap();
+            /// ```
+            #[must_use]
+            #[inline]
+            pub fn options() -> InlineOptions<'a> {
+                InlineOptions::default()
+            }
+
+            fn get_full_url<'u>(&self, href: &'u str) -> std::borrow::Cow<'u, str> {
+                // Valid absolute URL
+                if url::Url::parse(href).is_ok() {
+                    return std::borrow::Cow::Borrowed(href);
+                };
+                if let Some(base_url) = &self.options.base_url {
+                    // Use the same scheme as the base URL
+                    if href.starts_with("//") {
+                        return std::borrow::Cow::Owned(format!("{}:{}", base_url.scheme(), href));
+                    }
+                    // Not a URL, then it is a relative URL
+                    if let Ok(new_url) = base_url.join(href) {
+                        return std::borrow::Cow::Owned(new_url.into());
+                    }
+                };
+                // If it is not a valid URL and there is no base URL specified, we assume a local path
+                std::borrow::Cow::Borrowed(href)
+            }
+        }
+
+        impl Default for CSSInliner<'_> {
+            #[inline]
+            fn default() -> Self {
+                CSSInliner::new(InlineOptions::default())
+            }
+        }
+    };
+}
+
+inliner_impl!();
+
+impl<'a> CSSInliner<'a> {
+    /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
+    /// string.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
     #[inline]
-    fn default() -> Self {
-        CSSInliner::new(InlineOptions::default())
+    pub async fn inline(&self, html: &str) -> Result<String> {
+        let mut out = build_output_buffer(html.len());
+        self.inline_to(html, &mut out).await?;
+        Ok(String::from_utf8_lossy(&out).to_string())
+    }
+    /// Inline CSS & write the result to a generic writer. Use it if you want to write
+    /// the inlined document to a file.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
+    #[inline]
+    pub async fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
+        inline_to_impl!(self, html, target, |location| async move { self.options.resolver.retrieve(location).await}, .await?)
     }
 }
 
@@ -398,8 +420,8 @@ impl Default for CSSInliner<'_> {
 ///   - IO errors;
 ///   - Internal CSS selector parsing error;
 #[inline]
-pub fn inline(html: &str) -> Result<String> {
-    CSSInliner::default().inline(html)
+pub async fn inline(html: &str) -> Result<String> {
+    CSSInliner::default().inline(html).await
 }
 
 /// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
@@ -412,6 +434,74 @@ pub fn inline(html: &str) -> Result<String> {
 ///   - IO errors;
 ///   - Internal CSS selector parsing error;
 #[inline]
-pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
-    CSSInliner::default().inline_to(html, target)
+pub async fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
+    CSSInliner::default().inline_to(html, target).await
+}
+
+/// Blocking API for CSS inlining.
+pub mod blocking {
+    use super::{build_output_buffer, Result};
+    use std::io::Write;
+
+    inliner_impl!();
+
+    impl<'a> CSSInliner<'a> {
+        /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a
+        /// string.
+        ///
+        /// # Errors
+        ///
+        /// Inlining might fail for the following reasons:
+        ///   - Missing stylesheet file;
+        ///   - Remote stylesheet is not available;
+        ///   - IO errors;
+        ///   - Internal CSS selector parsing error;
+        #[inline]
+        pub fn inline(&self, html: &str) -> Result<String> {
+            let mut out = build_output_buffer(html.len());
+            self.inline_to(html, &mut out)?;
+            Ok(String::from_utf8_lossy(&out).to_string())
+        }
+        /// Inline CSS & write the result to a generic writer. Use it if you want to write
+        /// the inlined document to a file.
+        ///
+        /// # Errors
+        ///
+        /// Inlining might fail for the following reasons:
+        ///   - Missing stylesheet file;
+        ///   - Remote stylesheet is not available;
+        ///   - IO errors;
+        ///   - Internal CSS selector parsing error;
+        #[inline]
+        pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
+            inline_to_impl!(self, html, target, |location| { self.options.resolver.retrieve_blocking(location)}, ?)
+        }
+    }
+    /// Shortcut for inlining CSS with default parameters.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
+    #[inline]
+    pub fn inline(html: &str) -> Result<String> {
+        CSSInliner::default().inline(html)
+    }
+
+    /// Shortcut for inlining CSS with default parameters and writing the output to a generic writer.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
+    #[inline]
+    pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
+        CSSInliner::default().inline_to(html, target)
+    }
 }

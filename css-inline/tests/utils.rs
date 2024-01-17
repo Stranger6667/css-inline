@@ -15,7 +15,7 @@ macro_rules! html {
 macro_rules! assert_inlined {
     (style = $style: expr, body = $body: expr, expected = $expected: expr) => {{
         let html = html!($style, $body);
-        let inlined = css_inline::inline(&html).unwrap();
+        let inlined = css_inline::inline(&html).await.unwrap();
         assert_eq!(inlined, html!($expected))
     }};
 }

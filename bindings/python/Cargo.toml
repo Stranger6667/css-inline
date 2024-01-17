@@ -23,7 +23,7 @@ url = "2"
 path = "../../css-inline"
 version = "*"
 default-features = false
-features = ["http", "file"]
+features = ["http-blocking", "file"]
 
 [profile.release]
 codegen-units = 1

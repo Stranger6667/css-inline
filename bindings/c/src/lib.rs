@@ -1,4 +1,7 @@
-use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineError, InlineOptions, Url};
+use css_inline::{
+    blocking::{CSSInliner, InlineOptions},
+    DefaultStylesheetResolver, InlineError, Url,
+};
 use libc::{c_char, size_t};
 use std::{borrow::Cow, cmp, ffi::CStr, io::Write, ptr, sync::Arc};
 
