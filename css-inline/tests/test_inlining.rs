@@ -835,3 +835,65 @@ fn keep_link_tags() {
         "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",
     );
 }
+
+#[test]
+fn nth_child_selector() {
+    let html = r#"
+<html>
+<head>
+<style>tbody tr:nth-child(odd) td {background-color:grey;}</style>
+</head>
+<body>
+<table>
+   <tbody>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+   </tbody>
+</table>
+</body>
+</html>"#;
+    let inlined = inline(html).expect("Failed to inline");
+    assert_eq!(
+        inlined,
+        r#"<html><head>
+
+</head>
+<body>
+<table>
+   <tbody>
+      <tr>
+         <td style="background-color: grey;">Test</td>
+         <td style="background-color: grey;">Test</td>
+      </tr>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+      <tr>
+         <td style="background-color: grey;">Test</td>
+         <td style="background-color: grey;">Test</td>
+      </tr>
+      <tr>
+         <td>Test</td>
+         <td>Test</td>
+      </tr>
+   </tbody>
+</table>
+
+</body></html>"#
+    );
+}

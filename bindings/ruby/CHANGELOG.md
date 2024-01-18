@@ -1,10 +1,14 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- Lookups for previous / next siblings, affecting selectors like `nth-child`. [#324](https://github.com/Stranger6667/css-inline/issues/324)
+
 ### Performance
 
 - Avoid using binary search on attributes.
-
-## [Unreleased]
 
 ## [0.12.0] - 2023-12-28
 
