@@ -63,14 +63,34 @@ impl<'a> Element<'a> {
             .and_then(|node_id| self.document.as_element(node_id))
     }
     fn previous_sibling_element(&self) -> Option<Element<'a>> {
-        self.document[self.node_id]
-            .previous_sibling
-            .and_then(|node_id| self.document.as_element(node_id))
+        let mut node = &self.document[self.node_id];
+        loop {
+            if let Some(previous_sibling_id) = node.previous_sibling {
+                let previous_sibling = &self.document[previous_sibling_id];
+                if let NodeData::Element { element, .. } = &previous_sibling.data {
+                    return Some(Element::new(self.document, previous_sibling_id, element));
+                }
+                node = previous_sibling;
+            } else {
+                // Node has no previous sibling at all
+                return None;
+            }
+        }
     }
     fn next_sibling_element(&self) -> Option<Element<'a>> {
-        self.document[self.node_id]
-            .next_sibling
-            .and_then(|node_id| self.document.as_element(node_id))
+        let mut node = &self.document[self.node_id];
+        loop {
+            if let Some(next_sibling_id) = node.next_sibling {
+                let next_sibling = &self.document[next_sibling_id];
+                if let NodeData::Element { element, .. } = &next_sibling.data {
+                    return Some(Element::new(self.document, next_sibling_id, element));
+                }
+                node = next_sibling;
+            } else {
+                // Node has no next sibling at all
+                return None;
+            }
+        }
     }
     pub(crate) fn matches(&self, selector: &Selector, cache: &mut NthIndexCache) -> bool {
         let mut context = matching::MatchingContext::new(
