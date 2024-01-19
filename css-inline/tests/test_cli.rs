@@ -14,11 +14,11 @@ pub mod tests {
     fn success() {
         css_inline()
             .arg("tests/example.html")
-            .arg("--output-filename-prefix=keep-style-tags.")
+            .arg("--output-filename-prefix=inlined.keep-style-tags.")
             .assert()
             .success()
             .stdout("tests/example.html: SUCCESS\n");
-        let content = fs::read_to_string("tests/keep-style-tags.example.html").unwrap();
+        let content = fs::read_to_string("tests/inlined.keep-style-tags.example.html").unwrap();
         assert_eq!(
             content,
             "<html><head>\n    \
