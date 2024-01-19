@@ -10,6 +10,12 @@
 
 - Lookups for previous / next siblings, affecting selectors like `nth-child`. [#324](https://github.com/Stranger6667/css-inline/issues/324)
 
+## [0.13.0] - 2024-01-19
+
+### Fixed
+
+- Lookups for previous / next siblings, affecting selectors like `nth-child`. [#324](https://github.com/Stranger6667/css-inline/issues/324)
+
 ### Performance
 
 - Avoid using binary search on attributes.
@@ -24,5 +30,6 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.12.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.13.0...HEAD
+[0.13.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.12.0...c-v0.13.0
 [0.12.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.11.3...c-v0.12.0
