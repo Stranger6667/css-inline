@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2024-01-19
+
 ### Added
 
 - Support for the `data-css-inline="keep"` attribute to enforce keeping the `style` tag.
@@ -124,7 +126,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.12.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.13.0...HEAD
+[0.13.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.12.0...ruby-v0.13.0
 [0.12.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.2...ruby-v0.12.0
 [0.11.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.1...ruby-v0.11.2
 [0.11.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.11.0...ruby-v0.11.1
