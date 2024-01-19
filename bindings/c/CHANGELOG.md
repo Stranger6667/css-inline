@@ -2,15 +2,11 @@
 
 ## [Unreleased]
 
+## [0.13.0] - 2024-01-19
+
 ### Added
 
 - Support for the `data-css-inline="keep"` attribute to enforce keeping the `style` tag.
-
-### Fixed
-
-- Lookups for previous / next siblings, affecting selectors like `nth-child`. [#324](https://github.com/Stranger6667/css-inline/issues/324)
-
-## [0.13.0] - 2024-01-19
 
 ### Fixed
 
