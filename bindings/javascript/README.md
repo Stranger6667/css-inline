@@ -39,6 +39,7 @@ into:
 - Resolves external stylesheets (including local files)
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
+- Tested on Node.js 18 & 20.
 
 ## Playground
 

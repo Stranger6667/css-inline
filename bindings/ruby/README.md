@@ -40,6 +40,7 @@ into:
 - Can process multiple documents in parallel
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
+- Tested on Ruby 2.7 and 3.2.
 
 ## Playground
 
@@ -150,10 +151,6 @@ The table below provides a detailed comparison between `css_inline` and `premail
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.74.1` on Ruby `3.2.2`.
-
-## Ruby support
-
-`css_inline` supports Ruby 2.7 and 3.2.
 
 ## Further reading
 

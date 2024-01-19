@@ -87,7 +87,7 @@ The inline function, `css_inline_to()`, doesn't allocate, so you must provide an
 
 ### Configuration
 
-You can change the inline behavior by modifying the CssInlinerOptions struct parameter that will be passed to `css_inline_to()`:
+You can change the inline behavior by modifying the `CssInlinerOptions` struct parameter that will be passed to `css_inline_to()`:
 
 ```c
 #include "css_inline.h"

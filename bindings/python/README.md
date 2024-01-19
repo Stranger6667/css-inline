@@ -43,6 +43,7 @@ into:
 - Can process multiple documents in parallel
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
+- Tested on CPython 3.7, 3.8, 3.9, 3.10, 3.11, 3.12 and PyPy 3.7, 3.8, 3.9, 3.10.
 
 ## Playground
 
@@ -195,10 +196,6 @@ Besides performance, `css-inline` differs from other Python libraries for CSS in
 - Works on fewer platforms than LXML-based libraries (`premailer`, `inlinestyler`, `toronado`, and optionally `pynliner`);
 - Does not have debug logs yet;
 - Supports only HTML 5.
-
-## Python support
-
-`css_inline` supports CPython 3.7, 3.8, 3.9, 3.10, 3.11, 3.12 and PyPy 3.7, 3.8, 3.9, 3.10.
 
 ## Further reading
 
