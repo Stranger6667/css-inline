@@ -110,6 +110,21 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
+Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
+This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags:
+
+```html
+<head>
+  <!-- Styles below are not removed -->
+  <style data-css-inline="keep">h1 { color:blue; }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
+
+Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+
 ## WebAssembly
 
 `css-inline` also ships a WebAssembly module built with `wasm-bindgen` to run in browsers.
