@@ -153,19 +153,19 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 ## Performance
 
 `css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other JavaScript alternatives in terms of speed.
-Most of the time it achieves over a **4x** speed advantage compared to the next fastest alternative.
+Most of the time it achieves over a **3x** speed advantage compared to the next fastest alternative.
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.12.0` | `css-inline-wasm 0.12.0` | `juice 10.0.0`        | `inline-css 4.0.2`     |
-|-------------|---------|---------------------|--------------------------|-----------------------|------------------------|
-| Basic       | 230 B   | 15.06 µs            | 29.33 µs (**1.94x**)     | 142.53 µs (**9.46x**) | 163.77 µs (**10.87x**) |
-| Realistic-1 | 8.58 KB | 320.71 µs           | 638.97 µs (**1.99x**)    | 1.28 ms (**4.01x**)   | 1.87 ms (**5.85x**)    |
-| Realistic-2 | 4.3 KB  | 205.21 µs           | 385.20 µs (**1.87x**)    | 1.72 ms (**8.42x**)   | 1.56 ms (**7.63x**)    |
+|             | Size    | `css-inline 0.13.0` | `css-inline-wasm 0.13.0` | `juice 10.0.0`       | `inline-css 4.0.2`   |
+|-------------|---------|---------------------|--------------------------|----------------------|----------------------|
+| Basic       | 230 B   | 15.34 µs            | 19.99 µs (**1.30x**)     | 56.70 µs (**3.69x**) | 67.95 µs (**4.42x**) |
+| Realistic-1 | 8.58 KB | 333.22 µs           | 434.59 µs (**1.30x**)    | 1.07 ms (**3.23x**)  | 1.24 ms (**3.73x**)  |
+| Realistic-2 | 4.3 KB  | 195.80 µs           | 261.09 µs (**1.33x**)    | 0.99 ms (**5.10x**)  | 0.76 ms (**3.90x**)  |
 
 The "Basic" case was obtained from benchmarking the example from the Usage section.
 
-The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.74.1` on Node.js `v21.4.0`.
+The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.75.0` on Node.js `v21.1.0`.
 
 ## License
 

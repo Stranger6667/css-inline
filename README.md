@@ -181,14 +181,14 @@ fn main() -> css_inline::Result<()> {
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.12.0`:
+Benchmarks for `css-inline==0.13.0`:
 
-- Basic: **6.51 µs**, 230 bytes
-- Realistic-1: **137.91 µs**, 8.58 KB
-- Realistic-2: **87.85 µs**, 4.3 KB
-- GitHub page: **265.26 ms**, 1.81 MB
+- Basic: **6.29 µs**, 230 bytes
+- Realistic-1: **127.72 µs**, 8.58 KB
+- Realistic-2: **82.74 µs**, 4.3 KB
+- GitHub page: **227.76 ms**, 1.81 MB
 
-These benchmarks, conducted using `rustc 1.74.1`, can be found in `css-inline/benches/inliner.rs`.
+These benchmarks, conducted using `rustc 1.75.0`, can be found in `css-inline/benches/inliner.rs`.
 
 ## Command Line Interface
 
