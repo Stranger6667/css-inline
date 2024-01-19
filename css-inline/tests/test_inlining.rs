@@ -92,6 +92,36 @@ h1 { color: blue; }
 }
 
 #[test]
+fn keep_attribute_style() {
+    // When a `style` tag contains `data-css-inline="keep"`
+    let html = r#"
+<html>
+<head>
+<style data-css-inline="keep">
+h1 { color: blue; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"#;
+    let result = inline(html).unwrap();
+    // Then it should be kept as is even if the configuration implies removing style tags
+    assert_eq!(
+        result,
+        r#"<html><head>
+<style data-css-inline="keep">
+h1 { color: blue; }
+</style>
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+
+</body></html>"#
+    );
+}
+
+#[test]
 fn ignore_inlining_attribute_link() {
     // When a `link` tag contains `data-css-inline="ignore"`
     let html = r#"

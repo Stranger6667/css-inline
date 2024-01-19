@@ -5,6 +5,7 @@
 ### Added
 
 - A way to customize resolving remote stylesheets.
+- Support for the `data-css-inline="keep"` attribute to enforce keeping the `style` tag.
 
 ### Changed
 

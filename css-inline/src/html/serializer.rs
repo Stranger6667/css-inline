@@ -65,6 +65,7 @@ impl<'a> Sink<'a> {
     fn should_skip_element(&self, element: &ElementData) -> bool {
         if element.name.local == local_name!("style") {
             !self.keep_style_tags
+                && element.attributes.get("data-css-inline".into()) != Some("keep")
         } else if element.name.local == local_name!("link")
             && element.attributes.get(local_name!("rel")) == Some("stylesheet")
         {
