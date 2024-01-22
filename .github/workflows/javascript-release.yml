@@ -89,7 +89,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry/index/
@@ -217,7 +217,7 @@ jobs:
           cache-dependency-path: bindings/javascript/yarn.lock
 
       - name: Cache NPM dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .yarn/cache
           key: npm-cache-ubuntu-22.04-release
