@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Error during loading the module on `x86_64-unknown-linux-musl`
+
 ## [0.13.0] - 2024-01-19
 
 ### Added
