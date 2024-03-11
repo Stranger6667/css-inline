@@ -7,14 +7,9 @@ mod errors;
 mod options;
 use options::Options;
 
-#[cfg(all(
-    not(target_arch = "wasm32"),
-    not(debug_assertions),
-    not(all(target_os = "windows", target_arch = "aarch64")),
-    not(all(target_os = "linux", target_arch = "aarch64", target_env = "musl")),
-))]
+#[cfg(not(target_family = "wasm"))]
 #[global_allocator]
-static ALLOC: mimalloc_rust::GlobalMiMalloc = mimalloc_rust::GlobalMiMalloc;
+static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
 #[cfg(not(target_arch = "wasm32"))]
 #[napi]
