@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.13.1] - 2024-03-12
+
 ### Added
 
 - Packages for `aarch64-linux-android` & `arm-linux-androideabi`. [#336](https://github.com/Stranger6667/css-inline/issues/336)
@@ -38,6 +40,7 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.1...HEAD
+[0.13.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.0...javascript-v0.13.1
 [0.13.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.12.1...javascript-v0.13.0
 [0.12.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.12.0...javascript-v0.12.1
