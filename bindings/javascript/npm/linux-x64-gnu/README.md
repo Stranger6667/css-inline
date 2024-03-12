@@ -1,3 +1,3 @@
-# `css-inline-linux-x64-gnu`
+# `@css-inline/css-inline-linux-x64-gnu`
 
-This is the **x86_64-unknown-linux-gnu** binary for `css-inline`
+This is the **x86_64-unknown-linux-gnu** binary for `@css-inline/css-inline`

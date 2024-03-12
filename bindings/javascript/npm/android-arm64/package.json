@@ -1,0 +1,31 @@
+{
+  "name": "@css-inline/css-inline-android-arm64",
+  "version": "0.13.0",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
+  "repository": "https://github.com/Stranger6667/css-inline",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "os": [
+    "android"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "css-inline.android-arm64.node",
+  "files": [
+    "css-inline.android-arm64.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}
