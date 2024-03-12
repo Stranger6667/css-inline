@@ -1,3 +1,3 @@
-# `css-inline-darwin-x64`
+# `@css-inline/css-inline-darwin-x64`
 
-This is the **x86_64-apple-darwin** binary for `css-inline`
+This is the **x86_64-apple-darwin** binary for `@css-inline/css-inline`

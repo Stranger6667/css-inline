@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Packages for `aarch64-linux-android` & `arm-linux-androideabi`. [#336](https://github.com/Stranger6667/css-inline/issues/336)
+
 ### Fixed
 
 - Error during loading the module on `x86_64-unknown-linux-musl`

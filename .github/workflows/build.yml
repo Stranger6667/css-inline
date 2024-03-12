@@ -231,6 +231,16 @@ jobs:
               rustup target add aarch64-unknown-linux-musl &&
               yarn build --target aarch64-unknown-linux-musl &&
               /aarch64-linux-musl-cross/bin/aarch64-linux-musl-strip *.node
+          - host: ubuntu-22.04
+            target: aarch64-linux-android
+            build: |
+              yarn build --target aarch64-linux-android
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
+          - host: ubuntu-22.04
+            target: armv7-linux-androideabi
+            build: |
+              yarn build --target armv7-linux-androideabi
+              ${ANDROID_NDK_LATEST_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip *.node
         node:
           - "18"
           - "20"
@@ -314,6 +324,16 @@ jobs:
 
       - name: Config yarn (armv7-unknown-linux-gnueabihf)
         if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
+        run: yarn config set supportedArchitectures.cpu "arm"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-linux-android)
+        if: matrix.settings.target == 'aarch64-linux-android'
+        run: yarn config set supportedArchitectures.cpu "arm64"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (armv7-linux-androideabi)
+        if: matrix.settings.target == 'armv7-linux-androideabi'
         run: yarn config set supportedArchitectures.cpu "arm"
         working-directory: bindings/javascript
 
