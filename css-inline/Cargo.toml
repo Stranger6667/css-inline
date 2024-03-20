@@ -28,7 +28,7 @@ http = ["reqwest"]
 file = []
 
 [dependencies]
-cssparser = "0.31.2"
+cssparser = "0.33.0"
 html5ever = "0.26.0"
 indexmap = "2.1"
 pico-args = { version = "0.3", optional = true }
