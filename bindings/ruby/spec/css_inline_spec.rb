@@ -112,7 +112,7 @@ h2 { color: red; }
         </body>
         </html>
         ''')
-    }.to raise_error('builder error: empty host: http:')
+    }.to raise_error('builder error: http:')
   end
 
   it 'Shows the CSS parsing errors' do
