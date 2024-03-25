@@ -261,6 +261,11 @@ function __wbg_get_imports() {
     const ret = getObject(arg0) === void 0;
     return ret;
   };
+  imports.wbg.__wbindgen_boolean_get = function(arg0) {
+    const v = getObject(arg0);
+    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
+    return ret;
+  };
   imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
     const obj = getObject(arg1);
     const ret = typeof obj === "string" ? obj : void 0;
@@ -268,11 +273,6 @@ function __wbg_get_imports() {
     var len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-  };
-  imports.wbg.__wbindgen_boolean_get = function(arg0) {
-    const v = getObject(arg0);
-    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
-    return ret;
   };
   imports.wbg.__wbindgen_is_object = function(arg0) {
     const val = getObject(arg0);

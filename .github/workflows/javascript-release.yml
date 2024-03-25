@@ -212,7 +212,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasm32
-          path: bindings/javascript/wasm/dist/*.wasm
+          path: bindings/javascript/wasm/
           if-no-files-found: error
 
   release:
@@ -256,7 +256,7 @@ jobs:
       - run: mv -f ./artifacts ./bindings/javascript
 
       - name: Move Wasm artifacts
-        run: mv -f ./bindings/javascript/artifacts/wasm32/*.wasm ./bindings/javascript/wasm
+        run: mv -f ./bindings/javascript/artifacts/wasm32/ ./bindings/javascript/wasm-dist
 
       - name: Move Node.js artifacts
         run: yarn artifacts
@@ -266,7 +266,7 @@ jobs:
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" >> ~/.npmrc
           npm publish --access public --provenance
-          cd wasm
+          cd wasm-dist
           npm publish --access public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

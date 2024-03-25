@@ -6,6 +6,10 @@
 
 - Update `html5ever` to `0.27`.
 
+### Fixed
+
+- WASM package build. [#341](https://github.com/Stranger6667/css-inline/issues/341)
+
 ## [0.13.1] - 2024-03-12
 
 ### Added
