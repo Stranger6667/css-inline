@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `html5ever` to `0.27`.
+
 ## [0.13.1] - 2024-03-12
 
 ### Added
