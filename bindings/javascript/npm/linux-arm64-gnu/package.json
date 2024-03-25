@@ -1,6 +1,6 @@
 {
   "name": "@css-inline/css-inline-linux-arm64-gnu",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "keywords": [
     "css",
