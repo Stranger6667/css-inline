@@ -13,8 +13,8 @@ GEM
       addressable
     diff-lcs (1.5.0)
     htmlentities (4.3.4)
-    mini_portile2 (2.8.2)
-    nokogiri (1.15.2)
+    mini_portile2 (2.8.5)
+    nokogiri (1.15.6)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     premailer (1.21.0)
@@ -22,7 +22,7 @@ GEM
       css_parser (>= 1.12.0)
       htmlentities (>= 4.0.0)
     public_suffix (5.0.1)
-    racc (1.7.1)
+    racc (1.7.3)
     rake (13.0.6)
     rake-compiler (1.2.3)
       rake
