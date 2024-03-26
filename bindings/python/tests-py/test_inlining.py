@@ -161,6 +161,36 @@ def test_invalid_style():
         )
 
 
+def test_cache():
+    inliner = css_inline.CSSInliner(cache=css_inline.StylesheetCache(size=3))
+    html = """<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"""
+    assert (
+        inliner.inline(html)
+        == """<html><head>
+
+</head>
+<body>
+<h1 style="color: blue;">Big Text</h1>
+
+</body></html>"""
+    )
+
+
+@pytest.mark.parametrize("size", (0, -1, "foo"))
+def test_invalid_cache(size):
+    with pytest.raises(
+        ValueError, match="Cache size must be an integer greater than zero"
+    ):
+        css_inline.StylesheetCache(size=size)
+
+
 @given(
     document=st.text(),
     keep_style_tags=st.booleans() | st.none(),

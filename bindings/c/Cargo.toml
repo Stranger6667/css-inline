@@ -18,4 +18,4 @@ cbindgen = "0.26"
 path = "../../css-inline"
 version = "*"
 default-features = false
-features = ["http", "file"]
+features = ["http", "file", "stylesheet-cache"]

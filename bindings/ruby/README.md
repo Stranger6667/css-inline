@@ -37,6 +37,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Can process multiple documents in parallel
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
@@ -93,11 +94,12 @@ inliner = CSSInline::CSSInliner.new(keep_style_tags: true)
 inliner.inline("...")
 ```
 
-- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `True`
-- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `False`
-- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `False`
+- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `true`
+- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
+- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `nil`
-- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
+- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size: 5)`). Default: `nil`
 - `extra_css`. Extra CSS to be inlined. Default: `nil`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
@@ -149,6 +151,19 @@ require 'css_inline'
 inliner = CSSInline::CSSInliner.new(base_url: "file://styles/email/")
 inliner.inline("...")
 ```
+
+You can also cache external stylesheets to avoid excessive network requests:
+
+```ruby
+require 'css_inline'
+
+inliner = CSSInline::CSSInliner.new(
+    cache: CSSInline::StylesheetCache.new(size: 5)
+)
+inliner.inline("...")
+```
+
+Caching is disabled by default.
 
 ## Performance
 

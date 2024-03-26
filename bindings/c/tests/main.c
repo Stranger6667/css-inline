@@ -85,11 +85,42 @@ static void test_file_scheme(void) {
          CSS_RESULT_OK);
 }
 
+static void test_cache_valid(void) {
+    char html[MAX_SIZE];
+    assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
+
+    StylesheetCache cache = css_inliner_stylesheet_cache(8);
+    CssInlinerOptions options = css_inliner_default_options();
+    options.cache = &cache;
+
+    char first_output[MAX_SIZE];
+    char second_output[MAX_SIZE];
+
+    assert(css_inline_to(&options, html, first_output, sizeof(first_output)) == CSS_RESULT_OK);
+    assert(strcmp(first_output, SAMPLE_INLINED) == 0);
+}
+
+static void test_cache_invalid(void) {
+    char html[MAX_SIZE];
+    assert(make_html(html, SAMPLE_STYLE, SAMPLE_BODY));
+
+    StylesheetCache cache = css_inliner_stylesheet_cache(0);
+    CssInlinerOptions options = css_inliner_default_options();
+    options.cache = &cache;
+
+    char first_output[MAX_SIZE];
+    char second_output[MAX_SIZE];
+
+    assert(css_inline_to(&options, html, first_output, sizeof(first_output)) == CSS_RESULT_INVALID_CACHE_SIZE);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
   test_missing_stylesheet();
   test_invalid_base_url();
   test_file_scheme();
+  test_cache_valid();
+  test_cache_invalid();
   return 0;
 }

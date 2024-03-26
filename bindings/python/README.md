@@ -40,6 +40,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Can process multiple documents in parallel
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
@@ -117,6 +118,7 @@ inliner.inline("...")
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `False`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
+- `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size=5)`). Default: `None`
 - `extra_css`. Extra CSS to be inlined. Default: `None`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
@@ -168,6 +170,19 @@ import css_inline
 inliner = css_inline.CSSInliner(base_url="file://styles/email/")
 inliner.inline("...")
 ```
+
+You can also cache external stylesheets to avoid excessive network requests:
+
+```python
+import css_inline
+
+inliner = css_inline.CSSInliner(
+    cache=css_inline.StylesheetCache(size=5)
+)
+inliner.inline("...")
+```
+
+Caching is disabled by default.
 
 ## XHTML compatibility
 

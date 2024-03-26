@@ -38,6 +38,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 - Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
@@ -99,6 +100,7 @@ fn main() -> css_inline::Result<()> {
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `cache`. Specifies cache for external stylesheets. Default: `None`
 - `extra_css`. Extra CSS to be inlined. Default: `None`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
@@ -176,6 +178,33 @@ fn main() -> css_inline::Result<()> {
     Ok(())
 }
 ```
+
+You can also cache external stylesheets to avoid excessive network requests:
+
+```rust
+use std::num::NonZeroUsize;
+
+#[cfg(feature = "stylesheet-cache")]
+fn main() -> css_inline::Result<()> {
+    let inliner = css_inline::CSSInliner::options()
+        .cache(
+            // This is an LRU cache
+            css_inline::StylesheetCache::new(
+                NonZeroUsize::new(5).expect("Invalid cache size")
+            )
+        )
+        .build();
+    Ok(())
+}
+
+// This block is here for testing purposes
+#[cfg(not(feature = "stylesheet-cache"))]
+fn main() -> css_inline::Result<()> {
+    Ok(())
+}
+```
+
+Caching is disabled by default.
 
 ## Performance
 

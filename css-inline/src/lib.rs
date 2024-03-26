@@ -35,6 +35,8 @@ mod resolver;
 
 pub use error::InlineError;
 use indexmap::IndexMap;
+#[cfg(feature = "stylesheet-cache")]
+use lru::{DefaultHasher, LruCache};
 use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync::Arc};
 
 use crate::html::ElementStyleMap;
@@ -42,6 +44,10 @@ use hasher::BuildNoHashHasher;
 use html::Document;
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 pub use url::{ParseError, Url};
+
+/// An LRU Cache for external stylesheets.
+#[cfg(feature = "stylesheet-cache")]
+pub type StylesheetCache<S = DefaultHasher> = LruCache<String, String, S>;
 
 /// Configuration options for CSS inlining process.
 #[allow(clippy::struct_excessive_bools)]
@@ -59,6 +65,9 @@ pub struct InlineOptions<'a> {
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
+    /// External stylesheet cache.
+    #[cfg(feature = "stylesheet-cache")]
+    pub cache: Option<std::sync::Mutex<StylesheetCache>>,
     // The point of using `Cow` here is Python bindings, where it is problematic to pass a reference
     // without dealing with memory leaks & unsafe. With `Cow` we can use moved values as `String` in
     // Python wrapper for `CSSInliner` and `&str` in Rust & simple functions on the Python side
@@ -73,12 +82,18 @@ pub struct InlineOptions<'a> {
 
 impl<'a> std::fmt::Debug for InlineOptions<'a> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("InlineOptions")
+        let mut debug = f.debug_struct("InlineOptions");
+        debug
             .field("inline_style_tags", &self.inline_style_tags)
             .field("keep_style_tags", &self.keep_style_tags)
             .field("keep_link_tags", &self.keep_link_tags)
             .field("base_url", &self.base_url)
-            .field("load_remote_stylesheets", &self.load_remote_stylesheets)
+            .field("load_remote_stylesheets", &self.load_remote_stylesheets);
+        #[cfg(feature = "stylesheet-cache")]
+        {
+            debug.field("cache", &self.cache);
+        }
+        debug
             .field("extra_css", &self.extra_css)
             .field("preallocate_node_capacity", &self.preallocate_node_capacity)
             .finish_non_exhaustive()
@@ -121,6 +136,18 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Set external stylesheet cache.
+    #[must_use]
+    #[cfg(feature = "stylesheet-cache")]
+    pub fn cache(mut self, cache: impl Into<Option<StylesheetCache>>) -> Self {
+        if let Some(cache) = cache.into() {
+            self.cache = Some(std::sync::Mutex::new(cache));
+        } else {
+            self.cache = None;
+        }
+        self
+    }
+
     /// Set additional CSS to inline.
     #[must_use]
     pub fn extra_css(mut self, extra_css: Option<Cow<'a, str>>) -> Self {
@@ -158,6 +185,8 @@ impl Default for InlineOptions<'_> {
             keep_link_tags: false,
             base_url: None,
             load_remote_stylesheets: true,
+            #[cfg(feature = "stylesheet-cache")]
+            cache: None,
             extra_css: None,
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
@@ -247,7 +276,13 @@ impl<'a> CSSInliner<'a> {
     ///   - Remote stylesheet is not available;
     ///   - IO errors;
     ///   - Internal CSS selector parsing error;
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+    /// using the same inliner panicked while resolving external stylesheets.
     #[inline]
+    #[allow(clippy::too_many_lines)]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
         let document =
             Document::parse_with_options(html.as_bytes(), self.options.preallocate_node_capacity);
@@ -285,9 +320,25 @@ impl<'a> CSSInliner<'a> {
             links.dedup();
             for href in &links {
                 let url = self.get_full_url(href);
+                #[cfg(feature = "stylesheet-cache")]
+                if let Some(lock) = self.options.cache.as_ref() {
+                    let mut cache = lock.lock().expect("Cache lock is poisoned");
+                    if let Some(cached) = cache.get(url.as_ref()) {
+                        raw_styles.push_str(cached);
+                        raw_styles.push('\n');
+                        continue;
+                    }
+                }
+
                 let css = self.options.resolver.retrieve(url.as_ref())?;
                 raw_styles.push_str(&css);
                 raw_styles.push('\n');
+
+                #[cfg(feature = "stylesheet-cache")]
+                if let Some(lock) = self.options.cache.as_ref() {
+                    let mut cache = lock.lock().expect("Cache lock is poisoned");
+                    cache.put(url.into_owned(), css);
+                }
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
@@ -414,4 +465,16 @@ pub fn inline(html: &str) -> Result<String> {
 #[inline]
 pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{CSSInliner, InlineOptions};
+
+    #[test]
+    fn test_inliner_sync_send() {
+        fn assert_send<T: Send + Sync>() {}
+        assert_send::<CSSInliner<'_>>();
+        assert_send::<InlineOptions<'_>>();
+    }
 }

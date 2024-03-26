@@ -1,6 +1,14 @@
 use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineError, InlineOptions, Url};
 use libc::{c_char, size_t};
-use std::{borrow::Cow, cmp, ffi::CStr, io::Write, ptr, sync::Arc};
+use std::{
+    borrow::Cow,
+    cmp,
+    ffi::CStr,
+    io::Write,
+    num::NonZeroUsize,
+    ptr,
+    sync::{Arc, Mutex},
+};
 
 /// Result of CSS inlining operations
 #[repr(C)]
@@ -16,22 +24,42 @@ pub enum CssResult {
     IoError,
     /// Error while parsing the CSS.
     InternalSelectorParseError,
-    /// options pointer is null.
+    /// Options pointer is null.
     NullOptions,
     /// Invalid base_url parameter.
     InvalidUrl,
     /// Invalid extra_css parameter.
     InvalidExtraCss,
-    /// input string not in UTF-8.
+    /// Input string not in UTF-8.
     InvalidInputString,
+    /// Invalid cache size.
+    InvalidCacheSize,
 }
 
 // must be public because the impl From<&CssInlinerOptions> for InlineOptions would leak this type
 /// Error to convert to CssResult later
 /// cbindgen:ignore
 pub enum InlineOptionsError {
+    /// Invalid base_url parameter.
     InvalidUrl,
+    /// Invalid extra_css parameter.
     InvalidExtraCss,
+    /// Invalid cache size.
+    InvalidCacheSize,
+}
+
+/// An LRU Cache for external stylesheets.
+#[repr(C)]
+pub struct StylesheetCache {
+    /// Cache size.
+    size: size_t,
+}
+
+/// @brief Creates an instance of StylesheetCache.
+/// @return a StylesheetCache struct
+#[no_mangle]
+pub extern "C" fn css_inliner_stylesheet_cache(size: size_t) -> StylesheetCache {
+    StylesheetCache { size }
 }
 
 /// Configuration options for CSS inlining process.
@@ -45,6 +73,8 @@ pub struct CssInlinerOptions {
     pub keep_link_tags: bool,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
+    /// Cache for external stylesheets.
+    pub cache: *const StylesheetCache,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: *const c_char,
     /// Additional CSS to inline.
@@ -69,7 +99,7 @@ pub unsafe extern "C" fn css_inline_to(
     output: *mut c_char,
     output_size: size_t,
 ) -> CssResult {
-    let options = CSSInliner::new(
+    let inliner = CSSInliner::new(
         match InlineOptions::try_from(match options.as_ref() {
             Some(ptr) => ptr,
             None => return CssResult::NullOptions,
@@ -83,7 +113,7 @@ pub unsafe extern "C" fn css_inline_to(
         Err(_) => return CssResult::InvalidInputString,
     };
     let mut buffer = CBuffer::new(output, output_size);
-    if let Err(e) = options.inline_to(html, &mut buffer) {
+    if let Err(e) = inliner.inline_to(html, &mut buffer) {
         return match e {
             InlineError::IO(_) => CssResult::IoError,
             InlineError::Network { .. } => CssResult::RemoteStylesheetNotAvailable,
@@ -107,6 +137,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         keep_link_tags: false,
         base_url: ptr::null(),
         load_remote_stylesheets: true,
+        cache: std::ptr::null(),
         extra_css: ptr::null(),
         preallocate_node_capacity: 32,
     }
@@ -151,6 +182,15 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
                 None => None,
             },
             load_remote_stylesheets: value.load_remote_stylesheets,
+            cache: {
+                if value.cache.is_null() {
+                    None
+                } else if let Some(size) = NonZeroUsize::new(unsafe { (*value.cache).size }) {
+                    Some(Mutex::new(css_inline::StylesheetCache::new(size)))
+                } else {
+                    return Err(InlineOptionsError::InvalidCacheSize);
+                }
+            },
             extra_css: extra_css.map(Cow::Borrowed),
             preallocate_node_capacity: value.preallocate_node_capacity,
             resolver: Arc::new(DefaultStylesheetResolver),
@@ -163,6 +203,7 @@ impl From<InlineOptionsError> for CssResult {
         match value {
             InlineOptionsError::InvalidUrl => CssResult::InvalidUrl,
             InlineOptionsError::InvalidExtraCss => CssResult::InvalidExtraCss,
+            InlineOptionsError::InvalidCacheSize => CssResult::InvalidCacheSize,
         }
     }
 }

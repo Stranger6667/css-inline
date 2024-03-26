@@ -37,6 +37,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 - Tested on Node.js 18 & 20.
@@ -82,6 +83,7 @@ var inlined = inline(
 - `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
 - `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `cache`. Specifies caching options for external stylesheets (for example, `{size: 5}`). Default: `null`
 - `extraCss`. Extra CSS to be inlined. Default: `null`
 - `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
@@ -125,6 +127,29 @@ This is useful if you want to keep `@media` queries for responsive emails in sep
 
 Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
 
+You can also cache external stylesheets to avoid excessive network requests:
+
+```typescript
+import { inline } from "@css-inline/css-inline";
+
+var inlined = inline(
+  `
+  <html>
+    <head>
+      <link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+      <style>h1 { color:red }</style>
+    </head>
+    <body>
+      <h1>Test</h1>
+    </body>
+  </html>
+  `,
+  { cache: { size: 5 } },
+);
+```
+
+Caching is disabled by default.
+
 ## WebAssembly
 
 `css-inline` also ships a WebAssembly module built with `wasm-bindgen` to run in browsers.
@@ -148,7 +173,7 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </script>
 ```
 
-**NOTE**: WASM module currently lacks support for fetching stylesheets from network or filesystem.
+**NOTE**: WASM module currently lacks support for fetching stylesheets from network or filesystem and caching.
 
 ## Performance
 

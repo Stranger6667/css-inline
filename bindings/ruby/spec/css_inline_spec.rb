@@ -97,6 +97,26 @@ h2 { color: red; }
       end
   end
 
+  it 'Caches remote stylesheets' do
+    inliner = CSSInline::CSSInliner.new(cache: CSSInline::StylesheetCache.new(size: 5))
+    expect(inliner.inline(SAMPLE_HTML)).to eq("<html><head></head><body>#{SAMPLE_INLINED}</body></html>")
+  end
+
+  it 'Caches remote stylesheets with default' do
+    inliner = CSSInline::CSSInliner.new(cache: CSSInline::StylesheetCache.new())
+    expect(inliner.inline(SAMPLE_HTML)).to eq("<html><head></head><body>#{SAMPLE_INLINED}</body></html>")
+  end
+
+  [
+    0,
+    -1,
+    "foo"
+  ].each do |size|
+    it "Errors on invalid cache size - #{size}" do
+      expect { CSSInline::CSSInliner.new(cache: CSSInline::StylesheetCache.new(size: size)) }.to raise_error('Cache size must be an integer greater than zero')
+    end
+  end
+
   it 'Shows the stylesheet location in base url errors' do
     expect { CSSInline::CSSInliner.new(base_url: 'foo') }.to raise_error('relative URL without a base: foo')
   end

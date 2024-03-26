@@ -23,6 +23,8 @@
     rust_2018_compatibility,
     rust_2021_compatibility
 )]
+use std::num::NonZeroUsize;
+
 use ::css_inline as rust_inline;
 use pyo3::{create_exception, exceptions, prelude::*, types::PyList, wrap_pyfunction};
 use rayon::prelude::*;
@@ -69,7 +71,34 @@ fn parse_url(url: Option<String>) -> PyResult<Option<rust_inline::Url>> {
     })
 }
 
-/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// StylesheetCache(size=8)
+///
+/// An LRU Cache for external stylesheets.
+#[pyclass]
+#[derive(Clone)]
+struct StylesheetCache {
+    size: NonZeroUsize,
+}
+
+#[pymethods]
+impl StylesheetCache {
+    #[new]
+    #[pyo3(text_signature = "(size=8)")]
+    fn new(size: Option<&PyAny>) -> PyResult<Self> {
+        let size = if let Some(size) = size {
+            const ERROR_MESSAGE: &str = "Cache size must be an integer greater than zero";
+            let size = size
+                .extract::<usize>()
+                .map_err(|_| InlineError::new_err(ERROR_MESSAGE))?;
+            NonZeroUsize::new(size).ok_or_else(|| InlineError::new_err(ERROR_MESSAGE))?
+        } else {
+            NonZeroUsize::new(8).expect("8 is not zero")
+        };
+        Ok(StylesheetCache { size })
+    }
+}
+
+/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
@@ -78,13 +107,22 @@ struct CSSInliner {
 }
 
 macro_rules! inliner {
-    ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $base_url:expr, $load_remote_stylesheets:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
+    ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $base_url:expr, $load_remote_stylesheets:expr, $cache:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
         let options = rust_inline::InlineOptions {
             inline_style_tags: $inline_style_tags.unwrap_or(true),
             keep_style_tags: $keep_style_tags.unwrap_or(false),
             keep_link_tags: $keep_link_tags.unwrap_or(false),
             base_url: $crate::parse_url($base_url)?,
             load_remote_stylesheets: $load_remote_stylesheets.unwrap_or(true),
+            cache: {
+                if let Some(cache) = $cache {
+                    Some(std::sync::Mutex::new(rust_inline::StylesheetCache::new(
+                        cache.size,
+                    )))
+                } else {
+                    None
+                }
+            },
             extra_css: $extra_css.map(Into::into),
             preallocate_node_capacity: $preallocate_node_capacity.unwrap_or(32),
             resolver: std::sync::Arc::new(rust_inline::DefaultStylesheetResolver),
@@ -97,14 +135,16 @@ macro_rules! inliner {
 impl CSSInliner {
     #[new]
     #[pyo3(
-        text_signature = "(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+        text_signature = "(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
     )]
+    #[allow(clippy::too_many_arguments)]
     fn new(
         inline_style_tags: Option<bool>,
         keep_style_tags: Option<bool>,
         keep_link_tags: Option<bool>,
         base_url: Option<String>,
         load_remote_stylesheets: Option<bool>,
+        cache: Option<StylesheetCache>,
         extra_css: Option<String>,
         preallocate_node_capacity: Option<usize>,
     ) -> PyResult<Self> {
@@ -114,6 +154,7 @@ impl CSSInliner {
             keep_link_tags,
             base_url,
             load_remote_stylesheets,
+            cache,
             extra_css,
             preallocate_node_capacity
         );
@@ -137,12 +178,12 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
 #[pyo3(
-    text_signature = "(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+    text_signature = "(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline(
@@ -152,6 +193,7 @@ fn inline(
     keep_link_tags: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
+    cache: Option<StylesheetCache>,
     extra_css: Option<&str>,
     preallocate_node_capacity: Option<usize>,
 ) -> PyResult<String> {
@@ -161,18 +203,19 @@ fn inline(
         keep_link_tags,
         base_url,
         load_remote_stylesheets,
+        cache,
         extra_css,
         preallocate_node_capacity
     );
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)
+/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
 #[pyo3(
-    text_signature = "(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, extra_css=None, preallocate_node_capacity=32)"
+    text_signature = "(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many(
@@ -182,6 +225,7 @@ fn inline_many(
     keep_link_tags: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
+    cache: Option<StylesheetCache>,
     extra_css: Option<&str>,
     preallocate_node_capacity: Option<usize>,
 ) -> PyResult<Vec<String>> {
@@ -191,6 +235,7 @@ fn inline_many(
         keep_link_tags,
         base_url,
         load_remote_stylesheets,
+        cache,
         extra_css,
         preallocate_node_capacity
     );
@@ -219,6 +264,7 @@ mod build {
 #[pymodule]
 fn css_inline(py: Python<'_>, module: &PyModule) -> PyResult<()> {
     module.add_class::<CSSInliner>()?;
+    module.add_class::<StylesheetCache>()?;
     module.add_wrapped(wrap_pyfunction!(inline))?;
     module.add_wrapped(wrap_pyfunction!(inline_many))?;
     let inline_error = py.get_type::<InlineError>();
