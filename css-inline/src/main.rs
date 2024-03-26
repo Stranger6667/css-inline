@@ -62,6 +62,9 @@ OPTIONS:
     --load-remote-stylesheets
         Whether remote stylesheets should be loaded or not.
 
+    --no-cache
+        Disable caching of remote stylesheets.
+
     --extra-css
         Additional CSS to inline.
 
@@ -79,6 +82,8 @@ OPTIONS:
         extra_css: Option<String>,
         output_filename_prefix: Option<OsString>,
         load_remote_stylesheets: bool,
+        #[cfg(feature = "stylesheet-cache")]
+        no_cache: bool,
         files: Vec<String>,
     }
 
@@ -117,6 +122,8 @@ OPTIONS:
             extra_css: args.opt_value_from_str("--extra-css")?,
             output_filename_prefix: args.opt_value_from_str("--output-filename-prefix")?,
             load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
+            #[cfg(feature = "stylesheet-cache")]
+            no_cache: args.contains("--no-cache"),
             files: args.free()?,
         };
         let base_url = match parse_url(args.base_url) {
@@ -132,6 +139,16 @@ OPTIONS:
             keep_link_tags: args.keep_link_tags,
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
+            #[cfg(feature = "stylesheet-cache")]
+            cache: {
+                if args.no_cache {
+                    None
+                } else {
+                    Some(std::sync::Mutex::new(css_inline::StylesheetCache::new(
+                        std::num::NonZeroUsize::new(5).expect("Invalid cache size"),
+                    )))
+                }
+            },
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),

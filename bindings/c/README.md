@@ -36,6 +36,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 
@@ -112,6 +113,7 @@ Possible configurations:
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `NULL`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `cache`. Specifies caching options for external stylesheets. Default: `NULL` - TODO
 - `extra_css`. Extra CSS to be inlined. Default: `NULL`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 
