@@ -37,6 +37,7 @@ into:
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
+- Optionally caches external stylesheets
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 - Tested on Node.js 18 & 20.
@@ -82,6 +83,7 @@ var inlined = inline(
 - `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
 - `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
+- `cache`. Specifies caching options for external stylesheets (for example, `{size: 5}`). Default: `null`
 - `extraCss`. Extra CSS to be inlined. Default: `null`
 - `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
 

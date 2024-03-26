@@ -1,5 +1,6 @@
 #[macro_use]
 mod utils;
+
 use css_inline::{inline, CSSInliner, InlineOptions, Url};
 use test_case::test_case;
 
@@ -926,4 +927,76 @@ fn nth_child_selector() {
 
 </body></html>"#
     );
+}
+
+#[test]
+#[cfg(feature = "stylesheet-cache")]
+fn test_cache() {
+    use std::{
+        num::NonZeroUsize,
+        sync::{Arc, Mutex},
+    };
+
+    let html = r#"
+<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+<style>
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>"#;
+
+    #[derive(Debug, Default)]
+    pub struct CustomStylesheetResolver {
+        hits: Arc<Mutex<usize>>,
+    }
+
+    impl css_inline::StylesheetResolver for CustomStylesheetResolver {
+        fn retrieve(&self, _: &str) -> css_inline::Result<String> {
+            let mut hits = self.hits.lock().expect("Lock is poisoned");
+            *hits += 1;
+            Ok("h1 { color: blue; }".to_string())
+        }
+    }
+
+    let hits = Arc::new(Mutex::new(0));
+
+    let inliner = CSSInliner::options()
+        .resolver(Arc::new(CustomStylesheetResolver { hits: hits.clone() }))
+        .cache(css_inline::StylesheetCache::new(
+            NonZeroUsize::new(3).unwrap(),
+        ))
+        .build();
+    for _ in 0..5 {
+        let inlined = inliner.inline(html);
+        let expected = r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+<h2 style="color: red;">Smaller Text</h2>
+
+</body></html>"#;
+        assert!(inlined.expect("Inlining failed").ends_with(expected));
+    }
+
+    let hits = hits.lock().expect("Lock is poisoned");
+    assert_eq!(*hits, 1);
+}
+
+#[test]
+#[cfg(feature = "stylesheet-cache")]
+fn test_disable_cache() {
+    use std::num::NonZeroUsize;
+
+    let inliner = CSSInliner::options()
+        .cache(css_inline::StylesheetCache::new(
+            NonZeroUsize::new(3).unwrap(),
+        ))
+        .cache(None)
+        .build();
+    let debug = format!("{:?}", inliner);
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, .. } }");
 }
