@@ -596,7 +596,7 @@ jobs:
         working-directory: ./css-inline
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         if: ${{ env.GITHUB_REPOSITORY }} == 'Stranger6667/css-inline'
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
