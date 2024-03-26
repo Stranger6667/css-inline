@@ -56,6 +56,30 @@ pub mod tests {
     }
 
     #[test]
+    #[cfg(feature = "stylesheet-cache")]
+    fn cache_valid() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--output-filename-prefix=inlined.cache-valid.")
+            .arg("--cache-size=6")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+    }
+
+    #[test]
+    #[cfg(feature = "stylesheet-cache")]
+    fn cache_invalid() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--output-filename-prefix=inlined.cache-valid.")
+            .arg("--cache-size=0")
+            .assert()
+            .failure()
+            .stderr("ERROR: Cache size must be an integer greater than zero\n");
+    }
+
+    #[test]
     fn wrong_base_url() {
         css_inline()
             .arg("--base-url=https://:::::")

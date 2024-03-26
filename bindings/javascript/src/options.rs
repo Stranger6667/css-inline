@@ -13,6 +13,15 @@ fn parse_url(url: Option<String>) -> std::result::Result<Option<css_inline::Url>
     })
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[cfg_attr(not(target_arch = "wasm32"), napi(object))]
+#[allow(clippy::struct_excessive_bools)]
+#[derive(Debug, Default)]
+pub struct StylesheetCache {
+    /// Cache size.
+    pub size: u32,
+}
+
 #[cfg_attr(
     target_arch = "wasm32",
     derive(serde::Deserialize),
@@ -35,6 +44,9 @@ pub struct Options {
     pub base_url: Option<String>,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: Option<bool>,
+    #[cfg(not(target_arch = "wasm32"))]
+    /// An LRU Cache for external stylesheets.
+    pub cache: Option<StylesheetCache>,
     /// Additional CSS to inline.
     pub extra_css: Option<String>,
     /// Pre-allocate capacity for HTML nodes during parsing.
@@ -53,6 +65,22 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets.unwrap_or(true),
             extra_css: value.extra_css.map(Cow::Owned),
+            #[cfg(not(target_arch = "wasm32"))]
+            cache: {
+                if let Some(cache) = value.cache {
+                    let size =
+                        std::num::NonZeroUsize::new(cache.size as usize).ok_or_else(|| {
+                            let reason =
+                                "Cache size must be an integer greater than zero".to_string();
+                            napi::Error::from_reason(reason)
+                        })?;
+                    Some(std::sync::Mutex::new(css_inline::StylesheetCache::new(
+                        size,
+                    )))
+                } else {
+                    None
+                }
+            },
             preallocate_node_capacity: if let Some(capacity) = value.preallocate_node_capacity {
                 usize::try_from(capacity).map_err(|_| {
                     let reason = "Invalid capacity".to_string();

@@ -30,10 +30,15 @@ use magnus::{
     class, define_module, function, method,
     prelude::*,
     scan_args::{get_kwargs, scan_args, Args},
-    RHash, Value,
+    typed_data::Obj,
+    DataTypeFunctions, RHash, TypedData, Value,
 };
 use rayon::prelude::*;
-use std::{borrow::Cow, sync::Arc};
+use std::{
+    borrow::Cow,
+    num::NonZeroUsize,
+    sync::{Arc, Mutex},
+};
 
 type RubyResult<T> = Result<T, magnus::Error>;
 
@@ -49,6 +54,7 @@ fn parse_options<Req>(
             Option<bool>,
             Option<String>,
             Option<bool>,
+            Option<Obj<StylesheetCache>>,
             Option<String>,
             Option<usize>,
         ),
@@ -62,6 +68,7 @@ fn parse_options<Req>(
             "keep_link_tags",
             "base_url",
             "load_remote_stylesheets",
+            "cache",
             "extra_css",
             "preallocate_node_capacity",
         ],
@@ -73,10 +80,36 @@ fn parse_options<Req>(
         keep_link_tags: kwargs.2.unwrap_or(false),
         base_url: parse_url(kwargs.3)?,
         load_remote_stylesheets: kwargs.4.unwrap_or(true),
-        extra_css: kwargs.5.map(Cow::Owned),
-        preallocate_node_capacity: kwargs.6.unwrap_or(32),
+        cache: kwargs
+            .5
+            .map(|cache| Mutex::new(rust_inline::StylesheetCache::new(cache.size))),
+        extra_css: kwargs.6.map(Cow::Owned),
+        preallocate_node_capacity: kwargs.7.unwrap_or(32),
         resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
     })
+}
+
+#[derive(DataTypeFunctions, TypedData)]
+#[magnus(class = "CSSInline::StylesheetCache")]
+struct StylesheetCache {
+    size: NonZeroUsize,
+}
+
+impl StylesheetCache {
+    fn new(args: &[Value]) -> RubyResult<StylesheetCache> {
+        fn error() -> magnus::Error {
+            magnus::Error::new(
+                magnus::exception::arg_error(),
+                "Cache size must be an integer greater than zero",
+            )
+        }
+
+        let args: Args<(), (), (), (), RHash, ()> = scan_args::<(), _, _, _, RHash, _>(args)?;
+        let kwargs = get_kwargs::<_, (), (Option<usize>,), ()>(args.keywords, &[], &["size"])
+            .map_err(|_| error())?;
+        let size = NonZeroUsize::new(kwargs.optional.0.unwrap_or(8)).ok_or_else(error)?;
+        Ok(StylesheetCache { size })
+    }
 }
 
 #[magnus::wrap(class = "CSSInline::CSSInliner")]
@@ -184,5 +217,7 @@ fn init() -> RubyResult<()> {
     class.define_method("inline", method!(CSSInliner::inline, 1))?;
     class.define_method("inline_many", method!(CSSInliner::inline_many, 1))?;
 
+    let class = module.define_class("StylesheetCache", class::object())?;
+    class.define_singleton_method("new", function!(StylesheetCache::new, -1))?;
     Ok(())
 }

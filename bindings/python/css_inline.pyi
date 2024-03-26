@@ -1,3 +1,6 @@
+class StylesheetCache:
+    def __init__(self, size: int = 8) -> None: ...
+
 class CSSInliner:
     def __init__(
         self,
@@ -6,6 +9,7 @@ class CSSInliner:
         keep_link_tags: bool = False,
         base_url: str | None = None,
         load_remote_stylesheets: bool = True,
+        cache: StylesheetCache | None = None,
         extra_css: str | None = None,
         preallocate_node_capacity: int | None = 32,
     ) -> None: ...
@@ -19,6 +23,7 @@ def inline(
     keep_link_tags: bool = False,
     base_url: str | None = None,
     load_remote_stylesheets: bool = True,
+    cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
 ) -> str: ...
@@ -29,6 +34,7 @@ def inline_many(
     keep_link_tags: bool = False,
     base_url: str | None = None,
     load_remote_stylesheets: bool = True,
+    cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
 ) -> list[str]: ...

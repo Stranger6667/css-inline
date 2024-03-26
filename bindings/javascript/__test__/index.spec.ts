@@ -132,3 +132,33 @@ h2 { color: red; }
     inlinedHtml,
   );
 });
+
+test("cache external stylesheets", (t) => {
+  t.is(
+    inline(
+      `<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
+<style>
+h2 { color: red; }
+</style>
+</head>
+<body>
+<h1>Big Text</h1>
+<h2>Smaller Text</h2>
+</body>
+</html>`,
+      { cache: { size: 5 } },
+    ),
+    inlinedHtml,
+  );
+});
+
+test("invalid cache size", (t) => {
+  const error = t.throws(() => {
+    inline("", { cache: { size: 0 } });
+  });
+  t.is(error.code, "GenericFailure");
+  t.is(error.message, "Cache size must be an integer greater than zero");
+});

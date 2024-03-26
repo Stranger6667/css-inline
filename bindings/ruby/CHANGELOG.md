@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- External stylesheet caching. [#314](https://github.com/Stranger6667/css-inline/issues/314)
+
 ### Changed
 
 - Update `html5ever` to `0.27`.
