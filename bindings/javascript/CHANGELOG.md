@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Package for `x86_64-unknown-freebsd`.
+
 ## [0.13.2] - 2024-03-25
 
 ### Changed

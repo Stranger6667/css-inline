@@ -413,6 +413,37 @@ jobs:
             set -e
             yarn test
 
+  test-freebsd:
+    runs-on: macos-12
+    name: NodeJS 20 on x86_64-unknown-freebsd
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        id: build
+        uses: cross-platform-actions/action@v0.21.1
+        timeout-minutes: 30
+        env:
+          DEBUG: 'napi:*'
+          RUSTUP_IO_THREADS: 1
+        with:
+          operating_system: freebsd
+          version: '13.2'
+          memory: 8G
+          cpu_count: 3
+          environment_variables: 'DEBUG RUSTUP_IO_THREADS'
+          shell: bash
+          run: |
+            sudo pkg install -y -f curl node libnghttp2 npm
+            sudo npm install -g yarn --ignore-scripts
+            curl https://sh.rustup.rs -sSf --output rustup.sh
+            sh rustup.sh -y --profile minimal --default-toolchain stable
+            source "$HOME/.cargo/env"
+            cd bindings/javascript
+            yarn install
+            yarn build
+            strip -x *.node
+            yarn test
+
   test-python:
     strategy:
       fail-fast: false
