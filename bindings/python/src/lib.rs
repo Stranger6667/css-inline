@@ -84,7 +84,7 @@ struct StylesheetCache {
 impl StylesheetCache {
     #[new]
     #[pyo3(text_signature = "(size=8)")]
-    fn new(size: Option<&PyAny>) -> PyResult<Self> {
+    fn new(size: Option<&Bound<'_, PyAny>>) -> PyResult<Self> {
         let size = if let Some(size) = size {
             const ERROR_MESSAGE: &str = "Cache size must be an integer greater than zero";
             let size = size
@@ -173,7 +173,7 @@ impl CSSInliner {
     ///
     /// Inline CSS in multiple HTML documents
     #[pyo3(text_signature = "(htmls)")]
-    fn inline_many(&self, htmls: &PyList) -> PyResult<Vec<String>> {
+    fn inline_many(&self, htmls: &Bound<'_, PyList>) -> PyResult<Vec<String>> {
         inline_many_impl(&self.inner, htmls)
     }
 }
@@ -219,7 +219,7 @@ fn inline(
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many(
-    htmls: &PyList,
+    htmls: &Bound<'_, PyList>,
     inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
@@ -244,10 +244,10 @@ fn inline_many(
 
 fn inline_many_impl(
     inliner: &rust_inline::CSSInliner<'_>,
-    htmls: &PyList,
+    htmls: &Bound<'_, PyList>,
 ) -> PyResult<Vec<String>> {
     // Extract strings from the list. It will fail if there is any non-string value
-    let extracted: Result<Vec<_>, _> = htmls.iter().map(pyo3::PyAny::extract::<&str>).collect();
+    let extracted: Result<Vec<_>, _> = htmls.iter().map(|h| h.extract::<String>()).collect();
     let output: Result<Vec<_>, _> = extracted?
         .par_iter()
         .map(|html| inliner.inline(html))
@@ -262,14 +262,15 @@ mod build {
 
 /// Fast CSS inlining written in Rust
 #[pymodule]
-fn css_inline(py: Python<'_>, module: &PyModule) -> PyResult<()> {
+fn css_inline(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<CSSInliner>()?;
     module.add_class::<StylesheetCache>()?;
     module.add_wrapped(wrap_pyfunction!(inline))?;
     module.add_wrapped(wrap_pyfunction!(inline_many))?;
-    let inline_error = py.get_type::<InlineError>();
+    let inline_error = py.get_type_bound::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
+    #[allow(deprecated)]
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
     Ok(())
 }
