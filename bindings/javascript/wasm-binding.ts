@@ -2,6 +2,7 @@ import init, {
   InitInput,
   InlineOptions,
   inline as __inline,
+  inlineFragment as __inlineFragment,
   version as __version,
 } from "./wasm/dist";
 
@@ -26,6 +27,14 @@ export const initWasm = async (
 
 export function inline(html: string, options?: InlineOptions): string {
   return __inline(html, options);
+}
+
+export function inlineFragment(
+  html: string,
+  css: string,
+  options?: InlineOptions,
+): string {
+  return __inlineFragment(html, css, options);
 }
 
 export function version(): string {

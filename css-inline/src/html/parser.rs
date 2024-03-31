@@ -11,14 +11,50 @@ use html5ever::{
 };
 use std::borrow::Cow;
 
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum InliningMode {
+    /// Parse the input as a full HTML document.
+    Document,
+    /// Parse the input as an HTML fragment.
+    Fragment,
+}
+
 /// Parse input bytes into an HTML document.
-pub(crate) fn parse_with_options(bytes: &[u8], preallocate_node_capacity: usize) -> Document {
+pub(crate) fn parse_with_options(
+    bytes: &[u8],
+    preallocate_node_capacity: usize,
+    mode: InliningMode,
+) -> Document {
     let sink = Sink {
         document: Document::with_capacity(preallocate_node_capacity),
     };
-    html5ever::parse_document(sink, html5ever::ParseOpts::default())
-        .from_utf8()
-        .one(bytes)
+    let options = html5ever::ParseOpts::default();
+    match mode {
+        InliningMode::Document => html5ever::parse_document(sink, options)
+            .from_utf8()
+            .one(bytes),
+        InliningMode::Fragment => {
+            let mut document = html5ever::parse_fragment(
+                sink,
+                options,
+                QualName::new(None, ns!(html), local_name!("")),
+                vec![],
+            )
+            .from_utf8()
+            .one(bytes);
+            let document_id = NodeId::document_id();
+            let context_element_id = NodeId::new(
+                document_id
+                    .get()
+                    // The first one is a node representing the "" element passed above, then the
+                    // second one is the "html" element.
+                    .checked_add(2)
+                    .expect("Document id is too small to overflow"),
+            );
+            document.reparent_children(context_element_id, document_id);
+            document
+        }
+    }
 }
 
 /// Intermediary structure for parsing an HTML document.
@@ -247,11 +283,7 @@ impl TreeSink for Sink {
     }
 
     /// Remove all the children from node and append them to `new_parent`.
-    fn reparent_children(&mut self, &node: &NodeId, &new_parent: &NodeId) {
-        let mut next_child = self.document[node].first_child;
-        while let Some(child) = next_child {
-            self.document.append(new_parent, child);
-            next_child = self.document[child].next_sibling;
-        }
+    fn reparent_children(&mut self, node: &NodeId, new_parent: &NodeId) {
+        self.document.reparent_children(*node, *new_parent);
     }
 }

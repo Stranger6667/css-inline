@@ -169,12 +169,35 @@ impl CSSInliner {
         Ok(self.inner.inline(html).map_err(InlineErrorWrapper)?)
     }
 
+    /// inline_fragment(html, css)
+    ///
+    /// Inline CSS into the given HTML fragment
+    #[pyo3(text_signature = "(html, css)")]
+    fn inline_fragment(&self, html: &str, css: &str) -> PyResult<String> {
+        Ok(self
+            .inner
+            .inline_fragment(html, css)
+            .map_err(InlineErrorWrapper)?)
+    }
+
     /// inline_many(htmls)
     ///
     /// Inline CSS in multiple HTML documents
     #[pyo3(text_signature = "(htmls)")]
     fn inline_many(&self, htmls: &Bound<'_, PyList>) -> PyResult<Vec<String>> {
         inline_many_impl(&self.inner, htmls)
+    }
+
+    /// inline_many_fragments(htmls, css)
+    ///
+    /// Inline CSS in multiple HTML documents
+    #[pyo3(text_signature = "(htmls, fragments)")]
+    fn inline_many_fragments(
+        &self,
+        htmls: &Bound<'_, PyList>,
+        css: &Bound<'_, PyList>,
+    ) -> PyResult<Vec<String>> {
+        inline_many_fragments_impl(&self.inner, htmls, css)
     }
 }
 
@@ -208,6 +231,41 @@ fn inline(
         preallocate_node_capacity
     );
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
+}
+
+/// inline_fragment(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+///
+/// Inline CSS in the given HTML fragment
+#[pyfunction]
+#[pyo3(
+    text_signature = "(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+)]
+#[allow(clippy::too_many_arguments)]
+fn inline_fragment(
+    html: &str,
+    css: &str,
+    inline_style_tags: Option<bool>,
+    keep_style_tags: Option<bool>,
+    keep_link_tags: Option<bool>,
+    base_url: Option<String>,
+    load_remote_stylesheets: Option<bool>,
+    cache: Option<StylesheetCache>,
+    extra_css: Option<&str>,
+    preallocate_node_capacity: Option<usize>,
+) -> PyResult<String> {
+    let inliner = inliner!(
+        inline_style_tags,
+        keep_style_tags,
+        keep_link_tags,
+        base_url,
+        load_remote_stylesheets,
+        cache,
+        extra_css,
+        preallocate_node_capacity
+    );
+    Ok(inliner
+        .inline_fragment(html, css)
+        .map_err(InlineErrorWrapper)?)
 }
 
 /// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
@@ -255,6 +313,55 @@ fn inline_many_impl(
     Ok(output.map_err(InlineErrorWrapper)?)
 }
 
+/// inline_many_fragments(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+///
+/// Inline CSS in multiple HTML fragments
+#[pyfunction]
+#[pyo3(
+    text_signature = "(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+)]
+#[allow(clippy::too_many_arguments)]
+fn inline_many_fragments(
+    htmls: &Bound<'_, PyList>,
+    css: &Bound<'_, PyList>,
+    inline_style_tags: Option<bool>,
+    keep_style_tags: Option<bool>,
+    keep_link_tags: Option<bool>,
+    base_url: Option<String>,
+    load_remote_stylesheets: Option<bool>,
+    cache: Option<StylesheetCache>,
+    extra_css: Option<&str>,
+    preallocate_node_capacity: Option<usize>,
+) -> PyResult<Vec<String>> {
+    let inliner = inliner!(
+        inline_style_tags,
+        keep_style_tags,
+        keep_link_tags,
+        base_url,
+        load_remote_stylesheets,
+        cache,
+        extra_css,
+        preallocate_node_capacity
+    );
+    inline_many_fragments_impl(&inliner, htmls, css)
+}
+
+fn inline_many_fragments_impl(
+    inliner: &rust_inline::CSSInliner<'_>,
+    htmls: &Bound<'_, PyList>,
+    css: &Bound<'_, PyList>,
+) -> PyResult<Vec<String>> {
+    // Extract strings from the list. It will fail if there is any non-string value
+    let extracted: Result<Vec<_>, _> = htmls.iter().map(|h| h.extract::<String>()).collect();
+    let css: Result<Vec<_>, _> = css.iter().map(|c| c.extract::<String>()).collect();
+    let output: Result<Vec<_>, _> = extracted?
+        .par_iter()
+        .zip(css?)
+        .map(|(html, css)| inliner.inline_fragment(html, &css))
+        .collect();
+    Ok(output.map_err(InlineErrorWrapper)?)
+}
+
 #[allow(dead_code)]
 mod build {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
@@ -266,7 +373,9 @@ fn css_inline(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_class::<CSSInliner>()?;
     module.add_class::<StylesheetCache>()?;
     module.add_wrapped(wrap_pyfunction!(inline))?;
+    module.add_wrapped(wrap_pyfunction!(inline_fragment))?;
     module.add_wrapped(wrap_pyfunction!(inline_many))?;
+    module.add_wrapped(wrap_pyfunction!(inline_many_fragments))?;
     let inline_error = py.get_type_bound::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;

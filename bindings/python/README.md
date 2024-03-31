@@ -88,7 +88,39 @@ inlined = css_inline.inline(HTML)
 # </html>
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function.
+Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+
+Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+
+```python
+FRAGMENT = """<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>"""
+
+CSS = """
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"""
+
+inlined = css_inline.inline_fragment(FRAGMENT, CSS)
+# HTML becomes this:
+# <main>
+# <h1 style="color: blue;">Hello</h1>
+# <section>
+# <p style="color: red;">who am i</p>
+# </section>
+# </main>
+```
+
+When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers `inline_many` and `inline_many_fragments` functions.
 This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
 
 ```python

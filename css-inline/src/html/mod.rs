@@ -11,6 +11,7 @@ pub(crate) use self::selectors::Specificity;
 use crate::hasher::BuildNoHashHasher;
 pub(crate) use document::Document;
 use indexmap::IndexMap;
+pub(crate) use parser::InliningMode;
 use rustc_hash::FxHasher;
 use std::hash::BuildHasherDefault;
 

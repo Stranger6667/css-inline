@@ -41,7 +41,7 @@ use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync
 
 use crate::html::ElementStyleMap;
 use hasher::BuildNoHashHasher;
-use html::Document;
+use html::{Document, InliningMode};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 pub use url::{ParseError, Url};
 
@@ -207,6 +207,20 @@ const GROWTH_COEFFICIENT: f64 = 1.5;
 // A rough coefficient to calculate the number of individual declarations based on the total CSS size.
 const DECLARATION_SIZE_COEFFICIENT: f64 = 30.0;
 
+fn allocate_output_buffer(html: &str) -> Vec<u8> {
+    // Allocating more memory than the input HTML, as the inlined version is usually bigger
+    #[allow(
+        clippy::cast_precision_loss,
+        clippy::cast_sign_loss,
+        clippy::cast_possible_truncation
+    )]
+    Vec::with_capacity(
+        (html.len() as f64 * GROWTH_COEFFICIENT)
+            .min(usize::MAX as f64)
+            .round() as usize,
+    )
+}
+
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
     #[must_use]
@@ -249,19 +263,14 @@ impl<'a> CSSInliner<'a> {
     ///   - Remote stylesheet is not available;
     ///   - IO errors;
     ///   - Internal CSS selector parsing error;
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+    /// using the same inliner panicked while resolving external stylesheets.
     #[inline]
     pub fn inline(&self, html: &str) -> Result<String> {
-        // Allocating more memory than the input HTML, as the inlined version is usually bigger
-        #[allow(
-            clippy::cast_precision_loss,
-            clippy::cast_sign_loss,
-            clippy::cast_possible_truncation
-        )]
-        let mut out = Vec::with_capacity(
-            (html.len() as f64 * GROWTH_COEFFICIENT)
-                .min(usize::MAX as f64)
-                .round() as usize,
-        );
+        let mut out = allocate_output_buffer(html);
         self.inline_to(html, &mut out)?;
         Ok(String::from_utf8_lossy(&out).to_string())
     }
@@ -282,10 +291,66 @@ impl<'a> CSSInliner<'a> {
     /// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
     /// using the same inliner panicked while resolving external stylesheets.
     #[inline]
-    #[allow(clippy::too_many_lines)]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
-        let document =
-            Document::parse_with_options(html.as_bytes(), self.options.preallocate_node_capacity);
+        self.inline_to_impl(html, None, target, InliningMode::Document)
+    }
+
+    /// Inline CSS into an HTML fragment.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+    /// using the same inliner panicked while resolving external stylesheets.
+    pub fn inline_fragment(&self, html: &str, css: &str) -> Result<String> {
+        let mut out = allocate_output_buffer(html);
+        self.inline_fragment_to(html, css, &mut out)?;
+        Ok(String::from_utf8_lossy(&out).to_string())
+    }
+
+    /// Inline CSS into an HTML fragment and write the result to a generic writer.
+    ///
+    /// # Errors
+    ///
+    /// Inlining might fail for the following reasons:
+    ///   - Missing stylesheet file;
+    ///   - Remote stylesheet is not available;
+    ///   - IO errors;
+    ///   - Internal CSS selector parsing error;
+    ///
+    /// # Panics
+    ///
+    /// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+    /// using the same inliner panicked while resolving external stylesheets.
+    pub fn inline_fragment_to<W: Write>(
+        &self,
+        html: &str,
+        css: &str,
+        target: &mut W,
+    ) -> Result<()> {
+        self.inline_to_impl(html, Some(css), target, InliningMode::Fragment)
+    }
+
+    #[allow(clippy::too_many_lines)]
+    fn inline_to_impl<W: Write>(
+        &self,
+        html: &str,
+        css: Option<&str>,
+        target: &mut W,
+        mode: InliningMode,
+    ) -> Result<()> {
+        let document = Document::parse_with_options(
+            html.as_bytes(),
+            self.options.preallocate_node_capacity,
+            mode,
+        );
         // CSS rules may overlap, and the final set of rules applied to an element depend on
         // selectors' specificity - selectors with higher specificity have more priority.
         // Inlining happens in two major steps:
@@ -306,6 +371,9 @@ impl<'a> CSSInliner<'a> {
         };
         if let Some(extra_css) = &self.options.extra_css {
             size_estimate = size_estimate.saturating_add(extra_css.len());
+        }
+        if let Some(css) = css {
+            size_estimate = size_estimate.saturating_add(css.len());
         }
         let mut raw_styles = String::with_capacity(size_estimate);
         if self.options.inline_style_tags {
@@ -343,6 +411,9 @@ impl<'a> CSSInliner<'a> {
         }
         if let Some(extra_css) = &self.options.extra_css {
             raw_styles.push_str(extra_css);
+        }
+        if let Some(css) = css {
+            raw_styles.push_str(css);
         }
         let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
@@ -408,6 +479,7 @@ impl<'a> CSSInliner<'a> {
             styles,
             self.options.keep_style_tags,
             self.options.keep_link_tags,
+            mode,
         )?;
         Ok(())
     }
@@ -448,6 +520,11 @@ impl Default for CSSInliner<'_> {
 ///   - Remote stylesheet is not available;
 ///   - IO errors;
 ///   - Internal CSS selector parsing error;
+///
+/// # Panics
+///
+/// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+/// using the same inliner panicked while resolving external stylesheets.
 #[inline]
 pub fn inline(html: &str) -> Result<String> {
     CSSInliner::default().inline(html)
@@ -462,9 +539,52 @@ pub fn inline(html: &str) -> Result<String> {
 ///   - Remote stylesheet is not available;
 ///   - IO errors;
 ///   - Internal CSS selector parsing error;
+///
+/// # Panics
+///
+/// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+/// using the same inliner panicked while resolving external stylesheets.
 #[inline]
 pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_to(html, target)
+}
+
+/// Shortcut for inlining CSS into an HTML fragment with default parameters.
+///
+/// # Errors
+///
+/// Inlining might fail for the following reasons:
+///   - Missing stylesheet file;
+///   - Remote stylesheet is not available;
+///   - IO errors;
+///   - Internal CSS selector parsing error;
+///
+/// # Panics
+///
+/// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+/// using the same inliner panicked while resolving external stylesheets.
+#[inline]
+pub fn inline_fragment(html: &str, css: &str) -> Result<String> {
+    CSSInliner::default().inline_fragment(html, css)
+}
+
+/// Shortcut for inlining CSS into an HTML fragment with default parameters and writing the output to a generic writer.
+///
+/// # Errors
+///
+/// Inlining might fail for the following reasons:
+///   - Missing stylesheet file;
+///   - Remote stylesheet is not available;
+///   - IO errors;
+///   - Internal CSS selector parsing error;
+///
+/// # Panics
+///
+/// This function may panic if external stylesheet cache lock is poisoned, i.e. another thread
+/// using the same inliner panicked while resolving external stylesheets.
+#[inline]
+pub fn inline_fragment_to<W: Write>(html: &str, css: &str, target: &mut W) -> Result<()> {
+    CSSInliner::default().inline_fragment_to(html, css, target)
 }
 
 #[cfg(test)]

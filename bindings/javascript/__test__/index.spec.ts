@@ -1,6 +1,6 @@
 import test from "ava";
 
-import { inline } from "../index.js";
+import { inline, inlineFragment } from "../index.js";
 
 test("default inlining", (t) => {
   t.is(
@@ -161,4 +161,26 @@ test("invalid cache size", (t) => {
   });
   t.is(error.code, "GenericFailure");
   t.is(error.message, "Cache size must be an integer greater than zero");
+});
+
+test("inline fragment", (t) => {
+  t.is(
+    inlineFragment(
+      `<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>
+`,
+      `p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}`,
+    ),
+    `<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>`,
+  );
 });

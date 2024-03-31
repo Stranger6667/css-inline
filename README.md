@@ -78,6 +78,34 @@ fn main() -> css_inline::Result<()> {
 }
 ```
 
+Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+
+Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+
+```rust
+const FRAGMENT: &str = r#"<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>"#;
+
+const CSS: &str = r#"
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"#;
+
+fn main() -> css_inline::Result<()> {
+    let inlined = css_inline::inline_fragment(FRAGMENT, CSS)?;
+    Ok(())
+}
+```
+
 ### Configuration
 
 `css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:

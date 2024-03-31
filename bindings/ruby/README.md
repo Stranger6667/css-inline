@@ -69,7 +69,45 @@ puts inlined
 # Outputs: "<html><head></head><body><h1 style=\"color:blue;\">Big Text</h1></body></html>"
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers the `inline_many` function.
+Note that `css-inline` automatically adds missing `html` and `body` tags to the output is a valid HTML document.
+
+Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+
+```ruby
+require 'css_inline'
+
+fragment = """
+<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>
+"""
+
+css = """
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"""
+
+inlined = CSSInline.inline_fragment(fragment, css)
+
+puts inlined
+# HTML becomes this:
+# <main>
+# <h1 style="color: blue;">Hello</h1>
+# <section>
+# <p style="color: red;">who am i</p>
+# </section>
+# </main>
+```
+
+When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers `inline_many` and `inline_many_fragments` functions.
 This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
 
 ```ruby
