@@ -183,6 +183,51 @@ def test_cache():
     )
 
 
+FRAGMENT = """<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>"""
+CSS = """
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"""
+EXPECTED_INLINED_FRAGMENT = '<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>'
+
+
+def test_inline_fragment():
+    assert css_inline.inline_fragment(FRAGMENT, CSS) == EXPECTED_INLINED_FRAGMENT
+
+
+def test_inline_fragment_method():
+    assert (
+        css_inline.CSSInliner().inline_fragment(FRAGMENT, CSS)
+        == EXPECTED_INLINED_FRAGMENT
+    )
+
+
+def test_inline_many_fragments():
+    assert css_inline.inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS]) == [
+        EXPECTED_INLINED_FRAGMENT,
+        EXPECTED_INLINED_FRAGMENT,
+    ]
+
+
+def test_inline_many_fragments_method():
+    assert css_inline.CSSInliner().inline_many_fragments(
+        [FRAGMENT, FRAGMENT], [CSS, CSS]
+    ) == [
+        EXPECTED_INLINED_FRAGMENT,
+        EXPECTED_INLINED_FRAGMENT,
+    ]
+
+
 @pytest.mark.parametrize("size", (0, -1, "foo"))
 def test_invalid_cache(size):
     with pytest.raises(

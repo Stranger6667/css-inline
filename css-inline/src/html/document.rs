@@ -5,6 +5,7 @@ use super::{
     parser,
     selectors::ParseError,
     serializer::serialize_to,
+    InliningMode,
 };
 use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::local_name;
@@ -59,8 +60,12 @@ impl fmt::Debug for Document {
 }
 
 impl Document {
-    pub(crate) fn parse_with_options(bytes: &[u8], preallocate_node_capacity: usize) -> Document {
-        parser::parse_with_options(bytes, preallocate_node_capacity)
+    pub(crate) fn parse_with_options(
+        bytes: &[u8],
+        preallocate_node_capacity: usize,
+        mode: InliningMode,
+    ) -> Document {
+        parser::parse_with_options(bytes, preallocate_node_capacity, mode)
     }
 
     pub(super) fn with_capacity(capacity: usize) -> Self {
@@ -165,6 +170,15 @@ impl Document {
             // No previous sibling - this node was the first child of the parent node, now the next
             // sibling becomes the first child
             self[parent].first_child = next_sibling;
+        }
+    }
+
+    /// Remove all the children from node and append them to `new_parent`.
+    pub(super) fn reparent_children(&mut self, node: NodeId, new_parent: NodeId) {
+        let mut next_child = self[node].first_child;
+        while let Some(child) = next_child {
+            self.append(new_parent, child);
+            next_child = self[child].next_sibling;
         }
     }
 
@@ -274,8 +288,9 @@ impl Document {
         styles: DocumentStyleMap<'_>,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        mode: InliningMode,
     ) -> Result<(), InlineError> {
-        serialize_to(self, writer, styles, keep_style_tags, keep_link_tags)
+        serialize_to(self, writer, styles, keep_style_tags, keep_link_tags, mode)
     }
 
     /// Filter this node iterator to elements matching the given selectors.
@@ -326,8 +341,14 @@ mod tests {
 
     fn roundtrip(bytes: &[u8]) -> Vec<u8> {
         let mut buffer = Vec::new();
-        Document::parse_with_options(bytes, 0)
-            .serialize(&mut buffer, IndexMap::default(), false, false)
+        Document::parse_with_options(bytes, 0, InliningMode::Document)
+            .serialize(
+                &mut buffer,
+                IndexMap::default(),
+                false,
+                false,
+                InliningMode::Document,
+            )
             .expect("Failed to serialize");
         buffer
     }
@@ -343,6 +364,7 @@ mod tests {
 </head>"
                 .as_bytes(),
             0,
+            InliningMode::Document,
         );
         let styles = doc.styles().collect::<Vec<_>>();
         assert_eq!(styles.len(), 2);
@@ -362,6 +384,7 @@ mod tests {
 </head>"
                 .as_bytes(),
             0,
+            InliningMode::Document,
         );
         let links = doc.stylesheets().collect::<Vec<_>>();
         assert_eq!(links.len(), 2);

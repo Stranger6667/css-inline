@@ -16,6 +16,17 @@
   "style=\"font-size: 2px;\"><strong style=\"text-decoration: "                \
   "none;\">Yes!</strong></p><p class=\"footer\" style=\"font-size: "           \
   "1px;\">Foot notes</p></body></html>"
+#define SAMPLE_FRAGMENT                                                        \
+  "<main>"                                                                     \
+  "<h1>Hello</h1>"                                                             \
+  "<section>"                                                                  \
+  "<p>who am i</p>"                                                            \
+  "</section>"                                                                 \
+  "</main>"
+#define SAMPLE_FRAGMENT_STYLE                                                  \
+  "p { color: red; } h1 { color: blue; }"
+#define SAMPLE_INLINED_FRAGMENT                                                \
+  "<main><h1 style=\"color: blue;\">Hello</h1><section><p style=\"color: red;\">who am i</p></section></main>"
 
 /**
  * @brief Makes a html-like string in @p html given a @p style and a @p body.
@@ -114,6 +125,14 @@ static void test_cache_invalid(void) {
     assert(css_inline_to(&options, html, first_output, sizeof(first_output)) == CSS_RESULT_INVALID_CACHE_SIZE);
 }
 
+static void test_inline_fragment(void) {
+  CssInlinerOptions options = css_inliner_default_options();
+  char output[MAX_SIZE];
+  assert(css_inline_fragment_to(&options, SAMPLE_FRAGMENT, SAMPLE_FRAGMENT_STYLE, output, sizeof(output)) ==
+         CSS_RESULT_OK);
+  assert(strcmp(output, SAMPLE_INLINED_FRAGMENT) == 0);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
@@ -122,5 +141,6 @@ int main(void) {
   test_file_scheme();
   test_cache_valid();
   test_cache_invalid();
+  test_inline_fragment();
   return 0;
 }

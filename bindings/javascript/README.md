@@ -76,6 +76,41 @@ var inlined = inline(
 // Do something with the inlined HTML, e.g. send an email
 ```
 
+Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+
+Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+
+```javascript
+import { inlineFragment } from "@css-inline/css-inline";
+
+var inlined = inlineFragment(
+  `
+  <main>
+    <h1>Hello</h1>
+    <section>
+      <p>who am i</p>
+    </section>
+  </main>
+  `,
+  `
+  p {
+      color: red;
+  }
+
+  h1 {
+      color: blue;
+  }
+  `
+);
+// HTML becomes this:
+// <main>
+// <h1 style="color: blue;">Hello</h1>
+// <section>
+// <p style="color: red;">who am i</p>
+// </section>
+// </main>
+```
+
 ### Configuration
 
 - `inlineStyleTags`. Specifies whether to inline CSS from "style" tags. Default: `true`

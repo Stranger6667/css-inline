@@ -86,6 +86,48 @@ int main(void) {
 
 The inline function, `css_inline_to()`, doesn't allocate, so you must provide an array big enough to fit the result. If the size is not sufficient, the enum `CSS_RESULT_IO_ERROR` will be returned.
 
+Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+
+Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+
+```c
+#include "css_inline.h"
+#include <stdio.h>
+
+#define OUTPUT_SIZE 1024
+
+int main(void) {
+  CssInlinerOptions options = css_inliner_default_options();
+  const char fragment[] =
+    "<main>"
+      "<h1>Hello</h1>"
+      "<section>"
+      "<p>who am i</p>"
+      "</section>"
+    "</main>";
+
+  const char css[] =
+    "p {"
+      "color: red;"
+    "}"
+    "h1 {"
+      "color: blue;"
+    "}";
+  char output[OUTPUT_SIZE];
+  if (css_inline_fragment_to(&options, fragment, css, output, sizeof(output)) == CSS_RESULT_OK) {
+    printf("Inlined CSS: %s\n", output);
+    // HTML becomes this:
+    // <main>
+    // <h1 style="color: blue;">Hello</h1>
+    // <section>
+    // <p style="color: red;">who am i</p>
+    // </section>
+    // </main>
+  }
+  return 0;
+}
+```
+
 ### Configuration
 
 You can change the inline behavior by modifying the `CssInlinerOptions` struct parameter that will be passed to `css_inline_to()`:

@@ -35,5 +35,7 @@ export interface Options {
 }
 /** Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string. */
 export function inline(html: string, options?: Options | undefined | null): string
+/** Inline CSS styles into an HTML fragment. */
+export function inlineFragment(html: string, css: string, options?: Options | undefined | null): string
 /** Get the package version. */
 export function version(): string

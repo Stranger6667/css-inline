@@ -2,7 +2,7 @@ use super::{
     attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
-    DocumentStyleMap,
+    DocumentStyleMap, InliningMode,
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, LocalName, QualName};
@@ -15,12 +15,14 @@ pub(crate) fn serialize_to<W: Write>(
     styles: DocumentStyleMap<'_>,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    mode: InliningMode,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
         document,
         NodeId::document_id(),
         keep_style_tags,
         keep_link_tags,
+        mode,
     );
     let mut ser = HtmlSerializer::new(writer, styles);
     sink.serialize(&mut ser)
@@ -32,6 +34,7 @@ struct Sink<'a> {
     node: NodeId,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    inlining_mode: InliningMode,
 }
 
 impl<'a> Sink<'a> {
@@ -40,12 +43,14 @@ impl<'a> Sink<'a> {
         node: NodeId,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        inlining_mode: InliningMode,
     ) -> Sink<'a> {
         Sink {
             document,
             node,
             keep_style_tags,
             keep_link_tags,
+            inlining_mode,
         }
     }
     #[inline]
@@ -55,6 +60,7 @@ impl<'a> Sink<'a> {
             node,
             self.keep_style_tags,
             self.keep_link_tags,
+            self.inlining_mode,
         )
     }
     #[inline]
@@ -70,6 +76,8 @@ impl<'a> Sink<'a> {
             && element.attributes.get(local_name!("rel")) == Some("stylesheet")
         {
             !self.keep_link_tags
+        } else if element.name.local == local_name!("html") {
+            matches!(self.inlining_mode, InliningMode::Fragment)
         } else {
             false
         }
@@ -537,6 +545,8 @@ fn merge_styles<Wr: Write>(
 
 #[cfg(test)]
 mod tests {
+    use crate::html::InliningMode;
+
     use super::Document;
     use indexmap::IndexMap;
 
@@ -545,10 +555,17 @@ mod tests {
         let doc = Document::parse_with_options(
             b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
             0,
+            InliningMode::Document,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, IndexMap::default(), true, false)
-            .expect("Should not fail");
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            true,
+            false,
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
     }
 
@@ -557,10 +574,17 @@ mod tests {
         let doc = Document::parse_with_options(
             b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
             0,
+            InliningMode::Document,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, IndexMap::default(), false, false)
-            .expect("Should not fail");
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            false,
+            false,
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
         assert_eq!(buffer, b"<html><head></head><body></body></html>");
     }
 
@@ -569,10 +593,17 @@ mod tests {
         let doc = Document::parse_with_options(
             b"<!DOCTYPE html><html><head><title>& < > \xC2\xA0</title></head><body></body></html>",
             0,
+            InliningMode::Document,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, IndexMap::default(), false, false)
-            .expect("Should not fail");
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            false,
+            false,
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head><title>&amp; &lt; &gt; &nbsp;</title></head><body></body></html>");
     }
 
@@ -581,10 +612,17 @@ mod tests {
         let doc = Document::parse_with_options(
             b"<!DOCTYPE html><html><head></head><body data-foo='& \xC2\xA0 \"'></body></html>",
             0,
+            InliningMode::Document,
         );
         let mut buffer = Vec::new();
-        doc.serialize(&mut buffer, IndexMap::default(), false, false)
-            .expect("Should not fail");
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            false,
+            false,
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
     }
 }

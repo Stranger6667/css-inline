@@ -36,6 +36,17 @@ pub enum CssResult {
     InvalidCacheSize,
 }
 
+impl From<InlineError> for CssResult {
+    fn from(value: InlineError) -> Self {
+        match value {
+            InlineError::IO(_) => CssResult::IoError,
+            InlineError::Network { .. } => CssResult::RemoteStylesheetNotAvailable,
+            InlineError::ParseError(_) => CssResult::InternalSelectorParseError,
+            InlineError::MissingStyleSheet { .. } => CssResult::MissingStylesheet,
+        }
+    }
+}
+
 // must be public because the impl From<&CssInlinerOptions> for InlineOptions would leak this type
 /// Error to convert to CssResult later
 /// cbindgen:ignore
@@ -84,6 +95,29 @@ pub struct CssInlinerOptions {
     pub preallocate_node_capacity: size_t,
 }
 
+macro_rules! inliner {
+    ($options:expr) => {
+        CSSInliner::new(
+            match InlineOptions::try_from(match $options.as_ref() {
+                Some(ptr) => ptr,
+                None => return CssResult::NullOptions,
+            }) {
+                Ok(inline_options) => inline_options,
+                Err(e) => return CssResult::from(e),
+            },
+        )
+    };
+}
+
+macro_rules! to_str {
+    ($input:expr) => {
+        match CStr::from_ptr($input).to_str() {
+            Ok(val) => val,
+            Err(_) => return CssResult::InvalidInputString,
+        }
+    };
+}
+
 /// @brief Inline CSS from @p input & write the result to @p output with @p options.
 /// @param options configuration for the inliner.
 /// @param input html to inline.
@@ -99,27 +133,41 @@ pub unsafe extern "C" fn css_inline_to(
     output: *mut c_char,
     output_size: size_t,
 ) -> CssResult {
-    let inliner = CSSInliner::new(
-        match InlineOptions::try_from(match options.as_ref() {
-            Some(ptr) => ptr,
-            None => return CssResult::NullOptions,
-        }) {
-            Ok(inline_options) => inline_options,
-            Err(e) => return CssResult::from(e),
-        },
-    );
-    let html = match CStr::from_ptr(input).to_str() {
-        Ok(val) => val,
-        Err(_) => return CssResult::InvalidInputString,
-    };
+    let inliner = inliner!(options);
+    let html = to_str!(input);
     let mut buffer = CBuffer::new(output, output_size);
     if let Err(e) = inliner.inline_to(html, &mut buffer) {
-        return match e {
-            InlineError::IO(_) => CssResult::IoError,
-            InlineError::Network { .. } => CssResult::RemoteStylesheetNotAvailable,
-            InlineError::ParseError(_) => CssResult::InternalSelectorParseError,
-            InlineError::MissingStyleSheet { .. } => CssResult::MissingStylesheet,
-        };
+        return e.into();
+    };
+    // Null terminate the pointer
+    let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
+    *ptr = 0;
+    CssResult::Ok
+}
+
+/// @brief Inline CSS @p fragment into @p input & write the result to @p output with @p options.
+/// @param options configuration for the inliner.
+/// @param input html to inline.
+/// @param css css to inline.
+/// @param output buffer to save the inlined CSS.
+/// @param output_size size of @p output in bytes.
+/// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
+#[allow(clippy::missing_safety_doc)]
+#[must_use]
+#[no_mangle]
+pub unsafe extern "C" fn css_inline_fragment_to(
+    options: *const CssInlinerOptions,
+    input: *const c_char,
+    css: *const c_char,
+    output: *mut c_char,
+    output_size: size_t,
+) -> CssResult {
+    let inliner = inliner!(options);
+    let html = to_str!(input);
+    let css = to_str!(css);
+    let mut buffer = CBuffer::new(output, output_size);
+    if let Err(e) = inliner.inline_fragment_to(html, css, &mut buffer) {
+        return e.into();
     };
     // Null terminate the pointer
     let ptr: *mut c_char = buffer.buffer.add(buffer.pos);

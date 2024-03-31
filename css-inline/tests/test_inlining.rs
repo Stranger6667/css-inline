@@ -1000,3 +1000,39 @@ fn test_disable_cache() {
     let debug = format!("{:?}", inliner);
     assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, .. } }");
 }
+
+const FRAGMENT: &str = r#"<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>"#;
+const CSS: &str = r#"
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"#;
+const EXPECTED_INLINED_FRAGMENT: &str = "<main>\n<h1 style=\"color: blue;\">Hello</h1>\n<section>\n<p style=\"color: red;\">who am i</p>\n</section>\n</main>";
+
+#[test]
+fn inline_fragment() {
+    let inlined = css_inline::inline_fragment(FRAGMENT, CSS).unwrap();
+    assert_eq!(inlined, EXPECTED_INLINED_FRAGMENT);
+}
+
+#[test]
+fn inline_fragment_to() {
+    let mut out = Vec::new();
+    css_inline::inline_fragment_to(FRAGMENT, CSS, &mut out).unwrap();
+    assert_eq!(String::from_utf8_lossy(&out), EXPECTED_INLINED_FRAGMENT)
+}
+
+#[test]
+fn inline_fragment_empty() {
+    let inlined = css_inline::inline_fragment("", "").unwrap();
+    assert_eq!(inlined, "");
+}

@@ -19,6 +19,22 @@ SAMPLE_HTML = make_html(
     SAMPLE_STYLE,
     "<h1>Big Text</h1><p><strong>Yes!</strong></p><p class=\"footer\">Foot notes</p>"
 )
+FRAGMENT = """<main>
+<h1>Hello</h1>
+<section>
+<p>who am i</p>
+</section>
+</main>"""
+CSS = """
+p {
+    color: red;
+}
+
+h1 {
+    color: blue;
+}
+"""
+EXPECTED_INLINED_FRAGMENT = "<main>\n<h1 style=\"color: blue;\">Hello</h1>\n<section>\n<p style=\"color: red;\">who am i</p>\n</section>\n</main>"
 
 funcs = [
   ["CSSInline::inline", ->(html, **kwargs){ CSSInline::inline(html, **kwargs) }],
@@ -62,6 +78,30 @@ RSpec.describe 'CssInline' do
     )
     expect(inlined[0]).to eq(expected)
     expect(inlined[1]).to eq(expected)
+  end
+
+  it 'Inlines CSS into HTML fragments' do
+    inlined = CSSInline::inline_fragment(FRAGMENT, CSS)
+    expect(inlined).to eq(EXPECTED_INLINED_FRAGMENT)
+  end
+
+  it 'Inlines CSS into HTML fragments via method' do
+    inliner = CSSInline::CSSInliner.new()
+    inlined = inliner.inline_fragment(FRAGMENT, CSS)
+    expect(inlined).to eq(EXPECTED_INLINED_FRAGMENT)
+  end
+
+  it 'Inlines CSS into multiple HTML fragments in parallel' do
+    inlined = CSSInline::inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS])
+    expect(inlined[0]).to eq(EXPECTED_INLINED_FRAGMENT)
+    expect(inlined[1]).to eq(EXPECTED_INLINED_FRAGMENT)
+  end
+
+  it 'Inlines CSS into multiple HTML fragments in parallel via method' do
+    inliner = CSSInline::CSSInliner.new()
+    inlined = inliner.inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS])
+    expect(inlined[0]).to eq(EXPECTED_INLINED_FRAGMENT)
+    expect(inlined[1]).to eq(EXPECTED_INLINED_FRAGMENT)
   end
 
   [
