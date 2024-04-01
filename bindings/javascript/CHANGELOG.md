@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2024-04-01
+
 ### Added
 
 - External stylesheet caching. [#314](https://github.com/Stranger6667/css-inline/issues/314)
@@ -55,7 +57,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.0...HEAD
+[0.14.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.2...javascript-v0.14.0
 [0.13.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.1...javascript-v0.13.2
 [0.13.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.0...javascript-v0.13.1
 [0.13.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.12.1...javascript-v0.13.0
