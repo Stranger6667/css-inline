@@ -31,6 +31,17 @@ function addHeapObject(obj) {
   heap[idx] = obj;
   return idx;
 }
+function dropObject(idx) {
+  if (idx < 132)
+    return;
+  heap[idx] = heap_next;
+  heap_next = idx;
+}
+function takeObject(idx) {
+  const ret = getObject(idx);
+  dropObject(idx);
+  return ret;
+}
 var WASM_VECTOR_LEN = 0;
 var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : { encode: () => {
   throw Error("TextEncoder not available");
@@ -85,17 +96,6 @@ function getInt32Memory0() {
     cachedInt32Memory0 = new Int32Array(wasm.memory.buffer);
   }
   return cachedInt32Memory0;
-}
-function dropObject(idx) {
-  if (idx < 132)
-    return;
-  heap[idx] = heap_next;
-  heap_next = idx;
-}
-function takeObject(idx) {
-  const ret = getObject(idx);
-  dropObject(idx);
-  return ret;
 }
 var cachedFloat64Memory0 = null;
 function getFloat64Memory0() {
@@ -292,6 +292,14 @@ function __wbg_get_imports() {
     const ret = +getObject(arg0);
     return ret;
   };
+  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
+  };
+  imports.wbg.__wbindgen_boolean_get = function(arg0) {
+    const v = getObject(arg0);
+    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
+    return ret;
+  };
   imports.wbg.__wbindgen_string_get = function(arg0, arg1) {
     const obj = getObject(arg1);
     const ret = typeof obj === "string" ? obj : void 0;
@@ -299,11 +307,6 @@ function __wbg_get_imports() {
     var len1 = WASM_VECTOR_LEN;
     getInt32Memory0()[arg0 / 4 + 1] = len1;
     getInt32Memory0()[arg0 / 4 + 0] = ptr1;
-  };
-  imports.wbg.__wbindgen_boolean_get = function(arg0) {
-    const v = getObject(arg0);
-    const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
-    return ret;
   };
   imports.wbg.__wbg_length_c20a40f15020d68a = function(arg0) {
     const ret = getObject(arg0).length;
@@ -323,9 +326,6 @@ function __wbg_get_imports() {
   };
   imports.wbg.__wbg_set_a47bac70306a19a7 = function(arg0, arg1, arg2) {
     getObject(arg0).set(getObject(arg1), arg2 >>> 0);
-  };
-  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
   };
   imports.wbg.__wbindgen_error_new = function(arg0, arg1) {
     const ret = new Error(getStringFromWasm0(arg0, arg1));
