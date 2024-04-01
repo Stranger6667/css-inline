@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2024-04-01
+
 ### Added
 
 - External stylesheet caching. [#314](https://github.com/Stranger6667/css-inline/issues/314)
@@ -35,6 +37,7 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.13.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.0...HEAD
+[0.14.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.13.0...c-v0.14.0
 [0.13.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.12.0...c-v0.13.0
 [0.12.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.11.3...c-v0.12.0
