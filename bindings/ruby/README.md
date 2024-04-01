@@ -69,7 +69,7 @@ puts inlined
 # Outputs: "<html><head></head><body><h1 style=\"color:blue;\">Big Text</h1></body></html>"
 ```
 
-Note that `css-inline` automatically adds missing `html` and `body` tags to the output is a valid HTML document.
+Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
 
 Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
 
