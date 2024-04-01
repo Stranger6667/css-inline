@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.0] - 2024-04-01
+
 ### Added
 
 - External stylesheet caching. [#314](https://github.com/Stranger6667/css-inline/issues/314)
@@ -384,7 +386,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.13.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.0...HEAD
+[0.14.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.13.0...rust-v0.14.0
 [0.13.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.12.0...rust-v0.13.0
 [0.12.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.11.2...rust-v0.12.0
 [0.11.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.11.1...rust-v0.11.2
