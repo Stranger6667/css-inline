@@ -17,10 +17,11 @@ pub trait StylesheetResolver: Send + Sync {
 
             #[cfg(not(feature = "http"))]
             {
-                Err(InlineError::IO(std::io::Error::new(
+                Err(std::io::Error::new(
                     ErrorKind::Unsupported,
                     "Loading external URLs requires the `http` feature",
-                )))
+                )
+                .into())
             }
         } else {
             #[cfg(feature = "file")]
@@ -29,10 +30,11 @@ pub trait StylesheetResolver: Send + Sync {
             }
             #[cfg(not(feature = "file"))]
             {
-                Err(InlineError::IO(std::io::Error::new(
+                Err(std::io::Error::new(
                     ErrorKind::Unsupported,
                     "Loading local files requires the `file` feature",
-                )))
+                )
+                .into())
             }
         }
     }
@@ -64,7 +66,7 @@ pub trait StylesheetResolver: Send + Sync {
     }
     /// Return the "Unsupported" kind of error.
     fn unsupported(&self, reason: &str) -> InlineError {
-        InlineError::IO(std::io::Error::new(ErrorKind::Unsupported, reason))
+        std::io::Error::new(ErrorKind::Unsupported, reason).into()
     }
 }
 

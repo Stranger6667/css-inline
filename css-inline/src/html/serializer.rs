@@ -608,6 +608,28 @@ mod tests {
     }
 
     #[test]
+    fn test_untouched_style() {
+        let doc = Document::parse_with_options(
+            b"<html><body><p style=\"color:blue;\"></p></body></html>",
+            0,
+            InliningMode::Document,
+        );
+        let mut buffer = Vec::new();
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            false,
+            false,
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
+        assert_eq!(
+            buffer,
+            b"<html><head></head><body><p style=\"color:blue;\"></p></body></html>"
+        );
+    }
+
+    #[test]
     fn test_attributes() {
         let doc = Document::parse_with_options(
             b"<!DOCTYPE html><html><head></head><body data-foo='& \xC2\xA0 \"'></body></html>",

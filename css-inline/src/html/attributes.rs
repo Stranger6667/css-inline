@@ -114,7 +114,7 @@ impl Class {
                 if bloom_filter.might_have_class(name) {
                     self.has_class_impl(name, case_sensitivity)
                 } else {
-                    // Class is not in the Bloom filter, hence the this `class` value does not
+                    // Class is not in the Bloom filter, hence this `class` value does not
                     // contain the given class
                     false
                 }
@@ -182,5 +182,22 @@ impl Attributes {
     pub(crate) fn get(&self, local: html5ever::LocalName) -> Option<&str> {
         let needle = QualName::new(None, ns!(), local);
         self.find(&needle)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Class;
+    use selectors::attr::CaseSensitivity;
+    use test_case::test_case;
+
+    #[test_case("a b")]
+    #[test_case("a")]
+    fn test_has_class(value: &str) {
+        let class = Class::new(value.into());
+        assert!(class.has_class(b"a", CaseSensitivity::CaseSensitive));
+        assert!(class.has_class(b"A", CaseSensitivity::AsciiCaseInsensitive));
+        assert!(!class.has_class(b"c", CaseSensitivity::CaseSensitive));
+        assert!(!class.has_class(b"C", CaseSensitivity::AsciiCaseInsensitive));
     }
 }
