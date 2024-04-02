@@ -1,3 +1,5 @@
+use std::{error::Error, sync::Arc};
+
 #[macro_use]
 mod utils;
 
@@ -32,10 +34,12 @@ fn assert_http(inlined: Result<String, css_inline::InlineError>, expected: &str)
     }
     #[cfg(not(feature = "http"))]
     {
+        let error = inlined.expect_err("Should fail");
         assert_eq!(
-            inlined.expect_err("Should fail").to_string(),
+            error.to_string(),
             "Loading external URLs requires the `http` feature"
         );
+        assert!(error.source().is_some());
     }
 }
 
@@ -617,10 +621,12 @@ fn missing_stylesheet() {
     let inlined = inline(html);
     #[cfg(feature = "file")]
     {
+        let error = inlined.expect_err("Should be an error");
         assert_eq!(
-            inlined.expect_err("Should be an error").to_string(),
+            error.to_string(),
             "Missing stylesheet file: tests/missing.css"
         );
+        assert!(error.source().is_none());
     }
     #[cfg(not(feature = "file"))]
     {
@@ -698,6 +704,7 @@ fn remote_network_stylesheet_invalid_url() {
     #[cfg(not(feature = "http"))]
     let expected = "Loading external URLs requires the `http` feature";
     assert_eq!(error.to_string(), expected);
+    assert!(error.source().is_some());
 }
 
 #[test]
@@ -999,6 +1006,42 @@ fn test_disable_cache() {
         .build();
     let debug = format!("{:?}", inliner);
     assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, .. } }");
+}
+
+#[test]
+fn test_resolver_without_implementation() {
+    let html = r#"
+<html>
+<head>
+<link href="http://127.0.0.1:1234/external.css" rel="stylesheet">
+</head>
+</html>"#;
+
+    #[derive(Debug, Default)]
+    pub struct CustomStylesheetResolver;
+
+    impl css_inline::StylesheetResolver for CustomStylesheetResolver {}
+
+    let inliner = CSSInliner::options()
+        .resolver(Arc::new(CustomStylesheetResolver))
+        .build();
+
+    let error = inliner.inline(html).expect_err("Should fail");
+    #[cfg(feature = "http")]
+    {
+        assert_eq!(
+            error.to_string(),
+            "Loading external URLs is not supported: http://127.0.0.1:1234/external.css"
+        );
+    }
+    #[cfg(not(feature = "http"))]
+    {
+        assert_eq!(
+            error.to_string(),
+            "Loading external URLs requires the `http` feature"
+        );
+    }
+    assert!(error.source().is_some());
 }
 
 const FRAGMENT: &str = r#"<main>
