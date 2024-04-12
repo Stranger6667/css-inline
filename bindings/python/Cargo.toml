@@ -15,7 +15,7 @@ built = { version = "0.7.1", features = ["cargo-lock", "chrono"] }
 
 [dependencies]
 pyo3 = { version = "0.21.0", features = ["extension-module", "abi3-py37"] }
-pyo3-built = "0.4"
+pyo3-built = "0.5"
 rayon = "1"
 url = "2"
 
