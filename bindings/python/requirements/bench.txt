@@ -22,7 +22,9 @@ cssutils==2.7.1
     #   premailer
     #   pynliner
     #   toronado
-idna==3.4
+exceptiongroup==1.2.0
+    # via pytest
+idna==3.7
     # via requests
 iniconfig==2.0.0
     # via pytest
@@ -53,6 +55,8 @@ requests==2.31.0
     #   premailer
 soupsieve==2.4.1
     # via beautifulsoup4
+tomli==2.0.1
+    # via pytest
 toronado==0.1.0
     # via -r bench.in
 urllib3==2.0.7
