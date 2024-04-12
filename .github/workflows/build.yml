@@ -596,13 +596,13 @@ jobs:
         working-directory: ./css-inline
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        if: ${{ env.GITHUB_REPOSITORY }} == 'Stranger6667/css-inline'
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           name: coverage
           files: lcov.info
           fail_ci_if_error: true
+          verbose: true
 
   fuzz:
     name: Fuzz
