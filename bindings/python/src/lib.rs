@@ -379,7 +379,6 @@ fn css_inline(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     let inline_error = py.get_type_bound::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
-    #[allow(deprecated)]
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
     Ok(())
 }
