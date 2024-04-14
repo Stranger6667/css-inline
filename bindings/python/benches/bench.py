@@ -16,9 +16,7 @@ with (HERE.parents[2] / "benchmarks/benchmarks.json").open() as f:
     benchmark_data = json.load(f)
 
 
-def parametrize_functions(
-    *funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler", "toronado")
-):
+def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler", "toronado")):
     return pytest.mark.parametrize("func", funcs, ids=ids)
 
 
