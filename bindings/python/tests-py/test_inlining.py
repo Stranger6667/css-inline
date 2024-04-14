@@ -8,9 +8,7 @@ import css_inline
 
 
 def make_html(style: str, body: str) -> str:
-    return "<html><head><style>{style}</style></head><body>{body}</body></html>".format(
-        style=style, body=body
-    )
+    return "<html><head><style>{style}</style></head><body>{body}</body></html>".format(style=style, body=body)
 
 
 SAMPLE_STYLE = """h1, h2 { color:red; }
@@ -60,9 +58,7 @@ def test_inline_many_wrong_type():
 
 
 def test_missing_stylesheet():
-    with pytest.raises(
-        css_inline.InlineError, match="Missing stylesheet file: tests/missing.css"
-    ):
+    with pytest.raises(css_inline.InlineError, match="Missing stylesheet file: tests/missing.css"):
         css_inline.inline(
             """<html>
 <head>
@@ -198,7 +194,9 @@ h1 {
     color: blue;
 }
 """
-EXPECTED_INLINED_FRAGMENT = '<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>'
+EXPECTED_INLINED_FRAGMENT = (
+    '<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>'
+)
 
 
 def test_inline_fragment():
@@ -206,10 +204,7 @@ def test_inline_fragment():
 
 
 def test_inline_fragment_method():
-    assert (
-        css_inline.CSSInliner().inline_fragment(FRAGMENT, CSS)
-        == EXPECTED_INLINED_FRAGMENT
-    )
+    assert css_inline.CSSInliner().inline_fragment(FRAGMENT, CSS) == EXPECTED_INLINED_FRAGMENT
 
 
 def test_inline_many_fragments():
@@ -220,9 +215,7 @@ def test_inline_many_fragments():
 
 
 def test_inline_many_fragments_method():
-    assert css_inline.CSSInliner().inline_many_fragments(
-        [FRAGMENT, FRAGMENT], [CSS, CSS]
-    ) == [
+    assert css_inline.CSSInliner().inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS]) == [
         EXPECTED_INLINED_FRAGMENT,
         EXPECTED_INLINED_FRAGMENT,
     ]
@@ -230,9 +223,7 @@ def test_inline_many_fragments_method():
 
 @pytest.mark.parametrize("size", (0, -1, "foo"))
 def test_invalid_cache(size):
-    with pytest.raises(
-        ValueError, match="Cache size must be an integer greater than zero"
-    ):
+    with pytest.raises(ValueError, match="Cache size must be an integer greater than zero"):
         css_inline.StylesheetCache(size=size)
 
 

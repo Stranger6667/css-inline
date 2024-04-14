@@ -7,6 +7,8 @@ css-inline/fuzz/corpus/
 profiler/target/
 bindings/*/target/
 
+node_modules/
+
 perf.data
 perf.data.old
 trace.svg
