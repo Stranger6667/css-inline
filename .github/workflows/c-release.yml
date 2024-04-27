@@ -21,6 +21,8 @@ jobs:
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
+          make_latest: false
+          name: "[C] Release ${{ github.ref }}"
           files: |
             bindings/c/target/release/libcss_inline.so
             bindings/c/css_inline.h
