@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.1] - 2024-04-27
+
 ### Fixed
 
 - Precedence of element styles over other styles. [#364](https://github.com/Stranger6667/css-inline/issues/364)
@@ -61,7 +63,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.1...HEAD
+[0.14.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.0...javascript-v0.14.1
 [0.14.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.2...javascript-v0.14.0
 [0.13.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.1...javascript-v0.13.2
 [0.13.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.13.0...javascript-v0.13.1

@@ -1,6 +1,6 @@
 {
   "name": "@css-inline/css-inline-darwin-x64",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "keywords": [
     "css",
