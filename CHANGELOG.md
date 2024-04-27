@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Precedence of element styles over other styles. [#364](https://github.com/Stranger6667/css-inline/issues/364)
+
 ## [0.14.0] - 2024-04-01
 
 ### Added

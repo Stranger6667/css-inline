@@ -157,9 +157,9 @@ fn specificity_same_selector() {
     padding: 10px;
     padding-left: 12px;
 }"#,
-        body = r#"<a class="test-class" href="https://example.com">Test</a>"#,
+        body = r#"<a class="test-class">Test</a>"#,
         // Then the final style should come from the more specific selector
-        expected = r#"<a class="test-class" href="https://example.com" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
+        expected = r#"<a class="test-class" style="padding-top: 15px;padding: 10px;padding-left: 12px;">Test</a>"#
     )
 }
 
@@ -181,7 +181,16 @@ fn specificity_different_selectors_existing_style() {
 .test { padding-left: 16px; }
 h1 { padding: 0; }"#,
         body = r#"<h1 class="test" style="color: blue;"></h1>"#,
-        expected = r#"<h1 class="test" style="color: blue;padding: 0;padding-left: 16px"></h1>"#
+        expected = r#"<h1 class="test" style="padding: 0;padding-left: 16px;color: blue"></h1>"#
+    )
+}
+
+#[test]
+fn specificity_merge_with_existing_style() {
+    assert_inlined!(
+        style = ".test { padding: 0; }",
+        body = r#"<h1 class="test" style="padding-left: 16px"></h1>"#,
+        expected = r#"<h1 class="test" style="padding: 0;padding-left: 16px"></h1>"#
     )
 }
 
@@ -243,7 +252,7 @@ fn important_no_rule_exists() {
     assert_inlined!(
         style = "h1 { color: blue !important; }",
         body = r#"<h1 style="margin:0">Big Text</h1>"#,
-        expected = r#"<h1 style="margin: 0;color: blue">Big Text</h1>"#
+        expected = r#"<h1 style="color: blue;margin: 0">Big Text</h1>"#
     )
 }
 
@@ -382,7 +391,7 @@ fn existing_styles_with_merge() {
         body = r#"<h1 style="color: blue">Hello world!</h1>"#,
         // Then the existing rule should be preferred
         // And the new style should be merged
-        expected = r#"<h1 style="color: blue;font-size: 14px">Hello world!</h1>"#
+        expected = r#"<h1 style="font-size: 14px;color: blue">Hello world!</h1>"#
     )
 }
 
@@ -397,7 +406,7 @@ fn existing_styles_with_merge_multiple_tags() {
             r#"<h1 style="color: blue">Hello world!</h1><h1 style="color: blue">Hello world!</h1>"#,
         // Then the existing rule should be preferred
         // And the new style should be merged
-        expected = r#"<h1 style="color: blue;font-size: 14px">Hello world!</h1><h1 style="color: blue;font-size: 14px">Hello world!</h1>"#
+        expected = r#"<h1 style="font-size: 14px;color: blue">Hello world!</h1><h1 style="font-size: 14px;color: blue">Hello world!</h1>"#
     )
 }
 
