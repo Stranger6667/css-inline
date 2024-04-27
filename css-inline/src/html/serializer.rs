@@ -486,6 +486,8 @@ fn merge_styles<Wr: Write>(
             declarations_buffer.push(buffer);
         };
     }
+    // Keep the number of current declarations to write them last as they have the precedence
+    let current_declarations_count = parsed_declarations_count;
     // Next, we iterate over the new styles and merge them into our existing set
     // New rules will not override old ones unless they are marked as `!important`
     for (property, (_, value)) in new_styles {
@@ -532,13 +534,20 @@ fn merge_styles<Wr: Write>(
     }
 
     let mut first = true;
-    for declaration in &declarations_buffer[..parsed_declarations_count] {
-        if first {
-            first = false;
-        } else {
-            writer.write_all(b";")?;
+    for range in [
+        // First, write the new rules
+        current_declarations_count..parsed_declarations_count,
+        // Then, write the current rules
+        0..current_declarations_count,
+    ] {
+        for declaration in &declarations_buffer[range] {
+            if first {
+                first = false;
+            } else {
+                writer.write_all(b";")?;
+            }
+            writer.write_all(declaration)?;
         }
-        writer.write_all(declaration)?;
     }
     Ok(())
 }
