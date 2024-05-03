@@ -238,14 +238,14 @@ Caching is disabled by default.
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.14.0`:
+Benchmarks for `css-inline==0.14.1`:
 
-- Basic: **6.72 µs**, 230 bytes
-- Realistic-1: **132.59 µs**, 8.58 KB
-- Realistic-2: **86.01 µs**, 4.3 KB
-- GitHub page: **228.97 ms**, 1.81 MB
+- Basic: **6.44 µs**, 230 bytes
+- Realistic-1: **128.59 µs**, 8.58 KB
+- Realistic-2: **81.44 µs**, 4.3 KB
+- GitHub page: **224.89 ms**, 1.81 MB
 
-These benchmarks, conducted using `rustc 1.77.1`, can be found in `css-inline/benches/inliner.rs`.
+These benchmarks, conducted using `rustc 1.78` on M1 Max, can be found in `css-inline/benches/inliner.rs`.
 
 ## Command Line Interface
 
@@ -259,7 +259,7 @@ cargo install css-inline
 
 ### Usage
 
-The following command inlines CSS in multiple documents in parallel. Resulting files will be saved
+The following command inlines CSS in multiple documents in parallel. The resulting files will be saved
 as `inlined.email1.html` and `inlined.email2.html`:
 
 ```text
