@@ -15,7 +15,6 @@ jobs:
           git config --local user.name "GitHub Action"
           mv bindings/javascript/wasm/ docs/
           touch docs/.nojekyll
-          echo "css-inline.org" > docs/CNAME
           git add --force docs/
           git commit -m "chore: build pages"
           git push --force origin HEAD:gh-pages
