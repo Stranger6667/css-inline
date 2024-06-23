@@ -180,6 +180,9 @@ impl Attributes {
 
     /// Get the value of the attribute with the given local name, if it exists.
     pub(crate) fn get(&self, local: html5ever::LocalName) -> Option<&str> {
+        if self.attributes.is_empty() {
+            return None;
+        }
         let needle = QualName::new(None, ns!(), local);
         self.find(&needle)
     }
