@@ -83,7 +83,7 @@ struct StylesheetCache {
 #[pymethods]
 impl StylesheetCache {
     #[new]
-    #[pyo3(text_signature = "(size=8)")]
+    #[pyo3(signature = (size))]
     fn new(size: Option<&Bound<'_, PyAny>>) -> PyResult<Self> {
         let size = if let Some(size) = size {
             const ERROR_MESSAGE: &str = "Cache size must be an integer greater than zero";
@@ -135,7 +135,7 @@ macro_rules! inliner {
 impl CSSInliner {
     #[new]
     #[pyo3(
-        text_signature = "(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+        signature = (inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
     )]
     #[allow(clippy::too_many_arguments)]
     fn new(
@@ -206,7 +206,7 @@ impl CSSInliner {
 /// Inline CSS in the given HTML document
 #[pyfunction]
 #[pyo3(
-    text_signature = "(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+    signature = (html, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline(
@@ -238,7 +238,7 @@ fn inline(
 /// Inline CSS in the given HTML fragment
 #[pyfunction]
 #[pyo3(
-    text_signature = "(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+    signature = (html, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_fragment(
@@ -273,7 +273,7 @@ fn inline_fragment(
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
 #[pyo3(
-    text_signature = "(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+    signature = (htmls, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many(
@@ -318,7 +318,7 @@ fn inline_many_impl(
 /// Inline CSS in multiple HTML fragments
 #[pyfunction]
 #[pyo3(
-    text_signature = "(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)"
+    signature = (htmls, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many_fragments(

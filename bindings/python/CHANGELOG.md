@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `PyO3` to `0.22.0`.
+
 ## [0.14.1] - 2024-04-27
 
 ### Fixed
