@@ -8,7 +8,7 @@ beautifulsoup4==4.12.2
     # via pynliner
 cachetools==5.3.1
     # via premailer
-certifi==2023.7.22
+certifi==2024.7.4
     # via requests
 charset-normalizer==3.1.0
     # via requests
