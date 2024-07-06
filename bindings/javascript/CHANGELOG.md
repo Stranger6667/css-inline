@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Build on `linux-arm-gnueabihf`
+
 ## [0.14.1] - 2024-04-27
 
 ### Fixed
