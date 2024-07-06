@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `magnus` to `0.7`.
+
 ## [0.14.1] - 2024-04-27
 
 ### Fixed
