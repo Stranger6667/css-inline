@@ -8,6 +8,7 @@ mod options;
 use options::Options;
 
 #[cfg(not(target_family = "wasm"))]
+#[cfg(not(all(target_os = "linux", target_arch = "arm")))]
 #[global_allocator]
 static ALLOC: mimalloc::MiMalloc = mimalloc::MiMalloc;
 
