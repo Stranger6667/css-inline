@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.70`.
+
 ### Fixed
 
 - Build on `linux-arm-gnueabihf`

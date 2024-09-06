@@ -5,6 +5,7 @@
 ### Changed
 
 - Update `magnus` to `0.7`.
+- Bump MSRV to `1.70`.
 
 ## [0.14.1] - 2024-04-27
 

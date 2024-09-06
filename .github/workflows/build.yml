@@ -165,7 +165,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.65"
+          toolchain: "1.70"
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -537,6 +537,8 @@ jobs:
           gcc main.o target/debug/libcss_inline.so -o out
           ./out
         working-directory: ./bindings/c
+        env:
+          LD_LIBRARY_PATH: target/debug
 
   features:
     name: Check features

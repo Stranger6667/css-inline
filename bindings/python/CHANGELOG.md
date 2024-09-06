@@ -5,6 +5,7 @@
 ### Changed
 
 - Update `PyO3` to `0.22.0`.
+- Bump MSRV to `1.70`.
 
 ## [0.14.1] - 2024-04-27
 
