@@ -268,6 +268,28 @@ fn font_family_quoted() {
 }
 
 #[test]
+fn font_family_quoted_with_existing_inline_style() {
+    // When property value contains double quotes
+    assert_inlined!(
+        style = r#"h1 { font-family: "Open Sans", sans-serif; }"#,
+        body = r#"<h1 style="whitespace: nowrap">Hello world!</h1>"#,
+        // Then it should be replaced with single quotes
+        expected = r#"<h1 style="font-family: 'Open Sans', sans-serif;whitespace: nowrap">Hello world!</h1>"#
+    )
+}
+
+#[test]
+fn font_family_quoted_with_inline_style_override() {
+    // When property value contains double quotes
+    assert_inlined!(
+        style = r#"h1 { font-family: "Open Sans", sans-serif !important; }"#,
+        body = r#"<h1 style="font-family: Helvetica; whitespace: nowrap">Hello world!</h1>"#,
+        // Then it should be replaced with single quotes
+        expected = r#"<h1 style="font-family: 'Open Sans', sans-serif;whitespace: nowrap">Hello world!</h1>"#
+    )
+}
+
+#[test]
 fn other_property_quoted() {
     // When property value contains double quotes
     assert_inlined!(

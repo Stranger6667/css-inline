@@ -7,6 +7,10 @@
 - Update `magnus` to `0.7`.
 - Bump MSRV to `1.70`.
 
+### Fixed
+
+- Replace double quotes when merging styles. [#392](https://github.com/Stranger6667/css-inline/issues/392)
+
 ## [0.14.1] - 2024-04-27
 
 ### Fixed
