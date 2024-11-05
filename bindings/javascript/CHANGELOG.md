@@ -9,6 +9,7 @@
 ### Fixed
 
 - Build on `linux-arm-gnueabihf`
+- Replace double quotes when merging styles. [#392](https://github.com/Stranger6667/css-inline/issues/392)
 
 ## [0.14.1] - 2024-04-27
 

@@ -399,6 +399,11 @@ fn write_declaration<Wr: Write>(
 ) -> Result<(), InlineError> {
     writer.write_all(name.as_bytes())?;
     writer.write_all(STYLE_SEPARATOR)?;
+    write_declaration_value(writer, value)
+}
+
+#[inline]
+fn write_declaration_value<Wr: Write>(writer: &mut Wr, value: &str) -> Result<(), InlineError> {
     let value = value.trim();
     if value.as_bytes().contains(&b'"') {
         // Roughly based on `str::replace`
@@ -429,9 +434,7 @@ macro_rules! push_or_update {
     ($style_buffer:expr, $length:expr, $name: expr, $value:expr) => {{
         if let Some(style) = $style_buffer.get_mut($length) {
             style.clear();
-            style.extend_from_slice($name.as_bytes());
-            style.extend_from_slice(STYLE_SEPARATOR);
-            style.extend_from_slice($value.trim().as_bytes());
+            write_declaration(style, &$name, $value)?;
         } else {
             let value = $value.trim();
             let mut style = Vec::with_capacity(
@@ -440,9 +443,7 @@ macro_rules! push_or_update {
                     .saturating_add(STYLE_SEPARATOR.len())
                     .saturating_add(value.len()),
             );
-            style.extend_from_slice($name.as_bytes());
-            style.extend_from_slice(STYLE_SEPARATOR);
-            style.extend_from_slice(value.as_bytes());
+            write_declaration(&mut style, &$name, $value)?;
             $style_buffer.push(style);
         };
         $length = $length.saturating_add(1);
@@ -507,7 +508,7 @@ fn merge_styles<Wr: Write>(
             (Some(value), Some(buffer)) => {
                 // We keep the rule name and the colon-space suffix - '<rule>: `
                 buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
-                buffer.extend_from_slice(value.trim().as_bytes());
+                write_declaration_value(buffer, value)?;
             }
             // There's no existing rule with the same name, but the new rule is `!important`
             // In this case, we add the new rule with the `!important` suffix removed
