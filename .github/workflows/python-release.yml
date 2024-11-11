@@ -156,7 +156,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: 2_24
           args: --release -m bindings/python/Cargo.toml --no-default-features --out dist
-      - uses: uraimo/run-on-arch-action@v2.7.2
+      - uses: uraimo/run-on-arch-action@v2
         name: Install built wheel
         with:
           arch: ${{ matrix.target }}
