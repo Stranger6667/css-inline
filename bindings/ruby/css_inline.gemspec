@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name = "css_inline"
-  spec.version = "0.14.1"
+  spec.version = "0.14.2"
   spec.summary = "High-performance library for inlining CSS into HTML 'style' attributes"
   spec.description = <<-EOF
     `css_inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
@@ -21,7 +21,7 @@ Gem::Specification.new do |spec|
     "source_code_uri"   => "https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby",
   }
 
-  spec.requirements = ["Rust >= 1.65"]
+  spec.requirements = ["Rust >= 1.70"]
   spec.required_ruby_version = ">= 2.7.0"
   spec.required_rubygems_version = ">= 3.3.26"
 
