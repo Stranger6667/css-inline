@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.2] - 2024-11-11
+
 ### Changed
 
 - Update `PyO3` to `0.22.0`.
@@ -416,7 +418,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.2...HEAD
+[0.14.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.1...python-v0.14.2
 [0.14.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.0...python-v0.14.1
 [0.14.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.13.0...python-v0.14.0
 [0.13.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.12.0...python-v0.13.0
