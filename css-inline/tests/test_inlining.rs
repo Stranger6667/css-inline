@@ -257,6 +257,32 @@ fn important_no_rule_exists() {
 }
 
 #[test]
+fn important_multiple_rules() {
+    // `!important` rules should override other rules with the same specificity.
+    assert_inlined!(
+        style = ".blue { color: blue !important; } .reset { color: unset }",
+        body = r#"<h1 class="blue reset">Big Text</h1>"#,
+        expected = r#"<h1 class="blue reset" style="color: blue !important;">Big Text</h1>"#
+    );
+    // check in both directions
+    assert_inlined!(
+        style = ".reset { color: unset } .blue { color: blue !important; }",
+        body = r#"<h1 class="blue reset">Big Text</h1>"#,
+        expected = r#"<h1 class="blue reset" style="color: blue !important;">Big Text</h1>"#
+    );
+}
+
+#[test]
+fn important_more_specific() {
+    // `!important` rules should override other important rules with less specificity.
+    assert_inlined!(
+        style = "h1 { color: unset !important } #title { color: blue !important; }",
+        body = r#"<h1 id="title">Big Text</h1>"#,
+        expected = r#"<h1 id="title" style="color: blue !important;">Big Text</h1>"#
+    );
+}
+
+#[test]
 fn font_family_quoted() {
     // When property value contains double quotes
     assert_inlined!(
