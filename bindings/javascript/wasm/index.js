@@ -60,17 +60,6 @@ function addHeapObject(obj) {
   heap[idx] = obj;
   return idx;
 }
-function dropObject(idx) {
-  if (idx < 132)
-    return;
-  heap[idx] = heap_next;
-  heap_next = idx;
-}
-function takeObject(idx) {
-  const ret = getObject(idx);
-  dropObject(idx);
-  return ret;
-}
 var WASM_VECTOR_LEN = 0;
 var cachedTextEncoder = typeof TextEncoder !== "undefined" ? new TextEncoder("utf-8") : { encode: () => {
   throw Error("TextEncoder not available");
@@ -125,6 +114,17 @@ function getDataViewMemory0() {
     cachedDataViewMemory0 = new DataView(wasm.memory.buffer);
   }
   return cachedDataViewMemory0;
+}
+function dropObject(idx) {
+  if (idx < 132)
+    return;
+  heap[idx] = heap_next;
+  heap_next = idx;
+}
+function takeObject(idx) {
+  const ret = getObject(idx);
+  dropObject(idx);
+  return ret;
 }
 function debugString(val) {
   const type = typeof val;
@@ -314,9 +314,6 @@ function __wbg_get_imports() {
     const ret = +getObject(arg0);
     return ret;
   };
-  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-    takeObject(arg0);
-  };
   imports.wbg.__wbindgen_boolean_get = function(arg0) {
     const v = getObject(arg0);
     const ret = typeof v === "boolean" ? v ? 1 : 0 : 2;
@@ -329,6 +326,9 @@ function __wbg_get_imports() {
     var len1 = WASM_VECTOR_LEN;
     getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
     getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+  };
+  imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+    takeObject(arg0);
   };
   imports.wbg.__wbg_length_8339fcf5d8ecd12e = function(arg0) {
     const ret = getObject(arg0).length;
