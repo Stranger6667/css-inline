@@ -1,0 +1,31 @@
+{
+  "name": "@css-inline/css-inline-win32-arm64-msvc",
+  "version": "0.14.2",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
+  "repository": "https://github.com/Stranger6667/css-inline",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "main": "css-inline.win32-arm64-msvc.node",
+  "files": [
+    "css-inline.win32-arm64-msvc.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}

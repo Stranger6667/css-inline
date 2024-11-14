@@ -197,6 +197,9 @@ jobs:
           - host: windows-2022
             build: yarn build
             target: x86_64-pc-windows-msvc
+          - host: windows-2022
+            build: yarn build --target aarch64-pc-windows-msvc
+            target: aarch64-pc-windows-msvc
           - host: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
@@ -329,6 +332,11 @@ jobs:
 
       - name: Config yarn (aarch64-linux-android)
         if: matrix.settings.target == 'aarch64-linux-android'
+        run: yarn config set supportedArchitectures.cpu "arm64"
+        working-directory: bindings/javascript
+
+      - name: Config yarn (aarch64-pc-windows-msvc)
+        if: matrix.settings.target == 'aarch64-pc-windows-msvc'
         run: yarn config set supportedArchitectures.cpu "arm64"
         working-directory: bindings/javascript
 
