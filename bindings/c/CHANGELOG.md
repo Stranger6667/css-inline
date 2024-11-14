@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.3] - 2024-11-14
+
 ### Fixed
 
 - Prioritize `!important` rules when computing element styles. [#398](https://github.com/Stranger6667/css-inline/pull/398)
@@ -57,7 +59,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.3...HEAD
+[0.14.3]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.2...c-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.1...c-v0.14.2
 [0.14.1]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.0...c-v0.14.1
 [0.14.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.13.0...c-v0.14.0
