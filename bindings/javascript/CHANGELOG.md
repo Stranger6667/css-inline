@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Added
+
+- Packages for `win32-arm64-msvc`. [#397](https://github.com/Stranger6667/css-inline/issues/397)
+
+### Fixed
+
 - Prioritize `!important` rules when computing element styles. [#398](https://github.com/Stranger6667/css-inline/pull/398)
 
 ## [0.14.2] - 2024-11-11
