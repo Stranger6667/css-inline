@@ -64,7 +64,7 @@ impl Display for InlineError {
 
 impl From<(ParseError<'_, ()>, &str)> for InlineError {
     fn from(error: (ParseError<'_, ()>, &str)) -> Self {
-        return match error.0.kind {
+        match error.0.kind {
             ParseErrorKind::Basic(kind) => match kind {
                 BasicParseErrorKind::UnexpectedToken(token) => {
                     Self::ParseError(Cow::Owned(format!("Unexpected token: {token:?}")))
@@ -81,6 +81,6 @@ impl From<(ParseError<'_, ()>, &str)> for InlineError {
                 }
             },
             ParseErrorKind::Custom(()) => Self::ParseError(Cow::Borrowed("Unknown error")),
-        };
+        }
     }
 }

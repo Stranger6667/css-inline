@@ -80,7 +80,7 @@ pub struct InlineOptions<'a> {
     pub resolver: Arc<dyn StylesheetResolver>,
 }
 
-impl<'a> std::fmt::Debug for InlineOptions<'a> {
+impl std::fmt::Debug for InlineOptions<'_> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut debug = f.debug_struct("InlineOptions");
         debug

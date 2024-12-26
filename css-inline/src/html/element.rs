@@ -105,7 +105,7 @@ impl<'a> Element<'a> {
     }
 }
 
-impl<'a> selectors::Element for Element<'a> {
+impl selectors::Element for Element<'_> {
     type Impl = InlinerSelectors;
 
     #[inline]
