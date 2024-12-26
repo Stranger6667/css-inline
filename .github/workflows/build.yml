@@ -179,12 +179,12 @@ jobs:
       fail-fast: false
       matrix:
         settings:
-          - host: macos-12
+          - host: macos-13
             target: x86_64-apple-darwin
             build: |
               yarn build
               strip -x *.node
-          - host: macos-12
+          - host: macos-13
             target: aarch64-apple-darwin
             build: |
               sudo rm -Rf /Library/Developer/CommandLineTools/SDKs/*;
@@ -425,7 +425,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-13, windows-2022]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]
 
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
@@ -460,8 +460,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-12, windows-2022]
+        os: [ubuntu-22.04, macos-13, windows-2022]
         ruby-version: ["2.7", "3.2", "3.3"]
+        exclude:
+          - os: "macos-13"
+            ruby-version: "2.7"
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
