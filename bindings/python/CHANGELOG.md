@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support & build for PyOdide. [#411](https://github.com/Stranger6667/css-inline/pull/411)
+
 ### Changed
 
 - Bump MSRV to `1.71.1`.

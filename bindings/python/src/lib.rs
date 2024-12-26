@@ -41,6 +41,7 @@ impl From<InlineErrorWrapper> for PyErr {
     fn from(error: InlineErrorWrapper) -> Self {
         match error.0 {
             rust_inline::InlineError::IO(error) => InlineError::new_err(error.to_string()),
+            #[cfg(not(target_arch = "wasm32"))]
             rust_inline::InlineError::Network { .. } => InlineError::new_err(error.0.to_string()),
             rust_inline::InlineError::ParseError(message) => {
                 InlineError::new_err(message.to_string())

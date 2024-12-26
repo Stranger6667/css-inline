@@ -456,6 +456,27 @@ jobs:
         run: tox -e py
         working-directory: ./bindings/python
 
+  build-pyodide:
+    name: Build PyOdide wheel
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: nightly
+          targets: wasm32-unknown-emscripten
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.12
+      - run: |
+          pip install pyodide-build>=0.28.0
+          echo EMSCRIPTEN_VERSION=$(pyodide config get emscripten_version) >> $GITHUB_ENV
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: ${{ env.EMSCRIPTEN_VERSION }}
+      - run: pyodide build
+        working-directory: ./bindings/python
+
   test-ruby:
     strategy:
       fail-fast: false

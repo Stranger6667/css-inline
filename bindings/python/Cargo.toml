@@ -19,7 +19,13 @@ pyo3-built = "0.5"
 rayon = "1"
 url = "2"
 
-[dependencies.css-inline]
+[target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
+path = "../../css-inline"
+version = "*"
+default-features = false
+features = ["stylesheet-cache"]
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
 path = "../../css-inline"
 version = "*"
 default-features = false
