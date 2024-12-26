@@ -1,5 +1,6 @@
 [project]
 name = "css-inline"
+dynamic = ["version"]
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 authors = [
