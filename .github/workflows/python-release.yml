@@ -42,7 +42,7 @@ jobs:
           path: dist
 
   macos-x86_64:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -65,7 +65,7 @@ jobs:
           path: dist
 
   macos-universal:
-    runs-on: macos-12
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -246,7 +246,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-12]
+        os: [ubuntu-22.04, macos-13]
         target: [x86_64, aarch64]
         python-version:
           - "3.7"
@@ -254,7 +254,7 @@ jobs:
           - "3.9"
           - "3.10"
         exclude:
-          - os: macos-12
+          - os: macos-13
             target: aarch64
     steps:
       - uses: actions/checkout@v4
