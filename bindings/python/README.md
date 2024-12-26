@@ -42,7 +42,7 @@ into:
 - Resolves external stylesheets (including local files)
 - Optionally caches external stylesheets
 - Can process multiple documents in parallel
-- Works on Linux, Windows, and macOS
+- Works on Linux, Windows, macOS and in the browser via PyOdide
 - Supports HTML5 & CSS3
 - Tested on CPython 3.7, 3.8, 3.9, 3.10, 3.11, 3.12 and PyPy 3.7, 3.8, 3.9, 3.10.
 
