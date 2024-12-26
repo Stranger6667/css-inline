@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.71.1`.
+
 ## [0.14.3] - 2024-11-14
 
 ### Fixed
