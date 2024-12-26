@@ -22,7 +22,7 @@ fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
 /// Parser for qualified rules - a prelude + a simple {} block.
 ///
 /// Usually these rules are a selector + list of declarations: `p { color: blue; font-size: 2px }`
-impl<'d, 'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'d, 'i> {
+impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'_, 'i> {
     type Prelude = &'i str;
     type QualifiedRule = QualifiedRule<'i>;
     type Error = ();
@@ -66,7 +66,7 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
     }
 }
 
-impl<'d, 'i> cssparser::AtRuleParser<'i> for CSSRuleListParser<'d, 'i> {
+impl<'i> cssparser::AtRuleParser<'i> for CSSRuleListParser<'_, 'i> {
     type Prelude = &'i str;
     type AtRule = QualifiedRule<'i>;
     type Error = ();

@@ -30,7 +30,7 @@ pub(crate) struct Select<'a, 'c> {
     selectors: Selectors,
 }
 
-impl<'a, 'c> Select<'a, 'c> {
+impl Select<'_, '_> {
     /// Specificity of the first selector in the list of selectors.
     #[inline]
     pub(crate) fn specificity(&self) -> Specificity {
@@ -38,7 +38,7 @@ impl<'a, 'c> Select<'a, 'c> {
     }
 }
 
-impl<'a, 'c> Iterator for Select<'a, 'c> {
+impl<'a> Iterator for Select<'a, '_> {
     type Item = Element<'a>;
 
     #[inline]
