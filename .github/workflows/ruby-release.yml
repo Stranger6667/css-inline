@@ -19,6 +19,16 @@ jobs:
           bundler-cache: true
           working-directory: ./bindings/ruby
 
+      - name: Extract Version
+        run: echo "version=${GITHUB_REF#refs/tags/ruby-v}" >> $GITHUB_ENV
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          draft: true
+          name: "[Ruby] Release ${{ env.version }}"
+
       - name: Publish to RubyGems
         run: |
           mkdir -p $HOME/.gem

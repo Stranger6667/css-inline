@@ -270,6 +270,16 @@ jobs:
         run: yarn artifacts
         working-directory: bindings/javascript
 
+      - name: Extract Version
+        run: echo "version=${GITHUB_REF#refs/tags/javascript-v}" >> $GITHUB_ENV
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          draft: true
+          name: "[JavaScript] Release ${{ env.version }}"
+
       - name: Publish to npm packages
         run: |
           echo "//registry.npmjs.org/:_authToken=$NPM_AUTH_TOKEN" >> ~/.npmrc
