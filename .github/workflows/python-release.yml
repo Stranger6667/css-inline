@@ -39,6 +39,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: sdist
+          if-no-files-found: error
           path: dist
 
   macos-x86_64:
@@ -62,6 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-macos-x86_64
+          if-no-files-found: error
           path: dist
 
   macos-universal:
@@ -84,6 +86,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-macos-universal
+          if-no-files-found: error
           path: dist
 
   windows:
@@ -111,6 +114,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-windows-${{ matrix.target }}
+          if-no-files-found: error
           path: dist
 
   linux:
@@ -138,6 +142,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-linux-${{ matrix.target }}
+          if-no-files-found: error
           path: dist
 
   linux-cross:
@@ -172,6 +177,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-linux-cross-${{ matrix.target }}
+          if-no-files-found: error
           path: dist
 
   musllinux:
@@ -204,6 +210,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-musllinux-${{ matrix.target }}
+          if-no-files-found: error
           path: dist
 
   musllinux-cross:
@@ -240,6 +247,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-musllinux-cross-${{ matrix.platform.target }}-${{ matrix.platform.arch }}
+          if-no-files-found: error
           path: dist
 
   pypy:
@@ -275,6 +283,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-pypy-${{ matrix.os }}-${{ matrix.target }}-${{ matrix.python-version }}
+          if-no-files-found: error
           path: dist
 
   pyodide:
@@ -300,7 +309,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wheel-pyodide
-          path: dist
+          if-no-files-found: error
+          path: ./bindings/python/dist
 
   release:
     name: Release
