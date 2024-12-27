@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.4] - 2024-12-27
+
 ### Changed
 
 - Bump MSRV to `1.71.1`.
@@ -63,7 +65,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.4...HEAD
+[0.14.4]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.3...c-v0.14.4
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.2...c-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.1...c-v0.14.2
 [0.14.1]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.0...c-v0.14.1
