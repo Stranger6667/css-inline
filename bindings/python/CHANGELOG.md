@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.14.6] - 2024-12-27
+
+### Fixed
+
+- Packaging issue.
+
 ## [0.14.5] - 2024-12-27
 
 ### Fixed
@@ -440,7 +446,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.6...HEAD
+[0.14.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.5...python-v0.14.6
 [0.14.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.4...python-v0.14.5
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.3...python-v0.14.4
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.2...python-v0.14.3
