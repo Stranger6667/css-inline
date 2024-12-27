@@ -347,10 +347,19 @@ jobs:
           name: "[Python] Release ${{ env.version }}"
           files: dist/**
 
+      - name: Remove PyOdide Wheel for PyPI
+        run: |
+          mkdir dist-for-pypi
+          for file in dist/*; do
+            if [[ "$file" != *"pyodide"* ]]; then
+              cp "$file" dist-for-pypi/
+            fi
+          done
+
       - name: Publish to PyPI
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
         run: |
           pip install --upgrade twine
-          twine upload --skip-existing dist/*
+          twine upload --skip-existing dist-for-pypi/*
