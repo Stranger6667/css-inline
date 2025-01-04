@@ -25,13 +25,13 @@ impl BloomFilter {
 
     #[inline]
     fn insert_hash(&mut self, hash: u64) {
-        self.0 |= 1 << (hash1(hash) % 64);
-        self.0 |= 1 << (hash2(hash) % 64);
+        self.0 |= (1u64 << (hash & 63)) | (1u64 << ((hash >> KEY_SIZE) & 63));
     }
 
     #[inline]
     fn might_contain_hash(self, hash: u64) -> bool {
-        self.0 & (1 << (hash1(hash) % 64)) != 0 && self.0 & (1 << (hash2(hash) % 64)) != 0
+        let bits = (1u64 << (hash & 63)) | (1u64 << ((hash >> KEY_SIZE) & 63));
+        (self.0 & bits) == bits
     }
 
     /// Check whether this element MAY have the given class.
@@ -45,17 +45,6 @@ impl BloomFilter {
 }
 
 const KEY_SIZE: usize = 32;
-const KEY_MASK: u64 = u32::MAX as u64;
-
-#[inline]
-fn hash1(hash: u64) -> u64 {
-    hash & KEY_MASK
-}
-
-#[inline]
-fn hash2(hash: u64) -> u64 {
-    (hash >> KEY_SIZE) & KEY_MASK
-}
 
 #[derive(Debug)]
 pub(crate) enum Cache {
