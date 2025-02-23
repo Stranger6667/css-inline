@@ -183,7 +183,7 @@ impl selectors::Element for Element<'_> {
                     ns_url.clone(),
                     local_name.clone().into_inner(),
                 ))
-                .map_or(false, |value| operation.eval_str(value)),
+                .is_some_and(|value| operation.eval_str(value)),
         }
     }
 
@@ -236,9 +236,7 @@ impl selectors::Element for Element<'_> {
     fn has_id(&self, id: &LocalName, case_sensitivity: CaseSensitivity) -> bool {
         self.attributes()
             .get(local_name!("id"))
-            .map_or(false, |id_attr| {
-                case_sensitivity.eq(id.as_bytes(), id_attr.as_bytes())
-            })
+            .is_some_and(|id_attr| case_sensitivity.eq(id.as_bytes(), id_attr.as_bytes()))
     }
 
     #[inline]

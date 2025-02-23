@@ -363,7 +363,7 @@ fn inline_many_fragments_impl(
     Ok(output.map_err(InlineErrorWrapper)?)
 }
 
-#[allow(dead_code)]
+#[allow(dead_code, clippy::needless_raw_string_hashes)]
 mod build {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
@@ -377,7 +377,7 @@ fn css_inline(py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_wrapped(wrap_pyfunction!(inline_fragment))?;
     module.add_wrapped(wrap_pyfunction!(inline_many))?;
     module.add_wrapped(wrap_pyfunction!(inline_many_fragments))?;
-    let inline_error = py.get_type_bound::<InlineError>();
+    let inline_error = py.get_type::<InlineError>();
     inline_error.setattr("__doc__", INLINE_ERROR_DOCSTRING)?;
     module.add("InlineError", inline_error)?;
     module.add("__build__", pyo3_built::pyo3_built!(py, build))?;
