@@ -171,12 +171,14 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                     .expect("Invalid substring")
                     .as_bytes(),
             )?;
-            match part {
-                "&" => self.writer.write_all(b"&amp;")?,
-                "\u{00A0}" => self.writer.write_all(b"&nbsp;")?,
-                "<" => self.writer.write_all(b"&lt;")?,
-                ">" => self.writer.write_all(b"&gt;")?,
-                _ => unreachable!("Only the variants above are searched"),
+            // This is slightly faster than matching on `char`
+            // Notably, this approach does not work in `write_attributes` below
+            match (part.as_bytes()[0] & 0b0000_1110) >> 1 {
+                1 => self.writer.write_all(b"&nbsp;")?,
+                3 => self.writer.write_all(b"&amp;")?,
+                6 => self.writer.write_all(b"&lt;")?,
+                7 => self.writer.write_all(b"&gt;")?,
+                _ => unreachable!(),
             }
             last_end = start.checked_add(part.len()).expect("Size overflow");
         }
