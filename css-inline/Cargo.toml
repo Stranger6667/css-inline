@@ -30,7 +30,7 @@ stylesheet-cache = ["lru"]
 
 [dependencies]
 cssparser = "0.31.2"
-html5ever = "0.27.0"
+html5ever = "0.31.0"
 indexmap = "2.1"
 lru = { version = "0.12.3", optional = true }
 pico-args = { version = "0.3", optional = true }
