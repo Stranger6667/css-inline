@@ -503,7 +503,7 @@ impl<'a> CSSInliner<'a> {
         // Valid absolute URL
         if Url::parse(href).is_ok() {
             return Cow::Borrowed(href);
-        };
+        }
         if let Some(base_url) = &self.options.base_url {
             // Use the same scheme as the base URL
             if href.starts_with("//") {
@@ -513,7 +513,7 @@ impl<'a> CSSInliner<'a> {
             if let Ok(new_url) = base_url.join(href) {
                 return Cow::Owned(new_url.into());
             }
-        };
+        }
         // If it is not a valid URL and there is no base URL specified, we assume a local path
         Cow::Borrowed(href)
     }

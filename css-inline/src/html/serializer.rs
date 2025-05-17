@@ -177,7 +177,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                 "<" => self.writer.write_all(b"&lt;")?,
                 ">" => self.writer.write_all(b"&gt;")?,
                 _ => unreachable!("Only the variants above are searched"),
-            };
+            }
             last_end = start.checked_add(part.len()).expect("Size overflow");
         }
         self.writer.write_all(
@@ -201,7 +201,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                 "\u{00A0}" => self.writer.write_all(b"&nbsp;")?,
                 "\"" => self.writer.write_all(b"&quot;")?,
                 _ => unreachable!("Only the variants above are searched"),
-            };
+            }
             last_end = start.checked_add(part.len()).expect("Size overflow");
         }
         self.writer.write_all(
@@ -426,7 +426,7 @@ fn write_declaration_value<Wr: Write>(writer: &mut Wr, value: &str) -> Result<()
         )?;
     } else {
         writer.write_all(value.as_bytes())?;
-    };
+    }
     Ok(())
 }
 
@@ -485,7 +485,7 @@ fn merge_styles<Wr: Write>(
             let mut buffer = Vec::with_capacity(estimated_declaration_size);
             write_declaration(&mut buffer, &property, value)?;
             declarations_buffer.push(buffer);
-        };
+        }
     }
     // Keep the number of current declarations to write them last as they have the precedence
     let current_declarations_count = parsed_declarations_count;
