@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     css_inline (0.14.3)
+      rb_sys (~> 0.9.108)
 
 GEM
   remote: https://rubygems.org/
@@ -26,7 +27,9 @@ GEM
     rake (13.0.6)
     rake-compiler (1.2.3)
       rake
-    rb_sys (0.9.79)
+    rake-compiler-dock (1.9.1)
+    rb_sys (0.9.115)
+      rake-compiler-dock (= 1.9.1)
     rspec (3.12.0)
       rspec-core (~> 3.12.0)
       rspec-expectations (~> 3.12.0)
@@ -50,7 +53,6 @@ DEPENDENCIES
   nokogiri (~> 1.15)
   premailer (~> 1.21)
   rake-compiler (~> 1.2.0)
-  rb_sys (~> 0.9)
   rspec
 
 BUNDLED WITH
