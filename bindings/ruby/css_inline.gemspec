@@ -25,8 +25,9 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.2.0"
   spec.required_rubygems_version = ">= 3.3.26"
 
+  spec.add_dependency 'rb_sys', '~> 0.9.108'
+
   spec.add_development_dependency "rake-compiler", "~> 1.2.0"
-  spec.add_development_dependency "rb_sys", "~> 0.9"
   spec.add_development_dependency "benchmark-ips", "~> 2.10"
   spec.add_development_dependency "premailer", "~> 1.21"
   spec.add_development_dependency "nokogiri", "~> 1.15"

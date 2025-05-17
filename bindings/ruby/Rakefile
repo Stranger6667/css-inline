@@ -2,6 +2,8 @@
 
 require "rake/extensiontask"
 require 'rspec/core/rake_task'
+require "rb_sys"
+require "rb_sys/toolchain_info"
 
 task default: :spec
 
@@ -15,14 +17,7 @@ spec.files -= Dir["ext/**/*"]
 Rake::ExtensionTask.new("css_inline", spec) do |c|
   c.lib_dir = "lib/css_inline"
   c.cross_compile = true
-  c.cross_platform = [
-    "aarch64-linux",
-    "arm64-darwin",
-    "x64-mingw-ucrt",
-    "x64-mingw32",
-    "x86_64-darwin",
-    "x86_64-linux",
-    "x86_64-linux-musl"]
+  c.cross_platform = RbSys::ToolchainInfo.supported_ruby_platforms
 end
 
 task :dev do
