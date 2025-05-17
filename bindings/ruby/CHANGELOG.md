@@ -6,6 +6,10 @@
 
 - Bump MSRV to `1.71.1`.
 
+### Removed
+
+- Support for Ruby 2.7
+
 ## [0.14.3] - 2024-11-14
 
 ### Fixed
