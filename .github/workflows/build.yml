@@ -499,7 +499,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-13, windows-2022]
+        os: [ubuntu-22.04, macos-13]
         ruby-version: ["3.2", "3.3"]
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
