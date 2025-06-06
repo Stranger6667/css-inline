@@ -483,9 +483,10 @@ jobs:
           # Nightly 1.86 as 1.87+ is incompatible with PyOdide as of now
           toolchain: nightly-2025-02-01
           targets: wasm32-unknown-emscripten
+          components: rust-src
       - uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: 3.13
       - run: |
           pip install pyodide-build>=0.28.0
           echo EMSCRIPTEN_VERSION=$(pyodide config get emscripten_version) >> $GITHUB_ENV
@@ -494,6 +495,9 @@ jobs:
           version: ${{ env.EMSCRIPTEN_VERSION }}
       - run: pyodide build
         working-directory: ./bindings/python
+        env:
+          DEFAULT_CROSS_BUILD_ENV_URL: "https://github.com/pyodide/pyodide/releases/download/0.28.0a3/xbuildenv-0.28.0a3.tar.bz2"
+          RUSTFLAGS: "-C link-arg=-sSIDE_MODULE=2 -Z link-native-libraries=no -Z emscripten-wasm-eh"
 
   test-ruby:
     strategy:
