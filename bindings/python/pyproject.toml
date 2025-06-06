@@ -49,3 +49,6 @@ build-backend = "maturin"
 
 [tool.maturin]
 strip = true
+
+[tool.pyodide.build]
+default_cross_build_env_url = "https://github.com/pyodide/pyodide/releases/download/0.28.0a3/xbuildenv-0.28.0a3.tar.bz2"
