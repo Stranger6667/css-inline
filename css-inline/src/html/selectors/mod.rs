@@ -49,7 +49,7 @@ impl Selectors {
     /// Compile a list of selectors.
     #[inline]
     pub(super) fn compile(selectors: &str) -> Result<Selectors, ParseError<'_>> {
-        parse(selectors).map(|list| Selectors(list.0))
+        parse(selectors).map(|list| Selectors(list.slice().into()))
     }
 
     /// Iterator over selectors.

@@ -5,14 +5,14 @@ use super::{
     selectors::{ParseError, Selectors},
     Specificity,
 };
-use selectors::NthIndexCache;
+use selectors::context::SelectorCaches;
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
 pub(crate) fn select<'a, 'b, 'c>(
     document: &'a Document,
     selectors: &'b str,
-    caches: &'c mut NthIndexCache,
+    caches: &'c mut SelectorCaches,
 ) -> Result<Select<'a, 'c>, ParseError<'b>> {
     Selectors::compile(selectors).map(|selectors| Select {
         document,
@@ -25,7 +25,7 @@ pub(crate) fn select<'a, 'b, 'c>(
 /// An element iterator adaptor that yields elements matching given selectors.
 pub(crate) struct Select<'a, 'c> {
     document: &'a Document,
-    caches: &'c mut NthIndexCache,
+    caches: &'c mut SelectorCaches,
     iter: std::slice::Iter<'a, NodeId>,
     /// The selectors to be matched.
     selectors: Selectors,
