@@ -6,18 +6,18 @@ use super::{
     Specificity,
 };
 use selectors::NthIndexCache;
-use std::iter::Zip;
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
 pub(crate) fn select<'a, 'b, 'c>(
     document: &'a Document,
     selectors: &'b str,
-    caches: &'c mut [NthIndexCache],
+    caches: &'c mut NthIndexCache,
 ) -> Result<Select<'a, 'c>, ParseError<'b>> {
     Selectors::compile(selectors).map(|selectors| Select {
         document,
-        iter: document.elements.iter().zip(caches.iter_mut()),
+        caches,
+        iter: document.elements.iter(),
         selectors,
     })
 }
@@ -25,7 +25,8 @@ pub(crate) fn select<'a, 'b, 'c>(
 /// An element iterator adaptor that yields elements matching given selectors.
 pub(crate) struct Select<'a, 'c> {
     document: &'a Document,
-    iter: Zip<std::slice::Iter<'a, NodeId>, std::slice::IterMut<'c, NthIndexCache>>,
+    caches: &'c mut NthIndexCache,
+    iter: std::slice::Iter<'a, NodeId>,
     /// The selectors to be matched.
     selectors: Selectors,
 }
@@ -43,13 +44,13 @@ impl<'a> Iterator for Select<'a, '_> {
 
     #[inline]
     fn next(&mut self) -> Option<Element<'a>> {
-        for (element_id, cache) in self.iter.by_ref() {
+        for element_id in self.iter.by_ref() {
             let NodeData::Element { element, .. } = &self.document[*element_id].data else {
                 unreachable!("Element ids always point to element nodes")
             };
             let element = Element::new(self.document, *element_id, element);
             for selector in self.selectors.iter() {
-                if element.matches(selector, cache) {
+                if element.matches(selector, self.caches) {
                     return Some(element);
                 }
             }

@@ -5,6 +5,7 @@
 ### Performance
 
 - Slightly improve performance of HTML serialization.
+- Avoid creating unused caches.
 
 ## [0.14.4] - 2024-12-27
 

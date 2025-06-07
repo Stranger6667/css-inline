@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Slightly improve performance of HTML serialization.
+- Avoid creating unused caches.
+
 ### Changed
 
 - Bump MSRV to `1.71.1`.

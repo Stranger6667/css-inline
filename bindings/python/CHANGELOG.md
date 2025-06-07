@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Slightly improve performance of HTML serialization.
+- Avoid creating unused caches.
+
 ### Changed
 
 - Update `PyO3` to `0.23.0`.
