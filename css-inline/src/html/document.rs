@@ -297,15 +297,9 @@ impl Document {
     pub(crate) fn select<'a, 'b, 'c>(
         &'a self,
         selectors: &'b str,
-        caches: &'c mut [NthIndexCache],
+        caches: &'c mut NthIndexCache,
     ) -> Result<Select<'a, 'c>, ParseError<'b>> {
         select(self, selectors, caches)
-    }
-
-    pub(crate) fn build_caches(&self) -> Vec<NthIndexCache> {
-        (0..self.elements.len())
-            .map(|_| NthIndexCache::default())
-            .collect()
     }
 }
 
