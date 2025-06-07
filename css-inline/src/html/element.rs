@@ -7,8 +7,9 @@ use super::{
 use html5ever::{local_name, namespace_url, ns, Namespace, QualName};
 use selectors::{
     attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
-    context::QuirksMode,
-    matching, NthIndexCache, OpaqueElement,
+    bloom::BloomFilter,
+    context::{QuirksMode, SelectorCaches},
+    matching, OpaqueElement,
 };
 use std::cmp::Ordering;
 
@@ -92,14 +93,14 @@ impl<'a> Element<'a> {
             }
         }
     }
-    pub(crate) fn matches(&self, selector: &Selector, cache: &mut NthIndexCache) -> bool {
+    pub(crate) fn matches(&self, selector: &Selector, cache: &mut SelectorCaches) -> bool {
         let mut context = matching::MatchingContext::new(
             matching::MatchingMode::Normal,
             None,
             cache,
             QuirksMode::NoQuirks,
             matching::NeedsSelectorFlags::No,
-            matching::IgnoreNthChildForInvalidation::No,
+            matching::MatchingForInvalidation::No,
         );
         matching::matches_selector(selector, 0, None, self, &mut context)
     }
@@ -292,4 +293,10 @@ impl selectors::Element for Element<'_> {
     }
 
     fn apply_selector_flags(&self, _: matching::ElementSelectorFlags) {}
+    fn add_element_unique_hashes(&self, _: &mut BloomFilter) -> bool {
+        false
+    }
+    fn has_custom_state(&self, _name: &LocalName) -> bool {
+        false
+    }
 }

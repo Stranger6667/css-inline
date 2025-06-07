@@ -9,7 +9,7 @@ use super::{
 };
 use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::local_name;
-use selectors::NthIndexCache;
+use selectors::context::SelectorCaches;
 use std::{fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// HTML document representation.
@@ -297,14 +297,14 @@ impl Document {
     pub(crate) fn select<'a, 'b, 'c>(
         &'a self,
         selectors: &'b str,
-        caches: &'c mut [NthIndexCache],
+        caches: &'c mut [SelectorCaches],
     ) -> Result<Select<'a, 'c>, ParseError<'b>> {
         select(self, selectors, caches)
     }
 
-    pub(crate) fn build_caches(&self) -> Vec<NthIndexCache> {
+    pub(crate) fn build_caches(&self) -> Vec<SelectorCaches> {
         (0..self.elements.len())
-            .map(|_| NthIndexCache::default())
+            .map(|_| SelectorCaches::default())
             .collect()
     }
 }
