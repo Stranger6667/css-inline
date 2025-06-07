@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `cssparser` to `0.35`.
+- Update `selectors` to `0.28`.
+
 ### Performance
 
 - Slightly improve performance of HTML serialization.
