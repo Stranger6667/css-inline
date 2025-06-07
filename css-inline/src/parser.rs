@@ -1,3 +1,5 @@
+use cssparser::ParserState;
+
 pub(crate) struct CSSRuleListParser<'d, 'i>(&'d mut Vec<Declaration<'i>>);
 
 impl<'d, 'i> CSSRuleListParser<'d, 'i> {
@@ -38,7 +40,7 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'_, 'i> {
     fn parse_block<'t>(
         &mut self,
         prelude: Self::Prelude,
-        _: &cssparser::ParserState,
+        _: &ParserState,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
         // Parse list of declarations
@@ -61,6 +63,7 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
         &mut self,
         name: Name<'i>,
         input: &mut cssparser::Parser<'i, 't>,
+        _declaration_start: &ParserState,
     ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
         Ok((name, exhaust(input)))
     }

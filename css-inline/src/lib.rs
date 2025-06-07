@@ -37,7 +37,7 @@ pub use error::InlineError;
 use indexmap::IndexMap;
 #[cfg(feature = "stylesheet-cache")]
 use lru::{DefaultHasher, LruCache};
-use selectors::NthIndexCache;
+use selectors::context::SelectorCaches;
 use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync::Arc};
 
 use crate::html::ElementStyleMap;
@@ -441,7 +441,7 @@ impl<'a> CSSInliner<'a> {
             rule_list.push(rule);
         }
         // This cache is unused but required in the `selectors` API
-        let mut caches = NthIndexCache::default();
+        let mut caches = SelectorCaches::default();
         for (selectors, (start, end)) in &rule_list {
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
