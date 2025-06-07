@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `cssparser` to `0.35`.
+- Update `selectors` to `0.28`.
+
 ## [0.14.5] - 2025-06-16
 
 ### Performance

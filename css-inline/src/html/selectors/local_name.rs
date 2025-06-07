@@ -1,4 +1,5 @@
 use cssparser::ToCss;
+use precomputed_hash::PrecomputedHash;
 use std::fmt::Write;
 
 /// `LocalName` type wraps `html5ever::LocalName` to extend it by implementing the `ToCss` trait,
@@ -35,5 +36,11 @@ impl ToCss for LocalName {
     {
         // Write the `LocalName` to the destination, which is the CSS syntax.
         dest.write_str(self.0.as_ref())
+    }
+}
+
+impl PrecomputedHash for LocalName {
+    fn precomputed_hash(&self) -> u32 {
+        self.0.precomputed_hash()
     }
 }
