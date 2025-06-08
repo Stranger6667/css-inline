@@ -9,7 +9,7 @@
 
 ### Changed
 
-- Update `PyO3` to `0.23.0`.
+- Update `PyO3` to `0.25.0`.
 
 ## [0.14.6] - 2024-12-27
 
