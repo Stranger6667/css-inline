@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.14.5] - 2025-06-16
+
 ### Performance
 
 - Slightly improve performance of HTML serialization.
@@ -419,7 +421,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.5...HEAD
+[0.14.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.4...rust-v0.14.5
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.3...rust-v0.14.4
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.2...rust-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.1...rust-v0.14.2
