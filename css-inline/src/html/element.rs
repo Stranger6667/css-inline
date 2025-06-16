@@ -4,7 +4,7 @@ use super::{
     node::{ElementData, NodeData, NodeId},
     selectors::{AttrValue, InlinerSelectors, LocalName, PseudoClass, PseudoElement, Selector},
 };
-use html5ever::{local_name, namespace_url, ns, Namespace, QualName};
+use html5ever::{local_name, ns, Namespace, QualName};
 use selectors::{
     attr::{AttrSelectorOperation, CaseSensitivity, NamespaceConstraint},
     bloom::BloomFilter,

@@ -5,6 +5,7 @@
 ### Changed
 
 - Update `cssparser` to `0.35`.
+- Update `html5ever` to `0.31`.
 - Update `selectors` to `0.28`.
 
 ## [0.14.5] - 2025-06-16

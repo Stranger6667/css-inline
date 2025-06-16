@@ -322,7 +322,7 @@ impl std::ops::IndexMut<NodeId> for Document {
 #[cfg(test)]
 mod tests {
     use super::{super::node::ElementData, *};
-    use html5ever::{local_name, namespace_url, ns, QualName};
+    use html5ever::{local_name, ns, QualName};
     use indexmap::IndexMap;
     use test_case::test_case;
 
