@@ -47,7 +47,7 @@
     "benny": "^3.7.1",
     "copyfiles": "^2.4.1",
     "dts-bundle-generator": "^9.1.0",
-    "esbuild": "^0.19.10",
+    "esbuild": "^0.25.0",
     "eslint": "^8.56.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.29.1",
