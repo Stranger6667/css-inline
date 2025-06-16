@@ -1,4 +1,4 @@
-use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, QualName};
+use html5ever::{local_name, ns, tendril::StrTendril, QualName};
 use rustc_hash::FxHasher;
 use selectors::attr::CaseSensitivity;
 use std::hash::{Hash, Hasher};

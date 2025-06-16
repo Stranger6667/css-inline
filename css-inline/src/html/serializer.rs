@@ -5,7 +5,7 @@ use super::{
     DocumentStyleMap, InliningMode,
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
-use html5ever::{local_name, namespace_url, ns, tendril::StrTendril, LocalName, QualName};
+use html5ever::{local_name, ns, tendril::StrTendril, LocalName, QualName};
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
