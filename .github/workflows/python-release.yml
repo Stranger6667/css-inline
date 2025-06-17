@@ -15,7 +15,7 @@ concurrency:
 
 env:
   PACKAGE_NAME: css_inline
-  PYTHON_VERSION: "3.7" # to build abi3 wheels
+  PYTHON_VERSION: "3.9" # to build abi3 wheels
 
 jobs:
   sdist:

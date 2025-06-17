@@ -13,7 +13,7 @@
 
 ### Removed
 
-- Builds for PyPy <3.9.
+- Support for Python <3.9.
 
 ## [0.14.6] - 2024-12-27
 
