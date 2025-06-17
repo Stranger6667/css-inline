@@ -240,12 +240,12 @@ Caching is disabled by default.
 
 Benchmarks for `css-inline==0.14.1`:
 
-- Basic: **6.44 µs**, 230 bytes
-- Realistic-1: **128.59 µs**, 8.58 KB
-- Realistic-2: **81.44 µs**, 4.3 KB
-- GitHub page: **224.89 ms**, 1.81 MB
+- Basic: **4.31 µs**, 230 bytes
+- Realistic-1: **85.18 µs**, 8.58 KB
+- Realistic-2: **59.70 µs**, 4.3 KB
+- GitHub page: **146.75 ms**, 1.81 MB
 
-These benchmarks, conducted using `rustc 1.78` on M1 Max, can be found in `css-inline/benches/inliner.rs`.
+These benchmarks, conducted using `rustc 1.87` on Ryzen 9 9950X, can be found in `css-inline/benches/inliner.rs`.
 
 ## Command Line Interface
 
