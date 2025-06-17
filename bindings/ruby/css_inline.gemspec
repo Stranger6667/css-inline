@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
     This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
   EOF
   spec.files = Dir["lib/**/*.rb"].concat(Dir["ext/css_inline/src/**/*.rs"]) << "ext/css_inline/Cargo.toml" << "README.md"
-  spec.extensions = ["ext/css_inline/extconf.rb"]
+  spec.extensions = ["ext/css_inline/Cargo.toml"]
   spec.rdoc_options = ["--main", "README.rdoc", "--charset", "utf-8", "--exclude", "ext/"]
   spec.authors = ["Dmitry Dygalo"]
   spec.email = ["dmitry@dygalo.dev"]
@@ -25,8 +25,8 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = ">= 3.2.0"
   spec.required_rubygems_version = ">= 3.3.26"
 
-  spec.add_development_dependency "rake-compiler", "~> 1.2.0"
-  spec.add_development_dependency "rb_sys", "~> 0.9"
+  spec.add_development_dependency "rake-compiler", "~> 1.3.0"
+  spec.add_development_dependency "rb_sys", "~> 0.9.116"
   spec.add_development_dependency "benchmark-ips", "~> 2.10"
   spec.add_development_dependency "premailer", "~> 1.21"
   spec.add_development_dependency "nokogiri", "~> 1.15"
