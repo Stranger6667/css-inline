@@ -149,7 +149,11 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        target: [aarch64, armv7]
+        include:
+          - target: aarch64
+            base_image: --platform=linux/arm64 arm64v8/ubuntu:24.04
+          - target: armv7
+            base_image: --platform=linux/arm/v7 arm32v7/ubuntu:24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -164,15 +168,15 @@ jobs:
       - uses: uraimo/run-on-arch-action@v3
         name: Install built wheel
         with:
-          arch: ${{ matrix.target }}
-          distro: ubuntu20.04
+          arch: none
+          distro: none
+          base_image: ${{ matrix.base_image }}
           githubToken: ${{ github.token }}
           install: |
             apt-get update
             apt-get install -y --no-install-recommends python3 python3-pip
-            pip3 install -U pip
           run: |
-            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall
+            pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall --break-system-packages
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
