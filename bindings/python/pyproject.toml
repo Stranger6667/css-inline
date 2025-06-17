@@ -15,12 +15,11 @@ classifiers=[
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Programming Language :: Rust",
@@ -34,7 +33,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 
 [tool.ruff]
 line-length = 120
-target-version = "py37"
+target-version = "py39"
 
 [tool.ruff.lint.isort]
 known-first-party = ["css_inline"]
