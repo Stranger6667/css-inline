@@ -2,14 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.71.1`.
+- update `cssparser` to `0.35`.
+- update `html5ever` to `0.31`.
+- update `selectors` to `0.28`.
+
 ### Performance
 
 - Slightly improve performance of HTML serialization.
 - Avoid creating unused caches.
-
-### Changed
-
-- Bump MSRV to `1.71.1`.
 
 ## [0.14.3] - 2024-11-14
 
