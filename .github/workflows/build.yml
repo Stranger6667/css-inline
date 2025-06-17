@@ -504,7 +504,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-13, windows-2022]
-        ruby-version: ["3.2", "3.3"]
+        ruby-version: ["3.2", "3.3", "3.4"]
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
