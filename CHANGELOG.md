@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2025-06-17
+
 ### Changed
 
 - Update `cssparser` to `0.35`.
@@ -427,7 +429,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.5...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.15.0...HEAD
+[0.15.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.5...rust-v0.15.0
 [0.14.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.4...rust-v0.14.5
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.3...rust-v0.14.4
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.2...rust-v0.14.3

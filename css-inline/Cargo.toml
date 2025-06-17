@@ -1,6 +1,6 @@
 [package]
 name = "css-inline"
-version = "0.14.5"
+version = "0.15.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 license = "MIT"
