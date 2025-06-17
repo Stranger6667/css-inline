@@ -210,15 +210,15 @@ It consistently outperforms `premailer`, offering speed increases often exceedin
 
 The table below provides a detailed comparison between `css_inline` and `premailer` when inlining CSS into an HTML document (like in the Usage section above):
 
-|                   | Size    | `css_inline 0.14.0` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
+|                   | Size    | `css_inline 0.15.0` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
 |-------------------|---------|---------------------|------------------------------------------------|------------|
-| Basic usage       | 230 B   | 8.82 µs             | 417.84 µs                                      | **47.37x** |
-| Realistic email 1 | 8.58 KB | 160.37 µs           | 10.15 ms                                       | **63.32x** |
-| Realistic email 2 | 4.3 KB  | 102.88 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
-| GitHub Page       | 1.81 MB | 237.03 ms           | 3.02 s                                         | **12.78x** |
+| Basic usage       | 230 B   | 6.11 µs             | 350.10 µs                                      | **57.24x** |
+| Realistic email 1 | 8.58 KB | 101.82 µs           | 7.99 ms                                       | **78.49x** |
+| Realistic email 2 | 4.3 KB  | 77.22 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
+| GitHub Page       | 1.81 MB | 172.41 ms           | 2.77 s                                         | **15.97x** |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
-The results displayed above were measured using stable `rustc 1.77.1` on Ruby `3.2.2`.
+The results displayed above were measured using stable `rustc 1.87` on Ruby `3.3.5`.
 
 ## Further reading
 
