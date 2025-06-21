@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2025-06-21
+
 ### Changed
 
 - Update `cssparser` to `0.35`.
@@ -76,7 +78,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.4...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.15.0...HEAD
+[0.15.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.4...c-v0.15.0
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.3...c-v0.14.4
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.2...c-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.1...c-v0.14.2
