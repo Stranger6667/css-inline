@@ -6,20 +6,164 @@ fn main() {
 
 #[cfg(feature = "cli")]
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    use core::fmt;
     use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineOptions};
     use rayon::prelude::*;
     use std::{
         borrow::Cow,
+        env,
+        error::Error,
         ffi::OsString,
-        fmt::{Display, Write as FmtWrite},
+        fmt::Write as FmtWrite,
         fs::{read_to_string, File},
         io::{self, Read, Write},
         path::Path,
+        str::FromStr,
         sync::{
             atomic::{AtomicI32, Ordering},
             Arc,
         },
     };
+
+    fn parse_url(url: Option<&str>) -> Result<Option<url::Url>, url::ParseError> {
+        Ok(if let Some(url) = url {
+            Some(url::Url::parse(url)?)
+        } else {
+            None
+        })
+    }
+
+    #[derive(Debug)]
+    struct ParseError {
+        message: String,
+    }
+
+    impl fmt::Display for ParseError {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            write!(f, "{}", self.message)
+        }
+    }
+
+    impl Error for ParseError {}
+
+    struct ParsedArgs {
+        help: bool,
+        version: bool,
+        files: Vec<String>,
+        inline_style_tags: bool,
+        keep_style_tags: bool,
+        keep_link_tags: bool,
+        base_url: Option<String>,
+        extra_css: Option<String>,
+        output_filename_prefix: Option<OsString>,
+        load_remote_stylesheets: bool,
+        #[cfg(feature = "stylesheet-cache")]
+        cache_size: Option<usize>,
+    }
+
+    impl Default for ParsedArgs {
+        fn default() -> Self {
+            Self {
+                help: false,
+                version: false,
+                files: Vec::new(),
+                inline_style_tags: true,
+                keep_style_tags: false,
+                keep_link_tags: false,
+                base_url: None,
+                extra_css: None,
+                output_filename_prefix: None,
+                load_remote_stylesheets: false,
+                #[cfg(feature = "stylesheet-cache")]
+                cache_size: None,
+            }
+        }
+    }
+
+    #[cfg(feature = "stylesheet-cache")]
+    macro_rules! if_cfg_feature_stylesheet_cache {
+        ($val:expr) => {
+            $val
+        };
+    }
+
+    #[cfg(not(feature = "stylesheet-cache"))]
+    macro_rules! if_cfg_feature_stylesheet_cache {
+        // Empty string that won't match
+        ($val:expr) => {
+            ""
+        };
+    }
+
+    fn requires_value(flag: &str) -> bool {
+        matches!(
+            flag,
+            "inline-style-tags"
+                | "base-url"
+                | "extra-css"
+                | "output-filename-prefix"
+                | if_cfg_feature_stylesheet_cache!("cache-size")
+        )
+    }
+
+    fn parse_value<T>(value: &str, flag: &str) -> Result<T, ParseError>
+    where
+        T: FromStr,
+        T::Err: fmt::Display,
+    {
+        value.parse::<T>().map_err(|e| ParseError {
+            message: format!("Failed to parse value '{value}' for flag '{flag}': {e}"),
+        })
+    }
+
+    fn handle_flag_with_value(
+        parsed: &mut ParsedArgs,
+        flag: &str,
+        value: &str,
+    ) -> Result<(), ParseError> {
+        match flag {
+            "inline-style-tags" => parsed.inline_style_tags = parse_value(value, flag)?,
+            "base-url" => parsed.base_url = Some(value.to_string()),
+            "extra-css" => parsed.extra_css = Some(value.to_string()),
+            "output-filename-prefix" => {
+                parsed.output_filename_prefix = Some(value.to_string().into());
+            }
+            #[cfg(feature = "stylesheet-cache")]
+            "cache-size" => parsed.cache_size = Some(parse_value(value, flag)?),
+            _ => {
+                return Err(ParseError {
+                    message: format!("Unknown flag: --{flag}"),
+                })
+            }
+        }
+        Ok(())
+    }
+
+    fn handle_boolean_flag(parsed: &mut ParsedArgs, flag: &str) -> Result<(), ParseError> {
+        match flag {
+            "help" | "h" => parsed.help = true,
+            "version" | "v" => parsed.version = true,
+            "keep-style-tags" => parsed.keep_style_tags = true,
+            "keep-link-tags" => parsed.keep_link_tags = true,
+            "load-remote-stylesheets" => parsed.load_remote_stylesheets = true,
+            _ => {
+                return Err(ParseError {
+                    message: format!("Unknown flag: {flag}"),
+                })
+            }
+        }
+        Ok(())
+    }
+
+    fn format_error(filename: Option<&str>, error: impl fmt::Display) {
+        let mut buffer = String::with_capacity(128);
+        if let Some(filename) = filename {
+            writeln!(buffer, "Filename: {filename}").expect("Failed to write to buffer");
+        }
+        buffer.push_str("Status: ERROR\n");
+        writeln!(buffer, "Details: {error}").expect("Failed to write to buffer");
+        eprintln!("{}", buffer.trim());
+    }
 
     const VERSION_MESSAGE: &[u8] =
         concat!("css-inline ", env!("CARGO_PKG_VERSION"), "\n").as_bytes();
@@ -74,64 +218,67 @@ OPTIONS:
     )
     .as_bytes();
 
-    struct Args {
-        inline_style_tags: bool,
-        keep_style_tags: bool,
-        keep_link_tags: bool,
-        base_url: Option<String>,
-        extra_css: Option<String>,
-        output_filename_prefix: Option<OsString>,
-        load_remote_stylesheets: bool,
-        #[cfg(feature = "stylesheet-cache")]
-        cache_size: Option<usize>,
-        files: Vec<String>,
-    }
+    let mut raw_args = env::args().skip(1);
+    let mut args = ParsedArgs::default();
 
-    fn parse_url(url: Option<String>) -> Result<Option<url::Url>, url::ParseError> {
-        Ok(if let Some(url) = url {
-            Some(url::Url::parse(url.as_str())?)
+    while let Some(arg) = raw_args.next() {
+        if let Some(flag) = arg.strip_prefix("--") {
+            // Handle --key=value format
+            if let Some((flag, value)) = flag.split_once('=') {
+                handle_flag_with_value(&mut args, flag, value)?;
+            } else {
+                // Handle --key format (boolean or expecting value)
+                if requires_value(flag) {
+                    // Expects a value
+                    if let Some(value) = raw_args.next() {
+                        handle_flag_with_value(&mut args, flag, &value)?;
+                    } else {
+                        eprintln!("Error parsing arguments: Flag --{flag} requires a value");
+                        std::process::exit(1);
+                    }
+                } else {
+                    // Boolean flag
+                    handle_boolean_flag(&mut args, flag)?;
+                }
+            }
+        } else if let Some(flag) = arg.strip_prefix('-') {
+            if flag.len() == 1 {
+                // Single character short flag
+                handle_boolean_flag(&mut args, flag)?;
+            } else {
+                eprintln!("Error parsing arguments: Invalid flag: -{flag}");
+                std::process::exit(1);
+            }
         } else {
-            None
-        })
-    }
-
-    fn format_error(filename: Option<&str>, error: impl Display) {
-        let mut buffer = String::with_capacity(128);
-        if let Some(filename) = filename {
-            writeln!(buffer, "Filename: {}", filename).expect("Failed to write to buffer");
+            // Positional argument (file)
+            args.files.push(arg);
         }
-        buffer.push_str("Status: ERROR\n");
-        writeln!(buffer, "Details: {}", error).expect("Failed to write to buffer");
-        eprintln!("{}", buffer.trim());
     }
 
-    let mut args = pico_args::Arguments::from_env();
     let exit_code = AtomicI32::new(0);
-    if args.contains(["-h", "--help"]) {
+    if args.help {
         io::stdout().write_all(HELP_MESSAGE)?;
-    } else if args.contains(["-v", "--version"]) {
+    } else if args.version {
         io::stdout().write_all(VERSION_MESSAGE)?;
     } else {
-        let args = Args {
-            inline_style_tags: args
-                .opt_value_from_str("--inline-style-tags")?
-                .unwrap_or(true),
-            keep_style_tags: args.contains("--keep-style-tags"),
-            keep_link_tags: args.contains("--keep-link-tags"),
-            base_url: args.opt_value_from_str("--base-url")?,
-            extra_css: args.opt_value_from_str("--extra-css")?,
-            output_filename_prefix: args.opt_value_from_str("--output-filename-prefix")?,
-            load_remote_stylesheets: args.contains("--load-remote-stylesheets"),
-            #[cfg(feature = "stylesheet-cache")]
-            cache_size: args.opt_value_from_str("--cache-size")?,
-            files: args.free()?,
-        };
-        let base_url = match parse_url(args.base_url) {
+        let base_url = match parse_url(args.base_url.as_deref()) {
             Ok(base_url) => base_url,
             Err(error) => {
                 format_error(None, error);
                 std::process::exit(1);
             }
+        };
+        #[cfg(feature = "stylesheet-cache")]
+        let cache = if let Some(size) = args.cache_size {
+            if size == 0 {
+                eprintln!("ERROR: Cache size must be an integer greater than zero");
+                std::process::exit(1);
+            }
+            std::num::NonZeroUsize::new(size)
+                .map(css_inline::StylesheetCache::new)
+                .map(std::sync::Mutex::new)
+        } else {
+            None
         };
         let options = InlineOptions {
             inline_style_tags: args.inline_style_tags,
@@ -140,20 +287,7 @@ OPTIONS:
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             #[cfg(feature = "stylesheet-cache")]
-            cache: {
-                if let Some(size) = args.cache_size {
-                    if size == 0 {
-                        eprintln!("ERROR: Cache size must be an integer greater than zero");
-                        std::process::exit(1);
-                    }
-
-                    std::num::NonZeroUsize::new(size)
-                        .map(css_inline::StylesheetCache::new)
-                        .map(std::sync::Mutex::new)
-                } else {
-                    None
-                }
-            },
+            cache,
             extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
@@ -192,7 +326,7 @@ OPTIONS:
                 })
                 .for_each(|result| match result {
                     Ok((filename, result)) => match result {
-                        Ok(_) => println!("{filename}: SUCCESS"),
+                        Ok(()) => println!("{filename}: SUCCESS"),
                         Err(error) => {
                             format_error(Some(filename.as_str()), error);
                             exit_code.store(1, Ordering::SeqCst);
