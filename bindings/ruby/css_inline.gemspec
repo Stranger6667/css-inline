@@ -2,13 +2,13 @@
 
 Gem::Specification.new do |spec|
   spec.name = "css_inline"
-  spec.version = "0.14.3"
+  spec.version = "0.15.0"
   spec.summary = "High-performance library for inlining CSS into HTML 'style' attributes"
   spec.description = <<-EOF
     `css_inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
     This process is essential for sending HTML emails as you need to use "style" attributes instead of "style" tags.
   EOF
-  spec.files = Dir["lib/**/*.rb"].concat(Dir["ext/css_inline/src/**/*.rs"]) << "ext/css_inline/Cargo.toml" << "README.md"
+  spec.files = Dir["lib/**/*.rb"].concat(Dir["ext/css_inline/src/**/*.rs"]) << "ext/css_inline/Cargo.toml" << "exc/css_inline/Cargo.lock" << "README.md" 
   spec.extensions = ["ext/css_inline/Cargo.toml"]
   spec.rdoc_options = ["--main", "README.rdoc", "--charset", "utf-8", "--exclude", "ext/"]
   spec.authors = ["Dmitry Dygalo"]
