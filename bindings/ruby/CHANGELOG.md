@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.15.1] - 2025-06-21
+
+### Fixed
+
+- Packaging issue.
+
 ## [0.15.0] - 2025-06-21
 
 ### Changed
@@ -178,7 +184,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.1...HEAD
+[0.15.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.0...ruby-v0.15.1
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.14.3...ruby-v0.15.0
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.14.2...ruby-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.14.1...ruby-v0.14.2
