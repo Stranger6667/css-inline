@@ -20,7 +20,6 @@ magnus = "0.7"
 rayon = "1"
 
 [dependencies.css-inline]
-path = "../../../../css-inline"
-version = "*"
+version = "0.15"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
