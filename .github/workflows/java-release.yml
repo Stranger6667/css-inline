@@ -1,0 +1,163 @@
+name: "[Java] Release"
+
+on:
+  pull_request: {}
+  push:
+    tags:
+      - java-v*
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "21"
+
+jobs:
+  build-native-libraries:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            lib: libcss_inline.so
+            platform: linux-x86_64
+
+          - os: macos-13
+            target: x86_64-apple-darwin
+            lib: libcss_inline.dylib
+            platform: darwin-x86_64
+          - os: macos-14
+            target: aarch64-apple-darwin
+            lib: libcss_inline.dylib
+            platform: darwin-aarch64
+
+          - os: windows-2022
+            target: x86_64-pc-windows-msvc
+            lib: css_inline.dll
+            platform: win32-x86_64
+
+    name: Build native library for ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build native library
+        working-directory: bindings/java
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Upload native library
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.platform }}
+          if-no-files-found: error
+          path: bindings/java/target/${{ matrix.target }}/release/${{ matrix.lib }}
+
+  build-jar:
+    name: Build JAR file
+    runs-on: ubuntu-22.04
+    needs: build-native-libraries
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Download all native libraries
+        uses: actions/download-artifact@v4
+        with:
+          path: native-libs
+
+      - name: Assemble JAR with native libraries
+        working-directory: bindings/java
+        run: |
+          mkdir -p src/main/resources/org/cssinline/native/{linux-x86_64,darwin-x86_64,darwin-aarch64,win32-x86_64}
+
+          # Copy native libraries to their expected location
+          cp ../../native-libs/native-linux-x86_64/libcss_inline.so src/main/resources/org/cssinline/native/linux-x86_64/
+          cp ../../native-libs/native-darwin-x86_64/libcss_inline.dylib src/main/resources/org/cssinline/native/darwin-x86_64/
+          cp ../../native-libs/native-darwin-aarch64/libcss_inline.dylib src/main/resources/org/cssinline/native/darwin-aarch64/
+          cp ../../native-libs/native-win32-x86_64/css_inline.dll src/main/resources/org/cssinline/native/win32-x86_64/
+
+          # This one will also run tests
+          gradle build
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-jar
+          if-no-files-found: error
+          path: bindings/java/build/libs/*.jar
+
+  test-jar:
+    needs: build-jar
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            platform: linux-x86_64
+          - os: macos-13
+            platform: darwin-x86_64
+          - os: macos-14
+            platform: darwin-aarch64
+          - os: windows-2022
+            platform: win32-x86_64
+
+    name: Test JAR on ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: java-jar
+
+      - name: Integration test on ${{ matrix.platform }}
+        run: |
+          cat > Test.java << 'EOF'
+          import org.cssinline.CssInline;
+          public class Test {
+              public static void main(String[] args) {
+                  try {
+                      String html = "<html><head><style>h1{color:red}</style></head><body><h1>Test</h1></body></html>";
+                      String result = CssInline.inline(html);
+                      if (!result.contains("style=\"color: red;\"")) {
+                          System.err.println("Expected inlined style not found in: " + result);
+                          System.exit(1);
+                      }
+                      System.out.println("✓ Integration test passed on ${{ matrix.platform }}");
+                  } catch (Exception e) {
+                      System.err.println("Integration test failed: " + e.getMessage());
+                      e.printStackTrace();
+                      System.exit(1);
+                  }
+              }
+          }
+          EOF
+
+          JAR_FILE=$(ls *.jar)
+
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+              CLASSPATH_SEP=";"
+          else
+              CLASSPATH_SEP=":"
+          fi
+
+          javac -cp "$JAR_FILE" Test.java
+          java -cp "$JAR_FILE${CLASSPATH_SEP}." Test

@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'me.champeau.jmh' version '0.7.3'
+}
+
+group = 'org.css-inline'
+version = '0.15.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.37'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+
+    jmh 'net.sf.cssbox:cssbox:5.0.0'
+    jmh 'net.sf.cssbox:jstyleparser:3.5.0'
+    jmh 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    jmh 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+jmh {
+    jmhVersion = '1.37'
+
+    def baseArgs = [
+        '-server',
+        '--add-opens=java.base/sun.misc=ALL-UNNAMED',
+        '--add-exports=java.base/sun.misc=ALL-UNNAMED',
+        '--enable-native-access=ALL-UNNAMED'
+    ]
+
+    def nativeDir = file('target/release')
+    if (nativeDir.exists()) {
+        jvmArgs = baseArgs + ["-Djava.library.path=${nativeDir.absolutePath}"]
+        println "Using native library path: ${nativeDir.absolutePath}"
+    } else {
+        jvmArgs = baseArgs
+        println "Native dir not found, using bundled libraries"
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    def nativeDir = file('target/release')
+    if (nativeDir.exists()) {
+        jvmArgs += "-Djava.library.path=${nativeDir.absolutePath}"
+        println "Test using native library path: ${nativeDir.absolutePath}"
+    } else {
+        println "Test using bundled libraries"
+    }
+}
