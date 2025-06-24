@@ -2,7 +2,7 @@
 
 Gem::Specification.new do |spec|
   spec.name = "css_inline"
-  spec.version = "0.15.1"
+  spec.version = "0.15.2"
   spec.summary = "High-performance library for inlining CSS into HTML 'style' attributes"
   spec.description = <<-EOF
     `css_inline` inlines CSS into HTML documents, using components from Mozilla's Servo project.
