@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.82`.
+
+### Fixed
+
+- Packaging issue.
+- Installation on Alpine. [#394](https://github.com/Stranger6667/css-inline/pull/394)
+
 ## [0.15.1] - 2025-06-21
 
 ### Fixed

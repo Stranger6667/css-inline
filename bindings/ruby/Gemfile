@@ -5,3 +5,4 @@ source "https://rubygems.org"
 gemspec
 
 gem 'rspec'
+gem 'rb_sys'

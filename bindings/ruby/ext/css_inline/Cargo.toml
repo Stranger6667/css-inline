@@ -1,5 +1,5 @@
 [package]
-name = "css-inline-ruby"
+name = "css-inline"
 version = "0.15.1"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
@@ -9,7 +9,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 categories = ["web-programming"]
 license = "MIT"
-rust-version = "1.71.1"
+rust-version = "1.82"
 
 [lib]
 name = "css_inline"

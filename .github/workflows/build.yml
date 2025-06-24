@@ -535,6 +535,85 @@ jobs:
       - run: bundle exec rake test
         working-directory: ./bindings/ruby
 
+  test-ruby-gem-install:
+    name: Ruby Gem Build & Install Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, windows-2022]
+        ruby-version: ["3.2", "3.3", "3.4"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby & Rust
+        uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: false
+          cargo-cache: true
+          cache-version: v1
+          working-directory: ./bindings/ruby
+
+      - name: Build gem
+        run: |
+          gem build css_inline.gemspec
+        working-directory: ./bindings/ruby
+
+      - name: Install rb_sys
+        run: gem install rb_sys -v '~> 0.9.116' --no-document
+        working-directory: ./bindings/ruby
+
+      - name: Install gem from built file
+        run: |
+          GEM_FILE=$(ls css_inline-*.gem | head -1)
+          echo "Installing gem: $GEM_FILE"
+          gem install "./$GEM_FILE" --local --no-document
+        working-directory: ./bindings/ruby
+        shell: bash
+
+      - name: Test gem installation
+        run: |
+          ruby -e "
+            require 'css_inline'
+
+            html = '<html><head><style>h1 { color: red; }</style></head><body><h1>Test</h1></body></html>'
+            result = CSSInline.inline(html)
+          "
+
+      - name: Test gem in clean environment
+        run: |
+          ruby -e "require 'css_inline'; puts 'SUCCESS: Gem accessible from clean environment'"
+        env:
+          BUNDLE_GEMFILE: ""
+
+  test-ruby-gem-install-musl:
+    name: Ruby Gem Build & Install Test (Alpine/musl)
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test gem install on Alpine/musl
+        run: |
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            public.ecr.aws/docker/library/ruby:3.3-alpine3.19 \
+            sh -c '
+              set -e
+              apk add --no-cache alpine-sdk curl gcompat clang clang-dev llvm-dev
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.82.0
+              source ~/.cargo/env
+              gem update --system
+              cd bindings/ruby
+              gem install rb_sys -v "~> 0.9" --no-document
+              gem build css_inline.gemspec
+              gem install css_inline-*.gem --local --no-document
+              ruby -e "require \"css_inline\"; puts CSSInline.inline(\"<style>h1{color:red}</style><h1>test</h1>\")"
+            '
+
   test-wasm:
     name: WASM module tests
     runs-on: ubuntu-22.04
