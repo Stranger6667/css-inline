@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.15.0] - 2025-06-24
+
 ### Changed
 
 - Bump MSRV to `1.71.1`.
@@ -96,7 +98,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.15.0...HEAD
+[0.15.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.3...javascript-v0.15.0
 [0.14.3]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.2...javascript-v0.14.3
 [0.14.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.1...javascript-v0.14.2
 [0.14.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.0...javascript-v0.14.1
