@@ -252,7 +252,8 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-const { inline, inlineFragment } = nativeBinding
+const { inline, inlineFragment, version } = nativeBinding
 
 module.exports.inline = inline
 module.exports.inlineFragment = inlineFragment
+module.exports.version = version
