@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Expose `StylesheetCache` interface, `cache` config option, and `version` function.
+
 ## [0.15.0] - 2025-06-24
 
 ### Changed
