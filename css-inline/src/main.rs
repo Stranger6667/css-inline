@@ -53,6 +53,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         inline_style_tags: bool,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        keep_at_rules: bool,
         base_url: Option<String>,
         extra_css: Option<String>,
         output_filename_prefix: Option<OsString>,
@@ -70,6 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 inline_style_tags: true,
                 keep_style_tags: false,
                 keep_link_tags: false,
+                keep_at_rules: false,
                 base_url: None,
                 extra_css: None,
                 output_filename_prefix: None,
@@ -199,6 +201,9 @@ OPTIONS:
 
     --keep-link-tags
         Keep "link" tags after inlining.
+        
+    --keep-at-rules
+        Keep "@..." rules after inlining.
 
     --base-url
         Used for loading external stylesheets via relative URLs.
@@ -284,6 +289,7 @@ OPTIONS:
             inline_style_tags: args.inline_style_tags,
             keep_style_tags: args.keep_style_tags,
             keep_link_tags: args.keep_link_tags,
+            keep_at_rules: args.keep_at_rules,
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             #[cfg(feature = "stylesheet-cache")]
