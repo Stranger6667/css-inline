@@ -42,6 +42,7 @@ pub(crate) fn parse_with_options(
                 options,
                 QualName::new(None, ns!(html), local_name!("")),
                 vec![],
+                false,
             )
             .from_utf8()
             .one(bytes);
