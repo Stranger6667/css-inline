@@ -55,6 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         keep_link_tags: bool,
         base_url: Option<String>,
         extra_css: Option<String>,
+        extra_css_files: Vec<String>,
         output_filename_prefix: Option<OsString>,
         load_remote_stylesheets: bool,
         #[cfg(feature = "stylesheet-cache")]
@@ -72,6 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 keep_link_tags: false,
                 base_url: None,
                 extra_css: None,
+                extra_css_files: Vec::new(),
                 output_filename_prefix: None,
                 load_remote_stylesheets: false,
                 #[cfg(feature = "stylesheet-cache")]
@@ -101,6 +103,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "inline-style-tags"
                 | "base-url"
                 | "extra-css"
+                | "extra-css-file"
                 | "output-filename-prefix"
                 | if_cfg_feature_stylesheet_cache!("cache-size")
         )
@@ -125,6 +128,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "inline-style-tags" => parsed.inline_style_tags = parse_value(value, flag)?,
             "base-url" => parsed.base_url = Some(value.to_string()),
             "extra-css" => parsed.extra_css = Some(value.to_string()),
+            "extra-css-file" => parsed.extra_css_files.push(value.to_string()),
             "output-filename-prefix" => {
                 parsed.output_filename_prefix = Some(value.to_string().into());
             }
@@ -153,6 +157,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
         Ok(())
+    }
+
+    fn combine_extra_css(
+        extra_css: Option<String>,
+        extra_css_files: Vec<String>,
+    ) -> Result<Option<String>, Box<dyn std::error::Error>> {
+        let mut buffer = extra_css.unwrap_or_default();
+
+        if !buffer.is_empty() {
+            buffer.push('\n');
+        }
+
+        for path in extra_css_files {
+            let mut file =
+                File::open(&path).map_err(|e| format!("Failed to read CSS file '{path}': {e}"))?;
+            file.read_to_string(&mut buffer)?;
+            if !buffer.is_empty() {
+                buffer.push('\n');
+            }
+        }
+
+        Ok(if buffer.is_empty() {
+            None
+        } else {
+            Some(buffer)
+        })
     }
 
     fn format_error(filename: Option<&str>, error: impl fmt::Display) {
@@ -211,6 +241,10 @@ OPTIONS:
 
     --extra-css
         Additional CSS to inline.
+
+    --extra-css-file <PATH>
+        Load additional CSS from a file to inline. Can be used multiple times to load
+        from several files. The CSS will be processed alongside any existing styles.
 
     --output-filename-prefix
         Custom prefix for output files. Defaults to `inlined.`.
@@ -280,6 +314,13 @@ OPTIONS:
         } else {
             None
         };
+        let extra_css = match combine_extra_css(args.extra_css, args.extra_css_files) {
+            Ok(css) => css,
+            Err(error) => {
+                format_error(None, error);
+                std::process::exit(1);
+            }
+        };
         let options = InlineOptions {
             inline_style_tags: args.inline_style_tags,
             keep_style_tags: args.keep_style_tags,
@@ -288,7 +329,7 @@ OPTIONS:
             load_remote_stylesheets: args.load_remote_stylesheets,
             #[cfg(feature = "stylesheet-cache")]
             cache,
-            extra_css: args.extra_css.as_deref().map(Cow::Borrowed),
+            extra_css: extra_css.as_deref().map(Cow::Borrowed),
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
         };

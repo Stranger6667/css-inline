@@ -90,6 +90,55 @@ pub mod tests {
     }
 
     #[test]
+    fn extra_css_file() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--extra-css-file=tests/extra.css")
+            .arg("--output-filename-prefix=inlined.extra-css.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+
+        let content = fs::read_to_string("tests/inlined.extra-css.example.html").unwrap();
+        assert!(
+            content.contains(r#"style="color: #ffffff;background: red;""#),
+            "inlined output did not include extra-css rules:\n{}",
+            content
+        );
+    }
+
+    #[test]
+    fn extra_css_file_not_found() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--extra-css-file=tests/nonexistent.css")
+            .assert()
+            .failure()
+            .stderr(
+                "Status: ERROR\n\
+                 Details: Failed to read CSS file 'tests/nonexistent.css': No such file or directory (os error 2)\n",
+            );
+    }
+
+    #[test]
+    fn extra_css() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--extra-css=.test-class { background: green; }")
+            .arg("--output-filename-prefix=inlined.extra-css-cli.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+
+        let content = fs::read_to_string("tests/inlined.extra-css-cli.example.html").unwrap();
+        assert!(
+            content.contains(r#"style="color: #ffffff;background: green;""#),
+            "expected inline background from --extra-css but got:\n{}",
+            content
+        );
+    }
+
+    #[test]
     fn not_found() {
         css_inline().arg("unknown.html").assert().failure().stderr(
             "Filename: unknown.html\nStatus: ERROR\nDetails: No such file or directory (os error 2)\n",

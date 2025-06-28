@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- **CLI**: `--extra-css-file` option to load additional CSS from files. [#67](https://github.com/Stranger6667/css-inline/pull/67)
+
 ### Changed
 
 - **CLI**: Remove `pico-args`
