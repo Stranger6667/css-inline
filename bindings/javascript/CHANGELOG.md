@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.75`.
+- Update `selectors` to `0.29`.
+
 ### Fixed
 
 - Expose `StylesheetCache` interface, `cache` config option, and `version` function.
