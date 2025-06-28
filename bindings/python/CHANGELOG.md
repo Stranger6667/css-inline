@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.75`.
+- Update `selectors` to `0.29`.
+
 ## [0.15.0] - 2025-06-17
 
 ### Changed
