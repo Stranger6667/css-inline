@@ -7,6 +7,7 @@
 - **CLI**: Remove `pico-args`
 - Bump MSRV to `1.75`.
 - Update `selectors` to `0.29`.
+- Update `html5ever` to `0.33`.
 
 ## [0.15.0] - 2025-06-17
 
