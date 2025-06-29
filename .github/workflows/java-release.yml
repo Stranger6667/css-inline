@@ -197,7 +197,8 @@ jobs:
           }
           EOF
 
-          JAR_FILE=$(ls *.jar)
+          JAR_FILE=$(ls css-inline-*-SNAPSHOT.jar | grep -v sources | grep -v javadoc)
+          echo "Using JAR: $JAR_FILE"
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
               CLASSPATH_SEP=";"

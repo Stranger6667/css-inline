@@ -8,8 +8,6 @@ group = 'org.css-inline'
 version = System.getenv('VERSION') ?: '0.15.0-SNAPSHOT'
 
 java {
-    withJavadocJar()
-    withSourcesJar()
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
 }
