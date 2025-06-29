@@ -24,7 +24,6 @@ public class CSSBoxInliner {
 
 			DOMAnalyzer da = new DOMAnalyzer(doc, docSource.getURL());
 			da.attributesToStyles();
-			da.addStyleSheet(null, CSSNorm.stdStyleSheet(), DOMAnalyzer.Origin.AGENT);
 			da.addStyleSheet(null, CSSNorm.userStyleSheet(), DOMAnalyzer.Origin.AGENT);
 			da.getStyleSheets();
 
