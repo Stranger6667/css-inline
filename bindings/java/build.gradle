@@ -20,6 +20,24 @@ repositories {
 
 jar {
     duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+    // Debug what's happening
+    doFirst {
+        println "=== JAR Task Debug ==="
+        println "Classes dirs exist: ${sourceSets.main.output.classesDirs.every { it.exists() }}"
+        println "Resources dir exists: ${sourceSets.main.output.resourcesDir?.exists()}"
+
+        sourceSets.main.output.classesDirs.each { dir ->
+            if (dir.exists()) {
+                println "Found classes in: ${dir}"
+                dir.eachFileRecurse { file ->
+                    if (file.name.endsWith('.class')) {
+                        println "  Class: ${file.name}"
+                    }
+                }
+            }
+        }
+    }
 }
 
 sourcesJar {
