@@ -7,6 +7,9 @@ on:
       - master
   schedule: [cron: "40 1 * * *"]
 
+env:
+  JAVA_VERSION: "21"
+
 jobs:
   commitsar:
     name: Verify commit messages
@@ -439,8 +442,6 @@ jobs:
             yarn test
 
   test-java:
-    env:
-      JAVA_VERSION: "21"
     strategy:
       fail-fast: false
       matrix:

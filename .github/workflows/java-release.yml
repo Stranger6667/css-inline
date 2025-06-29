@@ -161,3 +161,66 @@ jobs:
 
           javac -cp "$JAR_FILE" Test.java
           java -cp "$JAR_FILE${CLASSPATH_SEP}." Test
+
+  publish-github-packages:
+    name: Publish to GitHub Packages
+    runs-on: ubuntu-22.04
+    needs: [build-jar, test-jar]
+    if: startsWith(github.ref, 'refs/tags/java-v')
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Download JAR artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: java-jar
+          path: build/libs
+
+      - name: Extract version
+        run: echo "version=${GITHUB_REF#refs/tags/java-v}" >> $GITHUB_ENV
+
+      - name: Publish to GitHub Packages
+        working-directory: bindings/java
+        run: |
+          # Copy the pre-built JAR to the expected location
+          mkdir -p build/libs
+          cp ../../build/libs/*.jar build/libs/
+
+          # Publish using the existing JAR
+          gradle publish -Pversion=${{ env.version }}
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.version }}
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-22.04
+    needs: [build-jar, test-jar, publish-github-packages]
+    if: startsWith(github.ref, 'refs/tags/java-v')
+    steps:
+      - name: Download JAR
+        uses: actions/download-artifact@v4
+        with:
+          name: java-jar
+          path: dist
+
+      - name: Extract version
+        run: echo "version=${GITHUB_REF#refs/tags/java-v}" >> $GITHUB_ENV
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          draft: true
+          name: "[Java] Release ${{ env.version }}"
+          files: dist/*.jar

@@ -1,13 +1,63 @@
 plugins {
-    id 'java'
+    id 'java-library'
+    id 'maven-publish'
     id 'me.champeau.jmh' version '0.7.3'
 }
 
 group = 'org.css-inline'
 version = System.getenv('VERSION') ?: '0.15.0-SNAPSHOT'
 
-repositories {
-    mavenCentral()
+java {
+    withJavadocJar()
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Stranger6667/css-inline")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'CSS Inline Java'
+                description = 'Java bindings for css-inline - a high-performance CSS inlining library'
+                url = 'https://css-inline.org'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'stranger6667'
+                        name = 'Dmitry Dygalo'
+                        email = 'dmitry@dygalo.dev'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/Stranger6667/css-inline.git'
+                    developerConnection = 'scm:git:ssh://github.com:Stranger6667/css-inline.git'
+                    url = 'https://github.com/Stranger6667/css-inline/tree/master'
+                }
+            }
+        }
+    }
 }
 
 dependencies {
