@@ -10,8 +10,25 @@ version = System.getenv('VERSION') ?: '0.15.0-SNAPSHOT'
 java {
     withJavadocJar()
     withSourcesJar()
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.37'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+
+    jmh 'net.sf.cssbox:cssbox:5.0.0'
+    jmh 'net.sf.cssbox:jstyleparser:3.5.0'
+    jmh 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    jmh 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 }
 
 publishing {
@@ -58,19 +75,6 @@ publishing {
             }
         }
     }
-}
-
-dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-    implementation 'com.google.code.gson:gson:2.10.1'
-
-    jmh 'org.openjdk.jmh:jmh-core:1.37'
-    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
-
-    jmh 'net.sf.cssbox:cssbox:5.0.0'
-    jmh 'net.sf.cssbox:jstyleparser:3.5.0'
-    jmh 'com.fasterxml.jackson.core:jackson-core:2.15.2'
-    jmh 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
 }
 
 jmh {
