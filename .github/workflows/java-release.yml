@@ -90,54 +90,7 @@ jobs:
           cp ../../native-libs/native-darwin-aarch64/libcss_inline.dylib src/main/resources/org/cssinline/native/darwin-aarch64/
           cp ../../native-libs/native-win32-x86_64/css_inline.dll src/main/resources/org/cssinline/native/win32-x86_64/
 
-          echo "=== Gradle version and Java info ==="
-          gradle --version
-
-          echo "=== Source files ==="
-          find src/main/java -name "*.java"
-
-          echo "=== Compile Java only first ==="
-          gradle compileJava --stacktrace --info
-
-          echo "=== Check compiled classes ==="
-          find build/classes -name "*.class" 2>/dev/null || echo "No compiled classes found!"
-
-          echo "=== Full build ==="
-          gradle build --stacktrace --info
-
-          echo "=== After gradle build ==="
-          ls -la build/libs/ || echo "No build/libs directory"
-
-      - name: Verify JAR contents
-        working-directory: bindings/java
-        run: |
-          echo "=== Built JARs ==="
-          ls -la build/libs/
-
-          # Get the main JAR (not sources or javadoc)
-          MAIN_JAR=$(ls build/libs/css-inline-*-SNAPSHOT.jar | grep -v sources | grep -v javadoc)
-          echo "=== Checking main JAR: $MAIN_JAR ==="
-
-          echo "=== JAR contents (first 30 lines) ==="
-          jar tf "$MAIN_JAR" | head -30
-
-          echo "=== Looking for CssInline class ==="
-          if jar tf "$MAIN_JAR" | grep -q "org/cssinline/CssInline.class"; then
-            echo "✅ CssInline.class found"
-          else
-            echo "❌ CssInline.class NOT found!"
-            echo "=== All .class files in JAR ==="
-            jar tf "$MAIN_JAR" | grep "\.class$" || echo "No .class files found!"
-            exit 1
-          fi
-
-          echo "=== Looking for native libraries ==="
-          jar tf "$MAIN_JAR" | grep -E "\.(so|dylib|dll)$" || echo "No native libraries found"
-
-          echo "=== Classes found in main JAR ==="
-          jar tf "$MAIN_JAR" | grep "\.class$" | wc -l
-          echo "=== Native libs found in main JAR ==="
-          jar tf "$MAIN_JAR" | grep -E "\.(so|dylib|dll)$" | wc -l
+          gradle build --info
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
@@ -198,7 +151,6 @@ jobs:
           EOF
 
           JAR_FILE=$(ls css-inline-*-SNAPSHOT.jar | grep -v sources | grep -v javadoc)
-          echo "Using JAR: $JAR_FILE"
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
               CLASSPATH_SEP=";"
