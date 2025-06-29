@@ -91,7 +91,7 @@ jobs:
           cp ../../native-libs/native-win32-x86_64/css_inline.dll src/main/resources/org/cssinline/native/win32-x86_64/
 
           # This one will also run tests
-          gradle build
+          gradle build --info
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4

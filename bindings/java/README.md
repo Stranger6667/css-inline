@@ -95,7 +95,7 @@ This JAR includes native libraries for the following platforms:
 - **macOS** aarch64 (Apple Silicon)
 - **Windows** x86_64
 
-Requires Java 17+ with 64-bit JVM.
+Requires Java 21+ with 64-bit JVM.
 
 ## Usage
 
