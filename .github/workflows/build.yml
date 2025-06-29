@@ -7,6 +7,9 @@ on:
       - master
   schedule: [cron: "40 1 * * *"]
 
+env:
+  JAVA_VERSION: "17"
+
 jobs:
   commitsar:
     name: Verify commit messages
@@ -437,6 +440,35 @@ jobs:
           run: |
             set -e
             yarn test
+
+  test-java:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-13, windows-2022]
+
+    name: Java 17 on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build native library
+        # Build with `--release` as Gradle config expects `target/release`
+        run: cargo build --release
+        working-directory: bindings/java
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Run tests
+        working-directory: bindings/java
+        run: gradle clean test
 
   test-python:
     strategy:

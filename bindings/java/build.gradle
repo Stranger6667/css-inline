@@ -1,0 +1,108 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'me.champeau.jmh' version '0.7.3'
+}
+
+group = 'org.css-inline'
+version = System.getenv('VERSION') ?: '0.15.0-SNAPSHOT'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    jmh 'org.openjdk.jmh:jmh-core:1.37'
+    jmh 'org.openjdk.jmh:jmh-generator-annprocess:1.37'
+
+    jmh 'net.sf.cssbox:cssbox:5.0.0'
+    jmh 'net.sf.cssbox:jstyleparser:3.5.0'
+    jmh 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+    jmh 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/Stranger6667/css-inline")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+
+    publications {
+        maven(MavenPublication) {
+            from components.java
+
+            pom {
+                name = 'CSS Inline Java'
+                description = 'Java bindings for css-inline - a high-performance CSS inlining library'
+                url = 'https://css-inline.org'
+
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = 'stranger6667'
+                        name = 'Dmitry Dygalo'
+                        email = 'dmitry@dygalo.dev'
+                    }
+                }
+
+                scm {
+                    connection = 'scm:git:git://github.com/Stranger6667/css-inline.git'
+                    developerConnection = 'scm:git:ssh://github.com:Stranger6667/css-inline.git'
+                    url = 'https://github.com/Stranger6667/css-inline/tree/master'
+                }
+            }
+        }
+    }
+}
+
+jmh {
+    jmhVersion = '1.37'
+
+    def baseArgs = [
+        '-server',
+        '--add-opens=java.base/sun.misc=ALL-UNNAMED',
+        '--add-exports=java.base/sun.misc=ALL-UNNAMED',
+        '--enable-native-access=ALL-UNNAMED'
+    ]
+
+    def nativeDir = file('target/release')
+    if (nativeDir.exists()) {
+        jvmArgs = baseArgs + ["-Djava.library.path=${nativeDir.absolutePath}"]
+        println "Using native library path: ${nativeDir.absolutePath}"
+    } else {
+        jvmArgs = baseArgs
+        println "Native dir not found, using bundled libraries"
+    }
+}
+
+test {
+    useJUnitPlatform()
+
+    def nativeDir = file('target/release')
+    if (nativeDir.exists()) {
+        jvmArgs += "-Djava.library.path=${nativeDir.absolutePath}"
+        println "Test using native library path: ${nativeDir.absolutePath}"
+    } else {
+        println "Test using bundled libraries"
+    }
+}
