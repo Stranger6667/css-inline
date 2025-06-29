@@ -50,6 +50,12 @@ jobs:
         with:
           targets: ${{ matrix.target }}
 
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            css-inline
+            bindings/java
+
       - name: Build native library
         working-directory: bindings/java
         run: cargo build --release --target ${{ matrix.target }}
@@ -133,24 +139,17 @@ jobs:
           import org.cssinline.CssInline;
           public class Test {
               public static void main(String[] args) {
-                  try {
-                      String html = "<html><head><style>h1{color:red}</style></head><body><h1>Test</h1></body></html>";
-                      String result = CssInline.inline(html);
-                      if (!result.contains("style=\"color: red;\"")) {
-                          System.err.println("Expected inlined style not found in: " + result);
-                          System.exit(1);
-                      }
-                      System.out.println("✓ Integration test passed on ${{ matrix.platform }}");
-                  } catch (Exception e) {
-                      System.err.println("Integration test failed: " + e.getMessage());
-                      e.printStackTrace();
-                      System.exit(1);
+                  String html = "<html><head><style>h1{color:red}</style></head><body><h1>Test</h1></body></html>";
+                  String result = CssInline.inline(html);
+                  if (!result.contains("style=\"color: red;\"")) {
+                      throw new RuntimeException("Expected inlined style not found in: " + result);
                   }
+                  System.out.println("✓ Integration test passed on ${{ matrix.platform }}");
               }
           }
           EOF
 
-          JAR_FILE=$(ls css-inline-*-SNAPSHOT.jar | grep -v sources | grep -v javadoc)
+          JAR_FILE=$(ls *.jar)
 
           if [[ "$RUNNER_OS" == "Windows" ]]; then
               CLASSPATH_SEP=";"
@@ -182,24 +181,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: java-jar
-          path: build/libs
+          path: bindings/java/build/libs
 
       - name: Extract version
         run: echo "version=${GITHUB_REF#refs/tags/java-v}" >> $GITHUB_ENV
 
       - name: Publish to GitHub Packages
         working-directory: bindings/java
-        run: |
-          # Copy the pre-built JAR to the expected location
-          mkdir -p build/libs
-          cp ../../build/libs/*.jar build/libs/
-
-          # Publish using the existing JAR
-          gradle publish -Pversion=${{ env.version }}
+        run: gradle publish -Pversion=${{ env.version }}
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ env.version }}
 
   release:
     name: Create GitHub Release
