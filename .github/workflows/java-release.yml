@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  JAVA_VERSION: "21"
+  JAVA_VERSION: "17"
 
 jobs:
   build-native-libraries:
@@ -92,6 +92,31 @@ jobs:
 
           # This one will also run tests
           gradle build --info
+
+          echo "=== After gradle build ==="
+          ls -la build/libs/ || echo "No build/libs directory"
+
+      - name: Verify JAR contents
+        working-directory: bindings/java
+        run: |
+          echo "=== Built JARs ==="
+          ls -la build/libs/
+
+          echo "=== JAR contents (first 30 lines) ==="
+          jar tf build/libs/*.jar | head -30
+
+          echo "=== Looking for CssInline class ==="
+          if jar tf build/libs/*.jar | grep -q "org/cssinline/CssInline.class"; then
+            echo "✅ CssInline.class found"
+          else
+            echo "❌ CssInline.class NOT found!"
+            echo "=== All .class files in JAR ==="
+            jar tf build/libs/*.jar | grep "\.class$" || echo "No .class files found!"
+            exit 1
+          fi
+
+          echo "=== Looking for native libraries ==="
+          jar tf build/libs/*.jar | grep -E "\.(so|dylib|dll)$" || echo "No native libraries found"
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
