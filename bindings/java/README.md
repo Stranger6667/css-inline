@@ -1,8 +1,8 @@
 # css-inline
 
 [<img alt="build status" src="https://img.shields.io/github/actions/workflow/status/Stranger6667/css-inline/build.yml?style=flat-square&labelColor=555555&logo=github" height="20">](https://github.com/Stranger6667/css-inline/actions/workflows/build.yml)
-[<img alt="maven central" src="https://img.shields.io/maven-central/v/org.cssinline/css-inline.svg?style=flat-square&color=fc8d62&logo=apachemaven" height="20">](#installation)
-[<img alt="javadoc" src="https://img.shields.io/badge/javadoc-css--inline-66c2a5?style=flat-square&labelColor=555555" height="20">](#documentation)
+[<img alt="maven central" src="https://img.shields.io/maven-central/v/org.css-inline/css-inline.svg?style=flat-square&color=fc8d62&logo=apachemaven" height="20">](#installation)
+[<img alt="javadoc" src="https://img.shields.io/badge/javadoc-css--inline-66c2a5?style=flat-square&labelColor=555555" height="20">](https://javadoc.io/badge2/org.css-inline/css-inline/javadoc.svg)
 
 Java bindings for the high-performance `css-inline` library that inlines CSS into HTML 'style' attributes.
 
