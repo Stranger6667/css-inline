@@ -1,7 +1,6 @@
 name: "[Java] Release"
 
 on:
-  pull_request: {}
   push:
     tags:
       - java-v*

@@ -45,6 +45,8 @@ into:
 
 This package is available on [GitHub Packages](https://github.com/Stranger6667/css-inline/packages).
 
+> Maven Central publishing is in the works
+
 ### Setup
 
 GitHub Packages requires authentication even for public packages. See the [GitHub documentation](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-gradle-registry#authenticating-to-github-packages) for authentication setup.
@@ -147,6 +149,8 @@ public class ConfigExample {
 - **`setBaseUrl(String)`** - Base URL for resolving relative URLs (default: `null`)
 - **`setLoadRemoteStylesheets(boolean)`** - Load external stylesheets (default: `true`)
 - **`setExtraCss(String)`** - Additional CSS to inline (default: `null`)
+- **`setCacheSize(int)`** - External stylesheet cache size, must be ≥ 0 (default: `0`)
+- **`setPreallocateNodeCapacity(int)`** - HTML node capacity, must be > 0 (default: `32`)
 
 
 ### HTML Fragments
