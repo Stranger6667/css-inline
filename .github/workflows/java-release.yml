@@ -114,21 +114,30 @@ jobs:
           echo "=== Built JARs ==="
           ls -la build/libs/
 
+          # Get the main JAR (not sources or javadoc)
+          MAIN_JAR=$(ls build/libs/css-inline-*-SNAPSHOT.jar | grep -v sources | grep -v javadoc)
+          echo "=== Checking main JAR: $MAIN_JAR ==="
+
           echo "=== JAR contents (first 30 lines) ==="
-          jar tf build/libs/*.jar | head -30
+          jar tf "$MAIN_JAR" | head -30
 
           echo "=== Looking for CssInline class ==="
-          if jar tf build/libs/*.jar | grep -q "org/cssinline/CssInline.class"; then
+          if jar tf "$MAIN_JAR" | grep -q "org/cssinline/CssInline.class"; then
             echo "✅ CssInline.class found"
           else
             echo "❌ CssInline.class NOT found!"
             echo "=== All .class files in JAR ==="
-            jar tf build/libs/*.jar | grep "\.class$" || echo "No .class files found!"
+            jar tf "$MAIN_JAR" | grep "\.class$" || echo "No .class files found!"
             exit 1
           fi
 
           echo "=== Looking for native libraries ==="
-          jar tf build/libs/*.jar | grep -E "\.(so|dylib|dll)$" || echo "No native libraries found"
+          jar tf "$MAIN_JAR" | grep -E "\.(so|dylib|dll)$" || echo "No native libraries found"
+
+          echo "=== Classes found in main JAR ==="
+          jar tf "$MAIN_JAR" | grep "\.class$" | wc -l
+          echo "=== Native libs found in main JAR ==="
+          jar tf "$MAIN_JAR" | grep -E "\.(so|dylib|dll)$" | wc -l
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
