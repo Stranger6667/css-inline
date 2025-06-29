@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Remove `gson` as a dependency
+
 ## 0.15.0 - 2025-06-29
 
 - Initial public release
