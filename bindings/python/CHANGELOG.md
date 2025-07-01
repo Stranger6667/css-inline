@@ -8,6 +8,10 @@
 - Update `selectors` to `0.29`.
 - Update `html5ever` to `0.33`.
 
+### Fixed
+
+- Set `3.9` in `requires-python` key in `pyproject.toml`.
+
 ## [0.15.0] - 2025-06-17
 
 ### Changed
