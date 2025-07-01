@@ -14,11 +14,11 @@ pub mod tests {
     fn success() {
         css_inline()
             .arg("tests/example.html")
-            .arg("--output-filename-prefix=inlined.keep-style-tags.")
+            .arg("--output-filename-prefix=inlined.success.")
             .assert()
             .success()
             .stdout("tests/example.html: SUCCESS\n");
-        let content = fs::read_to_string("tests/inlined.keep-style-tags.example.html").unwrap();
+        let content = fs::read_to_string("tests/inlined.success.example.html").unwrap();
         assert_eq!(
             content,
             "<html><head>\n    \
@@ -38,15 +38,59 @@ pub mod tests {
         css_inline()
             .arg("tests/example.html")
             .arg("--keep-style-tags")
+            .arg("--output-filename-prefix=inlined.keep-style-tags.")
             .assert()
             .success()
             .stdout("tests/example.html: SUCCESS\n");
-        let content = fs::read_to_string("tests/inlined.example.html").unwrap();
+        let content = fs::read_to_string("tests/inlined.keep-style-tags.example.html").unwrap();
         assert_eq!(
             content,
             "<html><head>\n    \n    \
         <style>\n        h1 {\n            text-decoration: none;\n        }\n    </style>\n    \
         <style>\n        .test-class {\n            color: #ffffff;\n        }\n\n        a {\n            color: #17bebb;\n        }\n    </style>\n\
+        </head>\n\
+        <body>\n\
+        <a class=\"test-class\" href=\"https://example.com\" style=\"color: #ffffff;\">Test</a>\n\
+        <h1 style=\"text-decoration: none;\">Test</h1>\n\n\n\
+        </body></html>"
+        )
+    }
+
+    #[test]
+    fn dont_inline_styles() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--inline-style-tags=false")
+            .arg("--output-filename-prefix=inlined.dont-inline-styles.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+        let content = fs::read_to_string("tests/inlined.dont-inline-styles.example.html").unwrap();
+        assert_eq!(
+            content,
+            "<html><head>\n    \n    \n    \n\
+        </head>\n\
+        <body>\n\
+        <a class=\"test-class\" href=\"https://example.com\">Test</a>\n\
+        <h1>Test</h1>\n\n\n\
+        </body></html>"
+        )
+    }
+
+    #[test]
+    fn no_remote_stylesheets() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--load-remote-stylesheets=false")
+            .arg("--output-filename-prefix=inlined.no-remote-stylesheets.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+        let content =
+            fs::read_to_string("tests/inlined.no-remote-stylesheets.example.html").unwrap();
+        assert_eq!(
+            content,
+            "<html><head>\n    \n    \n    \n\
         </head>\n\
         <body>\n\
         <a class=\"test-class\" href=\"https://example.com\" style=\"color: #ffffff;\">Test</a>\n\
@@ -175,10 +219,87 @@ pub mod tests {
     }
 
     #[test_case("--help", "css-inline inlines CSS into HTML")]
+    #[test_case("-h", "css-inline inlines CSS into HTML")]
     #[test_case("--version", "css-inline")]
+    #[test_case("-v", "css-inline")]
     fn args(arg: &str, expected: &str) {
         let stdout = css_inline().arg(arg).assert().success().to_string();
         assert!(stdout.contains(expected), "{}", stdout);
+    }
+
+    #[test]
+    fn flag_requires_value_but_none_provided() {
+        css_inline()
+            .arg("--base-url")
+            .assert()
+            .failure()
+            .stderr("Error parsing arguments: Flag --base-url requires a value\n");
+    }
+
+    #[test]
+    fn invalid_multi_character_short_flag() {
+        css_inline()
+            .arg("-abc")
+            .assert()
+            .failure()
+            .stderr("Error parsing arguments: Invalid flag: -abc\n");
+    }
+
+    #[test]
+    fn keep_link_tags_flag() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--keep-link-tags")
+            .arg("--output-filename-prefix=inlined.keep-link-tags.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+    }
+
+    #[test]
+    fn unknown_short_flag() {
+        css_inline()
+            .arg("-b")
+            .assert()
+            .failure()
+            .stderr("Unknown flag: b\n");
+    }
+
+    #[test]
+    fn unknown_boolean_flag() {
+        css_inline()
+            .arg("--unknown-flag")
+            .assert()
+            .failure()
+            .stderr("Unknown flag: unknown-flag\n");
+    }
+
+    #[test]
+    fn unknown_flag_with_value() {
+        css_inline()
+            .arg("--unknown-flag=value")
+            .assert()
+            .failure()
+            .stderr("Unknown flag: --unknown-flag\n");
+    }
+
+    #[test]
+    fn invalid_boolean_value_for_flag() {
+        css_inline()
+            .arg("--inline-style-tags=invalid")
+            .assert()
+            .failure()
+            .stderr("Failed to parse value 'invalid' for flag 'inline-style-tags': provided string was not `true` or `false`\n");
+    }
+
+    #[test]
+    #[cfg(feature = "stylesheet-cache")]
+    fn invalid_numeric_value_for_cache_size() {
+        css_inline()
+        .arg("--cache-size=invalid")
+        .assert()
+        .failure()
+        .stderr("Failed to parse value 'invalid' for flag 'cache-size': invalid digit found in string\n");
     }
 }
 

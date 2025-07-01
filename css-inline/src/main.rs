@@ -126,6 +126,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ) -> Result<(), ParseError> {
         match flag {
             "inline-style-tags" => parsed.inline_style_tags = parse_value(value, flag)?,
+            "load-remote-stylesheets" => parsed.load_remote_stylesheets = parse_value(value, flag)?,
             "base-url" => parsed.base_url = Some(value.to_string()),
             "extra-css" => parsed.extra_css = Some(value.to_string()),
             "extra-css-file" => parsed.extra_css_files.push(value.to_string()),
@@ -149,7 +150,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "version" | "v" => parsed.version = true,
             "keep-style-tags" => parsed.keep_style_tags = true,
             "keep-link-tags" => parsed.keep_link_tags = true,
-            "load-remote-stylesheets" => parsed.load_remote_stylesheets = true,
             _ => {
                 return Err(ParseError {
                     message: format!("Unknown flag: {flag}"),
@@ -259,26 +259,38 @@ OPTIONS:
         if let Some(flag) = arg.strip_prefix("--") {
             // Handle --key=value format
             if let Some((flag, value)) = flag.split_once('=') {
-                handle_flag_with_value(&mut args, flag, value)?;
+                if let Err(error) = handle_flag_with_value(&mut args, flag, value) {
+                    eprintln!("{error}");
+                    std::process::exit(1);
+                }
             } else {
                 // Handle --key format (boolean or expecting value)
                 if requires_value(flag) {
                     // Expects a value
                     if let Some(value) = raw_args.next() {
-                        handle_flag_with_value(&mut args, flag, &value)?;
+                        if let Err(error) = handle_flag_with_value(&mut args, flag, &value) {
+                            eprintln!("{error}");
+                            std::process::exit(1);
+                        }
                     } else {
                         eprintln!("Error parsing arguments: Flag --{flag} requires a value");
                         std::process::exit(1);
                     }
                 } else {
                     // Boolean flag
-                    handle_boolean_flag(&mut args, flag)?;
+                    if let Err(error) = handle_boolean_flag(&mut args, flag) {
+                        eprintln!("{error}");
+                        std::process::exit(1);
+                    }
                 }
             }
         } else if let Some(flag) = arg.strip_prefix('-') {
             if flag.len() == 1 {
                 // Single character short flag
-                handle_boolean_flag(&mut args, flag)?;
+                if let Err(error) = handle_boolean_flag(&mut args, flag) {
+                    eprintln!("{error}");
+                    std::process::exit(1);
+                }
             } else {
                 eprintln!("Error parsing arguments: Invalid flag: -{flag}");
                 std::process::exit(1);
