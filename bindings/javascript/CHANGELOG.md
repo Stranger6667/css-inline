@@ -12,6 +12,10 @@
 
 - Expose `StylesheetCache` interface, `cache` config option, and `version` function.
 
+### Performance
+
+- Use interned string to compare `style` element name.
+
 ## [0.15.0] - 2025-06-24
 
 ### Changed
