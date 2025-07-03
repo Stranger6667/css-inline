@@ -12,6 +12,10 @@
 
 - Set `3.9` in `requires-python` key in `pyproject.toml`.
 
+### Performance
+
+- Use interned string to compare `style` element name.
+
 ## [0.15.0] - 2025-06-17
 
 ### Changed
