@@ -40,5 +40,6 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake-compiler", "~> 1.3.0"
   spec.add_development_dependency "benchmark-ips", "~> 2.10"
   spec.add_development_dependency "premailer", "~> 1.21"
+  spec.add_development_dependency "roadie", "~> 5.2.1"
   spec.add_development_dependency "nokogiri", "~> 1.15"
 end

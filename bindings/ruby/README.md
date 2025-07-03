@@ -205,17 +205,17 @@ Caching is disabled by default.
 
 ## Performance
 
-Leveraging efficient tools from Mozilla's Servo project, this library delivers superior performance.
-It consistently outperforms `premailer`, offering speed increases often exceeding **50 times**.
+This library uses components from Mozilla's Servo project for CSS parsing and matching.
+Performance benchmarks show 50-100x faster execution than `roadie` and `premailer`.
 
-The table below provides a detailed comparison between `css_inline` and `premailer` when inlining CSS into an HTML document (like in the Usage section above):
+The table below shows benchmark results comparing `css_inline`, `roadie`, and `premailer` on typical HTML documents:
 
-|                   | Size    | `css_inline 0.15.0` | `premailer 1.21.0 with Nokogiri 1.15.2`        | Difference |
-|-------------------|---------|---------------------|------------------------------------------------|------------|
-| Basic usage       | 230 B   | 6.11 µs             | 350.10 µs                                      | **57.24x** |
-| Realistic email 1 | 8.58 KB | 101.82 µs           | 7.99 ms                                       | **78.49x** |
-| Realistic email 2 | 4.3 KB  | 77.22 µs           | Error: Cannot parse 0 calc((100% - 500px) / 2) | -          |
-| GitHub Page       | 1.81 MB | 172.41 ms           | 2.77 s                                         | **15.97x** |
+|                   | Size    | `css_inline 0.15.0` | `roadie 5.2.1` | `premailer 1.21.0`        |
+|-------------------|---------|---------------------|----------------|---------------------------|
+| Basic usage       | 230 B   | 6.11 µs             | 175.21 µs (**28.75**) | 350.10 µs (**57.24x**) |
+| Realistic email 1 | 8.58 KB | 101.82 µs           | 721.18 µs (**6.96x**) | 7.99 ms (**78.49x**) |
+| Realistic email 2 | 4.3 KB  | 77.22 µs            | 2.02 ms (**28.48x**)  | ERROR |
+| GitHub Page       | 1.81 MB | 172.41 ms           | 8.84 s (**52.21x**)   | 2.77 s (**15.97x**) |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.87` on Ruby `3.3.5`.
