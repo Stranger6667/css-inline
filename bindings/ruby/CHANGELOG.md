@@ -5,7 +5,7 @@
 ### Changed
 
 - Update `selectors` to `0.29`.
-- Update `html5ever` to `0.33`.
+- Update `html5ever` to `0.35`.
 
 ## [0.15.2] - 2025-06-24
 

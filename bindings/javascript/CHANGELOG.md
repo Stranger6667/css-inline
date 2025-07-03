@@ -6,7 +6,7 @@
 
 - Bump MSRV to `1.75`.
 - Update `selectors` to `0.29`.
-- Update `html5ever` to `0.33`.
+- Update `html5ever` to `0.35`.
 
 ### Fixed
 
