@@ -5,7 +5,7 @@
 ### Changed
 
 - Bump MSRV to `1.75`.
-- Update `selectors` to `0.29`.
+- Update `selectors` to `0.30`.
 - Update `html5ever` to `0.35`.
 
 ### Performance

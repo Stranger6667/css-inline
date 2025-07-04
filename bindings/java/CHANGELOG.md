@@ -5,6 +5,7 @@
 ### Changed
 
 - Remove `gson` as a dependency
+- Update `selectors` to `0.30`.
 - Update `html5ever` to `0.35`.
 
 ### Performance
