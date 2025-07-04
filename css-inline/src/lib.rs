@@ -462,8 +462,8 @@ impl<'a> CSSInliner<'a> {
                             match element_styles.entry(name.as_ref()) {
                                 indexmap::map::Entry::Occupied(mut entry) => {
                                     match (
-                                        value.contains("!important"),
-                                        entry.get().1.contains("!important"),
+                                        value.ends_with("!important"),
+                                        entry.get().1.ends_with("!important"),
                                     ) {
                                         // Equal importance; the higher specificity wins.
                                         (false, false) | (true, true) => {
