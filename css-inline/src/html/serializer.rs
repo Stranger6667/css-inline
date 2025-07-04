@@ -15,6 +15,8 @@ pub(crate) fn serialize_to<W: Write>(
     styles: DocumentStyleMap<'_>,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    keep_at_rules: bool,
+    at_rules: Option<String>,
     mode: InliningMode,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
@@ -22,6 +24,8 @@ pub(crate) fn serialize_to<W: Write>(
         NodeId::document_id(),
         keep_style_tags,
         keep_link_tags,
+        keep_at_rules,
+        at_rules,
         mode,
     );
     let mut ser = HtmlSerializer::new(writer, styles);
@@ -34,6 +38,9 @@ struct Sink<'a> {
     node: NodeId,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    // TODO this is not used here but I might need it for simplifying serialization logic below   
+    keep_at_rules: bool,
+    at_rules: Option<String>,
     inlining_mode: InliningMode,
 }
 
@@ -43,6 +50,8 @@ impl<'a> Sink<'a> {
         node: NodeId,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        keep_at_rules: bool,
+        at_rules: Option<String>,
         inlining_mode: InliningMode,
     ) -> Sink<'a> {
         Sink {
@@ -50,6 +59,8 @@ impl<'a> Sink<'a> {
             node,
             keep_style_tags,
             keep_link_tags,
+            keep_at_rules,
+            at_rules,
             inlining_mode,
         }
     }
@@ -60,6 +71,8 @@ impl<'a> Sink<'a> {
             node,
             self.keep_style_tags,
             self.keep_link_tags,
+            self.keep_at_rules,
+            self.at_rules.clone(),
             self.inlining_mode,
         )
     }
@@ -113,6 +126,22 @@ impl<'a> Sink<'a> {
                 };
 
                 serializer.start_elem(&element.name, &element.attributes, style_node_id)?;
+
+                // TODO this part is the one that I don't like the most
+                if element.name.local == local_name!("head") {
+                    if let Some(at_rules) = &self.at_rules {
+                        if !at_rules.is_empty() {
+                            serializer.start_elem(
+                                &QualName::new(None, ns!(html), local_name!("style")),
+                                &Attributes::default(),
+                                None,
+                            )?;
+                            serializer.write_text(at_rules)?;
+                            serializer
+                                .end_elem(&QualName::new(None, ns!(html), local_name!("style")))?;
+                        }
+                    }
+                }
 
                 self.serialize_children(serializer)?;
 
@@ -575,6 +604,8 @@ mod tests {
             IndexMap::default(),
             true,
             false,
+            false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -594,6 +625,8 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -613,6 +646,8 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -632,6 +667,8 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -654,9 +691,13 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
     }
+    
+    // TODO adding a test case for `keep_at_rules` would be nice
 }
