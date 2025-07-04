@@ -205,7 +205,7 @@ impl selectors::Element for Element<'_> {
                         self.name().local,
                         local_name!("a") | local_name!("area") | local_name!("link")
                     )
-                    && self.attributes().contains(local_name!("href"))
+                    && self.attributes().has_href
             }
         }
     }
@@ -225,7 +225,7 @@ impl selectors::Element for Element<'_> {
                 self.name().local,
                 local_name!("a") | local_name!("area") | local_name!("link")
             )
-            && self.attributes().contains(local_name!("href"))
+            && self.attributes().has_href
     }
 
     #[inline]

@@ -128,6 +128,7 @@ pub(crate) struct Attributes {
     pub(crate) attributes: Vec<html5ever::Attribute>,
     /// The 'class' attribute value is separated for performance reasons.
     pub(crate) class: Option<Class>,
+    pub(crate) has_href: bool,
 }
 
 pub(crate) const CSS_INLINE_ATTRIBUTE: &str = "data-css-inline";
@@ -142,14 +143,33 @@ pub(super) fn should_ignore(attributes: &[html5ever::Attribute]) -> bool {
 impl Attributes {
     pub(crate) fn new(mut attributes: Vec<html5ever::Attribute>) -> Attributes {
         let mut class = None;
-        if let Some(idx) = attributes
-            .iter()
-            .position(|attr| attr.name.local == local_name!("class"))
-        {
-            let attr = attributes.swap_remove(idx);
-            class = Some(Class::new(attr.value));
+        let mut has_href = false;
+
+        let mut i = 0;
+
+        while i < attributes.len() {
+            let name = &attributes[i].name;
+
+            match name.local {
+                local_name!("class") => {
+                    let attr = attributes.swap_remove(i);
+                    class = Some(Class::new(attr.value));
+                }
+                local_name!("href") => {
+                    has_href = true;
+                    i += 1;
+                }
+                _ => {
+                    i += 1;
+                }
+            }
         }
-        Attributes { attributes, class }
+
+        Attributes {
+            attributes,
+            class,
+            has_href,
+        }
     }
 
     pub(crate) fn find(&self, needle: &QualName) -> Option<&str> {
@@ -160,11 +180,6 @@ impl Attributes {
                 None
             }
         })
-    }
-
-    /// Checks if the attributes map contains a given local name.
-    pub(crate) fn contains(&self, local: html5ever::LocalName) -> bool {
-        self.get(local).is_some()
     }
 
     /// Get the value of the attribute with the given local name, if it exists.
