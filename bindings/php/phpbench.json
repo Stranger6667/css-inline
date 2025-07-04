@@ -1,0 +1,7 @@
+{
+  "runner.bootstrap": "vendor/autoload.php",
+  "runner.path": "benchmarks",
+  "runner.php_config": {
+    "extension": "target/release/libcss_inline_php.so"
+  }
+}
