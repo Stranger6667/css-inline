@@ -1,0 +1,125 @@
+name: "[PHP] Release"
+
+on:
+  push:
+    tags:
+      - php-v*
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            php: "8.2"
+            artifact: libcss_inline_php.so
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            php: "8.3"
+            artifact: libcss_inline_php.so
+          - os: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            php: "8.4"
+            artifact: libcss_inline_php.so
+          - os: macos-15
+            target: x86_64-apple-darwin
+            php: "8.2"
+            artifact: libcss_inline_php.dylib
+            cross: true
+          - os: macos-15
+            target: x86_64-apple-darwin
+            php: "8.3"
+            artifact: libcss_inline_php.dylib
+            cross: true
+          - os: macos-15
+            target: x86_64-apple-darwin
+            php: "8.4"
+            artifact: libcss_inline_php.dylib
+            cross: true
+          - os: macos-15
+            target: aarch64-apple-darwin
+            php: "8.2"
+            artifact: libcss_inline_php.dylib
+          - os: macos-15
+            target: aarch64-apple-darwin
+            php: "8.3"
+            artifact: libcss_inline_php.dylib
+          - os: macos-15
+            target: aarch64-apple-darwin
+            php: "8.4"
+            artifact: libcss_inline_php.dylib
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.cross && matrix.target || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: bindings/php
+          cache-all-crates: "true"
+
+      - name: Build
+        run: |
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cargo build --release --target ${{ matrix.target }}
+          else
+            cargo build --release
+          fi
+        working-directory: bindings/php
+
+      - name: Rename artifact
+        run: |
+          mkdir -p dist
+          if [ "${{ matrix.cross }}" = "true" ]; then
+            cp bindings/php/target/${{ matrix.target }}/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
+          else
+            cp bindings/php/target/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: css_inline-php${{ matrix.php }}-${{ matrix.target }}
+          path: dist/
+
+  release:
+    needs: build
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Extract Version
+        run: echo "version=${GITHUB_REF#refs/tags/php-v}" >> $GITHUB_ENV
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List artifacts
+        run: ls -la artifacts/
+
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          make_latest: false
+          draft: true
+          name: "[PHP] Release ${{ env.version }}"
+          files: artifacts/*

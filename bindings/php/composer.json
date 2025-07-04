@@ -1,0 +1,33 @@
+{
+  "name": "css-inline/php",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
+  "type": "library",
+  "license": "MIT",
+  "require": {
+    "php": ">=8.2",
+    "ext-css_inline": "*"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.65",
+    "pelago/emogrifier": "^7.3",
+    "phpbench/phpbench": "^1.4",
+    "phpunit/phpunit": "^10.5",
+    "tijsverkoyen/css-to-inline-styles": "^2.3"
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "CssInline\\Tests\\": "tests/CssInlineTest"
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "bench": "EXT=$(if [ \"$(uname)\" = \"Darwin\" ]; then echo 'dylib'; else echo 'so'; fi) && phpbench run --report=default --iterations=10 --revs=100 --php-config='{\"extension\": \"target/release/libcss_inline_php.'$EXT'\"}'",
+    "fmt": "php-cs-fixer fix",
+    "lint": "php-cs-fixer fix --dry-run --diff"
+  },
+  "config": {
+    "sort-packages": true,
+    "optimize-autoloader": true,
+    "process-timeout": 0
+  }
+}
