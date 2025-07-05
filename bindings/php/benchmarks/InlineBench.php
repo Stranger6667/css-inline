@@ -5,7 +5,7 @@ namespace CssInline\Benchmarks;
 use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
 use CssInline;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
-
+use Pelago\Emogrifier\CssInliner;
 
 class InlineBench
 {
@@ -16,6 +16,7 @@ class InlineBench
         $this->cssToInlineStyles = new CssToInlineStyles();
         ini_set('pcre.backtrack_limit', '10000000');
         ini_set('pcre.recursion_limit', '10000000');
+        ini_set('memory_limit', '2048M');
     }
 
     /**
@@ -32,6 +33,14 @@ class InlineBench
     public function benchCssToInlineStyles(array $params): void
     {
         $this->cssToInlineStyles->convert($params['html']);
+    }
+
+    /**
+     * @ParamProviders("provideBenchmarkCases")
+     */
+    public function benchEmogrifier(array $params): void
+    {
+        CssInliner::fromHtml($params['html'])->inlineCss()->render();
     }
 
 

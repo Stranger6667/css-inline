@@ -9,18 +9,16 @@
 ## Performance
 
 This library uses components from Mozilla's Servo project for CSS parsing and matching.
-Performance benchmarks show 3-9x faster execution than `tijsverkoyen/css-to-inline-styles`.
+Performance benchmarks show significant speed improvements over other popular PHP CSS inlining libraries.
 
-The table below shows benchmark results comparing `css_inline` with `tijsverkoyen/css-to-inline-styles` on typical HTML documents:
+|                   | Size    | `css_inline 0.15.0` | `css-to-inline-styles 2.3.0` | `emogrifier 7.3.0`      |
+|-------------------|---------|---------------------|------------------------------|-------------------------|
+| Simple            | 230 B   | 5.99 µs             | 28.06 µs (**4.68x**)         | 137.85 µs (**23.01x**)  |
+| Realistic email 1 | 8.58 KB | 102.25 µs           | 313.31 µs (**3.06x**)        | 637.75 µs (**6.24x**)   |
+| Realistic email 2 | 4.3 KB  | 71.98 µs            | 655.43 µs (**9.10x**)        | 2.32 ms (**32.21x**)    |
+| GitHub Page†      | 1.81 MB | 163.80 ms           | ERROR                        | ERROR                   |
 
-|                   | Size    | `css_inline 0.15.0` | `tijsverkoyen/css-to-inline-styles 2.2.7` | Speedup |
-|-------------------|---------|---------------------|-------------------------------------------|---------|
-| Simple            | 230 B   | 5.99 µs             | 28.06 µs                                  | **4.68x** |
-| Realistic email 1 | 8.58 KB | 102.25 µs           | 313.31 µs                                 | **3.06x** |
-| Realistic email 2 | 4.3 KB  | 71.98 µs            | 655.43 µs                                 | **9.10x** |
-| GitHub Page†      | 1.81 MB | 163.80 ms           | 8.22 ms*                                  | N/A |
-
-> † The GitHub page benchmark uses modern CSS that `tijsverkoyen/css-to-inline-styles` cannot process, resulting in skipped styles and an invalid comparison.
+† The GitHub page benchmark contains complex modern CSS that neither `css-to-inline-styles` nor `emogrifier` can process and didn't finish a single iteration in >10 minutes.
 
 Please refer to the `benchmarks/InlineBench.php` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.88` on PHP `8.4.10`.
