@@ -585,20 +585,29 @@ jobs:
           EXT_DIR=$(php -r "echo ini_get('extension_dir');")
 
           if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-            BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
+            BUILT_LIB=$(find target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
+            if [[ -z "$BUILT_LIB" ]]; then
+              BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
+            fi
+            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           else
             BUILT_LIB=$(find target/release -name "*.so" | head -1)
+            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           fi
-          sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
         working-directory: ./bindings/php
         shell: bash
 
       - name: Enable and verify extension
         run: |
           if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-            PHP_INI=$(php -i | grep "Loaded Configuration File" | cut -d' ' -f9)
-            PHP_INI_DIR=$(dirname "$PHP_INI")/conf.d
-            sudo mkdir -p "$PHP_INI_DIR"
+            # On macOS, find the additional ini directory
+            PHP_INI_DIR=$(php -i | grep "Scan this dir for additional .ini files" | cut -d' ' -f9 | tr -d ' ')
+            if [[ -z "$PHP_INI_DIR" || "$PHP_INI_DIR" == "(none)" ]]; then
+              # If no scan dir, use the main php.ini location
+              PHP_INI=$(php -i | grep "Loaded Configuration File" | cut -d' ' -f9)
+              PHP_INI_DIR=$(dirname "$PHP_INI")/conf.d
+              sudo mkdir -p "$PHP_INI_DIR"
+            fi
             echo "extension=css_inline" | sudo tee "$PHP_INI_DIR/99-css_inline.ini"
           else
             echo "extension=css_inline" | sudo tee /etc/php/${{ matrix.php-version }}/cli/conf.d/99-css_inline.ini
