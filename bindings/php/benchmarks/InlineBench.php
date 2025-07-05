@@ -6,7 +6,6 @@ use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
 use CssInline;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
-ini_set('pcre.backtrack_limit', 1000000);
 
 class InlineBench
 {
@@ -15,6 +14,8 @@ class InlineBench
     public function __construct()
     {
         $this->cssToInlineStyles = new CssToInlineStyles();
+        ini_set('pcre.backtrack_limit', '10000000');
+        ini_set('pcre.recursion_limit', '10000000');
     }
 
     /**

@@ -585,11 +585,15 @@ jobs:
           EXT_DIR=$(php -r "echo ini_get('extension_dir');")
 
           if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-            BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
+            BUILT_LIB=$(find target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
+            if [[ -z "$BUILT_LIB" ]]; then
+              BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
+            fi
+            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           else
             BUILT_LIB=$(find target/release -name "*.so" | head -1)
+            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           fi
-          sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
         working-directory: ./bindings/php
         shell: bash
 
