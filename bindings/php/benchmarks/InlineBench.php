@@ -6,6 +6,8 @@ use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
 use CssInline;
 use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
+ini_set('pcre.backtrack_limit', 1000000);
+
 class InlineBench
 {
     private CssToInlineStyles $cssToInlineStyles;

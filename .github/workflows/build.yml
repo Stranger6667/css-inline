@@ -541,17 +541,10 @@ jobs:
 
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-    env:
-      CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: bindings/php
 
       - name: Cache LLVM and Clang
         id: cache-llvm
@@ -585,71 +578,31 @@ jobs:
 
       - name: Build PHP extension
         run: |
-          # Export PHP configuration for ext-php-rs
           export PHP_CONFIG=$(which php-config)
-          
+
           cargo build --release
-          
-          # Get PHP extension directory
+
           EXT_DIR=$(php -r "echo ini_get('extension_dir');")
-          
-          # Find the built library - ext-php-rs names it differently on different platforms
+
           if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-            # On macOS, look for .dylib files
-            BUILT_LIB=$(find target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
-            if [[ -z "$BUILT_LIB" ]]; then
-              # Fallback: any .dylib file
-              BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
-            fi
-            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
+            BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
           else
-            # On Linux, look for .so files
-            BUILT_LIB=$(find target/release -name "libcss_inline_php.so" -o -name "css_inline_php.so" | head -1)
-            if [[ -z "$BUILT_LIB" ]]; then
-              # Fallback: any .so file
-              BUILT_LIB=$(find target/release -name "*.so" | head -1)
-            fi
-            sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
+            BUILT_LIB=$(find target/release -name "*.so" | head -1)
           fi
-          
-          echo "Built library: $BUILT_LIB"
-          echo "Installed to: $EXT_DIR/css_inline.so"
-          
-          # Verify the file exists and has correct permissions
-          ls -la "$EXT_DIR/css_inline.so"
+          sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
         working-directory: ./bindings/php
         shell: bash
 
       - name: Enable and verify extension
         run: |
-          # Create ini file to load extension
           if [[ "${{ matrix.os }}" == "macos-13" ]]; then
-            # On macOS, find the additional ini directory
-            PHP_INI_DIR=$(php -i | grep "Scan this dir for additional .ini files" | cut -d' ' -f9 | tr -d ' ')
-            if [[ -z "$PHP_INI_DIR" || "$PHP_INI_DIR" == "(none)" ]]; then
-              # If no scan dir, use the main php.ini location
-              PHP_INI=$(php -i | grep "Loaded Configuration File" | cut -d' ' -f9)
-              PHP_INI_DIR=$(dirname "$PHP_INI")/conf.d
-              sudo mkdir -p "$PHP_INI_DIR"
-            fi
+            PHP_INI=$(php -i | grep "Loaded Configuration File" | cut -d' ' -f9)
+            PHP_INI_DIR=$(dirname "$PHP_INI")/conf.d
+            sudo mkdir -p "$PHP_INI_DIR"
             echo "extension=css_inline" | sudo tee "$PHP_INI_DIR/99-css_inline.ini"
           else
             echo "extension=css_inline" | sudo tee /etc/php/${{ matrix.php-version }}/cli/conf.d/99-css_inline.ini
           fi
-          
-          # Verify extension is loaded
-          php -m | grep -i css_inline || (
-            echo "Extension failed to load. Debugging info:"
-            echo "PHP Version:"
-            php -v
-            echo "Extension dir contents:"
-            ls -la $(php -r "echo ini_get('extension_dir');")
-            echo "PHP info grep for css_inline:"
-            php -i | grep -i css_inline || true
-            echo "Try loading directly:"
-            php -d "extension=$(php -r 'echo ini_get("extension_dir");')/css_inline.so" -m | grep -i css_inline || true
-            exit 1
-          )
         shell: bash
 
       - name: Install dependencies
