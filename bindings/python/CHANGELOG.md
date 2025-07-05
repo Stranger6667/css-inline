@@ -11,10 +11,12 @@
 ### Fixed
 
 - Set `3.9` in `requires-python` key in `pyproject.toml`.
+- Ignored `!important` that has insignificant whitespace after it.
 
 ### Performance
 
 - Use interned string to compare `style` element name.
+- Only check the value suffix for `!important`.
 
 ## [0.15.0] - 2025-06-17
 

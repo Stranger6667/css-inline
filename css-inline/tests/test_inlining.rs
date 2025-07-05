@@ -247,6 +247,15 @@ fn important() {
 }
 
 #[test]
+fn important_with_space_at_the_end() {
+    assert_inlined!(
+        style = "h1 { color: blue !important  ; }",
+        body = r#"<h1 style="color: red;">Big Text</h1>"#,
+        expected = r#"<h1 style="color: blue">Big Text</h1>"#
+    )
+}
+
+#[test]
 fn important_no_rule_exists() {
     // `!important` rules should override existing inline styles
     assert_inlined!(
