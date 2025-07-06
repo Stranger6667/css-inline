@@ -26,7 +26,6 @@ class CssInlineTest extends TestCase
     public function testCSSInlinerWithExtraCss(): void
     {
         $inliner = new CSSInliner(
-            base_url: null,
             extra_css: 'p { color: green; }'
         );
 

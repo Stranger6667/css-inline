@@ -9,7 +9,7 @@ name = "css_inline_php"
 crate-type = ["cdylib"]
 
 [dependencies]
-ext-php-rs = "0.14"
+ext-php-rs = "0.14.1"
 
 [dependencies.css-inline]
 path = "../../css-inline"

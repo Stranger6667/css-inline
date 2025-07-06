@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, num::NonZeroUsize, sync::Mutex};
 
 use ext_php_rs::{exception::PhpException, prelude::*, zend::ce};
 
@@ -10,6 +10,22 @@ pub struct InlineError;
 
 fn from_error<E: Display>(error: E) -> PhpException {
     PhpException::from_class::<InlineError>(error.to_string())
+}
+
+#[php_class]
+#[php(name = "CssInline\\StylesheetCache")]
+pub struct StylesheetCache {
+    size: NonZeroUsize,
+}
+
+#[php_impl]
+impl StylesheetCache {
+    pub fn __construct(size: usize) -> PhpResult<StylesheetCache> {
+        let size = NonZeroUsize::new(size).ok_or_else(|| {
+            PhpException::default("Cache size must be an integer greater than zero".to_string())
+        })?;
+        Ok(StylesheetCache { size })
+    }
 }
 
 #[php_class]
@@ -25,6 +41,10 @@ impl CssInliner {
         keep_style_tags = false,
         keep_link_tags = false,
         load_remote_stylesheets = true,
+        base_url = None,
+        extra_css = None,
+        preallocate_node_capacity = 32_usize,
+        cache = None,
     ))]
     #[php(optional = inline_style_tags)]
     pub fn __construct(
@@ -34,9 +54,17 @@ impl CssInliner {
         load_remote_stylesheets: bool,
         base_url: Option<String>,
         extra_css: Option<String>,
+        preallocate_node_capacity: usize,
+        cache: Option<&StylesheetCache>,
     ) -> PhpResult<CssInliner> {
         let base_url = if let Some(url) = base_url {
             Some(css_inline::Url::parse(&url).map_err(from_error)?)
+        } else {
+            None
+        };
+
+        let cache = if let Some(cache) = cache {
+            Some(Mutex::new(css_inline::StylesheetCache::new(cache.size)))
         } else {
             None
         };
@@ -48,6 +76,8 @@ impl CssInliner {
             base_url,
             load_remote_stylesheets,
             extra_css: extra_css.map(Into::into),
+            preallocate_node_capacity,
+            cache,
             ..Default::default()
         };
 
@@ -81,6 +111,7 @@ pub fn inline_fragment(fragment: &str, css: &str) -> PhpResult<String> {
 pub fn get_module(module: ModuleBuilder) -> ModuleBuilder {
     module
         .class::<InlineError>()
+        .class::<StylesheetCache>()
         .class::<CssInliner>()
         .function(wrap_function!(inline))
         .function(wrap_function!(inline_fragment))
