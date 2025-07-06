@@ -25,6 +25,8 @@ impl CssInliner {
         keep_style_tags = false,
         keep_link_tags = false,
         load_remote_stylesheets = true,
+        base_url = None,
+        extra_css = None,
     ))]
     #[php(optional = inline_style_tags)]
     pub fn __construct(
