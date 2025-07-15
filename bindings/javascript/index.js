@@ -246,10 +246,14 @@ switch (platform) {
 }
 
 if (!nativeBinding) {
-  if (loadError) {
-    throw loadError
+  try {
+    nativeBinding = require('@css-inline/css-inline-wasm');
+  } catch (e) {
+    if (loadError) {
+      throw loadError;
+    }
+    throw e;
   }
-  throw new Error(`Failed to load native binding`)
 }
 
 const { inline, inlineFragment, version } = nativeBinding
