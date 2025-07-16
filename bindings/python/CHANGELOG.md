@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-07-16
+
 ### Changed
 
 - Bump MSRV to `1.75`.
@@ -480,7 +482,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.15.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.16.0...HEAD
+[0.16.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.15.0...python-v0.16.0
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.6...python-v0.15.0
 [0.14.6]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.5...python-v0.14.6
 [0.14.5]: https://github.com/Stranger6667/css-inline/compare/python-v0.14.4...python-v0.14.5
