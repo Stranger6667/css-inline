@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-07-16
+
 ### Changed
 
 - Remove `gson` as a dependency
@@ -21,4 +23,5 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.15.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.16.0...HEAD
+[0.16.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.15.0...java-v0.16.0
