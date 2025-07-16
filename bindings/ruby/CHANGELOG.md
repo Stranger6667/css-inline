@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-07-16
+
 ### Changed
 
 - Update `selectors` to `0.30`.
@@ -209,7 +211,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.16.0...HEAD
+[0.16.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.2...ruby-v0.16.0
 [0.15.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.1...ruby-v0.15.2
 [0.15.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.15.0...ruby-v0.15.1
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.14.3...ruby-v0.15.0

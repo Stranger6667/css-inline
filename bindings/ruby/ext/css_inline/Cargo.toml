@@ -1,6 +1,6 @@
 [package]
 name = "css-inline"
-version = "0.15.2"
+version = "0.16.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 readme = "README.rdoc"
@@ -20,6 +20,6 @@ magnus = "0.7"
 rayon = "1"
 
 [dependencies.css-inline]
-version = "0.15"
+version = "0.16"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
