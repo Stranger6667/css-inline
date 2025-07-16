@@ -7,6 +7,7 @@
 - Bump MSRV to `1.75`.
 - Update `selectors` to `0.30`.
 - Update `html5ever` to `0.35`.
+- Fallback to WASM when native bindings are missing.
 
 ### Fixed
 
