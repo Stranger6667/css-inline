@@ -551,6 +551,15 @@ jobs:
           cache-version: v1
           working-directory: ./bindings/ruby
 
+      - name: Setup LLVM & Clang
+        id: clang
+        uses: KyleMayes/install-llvm-action@v2
+        if: matrix.os == 'windows-2022'
+        with:
+          version: 18
+          directory: ${{ runner.temp }}/llvm-18
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
+
       - uses: actions/setup-python@v5
         with:
           python-version: 3.11
@@ -587,6 +596,15 @@ jobs:
           cargo-cache: true
           cache-version: v1
           working-directory: ./bindings/ruby
+
+      - name: Setup LLVM & Clang
+        id: clang
+        uses: KyleMayes/install-llvm-action@v2
+        if: matrix.os == 'windows-2022'
+        with:
+          version: 18
+          directory: ${{ runner.temp }}/llvm-18
+          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Build gem
         run: |
