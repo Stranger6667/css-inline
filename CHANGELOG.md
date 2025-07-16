@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.16.0] - 2025-07-16
+
 ### Added
 
 - **CLI**: `--extra-css-file` option to load additional CSS from files. [#67](https://github.com/Stranger6667/css-inline/pull/67)
@@ -449,7 +451,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.15.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.16.0...HEAD
+[0.16.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.15.0...rust-v0.16.0
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.5...rust-v0.15.0
 [0.14.5]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.4...rust-v0.14.5
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/rust-v0.14.3...rust-v0.14.4

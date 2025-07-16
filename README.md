@@ -54,7 +54,7 @@ To include it in your project, add the following line to the dependencies sectio
 
 ```toml
 [dependencies]
-css-inline = "0.15"
+css-inline = "0.16"
 ```
 
 The Minimum Supported Rust Version is 1.75.
@@ -238,12 +238,12 @@ Caching is disabled by default.
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.15.0`:
+Benchmarks for `css-inline==0.16.0`:
 
-- Basic: **4.31 µs**, 230 bytes
-- Realistic-1: **85.18 µs**, 8.58 KB
-- Realistic-2: **59.70 µs**, 4.3 KB
-- GitHub page: **146.75 ms**, 1.81 MB
+- Basic: **4.14 µs**, 230 bytes
+- Realistic-1: **82.08 µs**, 8.58 KB
+- Realistic-2: **57.69 µs**, 4.3 KB
+- GitHub page: **142.30 ms**, 1.81 MB
 
 These benchmarks, conducted using `rustc 1.87` on Ryzen 9 9950X, can be found in `css-inline/benches/inliner.rs`.
 
