@@ -452,7 +452,6 @@ impl<'a> CSSInliner<'a> {
             {
                 rule_list.push(rule);
             }
-            // TODO debug it
             Some(at_rules)
         } else {
             for rule in cssparser::StyleSheetParser::new(
@@ -521,8 +520,7 @@ impl<'a> CSSInliner<'a> {
             styles,
             self.options.keep_style_tags,
             self.options.keep_link_tags,
-            self.options.keep_at_rules,
-            at_rules,
+            at_rules.as_ref(),
             mode,
         )?;
         Ok(())

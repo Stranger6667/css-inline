@@ -123,8 +123,7 @@ pub(crate) fn hash_class_name(name: &[u8]) -> u64 {
 }
 
 /// A collection of HTML attributes.
-// TODO there must be a way for not having to instantiate Attributes class, see serializer.rs
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub(crate) struct Attributes {
     pub(crate) attributes: Vec<html5ever::Attribute>,
     /// The 'class' attribute value is separated for performance reasons.
