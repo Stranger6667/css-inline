@@ -584,7 +584,10 @@ fn invalid_rule(style: &str, expected: &str) {
 
 #[test]
 fn remove_style_tag() {
-    let html = html!("@media (max-width: 600px) { h1 { font-size: 18px; } }\nh1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!(
+        "@media (max-width: 600px) { h1 { font-size: 18px; } }\nh1 {background-color: blue;}",
+        "<h1>Hello world!</h1>"
+    );
     let result = inline(&html).unwrap();
     assert_eq!(result, "<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }
