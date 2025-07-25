@@ -172,6 +172,16 @@ impl Attributes {
         let needle = QualName::new(None, ns!(), local);
         self.find(&needle)
     }
+
+    pub(crate) fn get_css_inline(&self) -> Option<&str> {
+        self.attributes.iter().find_map(|probe| {
+            if probe.name.local == *CSS_INLINE_ATTRIBUTE {
+                Some(&*probe.value)
+            } else {
+                None
+            }
+        })
+    }
 }
 
 #[cfg(test)]

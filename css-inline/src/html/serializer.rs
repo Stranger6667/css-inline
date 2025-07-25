@@ -76,8 +76,7 @@ impl<'a> Sink<'a> {
     #[inline]
     fn should_skip_element(&self, element: &ElementData) -> bool {
         if element.name.local == local_name!("style") {
-            !self.keep_style_tags
-                && element.attributes.get("data-css-inline".into()) != Some("keep")
+            !self.keep_style_tags && element.attributes.get_css_inline() != Some("keep")
         } else if element.name.local == local_name!("link")
             && element.attributes.get(local_name!("rel")) == Some("stylesheet")
         {
@@ -135,7 +134,7 @@ impl<'a> Sink<'a> {
             }
             NodeData::Document => self.serialize_children(serializer),
             NodeData::Doctype { name } => serializer.write_doctype(name),
-            NodeData::Text { text: content } => serializer.write_text(content),
+            NodeData::Text { text } => serializer.write_text(text),
             NodeData::Comment { text } => serializer.write_comment(text),
             NodeData::ProcessingInstruction { target, data } => {
                 serializer.write_processing_instruction(target, data)
@@ -299,7 +298,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             }
             self.writer.write_all(b"\"")?;
         }
-        if let Some(styles) = &styles {
+        if let Some(styles) = styles {
             self.writer.write_all(b" style=\"")?;
             for (property, (_, value)) in styles {
                 write_declaration(&mut self.writer, property, value)?;
