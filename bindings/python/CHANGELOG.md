@@ -9,6 +9,7 @@
 ### Performance
 
 - Avoid unnecessary check for double quotes.
+- Avoid creating an unnecessary string cache entry.
 
 ## [0.16.0] - 2025-07-16
 
