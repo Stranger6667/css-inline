@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `keep_at_rules` option [#256](https://github.com/Stranger6667/css-inline/pull/485)
+
 ## [0.16.0] - 2025-07-16
 
 ### Added
