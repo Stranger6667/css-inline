@@ -407,28 +407,24 @@ fn write_declaration<Wr: Write>(
 #[inline]
 fn write_declaration_value<Wr: Write>(writer: &mut Wr, value: &str) -> Result<(), InlineError> {
     let value = value.trim();
-    if value.as_bytes().contains(&b'"') {
-        // Roughly based on `str::replace`
-        let mut last_end = 0;
-        for (start, part) in value.match_indices('"') {
-            writer.write_all(
-                value
-                    .get(last_end..start)
-                    .expect("Invalid substring")
-                    .as_bytes(),
-            )?;
-            writer.write_all(b"'")?;
-            last_end = start.checked_add(part.len()).expect("Size overflow");
-        }
+    // Roughly based on `str::replace`
+    let mut last_end = 0;
+    for (start, part) in value.match_indices('"') {
         writer.write_all(
             value
-                .get(last_end..value.len())
+                .get(last_end..start)
                 .expect("Invalid substring")
                 .as_bytes(),
         )?;
-    } else {
-        writer.write_all(value.as_bytes())?;
+        writer.write_all(b"'")?;
+        last_end = start.checked_add(part.len()).expect("Size overflow");
     }
+    writer.write_all(
+        value
+            .get(last_end..value.len())
+            .expect("Invalid substring")
+            .as_bytes(),
+    )?;
     Ok(())
 }
 
