@@ -52,6 +52,7 @@ fn parse_options<Req>(
             Option<bool>,
             Option<bool>,
             Option<bool>,
+            Option<bool>,
             Option<String>,
             Option<bool>,
             Option<Obj<StylesheetCache>>,
@@ -66,6 +67,7 @@ fn parse_options<Req>(
             "inline_style_tags",
             "keep_style_tags",
             "keep_link_tags",
+            "keep_at_rules",
             "base_url",
             "load_remote_stylesheets",
             "cache",
@@ -78,13 +80,14 @@ fn parse_options<Req>(
         inline_style_tags: kwargs.0.unwrap_or(true),
         keep_style_tags: kwargs.1.unwrap_or(false),
         keep_link_tags: kwargs.2.unwrap_or(false),
-        base_url: parse_url(kwargs.3)?,
-        load_remote_stylesheets: kwargs.4.unwrap_or(true),
+        keep_at_rules: kwargs.3.unwrap_or(false),
+        base_url: parse_url(kwargs.4)?,
+        load_remote_stylesheets: kwargs.5.unwrap_or(true),
         cache: kwargs
-            .5
+            .6
             .map(|cache| Mutex::new(rust_inline::StylesheetCache::new(cache.size))),
-        extra_css: kwargs.6.map(Cow::Owned),
-        preallocate_node_capacity: kwargs.7.unwrap_or(32),
+        extra_css: kwargs.7.map(Cow::Owned),
+        preallocate_node_capacity: kwargs.8.unwrap_or(32),
         resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
     })
 }

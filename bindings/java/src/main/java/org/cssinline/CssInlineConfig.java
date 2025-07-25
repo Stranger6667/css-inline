@@ -11,6 +11,9 @@ public class CssInlineConfig {
 	/** Keep "link" tags after inlining. */
 	public final boolean keepLinkTags;
 
+	/** Keep "at-rules" after inlining. */
+	public final boolean keepAtRules;
+
 	/** Whether remote stylesheets should be loaded or not. */
 	public final boolean loadRemoteStylesheets;
 
@@ -27,11 +30,12 @@ public class CssInlineConfig {
 	public final int preallocateNodeCapacity;
 
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
-			boolean loadRemoteStylesheets, String baseUrl, String extraCss, int cacheSize,
+			boolean keepAtRules, boolean loadRemoteStylesheets, String baseUrl, String extraCss, int cacheSize,
 			int preallocateNodeCapacity) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
+		this.keepAtRules = keepAtRules;
 		this.loadRemoteStylesheets = loadRemoteStylesheets;
 		this.baseUrl = baseUrl;
 		this.extraCss = extraCss;
@@ -46,6 +50,7 @@ public class CssInlineConfig {
 		private boolean inlineStyleTags = true;
 		private boolean keepStyleTags = false;
 		private boolean keepLinkTags = false;
+		private boolean keepAtRules = false;
 		private boolean loadRemoteStylesheets = true;
 		private String baseUrl = null;
 		private String extraCss = null;
@@ -91,6 +96,17 @@ public class CssInlineConfig {
 		 */
 		public Builder setKeepLinkTags(boolean b) {
 			this.keepLinkTags = b;
+			return this;
+		}
+
+		/**
+		 * Keep "at-rules" after inlining.
+		 *
+		 * @param b true to preserve at-rules, false to remove them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setKeepAtRules(boolean b) {
+			this.keepAtRules = b;
 			return this;
 		}
 
@@ -168,7 +184,7 @@ public class CssInlineConfig {
 		 * @return a new immutable configuration instance
 		 */
 		public CssInlineConfig build() {
-			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, loadRemoteStylesheets, baseUrl,
+			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, loadRemoteStylesheets, baseUrl,
 					extraCss, cacheSize, preallocateNodeCapacity);
 		}
 	}

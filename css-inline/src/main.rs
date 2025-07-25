@@ -233,7 +233,7 @@ OPTIONS:
         Keep "link" tags after inlining.
         
     --keep-at-rules
-        Keep "@..." rules after inlining.
+        Keep "at-rules" after inlining.
 
     --base-url
         Used for loading external stylesheets via relative URLs.

@@ -74,6 +74,7 @@ const INLINE: &'static str = r#"export interface InlineOptions {
     inlineStyleTags?: boolean,
     keepStyleTags?: boolean,
     keepLinkTags?: boolean,
+    keepAtRules?: boolean,
     baseUrl?: string,
     loadRemoteStylesheets?: boolean,
     extraCss?: string,

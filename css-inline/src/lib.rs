@@ -62,7 +62,7 @@ pub struct InlineOptions<'a> {
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
     pub keep_link_tags: bool,
-    /// Keep "@..." and wrap them into a "style" tag.
+    /// Keep "at-rules" after inlining.
     pub keep_at_rules: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
@@ -125,7 +125,7 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
-    /// Override whether "@..." rules should be kept after processing.
+    /// Override whether "at-rules" should be kept after processing.
     #[must_use]
     pub fn keep_at_rules(mut self, keep_at_rules: bool) -> Self {
         self.keep_at_rules = keep_at_rules;
