@@ -98,3 +98,81 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSDeclarationListParser {
     type QualifiedRule = Declaration<'i>;
     type Error = ();
 }
+
+pub(crate) struct AtRuleFilteringParser<'d, 'i, 'o> {
+    declarations: &'d mut Vec<Declaration<'i>>,
+    at_rules: &'o mut String,
+}
+
+impl<'d, 'i, 'o> AtRuleFilteringParser<'d, 'i, 'o> {
+    #[inline]
+    pub(crate) fn new(
+        declarations: &'d mut Vec<Declaration<'i>>,
+        at_rules: &'o mut String,
+    ) -> AtRuleFilteringParser<'d, 'i, 'o> {
+        AtRuleFilteringParser {
+            declarations,
+            at_rules,
+        }
+    }
+}
+
+impl<'i> cssparser::QualifiedRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
+    type Prelude = &'i str;
+    type QualifiedRule = QualifiedRule<'i>;
+    type Error = ();
+
+    fn parse_prelude<'t>(
+        &mut self,
+        input: &mut cssparser::Parser<'i, 't>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        Ok(exhaust(input))
+    }
+
+    fn parse_block<'t>(
+        &mut self,
+        prelude: Self::Prelude,
+        _: &ParserState,
+        input: &mut cssparser::Parser<'i, 't>,
+    ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
+        let mut parser = CSSDeclarationListParser;
+        let parser = cssparser::RuleBodyParser::new(input, &mut parser);
+        let start = self.declarations.len();
+        for item in parser.flatten() {
+            self.declarations.push(item);
+        }
+        Ok((prelude, (start, self.declarations.len())))
+    }
+}
+
+impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
+    type Prelude = &'i str;
+    type AtRule = QualifiedRule<'i>;
+    type Error = ();
+
+    fn parse_prelude<'t>(
+        &mut self,
+        name: cssparser::CowRcStr<'i>,
+        input: &mut cssparser::Parser<'i, 't>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        // TODO pushing @ feels odd, there should be a less dumb way of doing it?
+        self.at_rules.push_str("@");
+        self.at_rules.push_str(&name);
+        Ok(exhaust(input))
+    }
+
+    fn parse_block<'t>(
+        &mut self,
+        prelude: Self::Prelude,
+        _start: &ParserState,
+        input: &mut cssparser::Parser<'i, 't>,
+    ) -> Result<Self::AtRule, cssparser::ParseError<'i, Self::Error>> {
+        // TODO same here, pushing braces manually feels odd
+        let start = self.declarations.len();
+        self.at_rules.push_str(prelude);
+        self.at_rules.push_str(" {");
+        self.at_rules.push_str(exhaust(input));
+        self.at_rules.push_str("}");
+        Ok((prelude, (start, self.declarations.len())))
+    }
+}

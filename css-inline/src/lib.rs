@@ -62,6 +62,8 @@ pub struct InlineOptions<'a> {
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
     pub keep_link_tags: bool,
+    /// Keep "@..." and wrap them into a "style" tag.
+    pub keep_at_rules: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not.
@@ -120,6 +122,13 @@ impl<'a> InlineOptions<'a> {
     #[must_use]
     pub fn keep_link_tags(mut self, keep_link_tags: bool) -> Self {
         self.keep_link_tags = keep_link_tags;
+        self
+    }
+
+    /// Override whether "@..." rules should be kept after processing.
+    #[must_use]
+    pub fn keep_at_rules(mut self, keep_at_rules: bool) -> Self {
+        self.keep_at_rules = keep_at_rules;
         self
     }
 
@@ -184,6 +193,7 @@ impl Default for InlineOptions<'_> {
             inline_style_tags: true,
             keep_style_tags: false,
             keep_link_tags: false,
+            keep_at_rules: false,
             base_url: None,
             load_remote_stylesheets: true,
             #[cfg(feature = "stylesheet-cache")]
@@ -432,14 +442,29 @@ impl<'a> CSSInliner<'a> {
                 .max(16),
         );
         let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
-        for rule in cssparser::StyleSheetParser::new(
-            &mut parser,
-            &mut parser::CSSRuleListParser::new(&mut declarations),
-        )
-        .flatten()
-        {
-            rule_list.push(rule);
-        }
+        let at_rules = if self.options.keep_at_rules {
+            let mut at_rules = String::new();
+            for rule in cssparser::StyleSheetParser::new(
+                &mut parser,
+                &mut parser::AtRuleFilteringParser::new(&mut declarations, &mut at_rules),
+            )
+            .flatten()
+            {
+                rule_list.push(rule);
+            }
+            // TODO debug it
+            Some(at_rules)
+        } else {
+            for rule in cssparser::StyleSheetParser::new(
+                &mut parser,
+                &mut parser::CSSRuleListParser::new(&mut declarations),
+            )
+            .flatten()
+            {
+                rule_list.push(rule);
+            }
+            None
+        };
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
         for (selectors, (start, end)) in &rule_list {
@@ -496,6 +521,8 @@ impl<'a> CSSInliner<'a> {
             styles,
             self.options.keep_style_tags,
             self.options.keep_link_tags,
+            self.options.keep_at_rules,
+            at_rules,
             mode,
         )?;
         Ok(())

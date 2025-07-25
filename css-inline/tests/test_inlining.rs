@@ -584,7 +584,7 @@ fn invalid_rule(style: &str, expected: &str) {
 
 #[test]
 fn remove_style_tag() {
-    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!("@media (max-width: 600px) { h1 { font-size: 18px; } }\nh1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let result = inline(&html).unwrap();
     assert_eq!(result, "<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>")
 }
@@ -598,6 +598,7 @@ fn remove_multiple_style_tags() {
 h1 {
     text-decoration: none;
 }
+@media (max-width: 600px) { h1 { font-size: 18px; } }
 </style>
 <style>
 .test-class {
@@ -907,6 +908,7 @@ fn keep_style_tags() {
 <html>
 <head>
 <style>
+@media (max-width: 600px) { h1 { font-size: 18px; } }
 h2 { color: red; }
 </style>
 </head>
@@ -915,7 +917,7 @@ h2 { color: red; }
 </body>
 </html>"#;
     let inlined = inliner.inline(html).unwrap();
-    assert_eq!(inlined, "<html><head>\n<style>\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
+    assert_eq!(inlined, "<html><head>\n<style>\n@media (max-width: 600px) { h1 { font-size: 18px; } }\nh2 { color: red; }\n</style>\n</head>\n<body>\n<h2 style=\"color: red;\"></h2>\n\n</body></html>");
 }
 
 #[test]
@@ -938,6 +940,27 @@ fn keep_link_tags() {
         inlined,
         "<html><head>\n<link href=\"external.css\" rel=\"stylesheet\">\n</head>\n<body>\n<h1 style=\"color: blue;\"></h1>\n\n</body></html>",
     );
+}
+
+#[test]
+fn keep_at_rules() {
+    let inliner = CSSInliner::options().keep_at_rules(true).build();
+    let html = r#"
+<html>
+<head>
+<style>
+h1 { color: blue; }
+@media (max-width: 600px) { h1 { font-size: 18px; } }
+p { margin: 10px; }
+</style>
+</head>
+<body>
+<h1>Hello</h1><p>World</p>
+</body>
+</html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    let expected = "<html><head><style>@media (max-width: 600px)  { h1 { font-size: 18px; } }</style>\n\n</head>\n<body>\n<h1 style=\"color: blue;\">Hello</h1><p style=\"margin: 10px;\">World</p>\n\n</body></html>";
+    assert_eq!(inlined, expected);
 }
 
 #[test]

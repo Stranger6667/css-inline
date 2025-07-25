@@ -288,9 +288,11 @@ impl Document {
         styles: DocumentStyleMap<'_>,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        keep_at_rules: bool,
+        at_rules: Option<String>,
         mode: InliningMode,
     ) -> Result<(), InlineError> {
-        serialize_to(self, writer, styles, keep_style_tags, keep_link_tags, mode)
+        serialize_to(self, writer, styles, keep_style_tags, keep_link_tags, keep_at_rules, at_rules, mode)
     }
 
     /// Filter this node iterator to elements matching the given selectors.
@@ -341,6 +343,8 @@ mod tests {
                 IndexMap::default(),
                 false,
                 false,
+                false,
+                None,
                 InliningMode::Document,
             )
             .expect("Failed to serialize");
