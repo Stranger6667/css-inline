@@ -57,6 +57,27 @@ pub mod tests {
     }
 
     #[test]
+    fn keep_at_rules() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--keep-at-rules")
+            .arg("--output-filename-prefix=inlined.keep-at-rules.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+        let content = fs::read_to_string("tests/inlined.keep-at-rules.example.html").unwrap();
+        assert_eq!(
+            content,
+            "<html><head>\n    \n    \n    \n\
+        </head>\n\
+        <body>\n\
+        <a class=\"test-class\" href=\"https://example.com\" style=\"color: #ffffff;\">Test</a>\n\
+        <h1 style=\"text-decoration: none;\">Test</h1>\n\n\n\
+        </body></html>"
+        )
+    }
+
+    #[test]
     fn dont_inline_styles() {
         css_inline()
             .arg("tests/example.html")
