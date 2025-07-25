@@ -152,6 +152,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "version" | "v" => parsed.version = true,
             "keep-style-tags" => parsed.keep_style_tags = true,
             "keep-link-tags" => parsed.keep_link_tags = true,
+            "keep-at-rules" => parsed.keep_at_rules = true,
             _ => {
                 return Err(ParseError {
                     message: format!("Unknown flag: {flag}"),
