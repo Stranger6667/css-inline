@@ -153,13 +153,13 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
         _start: &ParserState,
         input: &mut cssparser::Parser<'i, 't>,
     ) -> Result<Self::AtRule, cssparser::ParseError<'i, Self::Error>> {
-        let start = self.declarations.len();
+        let start = self.at_rules.len();
         self.at_rules.push_str(prelude);
         self.at_rules.push('{');
         self.at_rules.push_str(exhaust(input));
         self.at_rules.push('}');
         self.at_rules.push(' ');
-        Ok((prelude, (start, self.declarations.len())))
+        Ok((prelude, (start, self.at_rules.len())))
     }
 }
 

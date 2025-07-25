@@ -529,7 +529,7 @@ fn do_not_process_style_tag() {
 }
 
 #[test]
-fn do_not_process_style_tag_and_remove() {
+fn do_not_process_and_remove_style_tag() {
     let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         keep_style_tags: false,
@@ -541,6 +541,24 @@ fn do_not_process_style_tag_and_remove() {
     assert_eq!(
         result,
         "<html><head></head><body><h1>Hello world!</h1></body></html>"
+    )
+}
+
+
+#[test]
+fn do_not_process_and_remove_style_tag_but_keep_at_rules() {
+    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let options = InlineOptions {
+        keep_style_tags: false,
+        inline_style_tags: false,
+        keep_at_rules: true,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>@media (max-width: 767px) { padding: 0;} </style></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
