@@ -962,7 +962,7 @@ p { margin: 10px; }
 </body>
 </html>"#;
     let inlined = inliner.inline(html).unwrap();
-    let expected = "<html><head><style>@media (max-width: 600px)  { h1 { font-size: 18px; } }</style>\n\n</head>\n<body>\n<h1 style=\"color: blue;\">Hello</h1><p style=\"margin: 10px;\">World</p>\n\n</body></html>";
+    let expected = "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style>\n\n</head>\n<body>\n<h1 style=\"color: blue;\">Hello</h1><p style=\"margin: 10px;\">World</p>\n\n</body></html>";
     assert_eq!(inlined, expected);
 }
 
