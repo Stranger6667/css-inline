@@ -158,6 +158,7 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
         self.at_rules.push('{');
         self.at_rules.push_str(exhaust(input));
         self.at_rules.push('}');
+        self.at_rules.push(' ');
         Ok((prelude, (start, self.declarations.len())))
     }
 }

@@ -514,7 +514,7 @@ a {
 
 #[test]
 fn do_not_process_style_tag() {
-    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         inline_style_tags: false,
         keep_style_tags: true,
@@ -524,13 +524,13 @@ fn do_not_process_style_tag() {
     let result = inliner.inline(&html).unwrap();
     assert_eq!(
         result,
-        "<html><head><style>h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
+        "<html><head><style>@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}</style></head><body><h1>Hello world!</h1></body></html>"
     )
 }
 
 #[test]
 fn do_not_process_style_tag_and_remove() {
-    let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {
         keep_style_tags: false,
         inline_style_tags: false,
@@ -628,6 +628,45 @@ a {
 <body>
 <a class="test-class" href="https://example.com" style="color: #ffffff;">Test</a>
 <h1 style="text-decoration: none;">Test</h1>
+
+
+    </body></html>"#
+    )
+}
+
+#[test]
+fn keep_multiple_at_rules() {
+    let html = r#"
+<html>
+<head>
+<style>
+@media (max-width: 600px) { h1 { font-size: 18px; } }
+@media (max-width: 400px) { h1 { font-size: 12px; } }
+</style>
+<style>
+@media (max-width: 200px) { h1 { font-size: 8px; } }
+</style>
+</head>
+<body>
+<h1>Test</h1>
+</body>
+</html>
+    "#;
+
+        let options = InlineOptions {
+        keep_at_rules: true,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } @media (max-width: 400px) { h1 { font-size: 12px; } } @media (max-width: 200px) { h1 { font-size: 8px; } } </style>
+
+
+</head>
+<body>
+<h1>Test</h1>
 
 
     </body></html>"#
@@ -962,7 +1001,7 @@ p { margin: 10px; }
 </body>
 </html>"#;
     let inlined = inliner.inline(html).unwrap();
-    let expected = "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style>\n\n</head>\n<body>\n<h1 style=\"color: blue;\">Hello</h1><p style=\"margin: 10px;\">World</p>\n\n</body></html>";
+    let expected = "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } </style>\n\n</head>\n<body>\n<h1 style=\"color: blue;\">Hello</h1><p style=\"margin: 10px;\">World</p>\n\n</body></html>";
     assert_eq!(inlined, expected);
 }
 
