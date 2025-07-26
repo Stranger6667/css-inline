@@ -116,7 +116,7 @@ var inlined = inlineFragment(
 - `inlineStyleTags`. Specifies whether to inline CSS from "style" tags. Default: `true`
 - `keepStyleTags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
+- `keepAtRules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
 - `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
 - `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
 - `cache`. Specifies caching options for external stylesheets (for example, `{size: 5}`). Default: `null`
