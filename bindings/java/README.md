@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.css-inline:css-inline:0.16.0'
+    implementation 'org.css-inline:css-inline:0.17.0'
 }
 ```
 
@@ -81,7 +81,7 @@ dependencies {
     <dependency>
         <groupId>org.css-inline</groupId>
         <artifactId>css-inline</artifactId>
-        <version>0.16.0</version>
+        <version>0.17.0</version>
     </dependency>
 </dependencies>
 ```
@@ -250,12 +250,12 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.15.0` | `CSSBox 5.0.0`     |
+|             | Size    | `css-inline 0.17.0` | `CSSBox 5.0.0`     |
 |-------------|---------|---------------------|------------------------|
-| Basic       | 230 B   | 7.69 µs             | 53.38 µs (**6.94x**) |
-| Realistic-1 | 8.58 KB | 123.36 µs           | 1.55 ms (**12.60x**)   |
-| Realistic-2 | 4.3 KB  | 75.76 µs            | 365.28 µs (**4.82x**)   |
-| GitHub page | 1.81 MB | 167.96 ms           | 317.85 ms (**1.89x**)  |
+| Basic       | 230 B   | 7.43 µs             | 52.02 µs (**7.00x**) |
+| Realistic-1 | 8.58 KB | 119.54 µs           | 1.56 ms (**13.13x**)   |
+| Realistic-2 | 4.3 KB  | 75.23 µs            | 360.92 µs (**4.79x**)   |
+| GitHub page | 1.81 MB | 161.46 ms           | 306.47 ms (**1.89x**)  |
 
 The benchmarking code is available in the `src/jmh/java/org/cssinline/CSSInlineBench.java` file. The benchmarks were conducted using the stable `rustc 1.87`, `OpenJDK 24.0.1` on Ryzen 9 9950X.
 
