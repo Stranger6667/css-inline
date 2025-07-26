@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    css_inline (0.16.0)
+    css_inline (0.17.0)
       rb_sys (~> 0.9.116)
 
 GEM
