@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.17.0] - 2025-07-26
+
 ### Added
 
 - `keep_at_rules` option to keep all "at-rules" (ones starting with `@`) inside a "style" element [#265](https://github.com/Stranger6667/css-inline/issues/265)
@@ -106,7 +108,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.16.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.17.0...HEAD
+[0.17.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.16.0...c-v0.17.0
 [0.16.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.15.0...c-v0.16.0
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.4...c-v0.15.0
 [0.14.4]: https://github.com/Stranger6667/css-inline/compare/c-v0.14.3...c-v0.14.4
