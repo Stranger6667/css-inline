@@ -146,6 +146,7 @@ public class ConfigExample {
 - **`setInlineStyleTags(boolean)`** - Inline CSS from `<style>` tags (default: `true`)
 - **`setKeepStyleTags(boolean)`** - Keep `<style>` tags after inlining (default: `false`)
 - **`setKeepLinkTags(boolean)`** - Keep `<link>` tags after inlining (default: `false`)
+- **`setKeepAtRules(boolean`** - Keep `at-rules` (starting with `@`) after inlining (default: `false`)
 - **`setBaseUrl(String)`** - Base URL for resolving relative URLs (default: `null`)
 - **`setLoadRemoteStylesheets(boolean)`** - Load external stylesheets (default: `true`)
 - **`setExtraCss(String)`** - Additional CSS to inline (default: `null`)
@@ -215,7 +216,8 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 ```
 
 Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags:
+This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
+Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
 
 ```html
 <head>
@@ -227,7 +229,20 @@ This is useful if you want to keep `@media` queries for responsive emails in sep
 </body>
 ```
 
-Such tags will be kept in the resulting HTML even if the `keepStyleTags` option is set to `false`.
+Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
+get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
+separate `style` tags but inline any styles which can be inlined.
+Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+
+```html
+<head>
+  <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
 
 ## Performance
 

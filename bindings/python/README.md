@@ -148,6 +148,7 @@ inliner.inline("...")
 - `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `True`
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `False`
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `False`
+- `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `False`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
 - `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size=5)`). Default: `None`
@@ -179,7 +180,8 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 ```
 
 Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags:
+This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
+Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
 
 ```html
 <head>
@@ -191,7 +193,20 @@ This is useful if you want to keep `@media` queries for responsive emails in sep
 </body>
 ```
 
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
+get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
+separate `style` tags but inline any styles which can be inlined.
+Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+
+```html
+<head>
+  <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
 
 If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
 

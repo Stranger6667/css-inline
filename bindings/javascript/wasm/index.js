@@ -120,8 +120,7 @@ function passStringToWasm0(arg, malloc, realloc) {
   let offset = 0;
   for (; offset < len; offset++) {
     const code = arg.charCodeAt(offset);
-    if (code > 127)
-      break;
+    if (code > 127) break;
     mem[ptr + offset] = code;
   }
   if (offset !== len) {
@@ -373,8 +372,7 @@ function __wbg_finalize_init(instance, module2) {
   return wasm;
 }
 async function __wbg_init(module_or_path) {
-  if (wasm !== void 0)
-    return wasm;
+  if (wasm !== void 0) return wasm;
   if (typeof module_or_path !== "undefined") {
     if (Object.getPrototypeOf(module_or_path) === Object.prototype) {
       ({ module_or_path } = module_or_path);

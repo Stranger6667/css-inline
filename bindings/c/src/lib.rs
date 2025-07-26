@@ -82,6 +82,8 @@ pub struct CssInlinerOptions {
     pub keep_style_tags: bool,
     /// Keep "link" tags after inlining.
     pub keep_link_tags: bool,
+    /// Keep "at-rules" after inlining.
+    pub keep_at_rules: bool,
     /// Whether remote stylesheets should be loaded or not.
     pub load_remote_stylesheets: bool,
     /// Cache for external stylesheets.
@@ -183,6 +185,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         inline_style_tags: true,
         keep_style_tags: false,
         keep_link_tags: false,
+        keep_at_rules: false,
         base_url: ptr::null(),
         load_remote_stylesheets: true,
         cache: std::ptr::null(),
@@ -225,6 +228,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             inline_style_tags: value.inline_style_tags,
             keep_style_tags: value.keep_style_tags,
             keep_link_tags: value.keep_link_tags,
+            keep_at_rules: value.keep_at_rules,
             base_url: match base_url {
                 Some(url) => Some(Url::parse(url).map_err(|_| InlineOptionsError::InvalidUrl)?),
                 None => None,

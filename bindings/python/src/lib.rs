@@ -99,7 +99,7 @@ impl StylesheetCache {
     }
 }
 
-/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Customizable CSS inliner.
 #[pyclass]
@@ -108,11 +108,12 @@ struct CSSInliner {
 }
 
 macro_rules! inliner {
-    ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $base_url:expr, $load_remote_stylesheets:expr, $cache:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
+    ($inline_style_tags:expr, $keep_style_tags:expr, $keep_link_tags:expr, $keep_at_rules:expr, $base_url:expr, $load_remote_stylesheets:expr, $cache:expr, $extra_css:expr, $preallocate_node_capacity:expr) => {{
         let options = rust_inline::InlineOptions {
             inline_style_tags: $inline_style_tags.unwrap_or(true),
             keep_style_tags: $keep_style_tags.unwrap_or(false),
             keep_link_tags: $keep_link_tags.unwrap_or(false),
+            keep_at_rules: $keep_at_rules.unwrap_or(false),
             base_url: $crate::parse_url($base_url)?,
             load_remote_stylesheets: $load_remote_stylesheets.unwrap_or(true),
             cache: {
@@ -136,13 +137,14 @@ macro_rules! inliner {
 impl CSSInliner {
     #[new]
     #[pyo3(
-        signature = (inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
+        signature = (inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, keep_at_rules=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
     )]
     #[allow(clippy::too_many_arguments)]
     fn new(
         inline_style_tags: Option<bool>,
         keep_style_tags: Option<bool>,
         keep_link_tags: Option<bool>,
+        keep_at_rules: Option<bool>,
         base_url: Option<String>,
         load_remote_stylesheets: Option<bool>,
         cache: Option<StylesheetCache>,
@@ -153,6 +155,7 @@ impl CSSInliner {
             inline_style_tags,
             keep_style_tags,
             keep_link_tags,
+            keep_at_rules,
             base_url,
             load_remote_stylesheets,
             cache,
@@ -202,12 +205,12 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
 #[pyo3(
-    signature = (html, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
+    signature = (html, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, keep_at_rules=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline(
@@ -215,6 +218,7 @@ fn inline(
     inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
+    keep_at_rules: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     cache: Option<StylesheetCache>,
@@ -225,6 +229,7 @@ fn inline(
         inline_style_tags,
         keep_style_tags,
         keep_link_tags,
+        keep_at_rules,
         base_url,
         load_remote_stylesheets,
         cache,
@@ -234,12 +239,12 @@ fn inline(
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_fragment(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// inline_fragment(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in the given HTML fragment
 #[pyfunction]
 #[pyo3(
-    signature = (html, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
+    signature = (html, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, keep_at_rules=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_fragment(
@@ -248,6 +253,7 @@ fn inline_fragment(
     inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
+    keep_at_rules: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     cache: Option<StylesheetCache>,
@@ -258,6 +264,7 @@ fn inline_fragment(
         inline_style_tags,
         keep_style_tags,
         keep_link_tags,
+        keep_at_rules,
         base_url,
         load_remote_stylesheets,
         cache,
@@ -269,12 +276,12 @@ fn inline_fragment(
         .map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
 #[pyo3(
-    signature = (htmls, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
+    signature = (htmls, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, keep_at_rules=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many(
@@ -282,6 +289,7 @@ fn inline_many(
     inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
+    keep_at_rules: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     cache: Option<StylesheetCache>,
@@ -292,6 +300,7 @@ fn inline_many(
         inline_style_tags,
         keep_style_tags,
         keep_link_tags,
+        keep_at_rules,
         base_url,
         load_remote_stylesheets,
         cache,
@@ -314,12 +323,12 @@ fn inline_many_impl(
     Ok(output.map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many_fragments(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// inline_many_fragments(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
 ///
 /// Inline CSS in multiple HTML fragments
 #[pyfunction]
 #[pyo3(
-    signature = (htmls, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
+    signature = (htmls, css, inline_style_tags=true, keep_style_tags=false, keep_link_tags=false, keep_at_rules=false, base_url=None, load_remote_stylesheets=true, cache=None, extra_css=None, preallocate_node_capacity=32)
 )]
 #[allow(clippy::too_many_arguments)]
 fn inline_many_fragments(
@@ -328,6 +337,7 @@ fn inline_many_fragments(
     inline_style_tags: Option<bool>,
     keep_style_tags: Option<bool>,
     keep_link_tags: Option<bool>,
+    keep_at_rules: Option<bool>,
     base_url: Option<String>,
     load_remote_stylesheets: Option<bool>,
     cache: Option<StylesheetCache>,
@@ -338,6 +348,7 @@ fn inline_many_fragments(
         inline_style_tags,
         keep_style_tags,
         keep_link_tags,
+        keep_at_rules,
         base_url,
         load_remote_stylesheets,
         cache,
