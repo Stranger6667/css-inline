@@ -93,6 +93,9 @@ impl<'a> Element<'a> {
             }
         }
     }
+    // NOTE: For large documents, it is called in a hot loop.
+    #[allow(clippy::inline_always)]
+    #[inline(always)]
     pub(crate) fn matches(&self, selector: &Selector, cache: &mut SelectorCaches) -> bool {
         let mut context = matching::MatchingContext::new(
             matching::MatchingMode::Normal,
