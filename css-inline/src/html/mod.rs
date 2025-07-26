@@ -16,7 +16,7 @@ use rustc_hash::FxHasher;
 use std::hash::BuildHasherDefault;
 
 pub(crate) type ElementStyleMap<'i> =
-    IndexMap<&'i str, (Specificity, &'i str), BuildHasherDefault<FxHasher>>;
+    IndexMap<&'i str, (Specificity, bool, &'i str), BuildHasherDefault<FxHasher>>;
 
 pub(crate) type DocumentStyleMap<'i> =
     IndexMap<node::NodeId, ElementStyleMap<'i>, BuildNoHashHasher>;

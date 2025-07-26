@@ -487,22 +487,30 @@ impl<'a> CSSInliner<'a> {
                             });
                         // Iterate over pairs of property name & value
                         // Example: `padding`, `0`
-                        for (name, value) in &declarations[*start..*end] {
+                        for (name, mut value) in &declarations[*start..*end] {
+                            value = value.trim_end();
+                            let mut is_important = false;
+                            if let Some(v) = value.strip_suffix("!important") {
+                                is_important = true;
+                                value = v;
+                            }
                             match element_styles.entry(name.as_ref()) {
                                 indexmap::map::Entry::Occupied(mut entry) => {
-                                    match (
-                                        value.trim_end().ends_with("!important"),
-                                        entry.get().1.trim_end().ends_with("!important"),
-                                    ) {
+                                    match (is_important, entry.get().1) {
                                         // Equal importance; the higher specificity wins.
-                                        (false, false) | (true, true) => {
+                                        (false, false) => {
                                             if entry.get().0 <= specificity {
-                                                entry.insert((specificity, *value));
+                                                entry.insert((specificity, false, value));
+                                            }
+                                        }
+                                        (true, true) => {
+                                            if entry.get().0 <= specificity {
+                                                entry.insert((specificity, true, value));
                                             }
                                         }
                                         // Only the new value is important; it wins.
                                         (true, false) => {
-                                            entry.insert((specificity, *value));
+                                            entry.insert((specificity, true, value));
                                         }
                                         // The old value is important and the new one is not; keep
                                         // the old value.
@@ -510,7 +518,7 @@ impl<'a> CSSInliner<'a> {
                                     }
                                 }
                                 indexmap::map::Entry::Vacant(entry) => {
-                                    entry.insert((specificity, *value));
+                                    entry.insert((specificity, is_important, value));
                                 }
                             }
                         }

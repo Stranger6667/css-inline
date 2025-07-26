@@ -248,7 +248,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
 
         let mut styles = if let Some(node_id) = style_node_id {
             self.styles.swap_remove(&node_id).map(|mut styles| {
-                styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
+                styles.sort_unstable_by(|_, (a, _, _), _, (b, _, _)| a.cmp(b));
                 styles
             })
         } else {
@@ -300,7 +300,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         }
         if let Some(styles) = styles {
             self.writer.write_all(b" style=\"")?;
-            for (property, (_, value)) in styles {
+            for (property, (_, _, value)) in styles {
                 write_declaration(&mut self.writer, property, value)?;
                 self.writer.write_all(b";")?;
             }
@@ -509,9 +509,9 @@ fn merge_styles<Wr: Write>(
     let current_declarations_count = parsed_declarations_count;
     // Next, we iterate over the new styles and merge them into our existing set
     // New rules will not override old ones unless they are marked as `!important`
-    for (property, (_, value)) in new_styles {
+    for (property, (_, is_important, value)) in new_styles {
         match (
-            value.trim_end().strip_suffix("!important"),
+            *is_important,
             declarations_buffer
                 .iter_mut()
                 .take(parsed_declarations_count)
@@ -523,14 +523,14 @@ fn merge_styles<Wr: Write>(
         ) {
             // The new rule is `!important` and there's an existing rule with the same name
             // In this case, we override the existing rule with the new one
-            (Some(value), Some(buffer)) => {
+            (true, Some(buffer)) => {
                 // We keep the rule name and the colon-space suffix - '<rule>: `
                 buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
                 write_declaration_value(buffer, value)?;
             }
             // There's no existing rule with the same name, but the new rule is `!important`
             // In this case, we add the new rule with the `!important` suffix removed
-            (Some(value), None) => {
+            (true, None) => {
                 push_or_update!(
                     declarations_buffer,
                     parsed_declarations_count,
@@ -540,7 +540,7 @@ fn merge_styles<Wr: Write>(
             }
             // There's no existing rule with the same name, and the new rule is not `!important`
             // In this case, we just add the new rule as-is
-            (None, None) => push_or_update!(
+            (false, None) => push_or_update!(
                 declarations_buffer,
                 parsed_declarations_count,
                 property,
@@ -548,7 +548,7 @@ fn merge_styles<Wr: Write>(
             ),
             // Rule exists and the new one is not `!important` - leave the existing rule as-is and
             // ignore the new one.
-            (None, Some(_)) => {}
+            (false, Some(_)) => {}
         }
     }
 
