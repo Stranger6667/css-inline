@@ -6,6 +6,10 @@
 
 - `keep_at_rules` option to keep all "at-rules" (ones starting with `@`) inside a "style" element [#265](https://github.com/Stranger6667/css-inline/issues/265)
 
+### Performance
+
+- Avoid unnecessary check for double quotes.
+
 ## [0.16.0] - 2025-07-16
 
 ### Changed
