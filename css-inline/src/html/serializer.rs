@@ -15,6 +15,7 @@ pub(crate) fn serialize_to<W: Write>(
     styles: DocumentStyleMap<'_>,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    at_rules: Option<&String>,
     mode: InliningMode,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
@@ -22,6 +23,7 @@ pub(crate) fn serialize_to<W: Write>(
         NodeId::document_id(),
         keep_style_tags,
         keep_link_tags,
+        at_rules,
         mode,
     );
     let mut ser = HtmlSerializer::new(writer, styles);
@@ -34,6 +36,7 @@ struct Sink<'a> {
     node: NodeId,
     keep_style_tags: bool,
     keep_link_tags: bool,
+    at_rules: Option<&'a String>,
     inlining_mode: InliningMode,
 }
 
@@ -43,6 +46,7 @@ impl<'a> Sink<'a> {
         node: NodeId,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        at_rules: Option<&'a String>,
         inlining_mode: InliningMode,
     ) -> Sink<'a> {
         Sink {
@@ -50,6 +54,7 @@ impl<'a> Sink<'a> {
             node,
             keep_style_tags,
             keep_link_tags,
+            at_rules,
             inlining_mode,
         }
     }
@@ -60,6 +65,7 @@ impl<'a> Sink<'a> {
             node,
             self.keep_style_tags,
             self.keep_link_tags,
+            self.at_rules,
             self.inlining_mode,
         )
     }
@@ -113,6 +119,14 @@ impl<'a> Sink<'a> {
                 };
 
                 serializer.start_elem(&element.name, &element.attributes, style_node_id)?;
+
+                if element.name.local == local_name!("head") {
+                    if let Some(at_rules) = &self.at_rules {
+                        if !at_rules.is_empty() {
+                            serializer.write_at_rules_style(at_rules)?;
+                        }
+                    }
+                }
 
                 self.serialize_children(serializer)?;
 
@@ -363,6 +377,13 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         Ok(())
     }
 
+    fn write_at_rules_style(&mut self, at_rules: &str) -> Result<(), InlineError> {
+        self.writer.write_all(b"<style>")?;
+        self.writer.write_all(at_rules.as_bytes())?;
+        self.writer.write_all(b"</style>")?;
+        Ok(())
+    }
+
     fn write_comment(&mut self, text: &str) -> Result<(), InlineError> {
         self.writer.write_all(b"<!--")?;
         self.writer.write_all(text.as_bytes())?;
@@ -575,6 +596,7 @@ mod tests {
             IndexMap::default(),
             true,
             false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -594,6 +616,7 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -613,6 +636,7 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -632,6 +656,7 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
@@ -654,9 +679,32 @@ mod tests {
             IndexMap::default(),
             false,
             false,
+            None,
             InliningMode::Document,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
+    }
+
+    #[test]
+    fn test_keep_at_rules_tags() {
+        let doc = Document::parse_with_options(
+            b"<html><head><style>h1 { color:red }</style></head>",
+            0,
+            InliningMode::Document,
+        );
+        let mut buffer = Vec::new();
+        doc.serialize(
+            &mut buffer,
+            IndexMap::default(),
+            false,
+            false,
+            Some(&String::from(
+                "@media (max-width: 600px) { h1 { font-size: 18px; } }",
+            )),
+            InliningMode::Document,
+        )
+        .expect("Should not fail");
+        assert_eq!(buffer, b"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body></body></html>");
     }
 }
