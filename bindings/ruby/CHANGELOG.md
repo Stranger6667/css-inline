@@ -10,6 +10,7 @@
 
 - Avoid unnecessary check for double quotes.
 - Avoid creating an unnecessary string cache entry.
+- Use a more precise estimate for the size of the number of applied styles.
 
 ## [0.16.0] - 2025-07-16
 

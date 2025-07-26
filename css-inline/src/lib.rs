@@ -426,7 +426,6 @@ impl<'a> CSSInliner<'a> {
         if let Some(css) = css {
             raw_styles.push_str(css);
         }
-        let mut styles = IndexMap::with_capacity_and_hasher(128, BuildNoHashHasher::default());
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
         let mut parser = cssparser::Parser::new(&mut parse_input);
         // Allocating some memory for all the parsed declarations
@@ -469,6 +468,10 @@ impl<'a> CSSInliner<'a> {
         } else {
             None
         };
+        let mut styles = IndexMap::with_capacity_and_hasher(
+            document.elements.len().max(16),
+            BuildNoHashHasher::default(),
+        );
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
         for (selectors, (start, end)) in &rule_list {
