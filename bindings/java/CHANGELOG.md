@@ -1,6 +1,7 @@
 # Changelog
 
 ## [Unreleased]
+
 ### Added
 
 - `keep_at_rules` option [#256](https://github.com/Stranger6667/css-inline/pull/485)

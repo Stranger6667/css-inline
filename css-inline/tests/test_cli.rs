@@ -167,8 +167,7 @@ pub mod tests {
         let content = fs::read_to_string("tests/inlined.extra-css.example.html").unwrap();
         assert!(
             content.contains(r#"style="color: #ffffff;background: red;""#),
-            "inlined output did not include extra-css rules:\n{}",
-            content
+            "inlined output did not include extra-css rules:\n{content}"
         );
     }
 
@@ -198,8 +197,7 @@ pub mod tests {
         let content = fs::read_to_string("tests/inlined.extra-css-cli.example.html").unwrap();
         assert!(
             content.contains(r#"style="color: #ffffff;background: green;""#),
-            "expected inline background from --extra-css but got:\n{}",
-            content
+            "expected inline background from --extra-css but got:\n{content}",
         );
     }
 

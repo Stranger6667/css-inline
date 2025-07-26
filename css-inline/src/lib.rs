@@ -387,7 +387,7 @@ impl<'a> CSSInliner<'a> {
             size_estimate = size_estimate.saturating_add(css.len());
         }
         let mut raw_styles = String::with_capacity(size_estimate);
-        if self.options.inline_style_tags {
+        if self.options.inline_style_tags || self.options.keep_at_rules {
             for style in document.styles() {
                 raw_styles.push_str(style);
                 raw_styles.push('\n');
@@ -450,10 +450,13 @@ impl<'a> CSSInliner<'a> {
             )
             .flatten()
             {
-                rule_list.push(rule);
+                if self.options.inline_style_tags {
+                    rule_list.push(rule);
+                }
             }
             Some(at_rules)
-        } else {
+        } else if !raw_styles.is_empty() {
+            // At this point, we collected some styles from at least one source, hence we need to process it.
             for rule in cssparser::StyleSheetParser::new(
                 &mut parser,
                 &mut parser::CSSRuleListParser::new(&mut declarations),
@@ -462,6 +465,8 @@ impl<'a> CSSInliner<'a> {
             {
                 rule_list.push(rule);
             }
+            None
+        } else {
             None
         };
         // This cache is unused but required in the `selectors` API

@@ -232,7 +232,7 @@ OPTIONS:
 
     --keep-link-tags
         Keep "link" tags after inlining.
-        
+
     --keep-at-rules
         Keep "at-rules" after inlining.
 
