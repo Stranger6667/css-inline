@@ -4,7 +4,7 @@
 
 ### Added
 
-- `keep_at_rules` option [#256](https://github.com/Stranger6667/css-inline/pull/485)
+- `keep_at_rules` option [#265](https://github.com/Stranger6667/css-inline/issues/265)
 
 ## [0.16.0] - 2025-07-16
 
