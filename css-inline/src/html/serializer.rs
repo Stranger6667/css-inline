@@ -248,7 +248,11 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
 
         let mut styles = if let Some(node_id) = style_node_id {
             self.styles.swap_remove(&node_id).map(|mut styles| {
-                styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
+                // Even though, there is a fast path for sorting of <2 elements, `indexmap` still
+                // rebuilds the hashtable unnecessarily
+                if styles.len() > 1 {
+                    styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
+                }
                 styles
             })
         } else {
