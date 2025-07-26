@@ -36,7 +36,7 @@ into:
 ```
 
 - Uses reliable components from Mozilla's Servo project
-- 10-400x faster than alternatives
+- 10-500x faster than alternatives
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -252,12 +252,12 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.16.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
+|             | Size    | `css_inline 0.17.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
 |-------------|---------|---------------------|------------------------|-------------------------|------------------------|------------------------|
-| Basic       | 230 B   | 4.31 µs             | 106.94 µs (**24.77x**) | 602.44 µs (**139.52x**) | 1.02 ms (**236.65x**)  | 1.13ms (**263.43x**)   |
-| Realistic-1 | 8.58 KB | 83.37 µs           | 1.20 ms (**14.42x**)   | 13.66 ms (**163.85x**)  | 26.37 ms (**316.30x**) | 44.76 ms (**536.88x**) |
-| Realistic-2 | 4.3 KB  | 57.60 µs            | 1.73 ms (**30.04x**)   | ERROR                   | 17.71 ms (**307.46x**) | ERROR                  |
-| GitHub page | 1.81 MB | 139.57 ms           | 13.94 s (**99.90x**)  | ERROR                   | ERROR                  | ERROR                  |
+| Basic       | 230 B   | 4.27 µs             | 107.68 µs (**25.17x**) | 603.05 µs (**140.97x**) | 1.02 ms (**238.87x**)  | 1.13ms (**264.25x**)   |
+| Realistic-1 | 8.58 KB | 85.54 µs           | 1.20 ms (**14.13x**)   | 13.79 ms (**161.32x**)  | 26.37 ms (**308.27x**) | 44.94 ms (**525.39x**) |
+| Realistic-2 | 4.3 KB  | 58.26 µs            | 1.74 ms (**29.88x**)   | ERROR                   | 17.71 ms (**303.98x**) | ERROR                  |
+| GitHub page | 1.81 MB | 139.74 ms           | 15.02 s (**107.49x**)  | ERROR                   | ERROR                  | ERROR                  |
 
 The "Basic" case was obtained by benchmarking the example from the Usage section.
 Note that the `toronado`, `inlinestyler`, and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
