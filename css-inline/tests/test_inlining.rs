@@ -514,7 +514,10 @@ a {
 
 #[test]
 fn do_not_process_style_tag() {
-    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!(
+        "@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}",
+        "<h1>Hello world!</h1>"
+    );
     let options = InlineOptions {
         inline_style_tags: false,
         keep_style_tags: true,
@@ -530,7 +533,10 @@ fn do_not_process_style_tag() {
 
 #[test]
 fn do_not_process_and_remove_style_tag() {
-    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!(
+        "@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}",
+        "<h1>Hello world!</h1>"
+    );
     let options = InlineOptions {
         keep_style_tags: false,
         inline_style_tags: false,
@@ -544,10 +550,12 @@ fn do_not_process_and_remove_style_tag() {
     )
 }
 
-
 #[test]
 fn do_not_process_and_remove_style_tag_but_keep_at_rules() {
-    let html = html!("@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}", "<h1>Hello world!</h1>");
+    let html = html!(
+        "@media (max-width: 767px) { padding: 0;} h1 {background-color: blue;}",
+        "<h1>Hello world!</h1>"
+    );
     let options = InlineOptions {
         keep_style_tags: false,
         inline_style_tags: false,
@@ -671,7 +679,7 @@ fn keep_multiple_at_rules() {
 </html>
     "#;
 
-        let options = InlineOptions {
+    let options = InlineOptions {
         keep_at_rules: true,
         ..Default::default()
     };
@@ -1153,7 +1161,7 @@ fn test_disable_cache() {
         ))
         .cache(None)
         .build();
-    let debug = format!("{:?}", inliner);
+    let debug = format!("{inliner:?}");
     assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, .. } }");
 }
 
