@@ -8,7 +8,7 @@ jobs:
   pages:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Update website
         run: |
           git config --local user.email "action@github.com"
