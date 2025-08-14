@@ -1,0 +1,18 @@
+[package]
+name = "css_inline"
+version = "0.15.0"
+edition = "2024"
+authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
+
+[lib]
+name = "css_inline_php"
+crate-type = ["cdylib"]
+
+[dependencies]
+ext-php-rs = "0.14.1"
+
+[dependencies.css-inline]
+path = "../../css-inline"
+version = "*"
+default-features = false
+features = ["http", "file", "stylesheet-cache"]
