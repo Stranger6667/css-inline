@@ -99,7 +99,7 @@ impl StylesheetCache {
     }
 }
 
-/// CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// `CSSInliner(inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)`
 ///
 /// Customizable CSS inliner.
 #[pyclass]
@@ -176,7 +176,7 @@ impl CSSInliner {
         Ok(self.inner.inline(html).map_err(InlineErrorWrapper)?)
     }
 
-    /// inline_fragment(html, css)
+    /// `inline_fragment(html, css)`
     ///
     /// Inline CSS into the given HTML fragment
     #[pyo3(text_signature = "(html, css)")]
@@ -187,7 +187,7 @@ impl CSSInliner {
             .map_err(InlineErrorWrapper)?)
     }
 
-    /// inline_many(htmls)
+    /// `inline_many(htmls)`
     ///
     /// Inline CSS in multiple HTML documents
     #[pyo3(text_signature = "(htmls)")]
@@ -195,7 +195,7 @@ impl CSSInliner {
         inline_many_impl(&self.inner, htmls)
     }
 
-    /// inline_many_fragments(htmls, css)
+    /// `inline_many_fragments(htmls, css)`
     ///
     /// Inline CSS in multiple HTML documents
     #[pyo3(text_signature = "(htmls, fragments)")]
@@ -208,7 +208,7 @@ impl CSSInliner {
     }
 }
 
-/// inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// `inline(html, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)`
 ///
 /// Inline CSS in the given HTML document
 #[pyfunction]
@@ -244,7 +244,7 @@ fn inline(
     Ok(inliner.inline(html).map_err(InlineErrorWrapper)?)
 }
 
-/// inline_fragment(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// `inline_fragment(html, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)`
 ///
 /// Inline CSS in the given HTML fragment
 #[pyfunction]
@@ -283,7 +283,7 @@ fn inline_fragment(
         .map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// `inline_many(htmls, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)`
 ///
 /// Inline CSS in multiple HTML documents
 #[pyfunction]
@@ -332,7 +332,7 @@ fn inline_many_impl(
     Ok(output.map_err(InlineErrorWrapper)?)
 }
 
-/// inline_many_fragments(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)
+/// `inline_many_fragments(htmls, css, inline_style_tags=True, keep_style_tags=False, keep_link_tags=False, keep_at_rules=False, minify_css=False, base_url=None, load_remote_stylesheets=True, cache=None, extra_css=None, preallocate_node_capacity=32)`
 ///
 /// Inline CSS in multiple HTML fragments
 #[pyfunction]
@@ -385,7 +385,7 @@ fn inline_many_fragments_impl(
     Ok(output.map_err(InlineErrorWrapper)?)
 }
 
-#[allow(dead_code, clippy::needless_raw_string_hashes)]
+#[allow(dead_code, clippy::doc_markdown, clippy::needless_raw_string_hashes)]
 mod build {
     include!(concat!(env!("OUT_DIR"), "/built.rs"));
 }
