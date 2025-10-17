@@ -1,5 +1,5 @@
 [package]
-name = "css-inline"
+name = "css-inline-ruby"
 version = "0.17.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
@@ -20,6 +20,7 @@ magnus = "0.7"
 rayon = "1"
 
 [dependencies.css-inline]
-version = "0.17"
+path = "../../../../css-inline"
+version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
