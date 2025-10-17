@@ -18,7 +18,7 @@ trait JNIExt {
 
 impl<'a> JNIExt for JNIEnv<'a> {
     fn get_rust_string(&mut self, obj: &JString) -> String {
-        self.get_string(&obj)
+        self.get_string(obj)
             .expect("Failed to get Java String")
             .into()
     }
