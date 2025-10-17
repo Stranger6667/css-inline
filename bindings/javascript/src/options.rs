@@ -42,6 +42,8 @@ pub struct Options {
     pub keep_link_tags: Option<bool>,
     /// Keep "at-rules" after inlining.
     pub keep_at_rules: Option<bool>,
+    /// Remove trailing semicolons and spaces between properties and values.
+    pub minify_css: Option<bool>,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<String>,
     /// Whether remote stylesheets should be loaded or not.
@@ -65,6 +67,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             keep_style_tags: value.keep_style_tags.unwrap_or(false),
             keep_link_tags: value.keep_link_tags.unwrap_or(false),
             keep_at_rules: value.keep_at_rules.unwrap_or(false),
+            minify_css: value.minify_css.unwrap_or(false),
             base_url: parse_url(value.base_url)?,
             load_remote_stylesheets: value.load_remote_stylesheets.unwrap_or(true),
             extra_css: value.extra_css.map(Cow::Owned),

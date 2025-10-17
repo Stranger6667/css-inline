@@ -78,6 +78,27 @@ pub mod tests {
     }
 
     #[test]
+    fn minify_css() {
+        css_inline()
+            .arg("tests/example.html")
+            .arg("--minify-css")
+            .arg("--output-filename-prefix=inlined.minify-css.")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+        let content = fs::read_to_string("tests/inlined.minify-css.example.html").unwrap();
+        assert_eq!(
+            content,
+            "<html><head>\n    \n    \n    \n\
+        </head>\n\
+        <body>\n\
+        <a class=\"test-class\" href=\"https://example.com\" style=\"color:#ffffff\">Test</a>\n\
+        <h1 style=\"text-decoration:none\">Test</h1>\n\n\n\
+        </body></html>"
+        )
+    }
+
+    #[test]
     fn dont_inline_styles() {
         css_inline()
             .arg("tests/example.html")

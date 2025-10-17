@@ -61,6 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         load_remote_stylesheets: bool,
         #[cfg(feature = "stylesheet-cache")]
         cache_size: Option<usize>,
+        minify_css: bool,
     }
 
     impl Default for ParsedArgs {
@@ -80,6 +81,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 load_remote_stylesheets: false,
                 #[cfg(feature = "stylesheet-cache")]
                 cache_size: None,
+                minify_css: false,
             }
         }
     }
@@ -153,6 +155,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "keep-style-tags" => parsed.keep_style_tags = true,
             "keep-link-tags" => parsed.keep_link_tags = true,
             "keep-at-rules" => parsed.keep_at_rules = true,
+            "minify-css" => parsed.minify_css = true,
             _ => {
                 return Err(ParseError {
                     message: format!("Unknown flag: {flag}"),
@@ -235,6 +238,9 @@ OPTIONS:
 
     --keep-at-rules
         Keep "at-rules" after inlining.
+
+    --minify-css
+        Minify CSS by removing trailing semicolons and spaces between properties and values.
 
     --base-url
         Used for loading external stylesheets via relative URLs.
@@ -344,6 +350,7 @@ OPTIONS:
             keep_style_tags: args.keep_style_tags,
             keep_link_tags: args.keep_link_tags,
             keep_at_rules: args.keep_at_rules,
+            minify_css: args.minify_css,
             base_url,
             load_remote_stylesheets: args.load_remote_stylesheets,
             #[cfg(feature = "stylesheet-cache")]

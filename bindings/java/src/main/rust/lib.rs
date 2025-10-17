@@ -75,6 +75,7 @@ fn build_inliner(
     let keep_style_tags = env.get_bool_field(&cfg, "keepStyleTags")?;
     let keep_link_tags = env.get_bool_field(&cfg, "keepLinkTags")?;
     let keep_at_rules = env.get_bool_field(&cfg, "keepAtRules")?;
+    let minify_css = env.get_bool_field(&cfg, "minifyCss")?;
     let load_remote_stylesheets = env.get_bool_field(&cfg, "loadRemoteStylesheets")?;
     let cache_size = env.get_int_field(&cfg, "cacheSize")?;
     let preallocate_node_capacity = env.get_int_field(&cfg, "preallocateNodeCapacity")?;
@@ -86,6 +87,7 @@ fn build_inliner(
         .keep_style_tags(keep_style_tags)
         .keep_link_tags(keep_link_tags)
         .keep_at_rules(keep_at_rules)
+        .minify_css(minify_css)
         .load_remote_stylesheets(load_remote_stylesheets)
         .extra_css(extra_css.map(Cow::Owned))
         .preallocate_node_capacity(preallocate_node_capacity as usize);
