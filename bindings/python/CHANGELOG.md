@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `minify_css` option [#12](https://github.com/Stranger6667/css-inline/issues/12)
+
 ## [0.17.0] - 2025-07-26
 
 ### Added

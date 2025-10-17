@@ -127,6 +127,7 @@ fn main() -> css_inline::Result<()> {
 - `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
+- `minify_css`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
 - `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
 - `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
 - `cache`. Specifies cache for external stylesheets. Default: `None`
@@ -180,6 +181,19 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 <head>
   <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
+
+If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
+and spaces between properties and values.
+
+```html
+<head>
+  <!-- With minify_css=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
   <h1>Big Text</h1>
