@@ -175,7 +175,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: "1.75"
+          toolchain: "1.80"
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -196,6 +196,9 @@ jobs:
         working-directory: ./css-inline
 
       - run: cargo update -p zerofrom --precise 0.1.5
+        working-directory: ./css-inline
+
+      - run: cargo update -p indexmap --precise 2.11.0
         working-directory: ./css-inline
 
       - run: cargo build
@@ -232,6 +235,8 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
             build: |-
               set -e &&
+              rustup toolchain install 1.83 &&
+              rustup default 1.83 &&
               yarn build --target x86_64-unknown-linux-gnu &&
               strip *.node
           - host: ubuntu-22.04
@@ -243,6 +248,9 @@ jobs:
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
             build: |-
               set -e &&
+              rustup toolchain install 1.83 &&
+              rustup default 1.83 &&
+              rustup target add aarch64-unknown-linux-gnu &&
               yarn build --target aarch64-unknown-linux-gnu &&
               aarch64-unknown-linux-gnu-strip *.node
           - host: ubuntu-22.04
