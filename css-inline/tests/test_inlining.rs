@@ -1032,6 +1032,28 @@ p { margin: 10px; }
 }
 
 #[test]
+fn minify_css() {
+    let inliner = CSSInliner::options().minify_css(true).build();
+    let html = r#"
+<html>
+<head>
+<style>
+h1 {
+  color: blue;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+<h1>Hello</h1>
+</body>
+</html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    let expected = "<html><head>\n\n</head>\n<body>\n<h1 style=\"color:blue;font-weight:bold\">Hello</h1>\n\n</body></html>";
+    assert_eq!(inlined, expected);
+}
+
+#[test]
 fn nth_child_selector() {
     let html = r#"
 <html>

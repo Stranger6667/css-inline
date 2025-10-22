@@ -14,6 +14,9 @@ public class CssInlineConfig {
 	/** Keep "at-rules" after inlining. */
 	public final boolean keepAtRules;
 
+	/** Remove trailing semicolons and spaces between properties and values. */
+	public final boolean minifyCss;
+
 	/** Whether remote stylesheets should be loaded or not. */
 	public final boolean loadRemoteStylesheets;
 
@@ -30,12 +33,13 @@ public class CssInlineConfig {
 	public final int preallocateNodeCapacity;
 
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
-			boolean keepAtRules, boolean loadRemoteStylesheets, String baseUrl, String extraCss, int cacheSize,
-			int preallocateNodeCapacity) {
+			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
+			int cacheSize, int preallocateNodeCapacity) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
 		this.keepAtRules = keepAtRules;
+		this.minifyCss = minifyCss;
 		this.loadRemoteStylesheets = loadRemoteStylesheets;
 		this.baseUrl = baseUrl;
 		this.extraCss = extraCss;
@@ -51,6 +55,7 @@ public class CssInlineConfig {
 		private boolean keepStyleTags = false;
 		private boolean keepLinkTags = false;
 		private boolean keepAtRules = false;
+		private boolean minifyCss = false;
 		private boolean loadRemoteStylesheets = true;
 		private String baseUrl = null;
 		private String extraCss = null;
@@ -111,6 +116,17 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Remove trailing semicolons and spaces between properties and values.
+		 *
+		 * @param b true to remove, false to keep them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setMinifyCss(boolean b) {
+			this.minifyCss = b;
+			return this;
+		}
+
+		/**
 		 * Whether remote stylesheets should be loaded or not.
 		 *
 		 * @param b true to load external stylesheets, false to ignore them
@@ -148,7 +164,7 @@ public class CssInlineConfig {
 		 *
 		 * @param size
 		 *            cache size, must be non-negative
-     * @return this builder instance for method chaining
+		 * @return this builder instance for method chaining
 		 * @throws IllegalArgumentException
 		 *             if size is negative
 		 */
@@ -166,7 +182,7 @@ public class CssInlineConfig {
 		 *
 		 * @param cap
 		 *            initial node capacity, must be positive
-     * @return this builder instance for method chaining
+		 * @return this builder instance for method chaining
 		 * @throws IllegalArgumentException
 		 *             if cap is zero or negative
 		 */
@@ -184,7 +200,7 @@ public class CssInlineConfig {
 		 * @return a new immutable configuration instance
 		 */
 		public CssInlineConfig build() {
-			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, loadRemoteStylesheets, baseUrl,
+			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
 					extraCss, cacheSize, preallocateNodeCapacity);
 		}
 	}

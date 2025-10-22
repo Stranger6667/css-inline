@@ -95,6 +95,8 @@ pub struct CssInlinerOptions {
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     pub preallocate_node_capacity: size_t,
+    /// Remove trailing semicolons and spaces between properties and values.
+    pub minify_css: bool,
 }
 
 macro_rules! inliner {
@@ -186,6 +188,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         keep_style_tags: false,
         keep_link_tags: false,
         keep_at_rules: false,
+        minify_css: false,
         base_url: ptr::null(),
         load_remote_stylesheets: true,
         cache: std::ptr::null(),
@@ -229,6 +232,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             keep_style_tags: value.keep_style_tags,
             keep_link_tags: value.keep_link_tags,
             keep_at_rules: value.keep_at_rules,
+            minify_css: value.minify_css,
             base_url: match base_url {
                 Some(url) => Some(Url::parse(url).map_err(|_| InlineOptionsError::InvalidUrl)?),
                 None => None,

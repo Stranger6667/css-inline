@@ -282,12 +282,14 @@ impl Document {
     }
 
     /// Serialize the document to HTML string.
+    #[allow(clippy::too_many_arguments)]
     pub(crate) fn serialize<W: Write>(
         &self,
         writer: &mut W,
         styles: DocumentStyleMap<'_>,
         keep_style_tags: bool,
         keep_link_tags: bool,
+        minify_css: bool,
         at_rules: Option<&String>,
         mode: InliningMode,
     ) -> Result<(), InlineError> {
@@ -297,6 +299,7 @@ impl Document {
             styles,
             keep_style_tags,
             keep_link_tags,
+            minify_css,
             at_rules,
             mode,
         )
@@ -348,6 +351,7 @@ mod tests {
             .serialize(
                 &mut buffer,
                 IndexMap::default(),
+                false,
                 false,
                 false,
                 None,

@@ -146,7 +146,8 @@ public class ConfigExample {
 - **`setInlineStyleTags(boolean)`** - Inline CSS from `<style>` tags (default: `true`)
 - **`setKeepStyleTags(boolean)`** - Keep `<style>` tags after inlining (default: `false`)
 - **`setKeepLinkTags(boolean)`** - Keep `<link>` tags after inlining (default: `false`)
-- **`setKeepAtRules(boolean`** - Keep `at-rules` (starting with `@`) after inlining (default: `false`)
+- **`setKeepAtRules(boolean)`** - Keep `at-rules` (starting with `@`) after inlining (default: `false`)
+- **`setMinifyCss(boolean)`** - Remove trailing semicolons and spaces between properties and values (default: `false`)
 - **`setBaseUrl(String)`** - Base URL for resolving relative URLs (default: `null`)
 - **`setLoadRemoteStylesheets(boolean)`** - Load external stylesheets (default: `true`)
 - **`setExtraCss(String)`** - Additional CSS to inline (default: `null`)
@@ -238,6 +239,19 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 <head>
   <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
+
+If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
+and spaces between properties and values.
+
+```html
+<head>
+  <!-- With minify_css=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
   <h1>Big Text</h1>

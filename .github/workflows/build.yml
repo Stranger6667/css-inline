@@ -108,6 +108,9 @@ jobs:
         working-directory: ./bindings/c
 
       - run: cargo fmt --all -- --check
+        working-directory: ./bindings/java
+
+      - run: cargo fmt --all -- --check
         working-directory: ./bindings/javascript
 
       - run: cargo fmt --all -- --check
@@ -147,6 +150,10 @@ jobs:
       - name: Python
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/python
+
+      - name: Java
+        run: cargo clippy -- -D warnings
+        working-directory: ./bindings/java
 
       - name: JavaScript
         run: cargo clippy -- -D warnings

@@ -20,6 +20,8 @@ export interface Options {
   keepLinkTags?: boolean
   /** Keep "at-rules" after inlining. */
   keepAtRules?: boolean
+  /** Remove trailing semicolons and spaces between properties and values. */
+  minifyCss?: boolean
   /** Used for loading external stylesheets via relative URLs. */
   baseUrl?: string
   /** Whether remote stylesheets should be loaded or not. */

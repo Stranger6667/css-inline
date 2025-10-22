@@ -31,7 +31,7 @@ use magnus::{
     prelude::*,
     scan_args::{get_kwargs, scan_args, Args},
     typed_data::Obj,
-    DataTypeFunctions, RHash, TypedData, Value,
+    DataTypeFunctions, RHash, Symbol, TryConvert, TypedData, Value,
 };
 use rayon::prelude::*;
 use std::{
@@ -42,52 +42,71 @@ use std::{
 
 type RubyResult<T> = Result<T, magnus::Error>;
 
+#[allow(clippy::struct_excessive_bools)]
+struct Options {
+    /// Whether to inline CSS from "style" tags.
+    ///
+    /// Sometimes HTML may include a lot of boilerplate styles, that are not applicable in every
+    /// scenario, and it is useful to ignore them and use `extra_css` instead.
+    inline_style_tags: Option<bool>,
+    /// Keep "style" tags after inlining.
+    keep_style_tags: Option<bool>,
+    /// Keep "link" tags after inlining.
+    keep_link_tags: Option<bool>,
+    /// Keep "at-rules" after inlining.
+    keep_at_rules: Option<bool>,
+    /// Remove trailing semicolons and spaces between properties and values.
+    minify_css: Option<bool>,
+    /// Used for loading external stylesheets via relative URLs.
+    base_url: Option<String>,
+    /// Whether remote stylesheets should be loaded or not.
+    load_remote_stylesheets: Option<bool>,
+    /// An LRU Cache for external stylesheets.
+    cache: Option<Obj<StylesheetCache>>,
+    /// Additional CSS to inline.
+    extra_css: Option<String>,
+    /// Pre-allocate capacity for HTML nodes during parsing.
+    /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
+    preallocate_node_capacity: Option<usize>,
+}
+
+impl TryConvert for Options {
+    fn try_convert(v: Value) -> Result<Self, magnus::Error> {
+        let h = RHash::try_convert(v)?;
+        Ok(Self {
+            inline_style_tags: h.aref::<_, Option<bool>>(Symbol::new("inline_style_tags"))?,
+            keep_style_tags: h.aref::<_, Option<bool>>(Symbol::new("keep_style_tags"))?,
+            keep_link_tags: h.aref::<_, Option<bool>>(Symbol::new("keep_link_tags"))?,
+            keep_at_rules: h.aref::<_, Option<bool>>(Symbol::new("keep_at_rules"))?,
+            minify_css: h.aref::<_, Option<bool>>(Symbol::new("minify_css"))?,
+            base_url: h.aref::<_, Option<String>>(Symbol::new("base_url"))?,
+            load_remote_stylesheets: h
+                .aref::<_, Option<bool>>(Symbol::new("load_remote_stylesheets"))?,
+            cache: h.aref::<_, Option<Obj<StylesheetCache>>>(Symbol::new("cache"))?,
+            extra_css: h.aref::<_, Option<String>>(Symbol::new("extra_css"))?,
+            preallocate_node_capacity: h
+                .aref::<_, Option<usize>>(Symbol::new("preallocate_node_capacity"))?,
+        })
+    }
+}
+
 fn parse_options<Req>(
     args: &Args<Req, (), (), (), RHash, ()>,
 ) -> RubyResult<rust_inline::InlineOptions<'static>> {
-    let kwargs = get_kwargs::<
-        _,
-        (),
-        (
-            Option<bool>,
-            Option<bool>,
-            Option<bool>,
-            Option<bool>,
-            Option<String>,
-            Option<bool>,
-            Option<Obj<StylesheetCache>>,
-            Option<String>,
-            Option<usize>,
-        ),
-        (),
-    >(
-        args.keywords,
-        &[],
-        &[
-            "inline_style_tags",
-            "keep_style_tags",
-            "keep_link_tags",
-            "keep_at_rules",
-            "base_url",
-            "load_remote_stylesheets",
-            "cache",
-            "extra_css",
-            "preallocate_node_capacity",
-        ],
-    )?;
-    let kwargs = kwargs.optional;
+    let kwargs: Options = Options::try_convert(args.keywords.as_value())?;
     Ok(rust_inline::InlineOptions {
-        inline_style_tags: kwargs.0.unwrap_or(true),
-        keep_style_tags: kwargs.1.unwrap_or(false),
-        keep_link_tags: kwargs.2.unwrap_or(false),
-        keep_at_rules: kwargs.3.unwrap_or(false),
-        base_url: parse_url(kwargs.4)?,
-        load_remote_stylesheets: kwargs.5.unwrap_or(true),
+        inline_style_tags: kwargs.inline_style_tags.unwrap_or(true),
+        keep_style_tags: kwargs.keep_style_tags.unwrap_or(false),
+        keep_link_tags: kwargs.keep_link_tags.unwrap_or(false),
+        keep_at_rules: kwargs.keep_at_rules.unwrap_or(false),
+        minify_css: kwargs.minify_css.unwrap_or(false),
+        base_url: parse_url(kwargs.base_url)?,
+        load_remote_stylesheets: kwargs.load_remote_stylesheets.unwrap_or(true),
         cache: kwargs
-            .6
+            .cache
             .map(|cache| Mutex::new(rust_inline::StylesheetCache::new(cache.size))),
-        extra_css: kwargs.7.map(Cow::Owned),
-        preallocate_node_capacity: kwargs.8.unwrap_or(32),
+        extra_css: kwargs.extra_css.map(Cow::Owned),
+        preallocate_node_capacity: kwargs.preallocate_node_capacity.unwrap_or(32),
         resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
     })
 }

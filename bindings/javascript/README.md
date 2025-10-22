@@ -117,6 +117,7 @@ var inlined = inlineFragment(
 - `keepStyleTags`. Specifies whether to keep "style" tags after inlining. Default: `false`
 - `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
 - `keepAtRules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
+- `minifyCss`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
 - `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
 - `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
 - `cache`. Specifies caching options for external stylesheets (for example, `{size: 5}`). Default: `null`
@@ -171,6 +172,19 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 <head>
   <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
+</head>
+<body>
+  <h1>Big Text</h1>
+</body>
+```
+
+If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
+and spaces between properties and values.
+
+```html
+<head>
+  <!-- With minify_css=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
   <h1>Big Text</h1>

@@ -64,6 +64,8 @@ pub struct InlineOptions<'a> {
     pub keep_link_tags: bool,
     /// Keep "at-rules" after inlining.
     pub keep_at_rules: bool,
+    /// Remove trailing semicolons and spaces between properties and values.
+    pub minify_css: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
     /// Whether remote stylesheets should be loaded or not.
@@ -132,6 +134,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Override whether trailing semicolons and spaces between properties and values should be removed.
+    #[must_use]
+    pub fn minify_css(mut self, minify_css: bool) -> Self {
+        self.minify_css = minify_css;
+        self
+    }
+
     /// Set base URL that will be used for loading external stylesheets via relative URLs.
     #[must_use]
     pub fn base_url(mut self, base_url: Option<Url>) -> Self {
@@ -194,6 +203,7 @@ impl Default for InlineOptions<'_> {
             keep_style_tags: false,
             keep_link_tags: false,
             keep_at_rules: false,
+            minify_css: false,
             base_url: None,
             load_remote_stylesheets: true,
             #[cfg(feature = "stylesheet-cache")]
@@ -528,6 +538,7 @@ impl<'a> CSSInliner<'a> {
             styles,
             self.options.keep_style_tags,
             self.options.keep_link_tags,
+            self.options.minify_css,
             at_rules.as_ref(),
             mode,
         )?;
