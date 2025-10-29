@@ -8,6 +8,7 @@
 
 ### Changed
 
+- Update `magnus` to `0.8`.
 - Update `selectors` to `0.32`.
 
 ## [0.17.0] - 2025-07-26

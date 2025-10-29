@@ -27,11 +27,11 @@
 )]
 use css_inline as rust_inline;
 use magnus::{
-    class, define_module, function, method,
+    function, method,
     prelude::*,
     scan_args::{get_kwargs, scan_args, Args},
     typed_data::Obj,
-    DataTypeFunctions, RHash, Symbol, TryConvert, TypedData, Value,
+    DataTypeFunctions, RHash, Ruby, TryConvert, TypedData, Value,
 };
 use rayon::prelude::*;
 use std::{
@@ -73,19 +73,20 @@ struct Options {
 impl TryConvert for Options {
     fn try_convert(v: Value) -> Result<Self, magnus::Error> {
         let h = RHash::try_convert(v)?;
+        let ruby = Ruby::get_with(v);
         Ok(Self {
-            inline_style_tags: h.aref::<_, Option<bool>>(Symbol::new("inline_style_tags"))?,
-            keep_style_tags: h.aref::<_, Option<bool>>(Symbol::new("keep_style_tags"))?,
-            keep_link_tags: h.aref::<_, Option<bool>>(Symbol::new("keep_link_tags"))?,
-            keep_at_rules: h.aref::<_, Option<bool>>(Symbol::new("keep_at_rules"))?,
-            minify_css: h.aref::<_, Option<bool>>(Symbol::new("minify_css"))?,
-            base_url: h.aref::<_, Option<String>>(Symbol::new("base_url"))?,
+            inline_style_tags: h.aref::<_, Option<bool>>(ruby.to_symbol("inline_style_tags"))?,
+            keep_style_tags: h.aref::<_, Option<bool>>(ruby.to_symbol("keep_style_tags"))?,
+            keep_link_tags: h.aref::<_, Option<bool>>(ruby.to_symbol("keep_link_tags"))?,
+            keep_at_rules: h.aref::<_, Option<bool>>(ruby.to_symbol("keep_at_rules"))?,
+            minify_css: h.aref::<_, Option<bool>>(ruby.to_symbol("minify_css"))?,
+            base_url: h.aref::<_, Option<String>>(ruby.to_symbol("base_url"))?,
             load_remote_stylesheets: h
-                .aref::<_, Option<bool>>(Symbol::new("load_remote_stylesheets"))?,
-            cache: h.aref::<_, Option<Obj<StylesheetCache>>>(Symbol::new("cache"))?,
-            extra_css: h.aref::<_, Option<String>>(Symbol::new("extra_css"))?,
+                .aref::<_, Option<bool>>(ruby.to_symbol("load_remote_stylesheets"))?,
+            cache: h.aref::<_, Option<Obj<StylesheetCache>>>(ruby.to_symbol("cache"))?,
+            extra_css: h.aref::<_, Option<String>>(ruby.to_symbol("extra_css"))?,
             preallocate_node_capacity: h
-                .aref::<_, Option<usize>>(Symbol::new("preallocate_node_capacity"))?,
+                .aref::<_, Option<usize>>(ruby.to_symbol("preallocate_node_capacity"))?,
         })
     }
 }
@@ -120,8 +121,9 @@ struct StylesheetCache {
 impl StylesheetCache {
     fn new(args: &[Value]) -> RubyResult<StylesheetCache> {
         fn error() -> magnus::Error {
+            let ruby = Ruby::get().expect("Always called from a Ruby thread");
             magnus::Error::new(
-                magnus::exception::arg_error(),
+                ruby.exception_arg_error(),
                 "Cache size must be an integer greater than zero",
             )
         }
@@ -143,19 +145,19 @@ struct InlineErrorWrapper(rust_inline::InlineError);
 
 impl From<InlineErrorWrapper> for magnus::Error {
     fn from(error: InlineErrorWrapper) -> Self {
+        let ruby = Ruby::get().expect("Always called from a Ruby thread");
         match error.0 {
             rust_inline::InlineError::IO(error) => {
-                magnus::Error::new(magnus::exception::arg_error(), error.to_string())
+                magnus::Error::new(ruby.exception_arg_error(), error.to_string())
             }
-            rust_inline::InlineError::Network { error, location } => magnus::Error::new(
-                magnus::exception::arg_error(),
-                format!("{error}: {location}"),
-            ),
+            rust_inline::InlineError::Network { error, location } => {
+                magnus::Error::new(ruby.exception_arg_error(), format!("{error}: {location}"))
+            }
             rust_inline::InlineError::ParseError(message) => {
-                magnus::Error::new(magnus::exception::arg_error(), message.to_string())
+                magnus::Error::new(ruby.exception_arg_error(), message.to_string())
             }
             rust_inline::InlineError::MissingStyleSheet { .. } => {
-                magnus::Error::new(magnus::exception::arg_error(), error.0.to_string())
+                magnus::Error::new(ruby.exception_arg_error(), error.0.to_string())
             }
         }
     }
@@ -168,8 +170,9 @@ struct UrlError {
 
 impl From<UrlError> for magnus::Error {
     fn from(error: UrlError) -> magnus::Error {
+        let ruby = Ruby::get().expect("Always called from a Ruby thread");
         magnus::Error::new(
-            magnus::exception::arg_error(),
+            ruby.exception_arg_error(),
             format!("{}: {}", error.error, error.url),
         )
     }
@@ -275,8 +278,8 @@ fn inline_many_fragments_impl(
 }
 
 #[magnus::init(name = "css_inline")]
-fn init() -> RubyResult<()> {
-    let module = define_module("CSSInline")?;
+fn init(ruby: &Ruby) -> RubyResult<()> {
+    let module = ruby.define_module("CSSInline")?;
 
     module.define_module_function("inline", function!(inline, -1))?;
     module.define_module_function("inline_fragment", function!(inline_fragment, -1))?;
@@ -286,7 +289,7 @@ fn init() -> RubyResult<()> {
         function!(inline_many_fragments, -1),
     )?;
 
-    let class = module.define_class("CSSInliner", class::object())?;
+    let class = module.define_class("CSSInliner", ruby.class_object())?;
     class.define_singleton_method("new", function!(CSSInliner::new, -1))?;
     class.define_method("inline", method!(CSSInliner::inline, 1))?;
     class.define_method("inline_fragment", method!(CSSInliner::inline_fragment, 2))?;
@@ -296,7 +299,7 @@ fn init() -> RubyResult<()> {
         method!(CSSInliner::inline_many_fragments, 2),
     )?;
 
-    let class = module.define_class("StylesheetCache", class::object())?;
+    let class = module.define_class("StylesheetCache", ruby.class_object())?;
     class.define_singleton_method("new", function!(StylesheetCache::new, -1))?;
     Ok(())
 }
