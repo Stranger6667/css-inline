@@ -9,6 +9,8 @@
 ### Changed
 
 - Bump MSRV to `1.80`
+- Update `PyO3` to `0.27.0`.
+- Update `selectors` to `0.32`.
 
 ## [0.17.0] - 2025-07-26
 
