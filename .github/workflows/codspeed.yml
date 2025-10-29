@@ -24,8 +24,9 @@ jobs:
       - run: cargo codspeed build
         working-directory: ./css-inline
 
-      - uses: CodSpeedHQ/action@v3
+      - uses: CodSpeedHQ/action@v4
         with:
           run: cargo codspeed run
+          mode: "instrumentation"
           token: ${{ secrets.CODSPEED_TOKEN }}
           working-directory: ./css-inline
