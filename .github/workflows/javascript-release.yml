@@ -257,7 +257,7 @@ jobs:
         working-directory: bindings/javascript
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: artifacts
 
