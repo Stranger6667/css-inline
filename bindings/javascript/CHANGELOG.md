@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `napi` to `3`.
+
 ## [0.18.0] - 2025-11-01
 
 ### Added
