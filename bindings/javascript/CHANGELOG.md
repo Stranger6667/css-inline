@@ -4,9 +4,12 @@
 
 ### Changed
 
+- Update `napi` to `3`.
 - Update `cssparser` to `0.36`.
 - Update `html5ever` to `0.36`.
 - Update `selectors` to `0.33`.
+- Bump MSRV to `1.88`.
+- Drop Node.js 18 support.
 
 ### Performance
 
