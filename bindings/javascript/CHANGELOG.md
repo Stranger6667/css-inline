@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.18.0] - 2025-11-01
+
 ### Added
 
 - `minify_css` option [#12](https://github.com/Stranger6667/css-inline/issues/12)
@@ -139,7 +141,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.17.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.18.0...HEAD
+[0.18.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.17.0...javascript-v0.18.0
 [0.17.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.16.0...javascript-v0.17.0
 [0.16.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.15.0...javascript-v0.16.0
 [0.15.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.14.3...javascript-v0.15.0
