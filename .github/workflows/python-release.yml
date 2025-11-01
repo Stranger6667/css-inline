@@ -261,8 +261,7 @@ jobs:
         os: [ubuntu-22.04, macos-13]
         target: [x86_64, aarch64]
         python-version:
-          - "3.9"
-          - "3.10"
+          - "3.11"
         exclude:
           - os: macos-13
             target: aarch64

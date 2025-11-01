@@ -11,6 +11,7 @@
 - Bump MSRV to `1.80`
 - Update `PyO3` to `0.27.0`.
 - Update `selectors` to `0.32`.
+- **BREAKING**: Minimum supported PyPy version is now 3.11 (was 3.9).
 
 ## [0.17.0] - 2025-07-26
 
