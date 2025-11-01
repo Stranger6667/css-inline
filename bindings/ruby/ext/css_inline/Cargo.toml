@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-ruby"
-version = "0.17.0"
+version = "0.18.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 readme = "README.rdoc"
@@ -9,7 +9,7 @@ repository = "https://github.com/Stranger6667/css-inline"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 categories = ["web-programming"]
 license = "MIT"
-rust-version = "1.82"
+rust-version = "1.83"
 
 [lib]
 name = "css_inline"
@@ -20,7 +20,6 @@ magnus = "0.8"
 rayon = "1"
 
 [dependencies.css-inline]
-path = "../../../../css-inline"
-version = "*"
+version = "0.18.0"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
