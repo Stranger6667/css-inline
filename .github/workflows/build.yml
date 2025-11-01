@@ -669,7 +669,7 @@ jobs:
             sh -c '
               set -e
               apk add --no-cache alpine-sdk curl gcompat clang clang-dev llvm-dev
-              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.82.0
+              curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.83.0
               source ~/.cargo/env
               gem update --system
               cd bindings/ruby
