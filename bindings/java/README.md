@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.css-inline:css-inline:0.17.0'
+    implementation 'org.css-inline:css-inline:0.18.0'
 }
 ```
 
@@ -81,7 +81,7 @@ dependencies {
     <dependency>
         <groupId>org.css-inline</groupId>
         <artifactId>css-inline</artifactId>
-        <version>0.17.0</version>
+        <version>0.18.0</version>
     </dependency>
 </dependencies>
 ```
