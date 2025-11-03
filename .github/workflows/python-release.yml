@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
@@ -46,7 +46,7 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
@@ -70,7 +70,7 @@ jobs:
     runs-on: macos-13
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
@@ -96,7 +96,7 @@ jobs:
         target: [x64, x86]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: ${{ matrix.target }}
@@ -124,7 +124,7 @@ jobs:
         target: [x86_64, i686]
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
@@ -156,7 +156,7 @@ jobs:
             base_image: --platform=linux/arm/v7 arm32v7/ubuntu:24.04
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Build wheels
@@ -192,7 +192,7 @@ jobs:
           - x86_64-unknown-linux-musl
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           architecture: x64
@@ -228,7 +228,7 @@ jobs:
             arch: armv7
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - name: Build wheels
@@ -267,7 +267,7 @@ jobs:
             target: aarch64
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: pypy${{ matrix.python-version }}
       - name: Build wheels
@@ -297,7 +297,7 @@ jobs:
           toolchain: nightly-2025-02-01
           targets: wasm32-unknown-emscripten
           components: rust-src
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.13
       - run: |
@@ -341,7 +341,7 @@ jobs:
         run: |
           mkdir dist
           mv all/*/* dist
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
       - name: Extract Version
         run: echo "version=${GITHUB_REF#refs/tags/python-v}" >> $GITHUB_ENV
 
