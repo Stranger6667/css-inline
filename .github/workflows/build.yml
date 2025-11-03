@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
 
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
           cache: "pip"
@@ -300,7 +300,7 @@ jobs:
           cache: yarn
           cache-dependency-path: bindings/javascript/yarn.lock
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
           cache: "pip"
@@ -499,7 +499,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -531,7 +531,7 @@ jobs:
           toolchain: nightly-2025-02-01
           targets: wasm32-unknown-emscripten
           components: rust-src
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.13
       - run: |
@@ -575,7 +575,7 @@ jobs:
           directory: ${{ runner.temp }}/llvm-18
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
           cache: "pip"
@@ -771,7 +771,7 @@ jobs:
 
       - uses: taiki-e/install-action@cargo-hack
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.11
           cache: "pip"
