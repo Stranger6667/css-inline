@@ -133,6 +133,15 @@ fn main() -> css_inline::Result<()> {
 - `cache`. Specifies cache for external stylesheets. Default: `None`
 - `extra_css`. Extra CSS to be inlined. Default: `None`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
+- `remove_inlined_selectors`. Controls whether selectors that were successfully inlined are removed from inline `<style>` blocks. Default: `false`. For example, to keep only the selectors that were not inlined:
+
+  ```rust
+  let inliner = css_inline::CSSInliner::options()
+      .remove_inlined_selectors(true)
+      .build();
+  ```
+
+  When cleanup is enabled, style tags that contain leftover selectors are kept even if `keep_style_tags` is `false`.
 
 You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 

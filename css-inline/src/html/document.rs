@@ -8,7 +8,7 @@ use super::{
     InliningMode,
 };
 use crate::{html::DocumentStyleMap, InlineError};
-use html5ever::local_name;
+use html5ever::{local_name, tendril::StrTendril};
 use selectors::context::SelectorCaches;
 use std::{fmt, fmt::Formatter, io::Write, iter::successors};
 
@@ -96,11 +96,11 @@ impl Document {
     }
 
     /// Iterator over blocks of CSS defined inside `style` tags.
-    pub(crate) fn styles(&self) -> impl Iterator<Item = &str> + '_ {
+    pub(crate) fn styles(&self) -> impl Iterator<Item = (NodeId, &str)> + '_ {
         self.styles.iter().filter_map(|node_id| {
-            self[*node_id]
-                .first_child
-                .and_then(|child_id| self[child_id].as_text())
+            self[*node_id].first_child.and_then(|child_id| {
+                self[child_id].as_text().map(|text| (*node_id, text))
+            })
         })
     }
 
@@ -128,6 +128,18 @@ impl Document {
     #[inline]
     pub(super) fn push_element_id(&mut self, node: NodeId) {
         self.elements.push(node);
+    }
+
+    pub(crate) fn detach_node(&mut self, node: NodeId) {
+        self.detach(node);
+    }
+
+    pub(crate) fn append_child(&mut self, parent: NodeId, node: NodeId) {
+        self.append(parent, node);
+    }
+
+    pub(crate) fn new_text_node(&mut self, text: StrTendril) -> NodeId {
+        self.push_node(NodeData::Text { text })
     }
 
     /// Detach a node from its siblings and its parent.
@@ -374,7 +386,10 @@ mod tests {
             0,
             InliningMode::Document,
         );
-        let styles = doc.styles().collect::<Vec<_>>();
+        let styles = doc
+            .styles()
+            .map(|(_, content)| content)
+            .collect::<Vec<_>>();
         assert_eq!(styles.len(), 2);
         assert_eq!(styles[0], "h1 { color:blue; }");
         assert_eq!(styles[1], "h1 { color:red }");

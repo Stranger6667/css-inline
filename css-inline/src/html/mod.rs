@@ -10,6 +10,7 @@ mod serializer;
 pub(crate) use self::selectors::Specificity;
 use crate::hasher::BuildNoHashHasher;
 pub(crate) use document::Document;
+pub(crate) use node::{NodeData, NodeId};
 use indexmap::IndexMap;
 pub(crate) use parser::InliningMode;
 use rustc_hash::FxHasher;
@@ -19,4 +20,4 @@ pub(crate) type ElementStyleMap<'i> =
     IndexMap<&'i str, (Specificity, &'i str), BuildHasherDefault<FxHasher>>;
 
 pub(crate) type DocumentStyleMap<'i> =
-    IndexMap<node::NodeId, ElementStyleMap<'i>, BuildNoHashHasher>;
+    IndexMap<NodeId, ElementStyleMap<'i>, BuildNoHashHasher>;

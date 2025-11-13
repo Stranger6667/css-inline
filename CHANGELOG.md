@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `InlineOptions::remove_inlined_selectors` to drop selectors that were already inlined.
+
 ## [0.18.0] - 2025-11-01
 
 ### Added
