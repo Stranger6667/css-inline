@@ -37,10 +37,11 @@ pub use error::InlineError;
 use lru::{DefaultHasher, LruCache};
 use selectors::context::SelectorCaches;
 use smallvec::SmallVec;
-use std::{borrow::Cow, fmt::Formatter, io::Write, sync::Arc};
+use std::{borrow::Cow, fmt::Formatter, io::Write, ops::Range, sync::Arc};
 
-use html::{Document, InliningMode, Specificity};
+use html::{Document, InliningMode, NodeData, NodeId, Specificity};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
+use rustc_hash::FxHashMap;
 pub use url::{ParseError, Url};
 
 /// An LRU Cache for external stylesheets.
@@ -80,6 +81,8 @@ pub struct InlineOptions<'a> {
     pub preallocate_node_capacity: usize,
     /// A way to resolve stylesheets from various sources.
     pub resolver: Arc<dyn StylesheetResolver>,
+    /// Remove selectors that were successfully inlined from inline `<style>` blocks.
+    pub remove_inlined_selectors: bool,
 }
 
 impl std::fmt::Debug for InlineOptions<'_> {
@@ -98,7 +101,236 @@ impl std::fmt::Debug for InlineOptions<'_> {
         debug
             .field("extra_css", &self.extra_css)
             .field("preallocate_node_capacity", &self.preallocate_node_capacity)
+            .field("remove_inlined_selectors", &self.remove_inlined_selectors)
             .finish_non_exhaustive()
+    }
+}
+
+#[derive(Debug)]
+struct CssChunk {
+    range: Range<usize>,
+    /// The style node this chunk came from, if any.
+    /// `None` for linked stylesheets, extra CSS, or fragment CSS.
+    style_node: Option<NodeId>,
+}
+
+type SelectorList<'i> = SmallVec<[&'i str; 2]>;
+
+#[derive(Debug)]
+struct SelectorUsage<'i> {
+    selector: &'i str,
+    declarations: (usize, usize),
+    rule_id: usize,
+    chunk_index: usize,
+    matched: bool,
+}
+
+#[derive(Debug, Default)]
+struct RuleRemainder<'i> {
+    selectors: SelectorList<'i>,
+    declarations: (usize, usize),
+}
+
+#[derive(Debug, Default)]
+struct SelectorCleanupState<'i> {
+    chunks: Vec<CssChunk>,
+    usages: Vec<SelectorUsage<'i>>,
+}
+
+impl<'i> SelectorCleanupState<'i> {
+    fn record_usage(&mut self, usage: SelectorUsage<'i>) {
+        self.usages.push(usage);
+    }
+
+    fn has_unmatched(&self) -> bool {
+        self.usages.iter().any(|usage| !usage.matched)
+    }
+}
+
+/// Find which chunk contains the given byte offset.
+fn find_chunk_index(chunks: &[CssChunk], offset: usize) -> Option<usize> {
+    chunks
+        .iter()
+        .position(|chunk| chunk.range.contains(&offset))
+}
+
+/// Compute chunk indices for all rules based on where their selectors point in the source.
+#[allow(clippy::arithmetic_side_effects)]
+fn compute_rule_chunk_indices(
+    rules: &[(&str, (usize, usize))],
+    source: &str,
+    chunks: &[CssChunk],
+) -> Vec<Option<usize>> {
+    let source_start = source.as_ptr() as usize;
+    let source_end = source_start.saturating_add(source.len());
+
+    rules
+        .iter()
+        .map(|(selectors, _)| {
+            let sel_start = selectors.as_ptr() as usize;
+            // Check if selectors slice is within source bounds
+            if sel_start >= source_start && sel_start < source_end {
+                let offset = sel_start.wrapping_sub(source_start);
+                find_chunk_index(chunks, offset)
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
+struct CssBuffer {
+    raw: String,
+    chunks: Option<Vec<CssChunk>>,
+}
+
+impl CssBuffer {
+    fn new(track_chunks: bool) -> Self {
+        CssBuffer {
+            raw: String::new(),
+            chunks: track_chunks.then(Vec::new),
+        }
+    }
+
+    fn push(&mut self, style_node: Option<NodeId>, content: &str, append_newline: bool) {
+        if content.is_empty() {
+            return;
+        }
+        let start = self.raw.len();
+        self.raw.push_str(content);
+        if append_newline {
+            self.raw.push('\n');
+        }
+        if let Some(chunks) = &mut self.chunks {
+            let end = self.raw.len();
+            chunks.push(CssChunk {
+                range: start..end,
+                style_node,
+            });
+        }
+    }
+
+    fn into_parts(self) -> (String, Option<Vec<CssChunk>>) {
+        (self.raw, self.chunks)
+    }
+}
+
+fn apply_selector_cleanup<'i>(
+    state: &SelectorCleanupState<'i>,
+    document: &mut Document,
+    requested_keep_style_tags: bool,
+    declarations: &[parser::Declaration<'i>],
+) {
+    if state.usages.is_empty() || state.chunks.is_empty() {
+        return;
+    }
+    rewrite_style_blocks(state, document, requested_keep_style_tags, declarations);
+}
+
+fn rewrite_style_blocks<'i>(
+    state: &SelectorCleanupState<'i>,
+    document: &mut Document,
+    requested_keep_style_tags: bool,
+    declarations: &[parser::Declaration<'i>],
+) {
+    let mut chunk_remainders: Vec<Vec<RuleRemainder<'i>>> =
+        (0..state.chunks.len()).map(|_| Vec::new()).collect();
+    let mut remainder_lookup: FxHashMap<(usize, usize), usize> = FxHashMap::default();
+
+    for usage in &state.usages {
+        if usage.matched {
+            continue;
+        }
+        let trimmed = usage.selector.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+        let key = (usage.chunk_index, usage.rule_id);
+        let entry_index = remainder_lookup.entry(key).or_insert_with(|| {
+            let idx = chunk_remainders[usage.chunk_index].len();
+            chunk_remainders[usage.chunk_index].push(RuleRemainder {
+                selectors: SelectorList::new(),
+                declarations: usage.declarations,
+            });
+            idx
+        });
+        chunk_remainders[usage.chunk_index][*entry_index]
+            .selectors
+            .push(trimmed);
+    }
+
+    for (idx, chunk) in state.chunks.iter().enumerate() {
+        let rules = &chunk_remainders[idx];
+        if rules.is_empty() {
+            handle_empty_remainder(document, chunk, requested_keep_style_tags);
+            continue;
+        }
+        let mut buffer = String::new();
+        for remainder in rules {
+            append_rule(&mut buffer, remainder, declarations);
+        }
+        if buffer.trim().is_empty() {
+            handle_empty_remainder(document, chunk, requested_keep_style_tags);
+            continue;
+        }
+        if let Some(node_id) = chunk.style_node {
+            overwrite_style_node(document, node_id, buffer.trim_end());
+        }
+    }
+}
+
+fn handle_empty_remainder(
+    document: &mut Document,
+    chunk: &CssChunk,
+    requested_keep_style_tags: bool,
+) {
+    if let Some(node_id) = chunk.style_node {
+        if requested_keep_style_tags {
+            overwrite_style_node(document, node_id, "");
+        } else {
+            document.detach_node(node_id);
+        }
+    }
+}
+
+fn append_rule<'i>(
+    buffer: &mut String,
+    remainder: &RuleRemainder<'i>,
+    declarations: &[parser::Declaration<'i>],
+) {
+    let (start, end) = remainder.declarations;
+    if start >= end || end > declarations.len() {
+        return;
+    }
+    let mut selectors_iter = remainder.selectors.iter().peekable();
+    while let Some(selector) = selectors_iter.next() {
+        buffer.push_str(selector);
+        if selectors_iter.peek().is_some() {
+            buffer.push_str(", ");
+        }
+    }
+    buffer.push_str(" {");
+    for (name, value) in &declarations[start..end] {
+        buffer.push(' ');
+        buffer.push_str(name);
+        buffer.push(':');
+        buffer.push(' ');
+        let value_trimmed = value.trim();
+        buffer.push_str(value_trimmed);
+        if !value_trimmed.ends_with(';') {
+            buffer.push(';');
+        }
+    }
+    buffer.push_str(" }\n");
+}
+
+fn overwrite_style_node(document: &mut Document, node_id: NodeId, new_css: &str) {
+    let new_css = new_css.trim();
+    if let Some(text_node_id) = document[node_id].first_child {
+        if let NodeData::Text { text } = &mut document[text_node_id].data {
+            text.clear();
+            text.push_slice(new_css);
+        }
     }
 }
 
@@ -185,6 +417,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Remove selectors that were successfully inlined from inline `<style>` blocks.
+    #[must_use]
+    pub fn remove_inlined_selectors(mut self, enabled: bool) -> Self {
+        self.remove_inlined_selectors = enabled;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -208,6 +447,7 @@ impl Default for InlineOptions<'_> {
             extra_css: None,
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
+            remove_inlined_selectors: false,
         }
     }
 }
@@ -364,7 +604,7 @@ impl<'a> CSSInliner<'a> {
         target: &mut W,
         mode: InliningMode,
     ) -> Result<()> {
-        let document = Document::parse_with_options(
+        let mut document = Document::parse_with_options(
             html.as_bytes(),
             self.options.preallocate_node_capacity,
             mode,
@@ -376,10 +616,11 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
+        let track_selector_cleanup = self.options.remove_inlined_selectors;
         let mut size_estimate: usize = if self.options.inline_style_tags {
             document
                 .styles()
-                .map(|s| {
+                .map(|(_, s)| {
                     // Add 1 to account for the extra `\n` char we add between styles
                     s.len().saturating_add(1)
                 })
@@ -393,11 +634,12 @@ impl<'a> CSSInliner<'a> {
         if let Some(css) = css {
             size_estimate = size_estimate.saturating_add(css.len());
         }
-        let mut raw_styles = String::with_capacity(size_estimate);
+        let mut css_buffer = CssBuffer::new(track_selector_cleanup);
+        css_buffer.raw.reserve(size_estimate);
         if self.options.inline_style_tags || self.options.keep_at_rules {
-            for style in document.styles() {
-                raw_styles.push_str(style);
-                raw_styles.push('\n');
+            for (node_id, style) in document.styles() {
+                let style_node = track_selector_cleanup.then_some(node_id);
+                css_buffer.push(style_node, style, true);
             }
         }
         if self.options.load_remote_stylesheets {
@@ -410,15 +652,13 @@ impl<'a> CSSInliner<'a> {
                 if let Some(lock) = self.options.cache.as_ref() {
                     let mut cache = lock.lock().expect("Cache lock is poisoned");
                     if let Some(cached) = cache.get(url.as_ref()) {
-                        raw_styles.push_str(cached);
-                        raw_styles.push('\n');
+                        css_buffer.push(None, cached, true);
                         continue;
                     }
                 }
 
                 let css = self.options.resolver.retrieve(url.as_ref())?;
-                raw_styles.push_str(&css);
-                raw_styles.push('\n');
+                css_buffer.push(None, &css, true);
 
                 #[cfg(feature = "stylesheet-cache")]
                 if let Some(lock) = self.options.cache.as_ref() {
@@ -428,10 +668,19 @@ impl<'a> CSSInliner<'a> {
             }
         }
         if let Some(extra_css) = &self.options.extra_css {
-            raw_styles.push_str(extra_css);
+            css_buffer.push(None, extra_css, false);
         }
         if let Some(css) = css {
-            raw_styles.push_str(css);
+            css_buffer.push(None, css, false);
+        }
+        let (raw_styles, css_chunks) = css_buffer.into_parts();
+        let mut selector_cleanup_state = if track_selector_cleanup {
+            Some(SelectorCleanupState::default())
+        } else {
+            None
+        };
+        if let (Some(state), Some(chunks)) = (&mut selector_cleanup_state, css_chunks) {
+            state.chunks = chunks;
         }
         let mut parse_input = cssparser::ParserInput::new(&raw_styles);
         let mut parser = cssparser::Parser::new(&mut parse_input);
@@ -475,17 +724,24 @@ impl<'a> CSSInliner<'a> {
         } else {
             None
         };
+        // Compute chunk indices for all rules once, before processing
+        let rule_chunk_indices = selector_cleanup_state
+            .as_ref()
+            .map(|state| compute_rule_chunk_indices(&rule_list, &raw_styles, &state.chunks))
+            .unwrap_or_default();
         // Vec indexed by NodeId for O(1) access instead of hash lookups
         let mut styles: Vec<Option<SmallVec<[_; 4]>>> = vec![None; document.nodes.len()];
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
-        for (selectors, (start, end)) in &rule_list {
+        for (rule_id, (selectors, (start, end))) in rule_list.iter().enumerate() {
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
             for selector in selectors.split(',') {
+                let mut matched_any = false;
                 if let Ok(matching_elements) = document.select(selector, &mut caches) {
                     let specificity = matching_elements.specificity();
                     for matching_element in matching_elements {
+                        matched_any = true;
                         let element_styles = styles[matching_element.node_id.get()]
                             .get_or_insert_with(SmallVec::new);
                         // Iterate over pairs of property name & value
@@ -523,14 +779,37 @@ impl<'a> CSSInliner<'a> {
                         }
                     }
                 }
+                if let Some(state) = selector_cleanup_state.as_mut() {
+                    if let Some(chunk_index) = rule_chunk_indices.get(rule_id).copied().flatten() {
+                        state.record_usage(SelectorUsage {
+                            selector,
+                            declarations: (*start, *end),
+                            rule_id,
+                            chunk_index,
+                            matched: matched_any,
+                        });
+                    }
+                }
                 // Ignore not parsable selectors. E.g. there is no parser for @media queries
                 // Which means that they will fall into this category and will be ignored
             }
         }
+        let cleanup_requires_css = selector_cleanup_state
+            .as_ref()
+            .is_some_and(SelectorCleanupState::has_unmatched);
+        let keep_style_tags = self.options.keep_style_tags || cleanup_requires_css;
+        if let Some(state) = selector_cleanup_state.as_ref() {
+            apply_selector_cleanup(
+                state,
+                &mut document,
+                self.options.keep_style_tags,
+                &declarations,
+            );
+        }
         document.serialize(
             target,
             styles,
-            self.options.keep_style_tags,
+            keep_style_tags,
             self.options.keep_link_tags,
             self.options.minify_css,
             at_rules.as_ref(),

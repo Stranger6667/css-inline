@@ -174,6 +174,7 @@ $inliner->inline($html);
 - `cache`. Specifies caching options for external stylesheets (for example, `new StylesheetCache(size: 5)`). Default: `null`
 - `extraCss`. Extra CSS to be inlined. Default: `null`
 - `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
+- `removeInlinedSelectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
 
 You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 

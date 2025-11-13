@@ -115,11 +115,11 @@ impl Document {
     }
 
     /// Iterator over blocks of CSS defined inside `style` tags.
-    pub(crate) fn styles(&self) -> impl Iterator<Item = &str> + '_ {
+    pub(crate) fn styles(&self) -> impl Iterator<Item = (NodeId, &str)> + '_ {
         self.styles.iter().filter_map(|node_id| {
             self[*node_id]
                 .first_child
-                .and_then(|child_id| self[child_id].as_text())
+                .and_then(|child_id| self[child_id].as_text().map(|text| (*node_id, text)))
         })
     }
 
@@ -199,6 +199,10 @@ impl Document {
     #[inline]
     pub(crate) fn get_by_tag(&self, tag: &LocalName) -> &[NodeId] {
         self.by_tag.get(tag).map_or(&[], Vec::as_slice)
+    }
+
+    pub(crate) fn detach_node(&mut self, node: NodeId) {
+        self.detach(node);
     }
 
     /// Detach a node from its siblings and its parent.
@@ -444,7 +448,7 @@ mod tests {
             0,
             InliningMode::Document,
         );
-        let styles = doc.styles().collect::<Vec<_>>();
+        let styles = doc.styles().map(|(_, content)| content).collect::<Vec<_>>();
         assert_eq!(styles.len(), 2);
         assert_eq!(styles[0], "h1 { color:blue; }");
         assert_eq!(styles[1], "h1 { color:red }");

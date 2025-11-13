@@ -79,6 +79,7 @@ fn build_inliner(
     let load_remote_stylesheets = env.get_bool_field(&cfg, "loadRemoteStylesheets")?;
     let cache_size = env.get_int_field(&cfg, "cacheSize")?;
     let preallocate_node_capacity = env.get_int_field(&cfg, "preallocateNodeCapacity")?;
+    let remove_inlined_selectors = env.get_bool_field(&cfg, "removeInlinedSelectors")?;
 
     let extra_css = env.get_string_field_opt(&cfg, "extraCss")?;
     let base_url = env.get_string_field_opt(&cfg, "baseUrl")?;
@@ -90,7 +91,8 @@ fn build_inliner(
         .minify_css(minify_css)
         .load_remote_stylesheets(load_remote_stylesheets)
         .extra_css(extra_css.map(Cow::Owned))
-        .preallocate_node_capacity(preallocate_node_capacity as usize);
+        .preallocate_node_capacity(preallocate_node_capacity as usize)
+        .remove_inlined_selectors(remove_inlined_selectors);
 
     if let Some(url) = base_url {
         match css_inline::Url::parse(&url) {

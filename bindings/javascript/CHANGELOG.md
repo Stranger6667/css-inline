@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `removeInlinedSelectors` option to remove selectors that were successfully inlined from `<style>` blocks.
+
 ### Changed
 
 - Update `napi` to `3`.

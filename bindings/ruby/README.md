@@ -142,6 +142,7 @@ inliner.inline("...")
 - `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size: 5)`). Default: `nil`
 - `extra_css`. Extra CSS to be inlined. Default: `nil`
 - `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
+- `remove_inlined_selectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
 
 You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
 

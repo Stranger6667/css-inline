@@ -97,6 +97,8 @@ pub struct CssInlinerOptions {
     pub preallocate_node_capacity: size_t,
     /// Remove trailing semicolons and spaces between properties and values.
     pub minify_css: bool,
+    /// Remove selectors that were successfully inlined from inline `<style>` blocks.
+    pub remove_inlined_selectors: bool,
 }
 
 macro_rules! inliner {
@@ -198,6 +200,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         cache: std::ptr::null(),
         extra_css: ptr::null(),
         preallocate_node_capacity: 32,
+        remove_inlined_selectors: false,
     }
 }
 
@@ -254,6 +257,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             extra_css: extra_css.map(Cow::Borrowed),
             preallocate_node_capacity: value.preallocate_node_capacity,
             resolver: Arc::new(DefaultStylesheetResolver),
+            remove_inlined_selectors: value.remove_inlined_selectors,
         })
     }
 }

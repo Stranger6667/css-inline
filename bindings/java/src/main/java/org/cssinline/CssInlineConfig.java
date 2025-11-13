@@ -32,9 +32,12 @@ public class CssInlineConfig {
 	/** Pre-allocate capacity for HTML nodes during parsing. */
 	public final int preallocateNodeCapacity;
 
+	/** Remove selectors that were successfully inlined from inline style blocks. */
+	public final boolean removeInlinedSelectors;
+
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
-			int cacheSize, int preallocateNodeCapacity) {
+			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -45,6 +48,7 @@ public class CssInlineConfig {
 		this.extraCss = extraCss;
 		this.cacheSize = cacheSize;
 		this.preallocateNodeCapacity = preallocateNodeCapacity;
+		this.removeInlinedSelectors = removeInlinedSelectors;
 	}
 
 	/**
@@ -61,6 +65,7 @@ public class CssInlineConfig {
 		private String extraCss = null;
 		private int cacheSize = 0;
 		private int preallocateNodeCapacity = 32;
+		private boolean removeInlinedSelectors = false;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -195,13 +200,24 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Remove selectors that were successfully inlined from inline style blocks.
+		 *
+		 * @param b true to remove inlined selectors, false to keep them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setRemoveInlinedSelectors(boolean b) {
+			this.removeInlinedSelectors = b;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
 		 */
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
-					extraCss, cacheSize, preallocateNodeCapacity);
+					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors);
 		}
 	}
 }

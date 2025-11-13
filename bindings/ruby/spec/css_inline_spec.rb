@@ -190,4 +190,11 @@ h2 { color: red; }
     }.to raise_error('Invalid @ rule: wrong')
   end
 
+  it 'Removes inlined selectors' do
+    html = '<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>'
+    inliner = CSSInline::CSSInliner.new(remove_inlined_selectors: true)
+    result = inliner.inline(html)
+    expect(result).to eq('<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>')
+  end
+
 end

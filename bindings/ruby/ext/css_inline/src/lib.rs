@@ -67,6 +67,8 @@ struct Options {
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     preallocate_node_capacity: Option<usize>,
+    /// Remove selectors that were successfully inlined from inline `<style>` blocks.
+    remove_inlined_selectors: Option<bool>,
 }
 
 impl TryConvert for Options {
@@ -86,6 +88,8 @@ impl TryConvert for Options {
             extra_css: h.aref::<_, Option<String>>(ruby.to_symbol("extra_css"))?,
             preallocate_node_capacity: h
                 .aref::<_, Option<usize>>(ruby.to_symbol("preallocate_node_capacity"))?,
+            remove_inlined_selectors: h
+                .aref::<_, Option<bool>>(ruby.to_symbol("remove_inlined_selectors"))?,
         })
     }
 }
@@ -108,6 +112,7 @@ fn parse_options<Req>(
         extra_css: kwargs.extra_css.map(Cow::Owned),
         preallocate_node_capacity: kwargs.preallocate_node_capacity.unwrap_or(32),
         resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
+        remove_inlined_selectors: kwargs.remove_inlined_selectors.unwrap_or(false),
     })
 }
 

@@ -297,6 +297,16 @@ pub mod tests {
     }
 
     #[test]
+    fn remove_inlined_selectors() {
+        css_inline()
+            .write_stdin(r#"<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>"#)
+            .arg("--remove-inlined-selectors")
+            .assert()
+            .success()
+            .stdout("<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>");
+    }
+
+    #[test]
     fn unknown_short_flag() {
         css_inline()
             .arg("-b")

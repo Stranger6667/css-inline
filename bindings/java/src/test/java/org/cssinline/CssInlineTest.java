@@ -133,4 +133,15 @@ class CssInlineTest {
 
       assertEquals("", result, "Empty fragment and CSS should return empty string");
   }
+
+  @Test
+  void removeInlinedSelectors() {
+      String html = "<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>";
+
+      CssInlineConfig cfg = new CssInlineConfig.Builder().setRemoveInlinedSelectors(true).build();
+
+      String out = CssInline.inline(html, cfg);
+
+      assertEquals("<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>", out);
+  }
 }

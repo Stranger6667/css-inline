@@ -54,6 +54,7 @@ impl CssInliner {
         extraCss = None,
         preallocateNodeCapacity = 32,
         cache = None,
+        removeInlinedSelectors = false,
     ))]
     #[php(optional = inlineStyleTags)]
     #[allow(clippy::too_many_arguments)]
@@ -68,6 +69,7 @@ impl CssInliner {
         extraCss: Option<String>,
         preallocateNodeCapacity: i64,
         cache: Option<&StylesheetCache>,
+        removeInlinedSelectors: bool,
     ) -> PhpResult<CssInliner> {
         if preallocateNodeCapacity < 0 {
             return Err(PhpException::default(
@@ -96,6 +98,7 @@ impl CssInliner {
             extra_css: extraCss.map(Into::into),
             preallocate_node_capacity: preallocateNodeCapacity as usize,
             cache: stylesheet_cache,
+            remove_inlined_selectors: removeInlinedSelectors,
             ..Default::default()
         };
 

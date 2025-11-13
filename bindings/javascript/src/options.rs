@@ -56,6 +56,8 @@ pub struct Options {
     /// Pre-allocate capacity for HTML nodes during parsing.
     /// It can improve performance when you have an estimate of the number of nodes in your HTML document.
     pub preallocate_node_capacity: Option<u32>,
+    /// Remove selectors that were successfully inlined from inline `<style>` blocks.
+    pub remove_inlined_selectors: Option<bool>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -129,6 +131,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                     Arc::new(css_inline::DefaultStylesheetResolver)
                 }
             },
+            remove_inlined_selectors: value.remove_inlined_selectors.unwrap_or(false),
         })
     }
 }
