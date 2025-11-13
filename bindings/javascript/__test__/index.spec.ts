@@ -184,3 +184,13 @@ h1 {
     `<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>`,
   );
 });
+
+test("remove inlined selectors", (t) => {
+  t.is(
+    inline(
+      "<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>",
+      { removeInlinedSelectors: true },
+    ),
+    '<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>',
+  );
+});

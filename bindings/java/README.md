@@ -153,6 +153,7 @@ public class ConfigExample {
 - **`setExtraCss(String)`** - Additional CSS to inline (default: `null`)
 - **`setCacheSize(int)`** - External stylesheet cache size, must be ≥ 0 (default: `0`)
 - **`setPreallocateNodeCapacity(int)`** - HTML node capacity, must be > 0 (default: `32`)
+- **`setRemoveInlinedSelectors(boolean)`** - Remove selectors that were successfully inlined from `<style>` blocks (default: `false`)
 
 
 ### HTML Fragments

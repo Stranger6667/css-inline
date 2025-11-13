@@ -14,6 +14,7 @@ class CSSInliner:
         cache: StylesheetCache | None = None,
         extra_css: str | None = None,
         preallocate_node_capacity: int | None = 32,
+        remove_inlined_selectors: bool = False,
     ) -> None: ...
     def inline(self, html: str) -> str: ...
     def inline_fragment(self, html: str, css: str) -> str: ...
@@ -32,6 +33,7 @@ def inline(
     cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
+    remove_inlined_selectors: bool = False,
 ) -> str: ...
 def inline_fragment(
     html: str,
@@ -46,6 +48,7 @@ def inline_fragment(
     cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
+    remove_inlined_selectors: bool = False,
 ) -> str: ...
 def inline_many(
     html: list[str],
@@ -59,6 +62,7 @@ def inline_many(
     cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
+    remove_inlined_selectors: bool = False,
 ) -> list[str]: ...
 def inline_many_fragments(
     html: list[str],
@@ -73,6 +77,7 @@ def inline_many_fragments(
     cache: StylesheetCache | None = None,
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
+    remove_inlined_selectors: bool = False,
 ) -> list[str]: ...
 
 class InlineError(ValueError): ...

@@ -227,6 +227,25 @@ def test_invalid_cache(size):
         css_inline.StylesheetCache(size=size)
 
 
+def test_remove_inlined_selectors():
+    html = "<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>"
+    result = css_inline.inline(html, remove_inlined_selectors=True)
+    assert (
+        result
+        == '<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>'
+    )
+
+
+def test_remove_inlined_selectors_inliner():
+    inliner = css_inline.CSSInliner(remove_inlined_selectors=True)
+    html = "<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>"
+    result = inliner.inline(html)
+    assert (
+        result
+        == '<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>'
+    )
+
+
 @given(
     document=st.text(),
     keep_style_tags=st.booleans() | st.none(),

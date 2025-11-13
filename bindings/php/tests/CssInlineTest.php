@@ -275,4 +275,19 @@ class CssInlineTest extends TestCase
 
         $this->assertIsString($result);
     }
+
+    public function testRemoveInlinedSelectors(): void
+    {
+        $inliner = new CssInliner(
+            removeInlinedSelectors: true,
+        );
+
+        $html = '<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertEquals(
+            '<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>',
+            $result
+        );
+    }
 }

@@ -1184,7 +1184,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, .. } }");
 }
 
 #[test]
@@ -1395,4 +1395,207 @@ fn indexed_compound_tag_class_large_document() {
     assert!(inlined
         .contains(r#"<p class="highlight" style="background: yellow;">Highlighted paragraph</p>"#));
     assert!(inlined.contains(r#"<span class="highlight">Highlighted span - NOT matched</span>"#));
+}
+
+#[test]
+fn remove_inlined_selectors_basic() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html =
+        r#"<html><head><style>h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_partial() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>
+h1 { color: blue; }
+h2 { color: red; }
+</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_multiple_blocks() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head>
+<style>h1 { color: blue; }</style>
+<style>h2 { color: red; }</style>
+</head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head>\n\n<style>h2 { color: red; }</style>\n</head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_comma_separated() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>.a, .b { color: blue; }</style></head><body><div class="a">Test</div></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>.b { color: blue; }</style></head><body><div class=\"a\" style=\"color: blue;\">Test</div></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_with_at_rules() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_at_rules(true)
+        .build();
+    let html = r#"<html><head><style>
+h1 { color: blue; }
+@media (max-width: 600px) { h1 { font-size: 18px; } }
+</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } </style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_with_keep_style_tags() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_style_tags(true)
+        .build();
+    let html =
+        r#"<html><head><style>h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style></style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_empty_result() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1 { color: blue; } p { color: red; }</style></head><body><h1>Test</h1><p>Para</p></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head></head><body><h1 style=\"color: blue;\">Test</h1><p style=\"color: red;\">Para</p></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_no_match() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>.nonexistent { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>.nonexistent { color: blue; }</style></head><body><h1>Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_disabled() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(false)
+        .build();
+    let html =
+        r#"<html><head><style>h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_multiple_unmatched_after_removal() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    // h1 matches and gets removed, .a and .b don't match and need to be comma-joined
+    let html = r#"<html><head><style>h1, .a, .b { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>.a, .b { color: blue; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_empty_selector_in_list() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>.a, , .b { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>.a, .b { color: blue; }</style></head><body><h1>Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_only_at_rules() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_at_rules(true)
+        .build();
+    let html = r#"<html><head><style>@media print { h1 { color: blue; } }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains("@media print"));
+}
+
+#[test]
+fn remove_inlined_selectors_no_style_tags() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head></head><body><h1>Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_all_matched_removes_style() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1, p { color: blue; }</style></head><body><h1>Title</h1><p>Text</p></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head></head><body><h1 style=\"color: blue;\">Title</h1><p style=\"color: blue;\">Text</p></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_keep_style_tags_partial() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_style_tags(true)
+        .build();
+    let html = r#"<html><head><style>h1 { color: blue; } .unmatched { color: red; }</style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style>.unmatched { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_empty_style_tag() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_style_tags(true)
+        .build();
+    let html = r#"<html><head><style></style></head><body><h1>Test</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        "<html><head><style></style></head><body><h1>Test</h1></body></html>"
+    );
 }

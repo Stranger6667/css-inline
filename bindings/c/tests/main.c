@@ -133,6 +133,15 @@ static void test_inline_fragment(void) {
   assert(strcmp(output, SAMPLE_INLINED_FRAGMENT) == 0);
 }
 
+static void test_remove_inlined_selectors(void) {
+  char html[] = "<html><head><style>h1 { color: blue; } h2 { color: red; }</style></head><body><h1>Test</h1></body></html>";
+  CssInlinerOptions options = css_inliner_default_options();
+  options.remove_inlined_selectors = true;
+  char output[MAX_SIZE];
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>") == 0);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
@@ -142,5 +151,6 @@ int main(void) {
   test_cache_valid();
   test_cache_invalid();
   test_inline_fragment();
+  test_remove_inlined_selectors();
   return 0;
 }
