@@ -23,6 +23,78 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
+        const optionControls = {
+          inlineStyleTags: document.getElementById(
+            "css-inline-opt-inline-style-tags",
+          ),
+          keepStyleTags: document.getElementById(
+            "css-inline-opt-keep-style-tags",
+          ),
+          keepLinkTags: document.getElementById(
+            "css-inline-opt-keep-link-tags",
+          ),
+          keepAtRules: document.getElementById(
+            "css-inline-opt-keep-at-rules",
+          ),
+          minifyCss: document.getElementById("css-inline-opt-minify-css"),
+          extraCss: document.getElementById("css-inline-opt-extra-css"),
+        };
+        const optionSummaryElement = document.getElementById(
+          "css-inline-option-summary",
+        );
+
+        const collectOptions = () => {
+          const options = {
+            inlineStyleTags: optionControls.inlineStyleTags
+              ? optionControls.inlineStyleTags.checked
+              : true,
+            keepStyleTags: optionControls.keepStyleTags
+              ? optionControls.keepStyleTags.checked
+              : false,
+            keepLinkTags: optionControls.keepLinkTags
+              ? optionControls.keepLinkTags.checked
+              : false,
+            keepAtRules: optionControls.keepAtRules
+              ? optionControls.keepAtRules.checked
+              : false,
+            minifyCss: optionControls.minifyCss
+              ? optionControls.minifyCss.checked
+              : false,
+          };
+
+          const extraCss = optionControls.extraCss
+            ? optionControls.extraCss.value
+            : "";
+          if (extraCss && extraCss.trim().length > 0) {
+            options.extraCss = extraCss;
+          }
+
+          return options;
+        };
+
+        const summarizeOptions = (options) => {
+          const summaryParts = [];
+          summaryParts.push(
+            options.inlineStyleTags ? "inline style tags" : "skip style tags",
+          );
+          if (options.keepStyleTags) {
+            summaryParts.push("keep <style> tags");
+          }
+          if (options.keepLinkTags) {
+            summaryParts.push("keep <link> tags");
+          }
+          if (options.keepAtRules) {
+            summaryParts.push("keep @rules");
+          }
+          if (options.minifyCss) {
+            summaryParts.push("minify CSS");
+          }
+          if (options.extraCss) {
+            summaryParts.push("extra CSS provided");
+          }
+          return `Inlined with: ${summaryParts.join(" • ")}`;
+        };
+
         cssInline.initWasm(fetch("./index_bg.wasm")).then(() => {
           const versionElement = document.getElementById(
             "css-inline-package-version",
@@ -51,7 +123,8 @@
           submitButton.addEventListener("click", function () {
             try {
               const startTime = performance.now();
-              const inlinedHtml = cssInline.inline(html.value);
+              const options = collectOptions();
+              const inlinedHtml = cssInline.inline(html.value, options);
               const durationMs = (performance.now() - startTime).toFixed(2);
 
               const blob = new Blob([inlinedHtml], { type: "text/html" });
@@ -70,10 +143,18 @@
               inlinedCodeElement.textContent = inlinedHtml;
               inlinedErrorContainer.classList.add("hidden");
               inlinedCodeContainer.classList.remove("hidden");
+              if (optionSummaryElement) {
+                optionSummaryElement.textContent = summarizeOptions(options);
+                optionSummaryElement.classList.remove("hidden");
+              }
             } catch (error) {
               inlinedCodeContainer.classList.add("hidden");
               inlinedErrorContainer.classList.remove("hidden");
               inlinedErrorText.textContent = error;
+              if (optionSummaryElement) {
+                optionSummaryElement.classList.add("hidden");
+                optionSummaryElement.textContent = "";
+              }
             }
           });
         });
@@ -113,30 +194,38 @@
       </nav>
     </header>
 
-    <div class="mx-6">
-      <p class="mt-6 text-2xl leading-8 text-gray-800">
-        High-performance library for inlining CSS into HTML 'style' attributes
-      </p>
-      <p class="mt-2 text-md leading-8 text-gray-900">
-        css-inline uses components from Mozilla's Servo project and provides
-        bindings for Rust, Python, Ruby, JavaScript, Java, and C. The playground
-        runs the library compiled to WebAssembly in the browser. Paste HTML with
-        CSS into the text area and click "Inline" to process the output.
-      </p>
-    </div>
+    <main class="mx-auto w-full px-4 sm:px-6 lg:px-12 2xl:px-20">
+      <section class="mt-6">
+        <p class="text-2xl leading-8 text-gray-800">
+          High-performance library for inlining CSS into HTML 'style' attributes
+        </p>
+        <p class="mt-2 text-base leading-7 text-gray-900">
+          css-inline uses components from Mozilla's Servo project and provides
+          bindings for Rust, Python, Ruby, JavaScript, Java, and C. The
+          playground runs the library compiled to WebAssembly in the browser.
+          Paste HTML with CSS into the text area and click "Inline" to process
+          the output.
+        </p>
+      </section>
 
-    <div class="mx-6 my-4">
-      <label
-        for="css-inline-html"
-        class="block md font-medium leading-6 text-gray-900"
-      ></label>
-      <div class="mt-2">
-        <textarea
-          rows="8"
-          name="html"
-          id="css-inline-html"
-          class="block bg-gray-100 w-full rounded-md border-0 p-3 text-gray-900 shadow-sm font-mono ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-        >
+      <section class="my-6 grid items-stretch gap-6 lg:grid-cols-3">
+        <div class="lg:col-span-2">
+          <div
+            class="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+          >
+            <div class="flex flex-1 flex-col">
+              <h2 class="text-lg font-semibold text-gray-900">Input HTML</h2>
+              <p class="mt-1 text-sm text-gray-600">
+                Paste HTML with CSS and adjust the settings on the right before
+                inlining.
+              </p>
+              <label for="css-inline-html" class="sr-only">HTML</label>
+              <textarea
+                rows="10"
+                name="html"
+                id="css-inline-html"
+                class="mt-2 flex-1 min-h-[18rem] w-full rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+              >
 <html>
   <head>
     <style>h1 { color:blue; }</style>
@@ -145,61 +234,177 @@
     <h1>Big Text</h1>
   </body>
 </html></textarea
-        >
-      </div>
-      <button
-        type="submit"
-        id="css-inline-submit"
-        class="mt-4 inline-flex items-center rounded-md bg-indigo-600 px-8 py-3 text-md font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-      >
-        Inline
-      </button>
-    </div>
+              >
+            </div>
+            <div
+              class="mt-auto border-t border-gray-100 pt-4 sm:flex sm:items-center sm:justify-between"
+            >
+              <span
+                class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700"
+                >Runs in your browser</span
+              >
+              <button
+                type="submit"
+                id="css-inline-submit"
+                class="mt-2 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:mt-0 sm:w-auto"
+              >
+                Inline
+              </button>
+            </div>
+          </div>
+        </div>
 
-    <div id="css-inline-error-container" class="hidden">
-      <div class="mx-6 mb-4 rounded-md bg-red-100 p-4">
-        <div class="flex">
-          <div class="ml-3">
-            <p class="text-md font-medium text-red-800">
+        <div
+          class="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+        >
+          <div class="flex-1">
+            <h2 class="text-lg font-semibold text-gray-900">Configuration</h2>
+            <p class="mt-1 text-sm text-gray-600">
+              Toggle common css-inline options before running the inliner.
+            </p>
+            <div class="mt-4 space-y-3">
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-inline-style-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                  checked
+                />
+                <span>
+                  <strong>Inline style tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Extract CSS from style tags and apply it to elements.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-style-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep style tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Preserve original style tags after inlining.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-link-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep link tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Retain external link tags in the output.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-at-rules"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep @rules</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Leave media queries and other at-rules in the document instead
+                    of removing them.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-minify-css"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Minify CSS</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Remove redundant whitespace inside generated inline
+                    styles.</span
+                  >
+                </span>
+              </label>
+            </div>
+            <div class="mt-6 flex flex-col gap-1">
+              <label
+                class="block text-sm text-gray-900"
+                for="css-inline-opt-extra-css"
+                ><strong>Extra CSS</strong>
+                <span class="mt-1 block text-xs text-gray-500"
+                  >Inject additional CSS rules before inlining.</span
+                >
+                <textarea
+                  id="css-inline-opt-extra-css"
+                  rows="5"
+                  class="mt-2 min-h-[10rem] w-full rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                  placeholder="body { background: #fff; }"
+                ></textarea>
+              </label>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-1 items-center text-sm text-gray-500">
+            <p>These options apply the next time you press Inline.</p>
+          </div>
+        </div>
+      </section>
+
+      <div id="css-inline-error-container" class="hidden">
+        <div class="mb-4 rounded-md bg-red-100 p-4">
+          <div class="flex">
+            <p class="text-base font-medium text-red-800">
               <strong>Error!</strong> <span id="css-inline-error-text"></span>
             </p>
           </div>
         </div>
       </div>
-    </div>
 
-    <div id="css-inline-result-container" class="hidden">
-      <div class="mx-6 mb-4 rounded-md bg-green-100 p-4">
-        <div class="flex">
-          <div class="ml-3">
-            <p class="text-md font-medium text-green-800">
+      <div id="css-inline-result-container" class="hidden">
+        <div class="mb-4 rounded-md bg-green-100 p-4">
+          <div class="flex">
+            <p class="text-base font-medium text-green-800">
               <strong>Success!</strong> Below is your HTML with inlined CSS
               styles
             </p>
           </div>
         </div>
+        <p
+          id="css-inline-option-summary"
+          class="mb-2 hidden text-sm text-gray-600"
+        ></p>
+        <div
+          class="block rounded-md border-0 bg-gray-100 p-3 font-mono text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        >
+          <pre
+            id="css-inline-result"
+            class="overflow-x-auto whitespace-pre-wrap"
+          ></pre>
+        </div>
+        <div
+          class="mt-3 flex flex-wrap items-center justify-between text-sm text-gray-600"
+        >
+          <p>
+            <strong><span id="css-inline-output-size">124 Kb</span></strong>
+            generated in
+            <strong><span id="css-inline-call-time">2.1 ms</span></strong>
+          </p>
+        </div>
       </div>
-      <div
-        class="mx-6 block bg-gray-100 rounded-md border-0 p-3 text-gray-900 shadow-sm font-mono ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
-      >
-        <pre
-          id="css-inline-result"
-          class="overflow-x-auto whitespace-pre-wrap"
-        ></pre>
-      </div>
-      <div class="mx-6 flex justify-end">
-        <p class="m-2 text-md leading-8 text-black">
-          <strong><span id="css-inline-output-size">124 Kb</span></strong> in
-          <strong><span id="css-inline-call-time">2.1 ms</span></strong>
-        </p>
-      </div>
-    </div>
+    </main>
 
     <footer class="bg-white">
       <hr />
-      <div class="px-6 py-6 md:flex md:items-center md:justify-between">
+      <div
+        class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-12 2xl:px-20 md:flex md:items-center md:justify-between"
+      >
         <div class="mt-4 md:order-1 md:mt-0">
-          <p class="text-center text-md leading-5 text-gray-500">
+          <p class="text-center text-base leading-6 text-gray-500">
             © css-inline.org by
             <a
               href="https://github.com/Stranger6667"
@@ -212,7 +417,7 @@
         <div class="mt-4 md:order-1 md:mt-0">
           <p
             id="css-inline-package-version"
-            class="text-center text-md leading-5 text-gray-500"
+            class="text-center text-base leading-6 text-gray-500"
           >
             ...
           </p>

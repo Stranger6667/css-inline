@@ -136,18 +136,6 @@ function getArrayU8FromWasm0(ptr, len) {
   ptr = ptr >>> 0;
   return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
-function version() {
-  let deferred1_0;
-  let deferred1_1;
-  try {
-    const ret = wasm.version();
-    deferred1_0 = ret[0];
-    deferred1_1 = ret[1];
-    return getStringFromWasm0(ret[0], ret[1]);
-  } finally {
-    wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
-  }
-}
 function takeFromExternrefTable0(idx) {
   const value = wasm.__wbindgen_externrefs.get(idx);
   wasm.__externref_table_dealloc(idx);
@@ -195,6 +183,18 @@ function inlineFragment(html, css, options) {
     return getStringFromWasm0(ptr3, len3);
   } finally {
     wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
+  }
+}
+function version() {
+  let deferred1_0;
+  let deferred1_1;
+  try {
+    const ret = wasm.version();
+    deferred1_0 = ret[0];
+    deferred1_1 = ret[1];
+    return getStringFromWasm0(ret[0], ret[1]);
+  } finally {
+    wasm.__wbindgen_free(deferred1_0, deferred1_1, 1);
   }
 }
 var EXPECTED_RESPONSE_TYPES = /* @__PURE__ */ new Set(["basic", "cors", "default"]);
