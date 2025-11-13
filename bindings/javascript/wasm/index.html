@@ -39,9 +39,6 @@
           minifyCss: document.getElementById("css-inline-opt-minify-css"),
           extraCss: document.getElementById("css-inline-opt-extra-css"),
         };
-        const optionSummaryElement = document.getElementById(
-          "css-inline-option-summary",
-        );
 
         const collectOptions = () => {
           const options = {
@@ -70,29 +67,6 @@
           }
 
           return options;
-        };
-
-        const summarizeOptions = (options) => {
-          const summaryParts = [];
-          summaryParts.push(
-            options.inlineStyleTags ? "inline style tags" : "skip style tags",
-          );
-          if (options.keepStyleTags) {
-            summaryParts.push("keep <style> tags");
-          }
-          if (options.keepLinkTags) {
-            summaryParts.push("keep <link> tags");
-          }
-          if (options.keepAtRules) {
-            summaryParts.push("keep @rules");
-          }
-          if (options.minifyCss) {
-            summaryParts.push("minify CSS");
-          }
-          if (options.extraCss) {
-            summaryParts.push("extra CSS provided");
-          }
-          return `Inlined with: ${summaryParts.join(" • ")}`;
         };
 
         cssInline.initWasm(fetch("./index_bg.wasm")).then(() => {
@@ -143,18 +117,10 @@
               inlinedCodeElement.textContent = inlinedHtml;
               inlinedErrorContainer.classList.add("hidden");
               inlinedCodeContainer.classList.remove("hidden");
-              if (optionSummaryElement) {
-                optionSummaryElement.textContent = summarizeOptions(options);
-                optionSummaryElement.classList.remove("hidden");
-              }
             } catch (error) {
               inlinedCodeContainer.classList.add("hidden");
               inlinedErrorContainer.classList.remove("hidden");
               inlinedErrorText.textContent = error;
-              if (optionSummaryElement) {
-                optionSummaryElement.classList.add("hidden");
-                optionSummaryElement.textContent = "";
-              }
             }
           });
         });
@@ -374,10 +340,6 @@
             </p>
           </div>
         </div>
-        <p
-          id="css-inline-option-summary"
-          class="mb-2 hidden text-sm text-gray-600"
-        ></p>
         <div
           class="block rounded-md border-0 bg-gray-100 p-3 font-mono text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
