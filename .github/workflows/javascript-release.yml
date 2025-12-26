@@ -185,7 +185,7 @@ jobs:
         working-directory: bindings/javascript
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: bindings-${{ matrix.settings.target }}
           path: bindings/javascript/${{ env.APP_NAME }}.*.node
@@ -222,7 +222,7 @@ jobs:
         working-directory: ./bindings/javascript
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: wasm32
           path: bindings/javascript/wasm/

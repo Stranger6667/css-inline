@@ -60,7 +60,7 @@ jobs:
         run: cargo build --release --target ${{ matrix.target }}
 
       - name: Upload native library
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: native-${{ matrix.platform }}
           if-no-files-found: error
@@ -98,7 +98,7 @@ jobs:
           gradle build --info
 
       - name: Upload JAR
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: java-jar
           if-no-files-found: error
