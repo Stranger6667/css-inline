@@ -8,6 +8,10 @@
 - Update `html5ever` to `0.36`.
 - Update `selectors` to `0.33`.
 
+### Performance
+
+- Use element indexes for faster selector lookups on large documents.
+
 ## [0.18.0] - 2025-11-01
 
 ### Added

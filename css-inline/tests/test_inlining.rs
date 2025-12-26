@@ -1258,3 +1258,141 @@ fn inline_fragment_empty() {
     let inlined = css_inline::inline_fragment("", "").unwrap();
     assert_eq!(inlined, "");
 }
+
+// Padding to ensure documents exceed the 1024-byte threshold for indexed lookups
+const PADDING: &str = "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ";
+
+#[test]
+fn indexed_id_selector_large_document() {
+    // ID selector on large document should use O(1) lookup
+    let html = format!(
+        r#"<html><head><style>#target {{ color: blue; }}</style></head><body>
+<!--{PADDING}-->
+<div id="target">Target Element</div>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<div id="target" style="color: blue;">Target Element</div>"#));
+}
+
+#[test]
+fn indexed_class_selector_large_document() {
+    // Class selector on large document should use indexed lookup
+    let html = format!(
+        r#"<html><head><style>.target {{ color: red; }}</style></head><body>
+<!--{PADDING}-->
+<p class="target">Target Element</p>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<p class="target" style="color: red;">Target Element</p>"#));
+}
+
+#[test]
+fn indexed_tag_selector_large_document() {
+    // Tag selector on large document should use indexed lookup
+    let html = format!(
+        r#"<html><head><style>article {{ font-weight: bold; }}</style></head><body>
+<!--{PADDING}-->
+<article>Target Element</article>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<article style="font-weight: bold;">Target Element</article>"#));
+}
+
+#[test]
+fn indexed_descendant_selector_large_document() {
+    // Descendant selector should use rightmost anchor
+    let html = format!(
+        r#"<html><head><style>.container .target {{ color: green; }}</style></head><body>
+<!--{PADDING}-->
+<div class="container"><span class="target">Nested Target</span></div>
+<span class="target">Not nested - should NOT match</span>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<span class="target" style="color: green;">Nested Target</span>"#));
+    assert!(inlined.contains(r#"<span class="target">Not nested - should NOT match</span>"#));
+}
+
+#[test]
+fn indexed_child_selector_large_document() {
+    // Child selector should use rightmost anchor
+    let html = format!(
+        r#"<html><head><style>#menu > li {{ padding: 10px; }}</style></head><body>
+<!--{PADDING}-->
+<ul id="menu"><li>Item 1</li><li>Item 2</li></ul>
+<ul id="other"><li>Other Item</li></ul>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<li style="padding: 10px;">Item 1</li>"#));
+    assert!(inlined.contains(r#"<li style="padding: 10px;">Item 2</li>"#));
+    assert!(inlined.contains(r#"<li>Other Item</li>"#));
+}
+
+#[test]
+fn indexed_multiple_selectors_fallback_large_document() {
+    // Multiple selectors (comma-separated) should fallback to scanning all elements
+    let html = format!(
+        r#"<html><head><style>#target, .target {{ text-decoration: underline; }}</style></head><body>
+<!--{PADDING}-->
+<div id="target">ID Target</div>
+<p class="target">Class Target</p>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(
+        inlined.contains(r#"<div id="target" style="text-decoration: underline;">ID Target</div>"#)
+    );
+    assert!(inlined
+        .contains(r#"<p class="target" style="text-decoration: underline;">Class Target</p>"#));
+}
+
+#[test]
+fn indexed_multiple_elements_same_class_large_document() {
+    // Multiple elements with the same class should all get styled
+    let html = format!(
+        r#"<html><head><style>.item {{ display: inline-block; }}</style></head><body>
+<!--{PADDING}-->
+<span class="item">Item 1</span>
+<span class="item">Item 2</span>
+<span class="item">Item 3</span>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    let count = inlined.matches(r#"style="display: inline-block;""#).count();
+    assert_eq!(count, 3);
+}
+
+#[test]
+fn indexed_pseudo_class_selector_large_document() {
+    // Pseudo-class selectors should still work with indexing
+    let html = format!(
+        r#"<html><head><style>.nav li:first-child {{ font-weight: bold; }}</style></head><body>
+<!--{PADDING}-->
+<ul class="nav"><li>First</li><li>Second</li><li>Third</li></ul>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<li style="font-weight: bold;">First</li>"#));
+    assert!(inlined.contains("<li>Second</li>"));
+    assert!(inlined.contains("<li>Third</li>"));
+}
+
+#[test]
+fn indexed_compound_tag_class_large_document() {
+    // Compound selector like tag.class should match correctly
+    let html = format!(
+        r#"<html><head><style>p.highlight {{ background: yellow; }}</style></head><body>
+<!--{PADDING}-->
+<p class="highlight">Highlighted paragraph</p>
+<span class="highlight">Highlighted span - NOT matched</span>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined
+        .contains(r#"<p class="highlight" style="background: yellow;">Highlighted paragraph</p>"#));
+    assert!(inlined.contains(r#"<span class="highlight">Highlighted span - NOT matched</span>"#));
+}

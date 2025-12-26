@@ -29,7 +29,10 @@ pub(crate) fn parse_with_options(
     mode: InliningMode,
 ) -> Document {
     let sink = Sink {
-        document: RefCell::new(Document::with_capacity(preallocate_node_capacity)),
+        document: RefCell::new(Document::with_capacity(
+            preallocate_node_capacity,
+            bytes.len(),
+        )),
     };
     let options = html5ever::ParseOpts::default();
     match mode {
@@ -80,11 +83,32 @@ impl Sink {
         attributes: Vec<Attribute>,
         inlining_ignored: bool,
     ) -> NodeId {
+        // Extract ID and class values before moving attributes
+        let mut id_value = None;
+        let mut class_value = None;
+        for attr in &attributes {
+            if attr.name.local == local_name!("id") {
+                id_value = Some(attr.value.clone());
+            } else if attr.name.local == local_name!("class") {
+                class_value = Some(attr.value.clone());
+            }
+        }
+        let tag_name = name.local.clone();
         let node_id = self.push_node(NodeData::Element {
             element: ElementData::new(name, attributes),
             inlining_ignored,
         });
-        self.document.borrow_mut().push_element_id(node_id);
+        let mut document = self.document.borrow_mut();
+        document.push_element_id(node_id);
+        // Index by tag name
+        document.index_by_tag(tag_name, node_id);
+        // Index by ID and class attributes
+        if let Some(id) = &id_value {
+            document.index_by_id(id, node_id);
+        }
+        if let Some(class) = &class_value {
+            document.index_by_classes(class, node_id);
+        }
         node_id
     }
 

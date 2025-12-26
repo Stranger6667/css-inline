@@ -8,9 +8,14 @@ use super::{
     InliningMode,
 };
 use crate::{html::DocumentStyleMap, InlineError};
-use html5ever::local_name;
+use html5ever::{local_name, tendril::StrTendril, LocalName};
+use rustc_hash::FxHashMap;
 use selectors::context::SelectorCaches;
 use std::{fmt, fmt::Formatter, io::Write, iter::successors};
+
+/// Minimum input size (bytes) to build element indexes.
+/// For smaller inputs, linear scan is faster than hash map operations.
+const INDEX_SIZE_THRESHOLD: usize = 1024;
 
 /// HTML document representation.
 ///
@@ -46,6 +51,14 @@ pub(crate) struct Document {
     /// Ids of `link` nodes, specifically those with the `rel` attribute value set as `stylesheet`.
     /// They represent the locations (URLs) of all linked stylesheet resources in the document.
     linked_stylesheets: Vec<NodeId>,
+    /// Whether element indexes are enabled for this document.
+    use_indexes: bool,
+    /// Index: ID attribute value -> `NodeId` (IDs should be unique per document).
+    by_id: FxHashMap<LocalName, NodeId>,
+    /// Index: class name -> list of `NodeId`s with that class.
+    by_class: FxHashMap<LocalName, Vec<NodeId>>,
+    /// Index: tag name -> list of `NodeId`s with that tag.
+    by_tag: FxHashMap<LocalName, Vec<NodeId>>,
 }
 
 impl fmt::Debug for Document {
@@ -68,16 +81,22 @@ impl Document {
         parser::parse_with_options(bytes, preallocate_node_capacity, mode)
     }
 
-    pub(super) fn with_capacity(capacity: usize) -> Self {
+    pub(super) fn with_capacity(capacity: usize, input_size: usize) -> Self {
         // Dummy node at index 0 so that other indices fit in NonZero
         let mut nodes = vec![Node::new(NodeData::Document), Node::new(NodeData::Document)];
         // Usually there are a lot of nodes, hence, reserve some space for them
         nodes.reserve(capacity);
+        // Only build indexes for larger documents where the lookup benefit outweighs overhead
+        let use_indexes = input_size >= INDEX_SIZE_THRESHOLD;
         Document {
             nodes,
             elements: Vec::with_capacity(capacity),
             styles: Vec::new(),
             linked_stylesheets: Vec::new(),
+            use_indexes,
+            by_id: FxHashMap::default(),
+            by_class: FxHashMap::default(),
+            by_tag: FxHashMap::default(),
         }
     }
 
@@ -128,6 +147,58 @@ impl Document {
     #[inline]
     pub(super) fn push_element_id(&mut self, node: NodeId) {
         self.elements.push(node);
+    }
+
+    /// Whether element indexes are enabled for this document.
+    #[inline]
+    pub(crate) fn has_indexes(&self) -> bool {
+        self.use_indexes
+    }
+
+    /// Index an element by its tag name.
+    #[inline]
+    pub(super) fn index_by_tag(&mut self, tag: LocalName, node_id: NodeId) {
+        if self.use_indexes {
+            self.by_tag.entry(tag).or_default().push(node_id);
+        }
+    }
+
+    /// Index an element by its ID attribute value.
+    #[inline]
+    pub(super) fn index_by_id(&mut self, id: &StrTendril, node_id: NodeId) {
+        if self.use_indexes && !id.is_empty() {
+            let id_atom = LocalName::from(&**id);
+            // IDs should be unique; later declarations override earlier ones
+            self.by_id.insert(id_atom, node_id);
+        }
+    }
+
+    /// Index an element by its class names (space-separated).
+    pub(super) fn index_by_classes(&mut self, classes: &StrTendril, node_id: NodeId) {
+        if self.use_indexes {
+            for class in classes.split_whitespace() {
+                let class_atom = LocalName::from(class);
+                self.by_class.entry(class_atom).or_default().push(node_id);
+            }
+        }
+    }
+
+    /// Lookup an element by its ID attribute value.
+    #[inline]
+    pub(crate) fn get_by_id(&self, id: &LocalName) -> Option<NodeId> {
+        self.by_id.get(id).copied()
+    }
+
+    /// Lookup elements by class name.
+    #[inline]
+    pub(crate) fn get_by_class(&self, class: &LocalName) -> &[NodeId] {
+        self.by_class.get(class).map_or(&[], Vec::as_slice)
+    }
+
+    /// Lookup elements by tag name.
+    #[inline]
+    pub(crate) fn get_by_tag(&self, tag: &LocalName) -> &[NodeId] {
+        self.by_tag.get(tag).map_or(&[], Vec::as_slice)
     }
 
     /// Detach a node from its siblings and its parent.
@@ -402,7 +473,7 @@ mod tests {
 
     #[test]
     fn test_insert_before() {
-        let mut doc = Document::with_capacity(0);
+        let mut doc = Document::with_capacity(0, 0);
 
         let node1_id = doc.push_node(new_element());
         let node2_id = doc.push_node(new_element());
@@ -420,7 +491,7 @@ mod tests {
 
     #[test]
     fn test_append() {
-        let mut doc = Document::with_capacity(0);
+        let mut doc = Document::with_capacity(0, 0);
 
         let node1_id = doc.push_node(new_element());
         let node2_id = doc.push_node(new_element());
