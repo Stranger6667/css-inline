@@ -1,7 +1,7 @@
-use assert_cmd::Command;
+use assert_cmd::{cargo::cargo_bin_cmd, Command};
 
 fn css_inline() -> Command {
-    Command::cargo_bin("css-inline").unwrap()
+    cargo_bin_cmd!("css-inline")
 }
 
 #[cfg(feature = "cli")]
