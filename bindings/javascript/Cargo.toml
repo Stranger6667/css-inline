@@ -43,7 +43,7 @@ version = "*"
 default-features = false
 
 [build-dependencies]
-napi-build = "2.1.0"
+napi-build = ">=2.1.0, <2.3"
 
 [profile.release]
 lto = true
