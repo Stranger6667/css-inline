@@ -12,6 +12,11 @@ impl LocalName {
     pub(crate) fn into_inner(self) -> html5ever::LocalName {
         self.0
     }
+    /// Returns a reference to the inner `html5ever::LocalName`.
+    #[inline]
+    pub(crate) fn as_inner(&self) -> &html5ever::LocalName {
+        &self.0
+    }
     pub(crate) fn as_bytes(&self) -> &[u8] {
         self.0.as_bytes()
     }

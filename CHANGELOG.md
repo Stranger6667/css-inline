@@ -12,6 +12,10 @@
 
 - CLI tests compatibility with future Cargo versions. [#602](https://github.com/Stranger6667/css-inline/issues/602)
 
+### Performance
+
+- Use element indexes for faster selector lookups on large documents.
+
 ## [0.18.0] - 2025-11-01
 
 ### Added
