@@ -89,7 +89,7 @@ jobs:
       MACOSX_DEPLOYMENT_TARGET: "10.13"
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v6
@@ -194,7 +194,7 @@ jobs:
   artifacts-wasm:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v6
@@ -239,7 +239,7 @@ jobs:
       - artifacts-wasm
     if: "startsWith(github.ref, 'refs/tags/')"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Setup node
         uses: actions/setup-node@v6
