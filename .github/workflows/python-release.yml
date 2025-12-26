@@ -15,7 +15,7 @@ concurrency:
 
 env:
   PACKAGE_NAME: css_inline
-  PYTHON_VERSION: "3.9" # to build abi3 wheels
+  PYTHON_VERSION: "3.11" # to build abi3 wheels
 
 jobs:
   sdist:
@@ -43,7 +43,7 @@ jobs:
           path: dist
 
   macos-x86_64:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -67,7 +67,7 @@ jobs:
           path: dist
 
   macos-universal:
-    runs-on: macos-13
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -258,15 +258,19 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-13]
+        os: [ubuntu-22.04, macos-15]
         target: [x86_64, aarch64]
         python-version:
           - "3.11"
         exclude:
-          - os: macos-13
+          - os: macos-15
             target: aarch64
     steps:
       - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Add x86_64 target for macOS
+        if: matrix.os == 'macos-15' && matrix.target == 'x86_64'
+        run: rustup target add x86_64-apple-darwin
       - uses: actions/setup-python@v6
         with:
           python-version: pypy${{ matrix.python-version }}
