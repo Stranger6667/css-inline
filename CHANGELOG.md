@@ -8,6 +8,10 @@
 - Update `html5ever` to `0.36`.
 - Update `selectors` to `0.33`.
 
+### Fixed
+
+- CLI tests compatibility with future Cargo versions. [#602](https://github.com/Stranger6667/css-inline/issues/602)
+
 ## [0.18.0] - 2025-11-01
 
 ### Added
