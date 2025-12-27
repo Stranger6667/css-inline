@@ -2,6 +2,7 @@
 name = "css-inline"
 dynamic = ["version"]
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
+readme = "README.md"
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 authors = [
     { name = "Dmitry Dygalo", email = "dmitry@dygalo.dev" }
