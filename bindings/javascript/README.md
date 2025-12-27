@@ -246,15 +246,16 @@ Most of the time it achieves over a **3x** speed advantage compared to the next 
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.14.0` | `css-inline-wasm 0.13.0` | `juice 10.0.0`        | `inline-css 4.0.2`   |
-|-------------|---------|---------------------|--------------------------|-----------------------|----------------------|
-| Basic       | 230 B   | 16.82 µs            | 20.92 µs (**1.24x**)     | 57.00 µs (**3.38x**)  | 68.43 µs (**4.06x**) |
-| Realistic-1 | 8.58 KB | 351.74 µs           | 452.28 µs (**1.28x**)    | 859.10 µs (**2.44x**) | 1.04 ms (**2.98x**)  |
-| Realistic-2 | 4.3 KB  | 203.25 µs           | 269.54 µs (**1.32x**)    | 1.02 ms (**5.04x**)   | 861.32 µs (**4.23x**)  |
+|             | Size    | `css-inline 0.18.0` | `css-inline-wasm 0.18.0` | `juice 11.0.3`          | `inline-css 4.0.3`      |
+|-------------|---------|---------------------|--------------------------|-------------------------|-------------------------|
+| Basic       | 230 B   | 8.57 µs             | 16.47 µs (**1.92x**)     | 45.84 µs (**5.35x**)    | 55.77 µs (**6.51x**)    |
+| Realistic-1 | 8.58 KB | 177.18 µs           | 363.64 µs (**2.05x**)    | 691.56 µs (**3.90x**)   | 919.12 µs (**5.19x**)   |
+| Realistic-2 | 4.3 KB  | 94.96 µs            | 188.58 µs (**1.99x**)    | 736.38 µs (**7.76x**)   | 625.00 µs (**6.58x**)   |
+| GitHub page | 1.81 MB | 64.82 ms            | 126.20 ms (**1.95x**)    | 1.64 s (**25.27x**)     | 330.83 ms (**5.10x**)   |
 
 The "Basic" case was obtained from benchmarking the example from the Usage section.
 
-The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.77.1` on Node.js `v21.1.0`.
+The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.91` on Node.js `v22.21.1`.
 
 ## License
 

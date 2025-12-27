@@ -224,28 +224,42 @@ switch (platform) {
         }
         break
       case 'arm':
+        localFileExisted = existsSync(
+          join(__dirname, 'css-inline.linux-arm-gnueabihf.node')
+        )
+        try {
+          if (localFileExisted) {
+            nativeBinding = require('./css-inline.linux-arm-gnueabihf.node')
+          } else {
+            nativeBinding = require('@css-inline/css-inline-linux-arm-gnueabihf')
+          }
+        } catch (e) {
+          loadError = e
+        }
+        break
+      case 'riscv64':
         if (isMusl()) {
           localFileExisted = existsSync(
-            join(__dirname, 'css-inline.linux-arm-musleabihf.node')
+            join(__dirname, 'css-inline.linux-riscv64-musl.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./css-inline.linux-arm-musleabihf.node')
+              nativeBinding = require('./css-inline.linux-riscv64-musl.node')
             } else {
-              nativeBinding = require('@css-inline/css-inline-linux-arm-musleabihf')
+              nativeBinding = require('@css-inline/css-inline-linux-riscv64-musl')
             }
           } catch (e) {
             loadError = e
           }
         } else {
           localFileExisted = existsSync(
-              join(__dirname, 'css-inline.linux-arm-gnueabihf.node')
+            join(__dirname, 'css-inline.linux-riscv64-gnu.node')
           )
           try {
             if (localFileExisted) {
-              nativeBinding = require('./css-inline.linux-arm-gnueabihf.node')
+              nativeBinding = require('./css-inline.linux-riscv64-gnu.node')
             } else {
-              nativeBinding = require('@css-inline/css-inline-linux-arm-gnueabihf')
+              nativeBinding = require('@css-inline/css-inline-linux-riscv64-gnu')
             }
           } catch (e) {
             loadError = e

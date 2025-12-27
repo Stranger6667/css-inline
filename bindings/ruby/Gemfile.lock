@@ -18,6 +18,22 @@ GEM
     nokogiri (1.18.9)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    nokogiri (1.18.9-aarch64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.9-aarch64-linux-musl)
+      racc (~> 1.4)
+    nokogiri (1.18.9-arm-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.9-arm-linux-musl)
+      racc (~> 1.4)
+    nokogiri (1.18.9-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-linux-gnu)
+      racc (~> 1.4)
+    nokogiri (1.18.9-x86_64-linux-musl)
+      racc (~> 1.4)
     premailer (1.21.0)
       addressable
       css_parser (>= 1.12.0)
@@ -48,7 +64,15 @@ GEM
     rspec-support (3.12.0)
 
 PLATFORMS
+  aarch64-linux-gnu
+  aarch64-linux-musl
+  arm-linux-gnu
+  arm-linux-musl
+  arm64-darwin
   ruby
+  x86_64-darwin
+  x86_64-linux-gnu
+  x86_64-linux-musl
 
 DEPENDENCIES
   benchmark-ips (~> 2.10)
@@ -61,4 +85,4 @@ DEPENDENCIES
   rspec
 
 BUNDLED WITH
-   2.5.7
+   2.7.2
