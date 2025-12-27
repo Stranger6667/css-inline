@@ -406,7 +406,6 @@ impl std::ops::IndexMut<NodeId> for Document {
 mod tests {
     use super::{super::node::ElementData, *};
     use html5ever::{local_name, ns, QualName};
-    use indexmap::IndexMap;
     use test_case::test_case;
 
     fn new_element() -> NodeData {
@@ -418,17 +417,17 @@ mod tests {
 
     fn roundtrip(bytes: &[u8]) -> Vec<u8> {
         let mut buffer = Vec::new();
-        Document::parse_with_options(bytes, 0, InliningMode::Document)
-            .serialize(
-                &mut buffer,
-                IndexMap::default(),
-                false,
-                false,
-                false,
-                None,
-                InliningMode::Document,
-            )
-            .expect("Failed to serialize");
+        let doc = Document::parse_with_options(bytes, 0, InliningMode::Document);
+        doc.serialize(
+            &mut buffer,
+            vec![None; doc.nodes.len()],
+            false,
+            false,
+            false,
+            None,
+            InliningMode::Document,
+        )
+        .expect("Failed to serialize");
         buffer
     }
 

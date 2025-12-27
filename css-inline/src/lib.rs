@@ -28,21 +28,18 @@
 )]
 #![allow(clippy::module_name_repetitions)]
 pub mod error;
-mod hasher;
 mod html;
 mod parser;
 mod resolver;
 
 pub use error::InlineError;
-use indexmap::IndexMap;
 #[cfg(feature = "stylesheet-cache")]
 use lru::{DefaultHasher, LruCache};
 use selectors::context::SelectorCaches;
-use std::{borrow::Cow, fmt::Formatter, hash::BuildHasherDefault, io::Write, sync::Arc};
+use smallvec::SmallVec;
+use std::{borrow::Cow, fmt::Formatter, io::Write, sync::Arc};
 
-use crate::html::ElementStyleMap;
-use hasher::BuildNoHashHasher;
-use html::{Document, InliningMode};
+use html::{Document, InliningMode, Specificity};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 pub use url::{ParseError, Url};
 
@@ -478,10 +475,8 @@ impl<'a> CSSInliner<'a> {
         } else {
             None
         };
-        let mut styles = IndexMap::with_capacity_and_hasher(
-            document.elements.len().max(16),
-            BuildNoHashHasher::default(),
-        );
+        // Vec indexed by NodeId for O(1) access instead of hash lookups
+        let mut styles: Vec<Option<SmallVec<[_; 4]>>> = vec![None; document.nodes.len()];
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
         for (selectors, (start, end)) in &rule_list {
@@ -491,40 +486,39 @@ impl<'a> CSSInliner<'a> {
                 if let Ok(matching_elements) = document.select(selector, &mut caches) {
                     let specificity = matching_elements.specificity();
                     for matching_element in matching_elements {
-                        let element_styles =
-                            styles.entry(matching_element.node_id).or_insert_with(|| {
-                                ElementStyleMap::with_capacity_and_hasher(
-                                    end.saturating_sub(*start).saturating_add(4),
-                                    BuildHasherDefault::default(),
-                                )
-                            });
+                        let element_styles = styles[matching_element.node_id.get()]
+                            .get_or_insert_with(SmallVec::new);
                         // Iterate over pairs of property name & value
                         // Example: `padding`, `0`
                         for (name, value) in &declarations[*start..*end] {
-                            match element_styles.entry(name.as_ref()) {
-                                indexmap::map::Entry::Occupied(mut entry) => {
-                                    match (
-                                        value.trim_end().ends_with("!important"),
-                                        entry.get().1.trim_end().ends_with("!important"),
-                                    ) {
-                                        // Equal importance; the higher specificity wins.
-                                        (false, false) | (true, true) => {
-                                            if entry.get().0 <= specificity {
-                                                entry.insert((specificity, *value));
-                                            }
+                            let prop_name = name.as_ref();
+                            // Linear search for existing property
+                            if let Some(idx) =
+                                element_styles.iter().position(|(n, _, _)| *n == prop_name)
+                            {
+                                let entry: &mut (&str, Specificity, &str) =
+                                    &mut element_styles[idx];
+                                let new_important = value.trim_end().ends_with("!important");
+                                let old_important = entry.2.trim_end().ends_with("!important");
+                                match (new_important, old_important) {
+                                    // Equal importance; the higher specificity wins.
+                                    (false, false) | (true, true) => {
+                                        if entry.1 <= specificity {
+                                            entry.1 = specificity;
+                                            entry.2 = *value;
                                         }
-                                        // Only the new value is important; it wins.
-                                        (true, false) => {
-                                            entry.insert((specificity, *value));
-                                        }
-                                        // The old value is important and the new one is not; keep
-                                        // the old value.
-                                        (false, true) => {}
                                     }
+                                    // Only the new value is important; it wins.
+                                    (true, false) => {
+                                        entry.1 = specificity;
+                                        entry.2 = *value;
+                                    }
+                                    // The old value is important and the new one is not; keep
+                                    // the old value.
+                                    (false, true) => {}
                                 }
-                                indexmap::map::Entry::Vacant(entry) => {
-                                    entry.insert((specificity, *value));
-                                }
+                            } else {
+                                element_styles.push((prop_name, specificity, *value));
                             }
                         }
                     }

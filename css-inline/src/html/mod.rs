@@ -8,15 +8,14 @@ mod selectors;
 mod serializer;
 
 pub(crate) use self::selectors::Specificity;
-use crate::hasher::BuildNoHashHasher;
 pub(crate) use document::Document;
-use indexmap::IndexMap;
 pub(crate) use parser::InliningMode;
-use rustc_hash::FxHasher;
-use std::hash::BuildHasherDefault;
+use smallvec::SmallVec;
 
-pub(crate) type ElementStyleMap<'i> =
-    IndexMap<&'i str, (Specificity, &'i str), BuildHasherDefault<FxHasher>>;
+/// Styles for a single element: (property name, specificity, value)
+/// Uses `SmallVec` for cache-friendly linear search on small style counts.
+pub(crate) type ElementStyleMap<'i> = SmallVec<[(&'i str, Specificity, &'i str); 4]>;
 
-pub(crate) type DocumentStyleMap<'i> =
-    IndexMap<node::NodeId, ElementStyleMap<'i>, BuildNoHashHasher>;
+/// Maps node IDs to their accumulated styles.
+/// Uses a Vec indexed by `NodeId` for O(1) access instead of hash lookups.
+pub(crate) type DocumentStyleMap<'i> = Vec<Option<ElementStyleMap<'i>>>;

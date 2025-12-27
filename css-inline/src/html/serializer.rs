@@ -261,13 +261,12 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         }
 
         let mut styles = if let Some(node_id) = style_node_id {
-            self.styles.swap_remove(&node_id).map(|mut styles| {
-                // Even though, there is a fast path for sorting of <2 elements, `indexmap` still
-                // rebuilds the hashtable unnecessarily
-                if styles.len() > 1 {
-                    styles.sort_unstable_by(|_, (a, _), _, (b, _)| a.cmp(b));
-                }
-                styles
+            self.styles.get_mut(node_id.get()).and_then(|slot| {
+                slot.take().map(|mut styles| {
+                    // Sort by specificity for consistent output order
+                    styles.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+                    styles
+                })
             })
         } else {
             None
@@ -321,14 +320,14 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             self.writer.write_all(b" style=\"")?;
             if minify_css {
                 let mut it = styles.iter().peekable();
-                while let Some((property, (_, value))) = it.next() {
+                while let Some((property, _, value)) = it.next() {
                     write_declaration(&mut self.writer, property, value, minify_css)?;
                     if !minify_css || it.peek().is_some() {
                         self.writer.write_all(b";")?;
                     }
                 }
             } else {
-                for (property, (_, value)) in styles {
+                for (property, _, value) in styles {
                     write_declaration(&mut self.writer, property, value, minify_css)?;
                     self.writer.write_all(b";")?;
                 }
@@ -545,7 +544,7 @@ fn merge_styles<Wr: Write>(
     let current_declarations_count = parsed_declarations_count;
     // Next, we iterate over the new styles and merge them into our existing set
     // New rules will not override old ones unless they are marked as `!important`
-    for (property, (_, value)) in new_styles {
+    for (property, _, value) in new_styles {
         match (
             value.trim_end().strip_suffix("!important"),
             declarations_buffer
@@ -614,7 +613,6 @@ mod tests {
     use crate::html::InliningMode;
 
     use super::Document;
-    use indexmap::IndexMap;
 
     #[test]
     fn test_serialize() {
@@ -626,7 +624,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             true,
             false,
             false,
@@ -647,7 +645,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             false,
             false,
             false,
@@ -668,7 +666,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             false,
             false,
             false,
@@ -689,7 +687,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             false,
             false,
             false,
@@ -713,7 +711,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             false,
             false,
             false,
@@ -734,7 +732,7 @@ mod tests {
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
-            IndexMap::default(),
+            vec![None; doc.nodes.len()],
             false,
             false,
             false,
