@@ -11,6 +11,7 @@
 ### Performance
 
 - Use element indexes for faster selector lookups on large documents.
+- Use more efficient data structures for storing element styles.
 
 ## [0.18.0] - 2025-11-01
 

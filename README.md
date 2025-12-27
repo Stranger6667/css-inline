@@ -267,12 +267,12 @@ Caching is disabled by default.
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.18.0`:
+Benchmarks for `css-inline==0.19.0`:
 
-- Basic: **4.20 µs**, 230 bytes
-- Realistic-1: **85.56 µs**, 8.58 KB
-- Realistic-2: **51.97 µs**, 4.3 KB
-- GitHub page: **28.78 ms**, 1.81 MB
+- Basic: **4.09 µs**, 230 bytes
+- Realistic-1: **78.94 µs**, 8.58 KB
+- Realistic-2: **48.56 µs**, 4.3 KB
+- GitHub page: **28.47 ms**, 1.81 MB
 
 These benchmarks, conducted using `rustc 1.91` on Ryzen 9 9950X, can be found in `css-inline/benches/inliner.rs`.
 

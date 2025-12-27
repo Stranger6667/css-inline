@@ -198,9 +198,6 @@ jobs:
       - run: cargo update -p zerofrom --precise 0.1.5
         working-directory: ./css-inline
 
-      - run: cargo update -p indexmap --precise 2.11.0
-        working-directory: ./css-inline
-
       - run: cargo update -p derive_more --precise 2.0.1
         working-directory: ./css-inline
 
