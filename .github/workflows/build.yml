@@ -578,7 +578,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v1
+          cache-version: v1-${{ matrix.ruby-version }}
           working-directory: ./bindings/ruby
 
       - name: Setup LLVM & Clang
@@ -624,7 +624,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: false
           cargo-cache: true
-          cache-version: v1
+          cache-version: v1-${{ matrix.ruby-version }}
           working-directory: ./bindings/ruby
 
       - name: Setup LLVM & Clang
