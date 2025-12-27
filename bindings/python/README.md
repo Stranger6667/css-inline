@@ -266,17 +266,17 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.18.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`        |
+|             | Size    | `css_inline 0.19.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`        |
 |-------------|---------|---------------------|------------------------|-------------------------|------------------------|-------------------------|
-| Basic       | 230 B   | 4.25 µs             | 93.82 µs (**22.08x**)  | 499.81 µs (**117.66x**) | 1.02 ms (**240.11x**)  | 849.00 µs (**199.86x**) |
-| Realistic-1 | 8.58 KB | 84.87 µs            | 1.01 ms (**11.89x**)   | 11.48 ms (**135.22x**)  | 26.37 ms (**310.71x**) | 11.49 ms (**135.33x**)  |
-| Realistic-2 | 4.3 KB  | 51.97 µs            | 1.44 ms (**27.74x**)   | ERROR                   | 17.71 ms (**340.79x**) | ERROR                   |
-| GitHub page | 1.81 MB | 29.23 ms            | 10.44 s (**357.08x**)  | ERROR                   | ERROR                  | ERROR                   |
+| Basic       | 230 B   | 4.11 µs             | 94.34 µs (**22.96x**)  | 509.48 µs (**124.02x**) | 1.02 ms (**248.30x**)  | 852.17 µs (**207.44x**) |
+| Realistic-1 | 8.58 KB | 78.87 µs            | 1.03 ms (**13.10x**)   | 11.68 ms (**148.04x**)  | 26.37 ms (**334.38x**) | 11.61 ms (**147.19x**)  |
+| Realistic-2 | 4.3 KB  | 48.27 µs            | 1.49 ms (**30.81x**)   | ERROR                   | 17.71 ms (**366.87x**) | ERROR                   |
+| GitHub page | 1.81 MB | 29.54 ms            | 10.91 s (**369.13x**)  | ERROR                   | ERROR                  | ERROR                   |
 
 The "Basic" case was obtained by benchmarking the example from the Usage section.
 Note that the `toronado`, `inlinestyler`, and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
 
-The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.87`, Python `3.12.5` on Ryzen 9 9950X.
+The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.91`, Python `3.14.2` on Ryzen 9 9950X.
 
 ## Comparison with other libraries
 
