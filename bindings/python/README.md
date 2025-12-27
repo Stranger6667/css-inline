@@ -266,12 +266,12 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.17.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`       |
-|-------------|---------|---------------------|------------------------|-------------------------|------------------------|------------------------|
-| Basic       | 230 B   | 4.27 µs             | 107.68 µs (**25.17x**) | 603.05 µs (**140.97x**) | 1.02 ms (**238.87x**)  | 1.13ms (**264.25x**)   |
-| Realistic-1 | 8.58 KB | 85.54 µs           | 1.20 ms (**14.13x**)   | 13.79 ms (**161.32x**)  | 26.37 ms (**308.27x**) | 44.94 ms (**525.39x**) |
-| Realistic-2 | 4.3 KB  | 58.26 µs            | 1.74 ms (**29.88x**)   | ERROR                   | 17.71 ms (**303.98x**) | ERROR                  |
-| GitHub page | 1.81 MB | 139.74 ms           | 15.02 s (**107.49x**)  | ERROR                   | ERROR                  | ERROR                  |
+|             | Size    | `css_inline 0.18.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`        |
+|-------------|---------|---------------------|------------------------|-------------------------|------------------------|-------------------------|
+| Basic       | 230 B   | 4.25 µs             | 93.82 µs (**22.08x**)  | 499.81 µs (**117.66x**) | 1.02 ms (**240.11x**)  | 849.00 µs (**199.86x**) |
+| Realistic-1 | 8.58 KB | 84.87 µs            | 1.01 ms (**11.89x**)   | 11.48 ms (**135.22x**)  | 26.37 ms (**310.71x**) | 11.49 ms (**135.33x**)  |
+| Realistic-2 | 4.3 KB  | 51.97 µs            | 1.44 ms (**27.74x**)   | ERROR                   | 17.71 ms (**340.79x**) | ERROR                   |
+| GitHub page | 1.81 MB | 29.23 ms            | 10.44 s (**357.08x**)  | ERROR                   | ERROR                  | ERROR                   |
 
 The "Basic" case was obtained by benchmarking the example from the Usage section.
 Note that the `toronado`, `inlinestyler`, and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.

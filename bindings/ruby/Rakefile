@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "bundler"
 require "rake/extensiontask"
 require 'rspec/core/rake_task'
 
@@ -36,5 +37,5 @@ end
 task test: :compile
 
 task bench: :compile do
-  ruby "test/bench.rb"
+  ruby "-I lib test/bench.rb"
 end

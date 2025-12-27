@@ -264,14 +264,14 @@ and spaces between properties and values.
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.17.0` | `CSSBox 5.0.0`     |
-|-------------|---------|---------------------|------------------------|
-| Basic       | 230 B   | 7.43 µs             | 52.02 µs (**7.00x**) |
-| Realistic-1 | 8.58 KB | 119.54 µs           | 1.56 ms (**13.13x**)   |
-| Realistic-2 | 4.3 KB  | 75.23 µs            | 360.92 µs (**4.79x**)   |
-| GitHub page | 1.81 MB | 161.46 ms           | 306.47 ms (**1.89x**)  |
+|             | Size    | `css-inline 0.18.0` | `CSSBox 5.0.0`          |
+|-------------|---------|---------------------|-------------------------|
+| Basic       | 230 B   | 7.35 µs             | 51.15 µs (**6.96x**)    |
+| Realistic-1 | 8.58 KB | 121.11 µs           | 1.54 ms (**12.72x**)    |
+| Realistic-2 | 4.3 KB  | 69.30 µs            | 358.35 µs (**5.17x**)   |
+| GitHub page | 1.81 MB | 41.30 ms            | 296.74 ms (**7.19x**)   |
 
-The benchmarking code is available in the `src/jmh/java/org/cssinline/CSSInlineBench.java` file. The benchmarks were conducted using the stable `rustc 1.87`, `OpenJDK 24.0.1` on Ryzen 9 9950X.
+The benchmarking code is available in the `src/jmh/java/org/cssinline/CSSInlineBench.java` file. The benchmarks were conducted using the stable `rustc 1.91`, `OpenJDK 24.0.1` on Ryzen 9 9950X.
 
 ## License
 

@@ -6,3 +6,9 @@ gemspec
 
 gem 'rspec'
 gem 'rb_sys'
+
+group :bench do
+  gem 'benchmark-ips'
+  gem 'premailer'
+  gem 'roadie'
+end

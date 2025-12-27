@@ -570,6 +570,8 @@ jobs:
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      BUNDLE_WITHOUT: ${{ matrix.os == 'windows-2022' && 'bench' || '' }}
     steps:
       - uses: actions/checkout@v6
       - name: Set up Ruby & Rust
@@ -578,7 +580,7 @@ jobs:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
           cargo-cache: true
-          cache-version: v1-${{ matrix.ruby-version }}
+          cache-version: v2-${{ matrix.ruby-version }}
           working-directory: ./bindings/ruby
 
       - name: Setup LLVM & Clang
