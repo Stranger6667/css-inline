@@ -40,7 +40,7 @@ into:
 - Optionally caches external stylesheets
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
-- Tested on Node.js 18 & 20.
+- Tested on Node.js 20 & 22.
 
 ## Playground
 
@@ -246,12 +246,12 @@ Most of the time it achieves over a **3x** speed advantage compared to the next 
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.18.0` | `css-inline-wasm 0.18.0` | `juice 11.0.3`          | `inline-css 4.0.3`      |
-|-------------|---------|---------------------|--------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 8.57 µs             | 16.47 µs (**1.92x**)     | 45.84 µs (**5.35x**)    | 55.77 µs (**6.51x**)    |
-| Realistic-1 | 8.58 KB | 177.18 µs           | 363.64 µs (**2.05x**)    | 691.56 µs (**3.90x**)   | 919.12 µs (**5.19x**)   |
-| Realistic-2 | 4.3 KB  | 94.96 µs            | 188.58 µs (**1.99x**)    | 736.38 µs (**7.76x**)   | 625.00 µs (**6.58x**)   |
-| GitHub page | 1.81 MB | 64.82 ms            | 126.20 ms (**1.95x**)    | 1.64 s (**25.27x**)     | 330.83 ms (**5.10x**)   |
+|             | Size    | `css-inline`| `css-inline-wasm`    | `juice`                 | `inline-css`            |
+|-------------|---------|-------------|----------------------|-------------------------|-------------------------|
+| Basic       | 230 B   | 8.62 µs     | 16.19 µs (**1.88x**) | 41.63 µs (**4.83x**)    | 80.32 µs (**9.32x**)    |
+| Realistic-1 | 8.58 KB | 176.21 µs   | 354.61 µs (**2.01x**)| 505.56 µs (**2.87x**)   | 1.09 ms (**6.20x**)     |
+| Realistic-2 | 4.3 KB  | 97.20 µs    | 183.15 µs (**1.88x**)| 657.46 µs (**6.76x**)   | 878.00 µs (**9.03x**)   |
+| GitHub page | 1.81 MB | 62.29 ms    | 118.98 ms (**1.91x**)| 1.59 s (**25.45x**)     | 306.19 ms (**4.92x**)   |
 
 The "Basic" case was obtained from benchmarking the example from the Usage section.
 
