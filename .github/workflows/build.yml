@@ -575,50 +575,32 @@ jobs:
         os: [ubuntu-22.04, macos-15]
         php-version: ["8.2", "8.3", "8.4"]
         clang: ["20"]
-
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v6
-
       - uses: dtolnay/rust-toolchain@stable
-
-      - name: Cache LLVM and Clang
-        id: cache-llvm
-        uses: actions/cache@v4
-        if: matrix.os == 'ubuntu-22.04'
-        with:
-          path: ${{ runner.temp }}/llvm-${{ matrix.clang }}
-          key: ${{ matrix.os }}-llvm-${{ matrix.clang }}
-
       - name: Setup LLVM & Clang
         uses: KyleMayes/install-llvm-action@v2
         if: matrix.os == 'ubuntu-22.04'
         with:
           version: ${{ matrix.clang }}
           directory: ${{ runner.temp }}/llvm-${{ matrix.clang }}
-
       - name: Configure Clang
         if: matrix.os == 'ubuntu-22.04'
         run: |
           echo "LIBCLANG_PATH=${{ runner.temp }}/llvm-${{ matrix.clang }}/lib" >> $GITHUB_ENV
-          echo "LLVM_VERSION=${{ steps.clang.outputs.version }}" >> $GITHUB_ENV
           echo "LLVM_CONFIG_PATH=${{ runner.temp }}/llvm-${{ matrix.clang }}/bin/llvm-config" >> $GITHUB_ENV
-
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring
           coverage: none
-
       - name: Build PHP extension
         run: |
           export PHP_CONFIG=$(which php-config)
-
           cargo build --release
-
           EXT_DIR=$(php -r "echo ini_get('extension_dir');")
-
           if [[ "${{ matrix.os }}" == "macos-15" ]]; then
             BUILT_LIB=$(find target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
             if [[ -z "$BUILT_LIB" ]]; then
@@ -631,7 +613,6 @@ jobs:
           fi
         working-directory: ./bindings/php
         shell: bash
-
       - name: Enable and verify extension
         run: |
           if [[ "${{ matrix.os }}" == "macos-15" ]]; then
@@ -641,15 +622,12 @@ jobs:
             echo "extension=css_inline" | sudo tee /etc/php/${{ matrix.php-version }}/cli/conf.d/99-css_inline.ini
           fi
         shell: bash
-
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
         working-directory: ./bindings/php
-
       - name: Lint PHP code
         run: composer lint
         working-directory: ./bindings/php
-
       - name: Run tests
         run: composer test
         working-directory: ./bindings/php
