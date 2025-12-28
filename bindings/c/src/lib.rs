@@ -68,7 +68,7 @@ pub struct StylesheetCache {
 
 /// @brief Creates an instance of StylesheetCache.
 /// @return a StylesheetCache struct
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn css_inliner_stylesheet_cache(size: size_t) -> StylesheetCache {
     StylesheetCache { size }
 }
@@ -102,7 +102,7 @@ pub struct CssInlinerOptions {
 macro_rules! inliner {
     ($options:expr) => {
         CSSInliner::new(
-            match InlineOptions::try_from(match $options.as_ref() {
+            match InlineOptions::try_from(match unsafe { $options.as_ref() } {
                 Some(ptr) => ptr,
                 None => return CssResult::NullOptions,
             }) {
@@ -115,7 +115,7 @@ macro_rules! inliner {
 
 macro_rules! to_str {
     ($input:expr) => {
-        match CStr::from_ptr($input).to_str() {
+        match unsafe { CStr::from_ptr($input) }.to_str() {
             Ok(val) => val,
             Err(_) => return CssResult::InvalidInputString,
         }
@@ -130,7 +130,7 @@ macro_rules! to_str {
 /// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
 #[allow(clippy::missing_safety_doc)]
 #[must_use]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn css_inline_to(
     options: *const CssInlinerOptions,
     input: *const c_char,
@@ -144,8 +144,10 @@ pub unsafe extern "C" fn css_inline_to(
         return e.into();
     };
     // Null terminate the pointer
-    let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
-    *ptr = 0;
+    unsafe {
+        let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
+        *ptr = 0;
+    }
     CssResult::Ok
 }
 
@@ -158,7 +160,7 @@ pub unsafe extern "C" fn css_inline_to(
 /// @return a CSS_RESULT enum variant regarding if the operation was a success or an error occurred
 #[allow(clippy::missing_safety_doc)]
 #[must_use]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn css_inline_fragment_to(
     options: *const CssInlinerOptions,
     input: *const c_char,
@@ -174,14 +176,16 @@ pub unsafe extern "C" fn css_inline_fragment_to(
         return e.into();
     };
     // Null terminate the pointer
-    let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
-    *ptr = 0;
+    unsafe {
+        let ptr: *mut c_char = buffer.buffer.add(buffer.pos);
+        *ptr = 0;
+    }
     CssResult::Ok
 }
 
 /// @brief Creates an instance of CssInlinerOptions with the default parameters.
 /// @return a CssInlinerOptions struct
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
     CssInlinerOptions {
         inline_style_tags: true,

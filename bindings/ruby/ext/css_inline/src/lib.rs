@@ -27,11 +27,10 @@
 )]
 use css_inline as rust_inline;
 use magnus::{
-    function, method,
+    DataTypeFunctions, RHash, Ruby, TryConvert, TypedData, Value, function, method,
     prelude::*,
-    scan_args::{get_kwargs, scan_args, Args},
+    scan_args::{Args, get_kwargs, scan_args},
     typed_data::Obj,
-    DataTypeFunctions, RHash, Ruby, TryConvert, TypedData, Value,
 };
 use rayon::prelude::*;
 use std::{

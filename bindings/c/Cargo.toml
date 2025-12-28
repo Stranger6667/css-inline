@@ -2,7 +2,7 @@
 name = "css-inline-c"
 version = "0.18.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
-edition = "2021"
+edition = "2024"
 
 [lib]
 name = "css_inline"

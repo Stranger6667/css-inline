@@ -111,9 +111,11 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                     impl css_inline::StylesheetResolver for UnsupportedResolver {
                         fn retrieve(&self, location: &str) -> css_inline::Result<String> {
                             let message = if location.starts_with("https")
-                                | location.starts_with("http")
+                                || location.starts_with("http")
                             {
-                                format!("Loading remote stylesheets is not supported on WASM: {location}")
+                                format!(
+                                    "Loading remote stylesheets is not supported on WASM: {location}"
+                                )
                             } else {
                                 format!("Loading local files is not supported on WASM: {location}")
                             };

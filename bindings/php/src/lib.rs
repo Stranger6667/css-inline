@@ -81,11 +81,8 @@ impl CssInliner {
             None
         };
 
-        let stylesheet_cache = if let Some(cache) = cache {
-            Some(Mutex::new(css_inline::StylesheetCache::new(cache.size)))
-        } else {
-            None
-        };
+        let stylesheet_cache =
+            cache.map(|cache| Mutex::new(css_inline::StylesheetCache::new(cache.size)));
 
         #[allow(clippy::cast_sign_loss)]
         let options = css_inline::InlineOptions {

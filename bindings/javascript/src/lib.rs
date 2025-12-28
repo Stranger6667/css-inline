@@ -1,7 +1,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use napi_derive::napi;
 #[cfg(target_arch = "wasm32")]
-use wasm_bindgen::prelude::{wasm_bindgen, JsValue};
+use wasm_bindgen::prelude::{JsValue, wasm_bindgen};
 
 mod errors;
 mod options;
