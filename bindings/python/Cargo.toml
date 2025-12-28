@@ -2,8 +2,8 @@
 name = "css-inline-python"
 version = "0.18.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
-edition = "2021"
-rust-version = "1.80"
+edition = "2024"
+rust-version = "1.85"
 include = ["src/lib.rs", "README.md", "CHANGELOG.md", "build.rs"]
 
 [lib]

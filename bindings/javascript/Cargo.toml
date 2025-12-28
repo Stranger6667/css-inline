@@ -2,7 +2,7 @@
 name = "css-inline-js"
 version = "0.18.0"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
-edition = "2021"
+edition = "2024"
 readme = "README.md"
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
 repository = "https://github.com/Stranger6667/css-inline"

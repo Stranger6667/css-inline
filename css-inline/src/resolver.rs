@@ -9,7 +9,7 @@ pub trait StylesheetResolver: Send + Sync {
     ///
     /// Any network or filesystem related error, or an error during response parsing.
     fn retrieve(&self, location: &str) -> Result<String> {
-        if location.starts_with("https") | location.starts_with("http") {
+        if location.starts_with("https") || location.starts_with("http") {
             #[cfg(feature = "http")]
             {
                 self.retrieve_from_url(location)
