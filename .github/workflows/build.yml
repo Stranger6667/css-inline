@@ -592,13 +592,11 @@ jobs:
           key: ${{ matrix.os }}-llvm-${{ matrix.clang }}
 
       - name: Setup LLVM & Clang
-        id: clang
         uses: KyleMayes/install-llvm-action@v2
         if: matrix.os == 'ubuntu-22.04'
         with:
           version: ${{ matrix.clang }}
           directory: ${{ runner.temp }}/llvm-${{ matrix.clang }}
-          cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
       - name: Configure Clang
         if: matrix.os == 'ubuntu-22.04'
