@@ -21,19 +21,16 @@ jobs:
       - uses: aevea/commitsar@v1.0.2
 
   pre-commit:
-    name: Generic pre-commit checks
+    name: Pre-commit checks
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
-      - uses: actions/setup-python@v6
-        with:
-          python-version: 3.11
+      - uses: astral-sh/setup-uv@v6
 
-      - run: pip install pre-commit
-      - run: SKIP=fmt,cargo-check,clippy pre-commit run --all-files
+      - run: SKIP=fmt,cargo-check,clippy uvx prek run --all-files
 
   eslint:
     name: ESLint
