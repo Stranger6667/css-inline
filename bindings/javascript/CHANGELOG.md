@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Missing `darwin-x64` package due to incorrect build target on ARM runners.
+
 ## [0.19.0] - 2025-12-29
 
 ### Added
