@@ -23,21 +23,18 @@ jobs:
             target: x86_64-unknown-linux-gnu
             php: "8.4"
             artifact: libcss_inline_php.so
-          - os: macos-15
+          - os: macos-15-intel
             target: x86_64-apple-darwin
             php: "8.2"
             artifact: libcss_inline_php.dylib
-            cross: true
-          - os: macos-15
+          - os: macos-15-intel
             target: x86_64-apple-darwin
             php: "8.3"
             artifact: libcss_inline_php.dylib
-            cross: true
-          - os: macos-15
+          - os: macos-15-intel
             target: x86_64-apple-darwin
             php: "8.4"
             artifact: libcss_inline_php.dylib
-            cross: true
           - os: macos-15
             target: aarch64-apple-darwin
             php: "8.2"
