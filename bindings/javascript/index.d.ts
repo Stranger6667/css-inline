@@ -35,6 +35,8 @@ export interface Options {
    * It can improve performance when you have an estimate of the number of nodes in your HTML document.
    */
   preallocateNodeCapacity?: number
+  /** Remove selectors that were successfully inlined from inline `<style>` blocks. */
+  removeInlinedSelectors?: boolean
 }
 
 export interface StylesheetCache {

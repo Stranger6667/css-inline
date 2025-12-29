@@ -12,6 +12,7 @@ export interface InlineOptions {
 	loadRemoteStylesheets?: boolean;
 	extraCss?: string;
 	preallocateNodeCapacity?: number;
+	removeInlinedSelectors?: boolean;
 }
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 /**

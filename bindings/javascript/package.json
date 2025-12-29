@@ -1,6 +1,6 @@
 {
   "name": "@css-inline/css-inline",
-  "version": "0.18.0",
+  "version": "0.19.0",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "main": "index.js",
   "repository": "https://github.com/Stranger6667/css-inline",
@@ -92,7 +92,7 @@
     "copy-wasm": "copyfiles -f wasm/dist/index_bg.wasm ./wasm",
     "lint": "eslint . -c ./.eslintrc.yml './**/*.{ts,tsx,js}'",
     "lint:fix": "eslint . -c ./.eslintrc.yml './**/*.{ts,tsx,js}' --fix",
-    "prepublishOnly": "napi prepublish -t npm",
+    "prepublishOnly": "napi prepublish -t npm --no-gh-release",
     "test": "ava __test__/index*.*",
     "test:wasm": "ava __test__/**/wasm*.*",
     "universal": "napi universal",

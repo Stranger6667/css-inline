@@ -294,6 +294,8 @@ jobs:
           make_latest: false
           draft: true
           name: "[JavaScript] Release ${{ env.version }}"
+          files: |
+            bindings/javascript/npm/**/*.node
 
       - name: Publish to npm packages
         run: |
@@ -301,3 +303,5 @@ jobs:
           cd wasm-dist
           npm publish --access public --provenance
         working-directory: bindings/javascript
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}
