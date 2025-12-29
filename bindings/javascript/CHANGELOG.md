@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.19.1] - 2025-12-29
+
 ### Fixed
 
 - Missing `darwin-x64` package due to incorrect build target on ARM runners.
@@ -165,7 +167,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.1...HEAD
+[0.19.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.0...javascript-v0.19.1
 [0.19.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.18.0...javascript-v0.19.0
 [0.18.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.17.0...javascript-v0.18.0
 [0.17.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.16.0...javascript-v0.17.0
