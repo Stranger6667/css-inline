@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.19.0] - 2025-12-29
+
 ### Added
 
 - `InlineOptions::remove_inlined_selectors` option to remove selectors that were successfully inlined from `<style>` blocks.
@@ -494,7 +496,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.18.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.19.0...HEAD
+[0.19.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.18.0...rust-v0.19.0
 [0.18.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.17.0...rust-v0.18.0
 [0.17.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.16.0...rust-v0.17.0
 [0.16.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.15.0...rust-v0.16.0

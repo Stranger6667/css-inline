@@ -54,7 +54,7 @@ To include it in your project, add the following line to the dependencies sectio
 
 ```toml
 [dependencies]
-css-inline = "0.18"
+css-inline = "0.19"
 ```
 
 The Minimum Supported Rust Version is 1.80.
