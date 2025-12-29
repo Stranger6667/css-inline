@@ -43,13 +43,12 @@ jobs:
           path: dist
 
   macos-x86_64:
-    runs-on: macos-15
+    runs-on: macos-15-intel
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          architecture: x64
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels - x86_64
         uses: messense/maturin-action@v1
@@ -258,19 +257,16 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-15]
+        os: [ubuntu-22.04, macos-15-intel]
         target: [x86_64, aarch64]
         python-version:
           - "3.11"
         exclude:
-          - os: macos-15
+          - os: macos-15-intel
             target: aarch64
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
-      - name: Add x86_64 target for macOS
-        if: matrix.os == 'macos-15' && matrix.target == 'x86_64'
-        run: rustup target add x86_64-apple-darwin
       - uses: actions/setup-python@v6
         with:
           python-version: pypy${{ matrix.python-version }}
