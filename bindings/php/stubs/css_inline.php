@@ -7,7 +7,7 @@ namespace CssInline;
 /**
  * Library version.
  */
-const VERSION = '0.18.0';
+const VERSION = '0.19.0';
 
 /**
  * Inline CSS from a style tag into matching elements.
@@ -67,6 +67,7 @@ class CssInliner
      * @param string|null $extraCss Additional CSS to inline
      * @param int $preallocateNodeCapacity Pre-allocate capacity for HTML nodes
      * @param StylesheetCache|null $cache Cache for external stylesheets
+     * @param bool $removeInlinedSelectors Remove selectors that were successfully inlined from style blocks
      */
     public function __construct(
         bool $inlineStyleTags = true,
@@ -79,6 +80,7 @@ class CssInliner
         ?string $extraCss = null,
         int $preallocateNodeCapacity = 32,
         ?StylesheetCache $cache = null,
+        bool $removeInlinedSelectors = false,
     ) {}
 
     /**
