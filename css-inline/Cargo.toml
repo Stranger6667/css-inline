@@ -36,7 +36,7 @@ precomputed-hash = "0.1.1"
 rayon = { version = "1.10", optional = true }
 reqwest = { version = "0.12.0", optional = true, default-features = false, features = ["rustls-tls", "blocking"] }
 rustc-hash = "2.0.0"
-selectors = "0.33.0"
+selectors = "0.34.0"
 smallvec = "1"
 url = "2"
 
