@@ -48,10 +48,9 @@ It would be awesome if you can submit a failing test that demonstrates the probl
 
 ## Running tests
 
-Running tests requires a Flask app running in background:
+Running tests requires a test server running in background:
 
 ```
-python -m pip install flask
 python ./css-inline/tests/server.py &
 ```
 

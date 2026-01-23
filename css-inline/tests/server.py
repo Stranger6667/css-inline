@@ -1,12 +1,21 @@
-from flask import Flask
-
-app = Flask(__name__)
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
 
-@app.route("/external.css")
-def stylesheet():
-    return "h1 { color: blue; }"
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/external.css":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/css")
+            self.end_headers()
+            self.wfile.write(b"h1 { color: blue; }")
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        pass  # Suppress logging
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=1234)
+    server = HTTPServer(("0.0.0.0", 1234), Handler)
+    server.serve_forever()

@@ -70,10 +70,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: |
-          python -m pip install -r ./css-inline/tests/requirements-test.txt
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+        run: python ./css-inline/tests/server.py &
         shell: bash
 
       - uses: dtolnay/rust-toolchain@stable
@@ -317,10 +314,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: |
-          python -m pip install -r ./css-inline/tests/requirements-test.txt
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+        run: python ./css-inline/tests/server.py &
         shell: bash
 
       - name: Install Rust
@@ -500,7 +494,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-15, windows-2022]
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "pypy-3.11"]
+        python-version:
+          ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "pypy-3.11"]
         exclude:
           - os: macos-15
             python-version: "3.9"
@@ -526,10 +521,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: |
-          python -m pip install -r ./css-inline/tests/requirements-test.txt
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+        run: python ./css-inline/tests/server.py &
         shell: bash
 
       - run: python -m pip install -r requirements/dev.txt
@@ -669,10 +661,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: |
-          python -m pip install -r ./css-inline/tests/requirements-test.txt
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+        run: python ./css-inline/tests/server.py &
         shell: bash
 
       - run: bundle exec rake test
@@ -865,10 +854,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: |
-          python -m pip install -r ./css-inline/tests/requirements-test.txt
-          # Starts the server in background
-          python ./css-inline/tests/server.py &
+        run: python ./css-inline/tests/server.py &
         shell: bash
 
       - name: Run tests

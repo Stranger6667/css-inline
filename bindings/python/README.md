@@ -44,7 +44,7 @@ into:
 - Can process multiple documents in parallel
 - Works on Linux, Windows, macOS and in the browser via PyOdide
 - Supports HTML5 & CSS3
-- Tested on CPython 3.9, 3.10, 3.11, 3.12, 3.13 and PyPy 3.11.
+- Tested on CPython 3.9, 3.10, 3.11, 3.12, 3.13, 3.14 and PyPy 3.11.
 
 ## Playground
 
