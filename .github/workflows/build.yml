@@ -569,7 +569,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, macos-15]
+        os: [ubuntu-24.04, macos-15]
         php-version: ["8.2", "8.3", "8.4"]
         clang: ["20"]
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
@@ -579,12 +579,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Setup LLVM & Clang
         uses: KyleMayes/install-llvm-action@v2
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-24.04'
         with:
           version: ${{ matrix.clang }}
           directory: ${{ runner.temp }}/llvm-${{ matrix.clang }}
       - name: Configure Clang
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-24.04'
         run: |
           echo "LIBCLANG_PATH=${{ runner.temp }}/llvm-${{ matrix.clang }}/lib" >> $GITHUB_ENV
           echo "LLVM_CONFIG_PATH=${{ runner.temp }}/llvm-${{ matrix.clang }}/bin/llvm-config" >> $GITHUB_ENV
@@ -593,6 +593,8 @@ jobs:
           php-version: ${{ matrix.php-version }}
           extensions: mbstring
           coverage: none
+        env:
+          debug: true
       - name: Build PHP extension
         run: |
           export PHP_CONFIG=$(which php-config)
