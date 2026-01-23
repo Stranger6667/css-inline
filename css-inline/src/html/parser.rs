@@ -205,7 +205,7 @@ impl TreeSink for Sink {
                 let mut rel_stylesheet = false;
                 let mut href_non_empty = false;
                 for attr in &attrs {
-                    if attr.name.local == local_name!("rel") && attr.value == "stylesheet".into() {
+                    if attr.name.local == local_name!("rel") && &*attr.value == "stylesheet" {
                         rel_stylesheet = true;
                     }
                     // Skip links with empty `href` attributes
