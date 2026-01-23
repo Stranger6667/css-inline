@@ -5,6 +5,7 @@
 ### Changed
 
 - Update `html5ever` to `0.38`.
+- Update `reqwest` to `0.13`.
 - Update `selectors` to `0.35`.
 
 ### Fixed
