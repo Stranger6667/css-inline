@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Inline `!important` styles being overwritten by stylesheet `!important` styles. [#637](https://github.com/Stranger6667/css-inline/issues/637)
+
 ## [0.19.0] - 2025-12-29
 
 ### Added

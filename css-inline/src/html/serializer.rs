@@ -557,11 +557,14 @@ fn merge_styles<Wr: Write>(
                 }),
         ) {
             // The new rule is `!important` and there's an existing rule with the same name
-            // In this case, we override the existing rule with the new one
+            // Only override if the existing inline rule is NOT `!important`.
+            // Per CSS spec: inline `!important` takes precedence over stylesheet `!important`
             (Some(value), Some(buffer)) => {
-                // We keep the rule name and the colon-space suffix - '<rule>: `
-                buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
-                write_declaration_value(buffer, value)?;
+                if !buffer.ends_with(b"!important") {
+                    // We keep the rule name and the colon-space suffix - '<rule>: `
+                    buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
+                    write_declaration_value(buffer, value)?;
+                }
             }
             // There's no existing rule with the same name, but the new rule is `!important`
             // In this case, we add the new rule with the `!important` suffix removed
