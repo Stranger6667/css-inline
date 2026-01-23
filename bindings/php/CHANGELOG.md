@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-01-23
+
 ### Changed
 
 - Update `html5ever` to `0.38`.
@@ -15,4 +17,5 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.19.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.19.1...HEAD
+[0.19.1]: https://github.com/Stranger6667/css-inline/compare/php-v0.19.0...php-v0.19.1
