@@ -1,6 +1,6 @@
 {
   "name": "@css-inline/css-inline-wasm",
-  "version": "0.19.1",
+  "version": "0.19.2",
   "description": "High-performance library for inlining CSS into HTML 'style' attributes",
   "keywords": [
     "css",
