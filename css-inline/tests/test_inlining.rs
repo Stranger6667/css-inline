@@ -292,6 +292,18 @@ fn important_more_specific() {
 }
 
 #[test]
+fn important_inline_wins_over_stylesheet_important() {
+    // Inline `!important` rules should override stylesheet `!important` rules.
+    // Per CSS spec: "Inline important styles take precedence over all other important author styles"
+    // See: https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Values/important#inline_styles
+    assert_inlined!(
+        style = "h1 { color: blue !important; }",
+        body = r#"<h1 style="color: red !important;">Big Text</h1>"#,
+        expected = r#"<h1 style="color: red !important">Big Text</h1>"#
+    );
+}
+
+#[test]
 fn font_family_quoted() {
     // When property value contains double quotes
     assert_inlined!(
