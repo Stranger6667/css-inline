@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.19.1] - 2026-01-23
+
 ### Changed
 
 - Update `html5ever` to `0.38`.
@@ -72,7 +74,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.19.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.19.1...HEAD
+[0.19.1]: https://github.com/Stranger6667/css-inline/compare/java-v0.19.0...java-v0.19.1
 [0.19.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.18.0...java-v0.19.0
 [0.18.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.17.0...java-v0.18.0
 [0.17.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.16.0...java-v0.17.0
