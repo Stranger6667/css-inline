@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Faster HTML serialization for styles containing double quotes.
+
 ## [0.19.2] - 2026-01-23
 
 ### Changed
