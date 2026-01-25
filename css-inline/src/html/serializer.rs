@@ -6,6 +6,7 @@ use super::{
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, ns, tendril::StrTendril, LocalName, QualName};
+use memchr::memchr_iter;
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
@@ -459,26 +460,18 @@ fn write_declaration<Wr: Write>(
 }
 
 #[inline]
+#[allow(clippy::arithmetic_side_effects)]
 fn write_declaration_value<Wr: Write>(writer: &mut Wr, value: &str) -> Result<(), InlineError> {
     let value = value.trim();
-    // Roughly based on `str::replace`
+    let bytes = value.as_bytes();
+
     let mut last_end = 0;
-    for (start, part) in value.match_indices('"') {
-        writer.write_all(
-            value
-                .get(last_end..start)
-                .expect("Invalid substring")
-                .as_bytes(),
-        )?;
+    for idx in memchr_iter(b'"', bytes) {
+        writer.write_all(&bytes[last_end..idx])?;
         writer.write_all(b"'")?;
-        last_end = start.checked_add(part.len()).expect("Size overflow");
+        last_end = idx + 1;
     }
-    writer.write_all(
-        value
-            .get(last_end..value.len())
-            .expect("Invalid substring")
-            .as_bytes(),
-    )?;
+    writer.write_all(&bytes[last_end..])?;
     Ok(())
 }
 
