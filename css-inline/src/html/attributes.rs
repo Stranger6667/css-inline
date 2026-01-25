@@ -10,7 +10,15 @@ pub(crate) struct Class {
     pub(crate) cache: Cache,
 }
 
-static SELECTOR_WHITESPACE: &[char] = &[' ', '\t', '\n', '\r', '\x0C'];
+/// Bit-packed lookup for CSS selector whitespace: ' ', '\t', '\n', '\r', '\x0C'
+/// All whitespace chars are <= 32, so we pack them into a single u64.
+const WHITESPACE_MASK: u64 =
+    (1 << b' ') | (1 << b'\t') | (1 << b'\n') | (1 << b'\r') | (1 << 0x0Cu8);
+
+#[inline]
+fn is_selector_whitespace(b: u8) -> bool {
+    b <= 32 && (WHITESPACE_MASK >> b) & 1 != 0
+}
 
 /// This Bloom filter has 64 bits of storage and two hash functions which gives a decent false
 /// positive rate given that most of the time an element has a very few number of classes.
@@ -61,7 +69,10 @@ impl Class {
     pub(crate) fn new(value: StrTendril) -> Class {
         // Build a Bloom filter for all element's classes
         let mut cache = BloomFilter::new();
-        let mut classes = value.split(SELECTOR_WHITESPACE).filter(|s| !s.is_empty());
+        let bytes = value.as_bytes();
+        let mut classes = bytes
+            .split(|&b| is_selector_whitespace(b))
+            .filter(|s| !s.is_empty());
         if let Some(class) = classes.next() {
             // If the first class we split is the same as the input value, then we have just
             // a single class and a Bloom filter is not needed.
@@ -71,12 +82,10 @@ impl Class {
                     cache: Cache::Single,
                 };
             }
-            let hash = hash_class_name(class.as_bytes());
-            cache.insert_hash(hash);
+            cache.insert_hash(hash_class_name(class));
         }
         for class in classes {
-            let hash = hash_class_name(class.as_bytes());
-            cache.insert_hash(hash);
+            cache.insert_hash(hash_class_name(class));
         }
         Class {
             value,
@@ -87,8 +96,8 @@ impl Class {
     /// Manually check whether the class attribute value contains the given class.
     #[inline]
     fn has_class_impl(&self, name: &[u8], case_sensitivity: CaseSensitivity) -> bool {
-        for class in self.value.split(SELECTOR_WHITESPACE) {
-            if case_sensitivity.eq(class.as_bytes(), name) {
+        for class in self.value.as_bytes().split(|&b| is_selector_whitespace(b)) {
+            if case_sensitivity.eq(class, name) {
                 return true;
             }
         }
