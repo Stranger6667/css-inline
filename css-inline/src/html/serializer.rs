@@ -6,7 +6,7 @@ use super::{
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, ns, tendril::StrTendril, LocalName, QualName};
-use memchr::memchr_iter;
+use memchr::{memchr3_iter, memchr_iter};
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
@@ -216,27 +216,33 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         Ok(())
     }
 
+    #[allow(clippy::arithmetic_side_effects)]
     fn write_attributes(&mut self, text: &str) -> Result<(), InlineError> {
+        let bytes = text.as_bytes();
         let mut last_end = 0;
-        for (start, part) in text.match_indices(['&', '\u{00A0}', '"']) {
-            self.writer.write_all(
-                text.get(last_end..start)
-                    .expect("Invalid substring")
-                    .as_bytes(),
-            )?;
-            match part {
-                "&" => self.writer.write_all(b"&amp;")?,
-                "\u{00A0}" => self.writer.write_all(b"&nbsp;")?,
-                "\"" => self.writer.write_all(b"&quot;")?,
-                _ => unreachable!("Only the variants above are searched"),
+
+        // Scan for '&' (0x26), '"' (0x22), and 0xC2 (first byte of \u{00A0})
+        for idx in memchr3_iter(b'&', b'"', 0xC2, bytes) {
+            match bytes[idx] {
+                b'&' => {
+                    self.writer.write_all(&bytes[last_end..idx])?;
+                    self.writer.write_all(b"&amp;")?;
+                    last_end = idx + 1;
+                }
+                b'"' => {
+                    self.writer.write_all(&bytes[last_end..idx])?;
+                    self.writer.write_all(b"&quot;")?;
+                    last_end = idx + 1;
+                }
+                0xC2 if bytes.get(idx + 1) == Some(&0xA0) => {
+                    self.writer.write_all(&bytes[last_end..idx])?;
+                    self.writer.write_all(b"&nbsp;")?;
+                    last_end = idx + 2; // Skip both bytes of \u{00A0}
+                }
+                _ => {} // False positive for 0xC2 not followed by 0xA0
             }
-            last_end = start.checked_add(part.len()).expect("Size overflow");
         }
-        self.writer.write_all(
-            text.get(last_end..text.len())
-                .expect("Invalid substring")
-                .as_bytes(),
-        )?;
+        self.writer.write_all(&bytes[last_end..])?;
         Ok(())
     }
 
