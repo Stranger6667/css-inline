@@ -34,6 +34,7 @@ into:
 </html>
 ```
 
+- Extremely fast with a minimal memory footprint
 - Uses reliable components from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
