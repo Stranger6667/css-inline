@@ -4,6 +4,7 @@
 
 ### Performance
 
+- Skip selectors that reference non-existent classes, IDs, or tags.
 - Faster HTML serialization for styles containing double quotes.
 
 ## [0.19.2] - 2026-01-23

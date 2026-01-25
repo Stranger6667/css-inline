@@ -2,7 +2,7 @@ import json
 import multiprocessing
 import pathlib
 
-import inlinestyler.utils
+# import inlinestyler.utils  # Disabled: doesn't build on Python 3.14
 import premailer
 import pynliner
 import pytest
@@ -16,7 +16,7 @@ with (HERE.parents[2] / "benchmarks/benchmarks.json").open() as f:
     benchmark_data = json.load(f)
 
 
-def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "inlinestyler", "toronado")):
+def parametrize_functions(*funcs, ids=("css_inline", "premailer", "pynliner", "toronado")):
     return pytest.mark.parametrize("func", funcs, ids=ids)
 
 
@@ -24,7 +24,7 @@ all_functions = parametrize_functions(
     css_inline.inline,
     premailer.transform,
     pynliner.fromString,
-    inlinestyler.utils.inline_css,
+    # inlinestyler.utils.inline_css,  # Disabled: doesn't build on Python 3.14
     toronado.from_string,
 )
 
@@ -38,14 +38,14 @@ all_many_functions = parametrize_functions(
     parallel(css_inline.inline),
     parallel(premailer.transform),
     parallel(pynliner.fromString),
-    parallel(inlinestyler.utils.inline_css),
+    # parallel(inlinestyler.utils.inline_css),  # Disabled: doesn't build on Python 3.14
     parallel(toronado.from_string),
     ids=(
         "css_inline",
         "css_inline_pyprocess",
         "premailer",
         "pynliner",
-        "inlinestyler",
+        # "inlinestyler",
         "toronado",
     ),
 )

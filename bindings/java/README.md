@@ -267,10 +267,10 @@ Here is the performance comparison:
 
 |             | Size    | `css-inline 0.19.0` | `CSSBox 5.0.0`          |
 |-------------|---------|---------------------|-------------------------|
-| Basic       | 230 B   | 7.46 µs             | 52.15 µs (**6.99x**)    |
-| Realistic-1 | 8.58 KB | 111.38 µs           | 1.64 ms (**14.69x**)    |
-| Realistic-2 | 4.3 KB  | 65.93 µs            | 382.94 µs (**5.81x**)   |
-| GitHub page | 1.81 MB | 42.86 ms            | 315.65 ms (**7.37x**)   |
+| Basic       | 230 B   | 7.22 µs             | 53.33 µs (**7.38x**)    |
+| Realistic-1 | 8.58 KB | 109.77 µs           | 1.60 ms (**14.61x**)    |
+| Realistic-2 | 4.3 KB  | 61.92 µs            | 381.42 µs (**6.16x**)   |
+| GitHub page | 1.81 MB | 23.17 ms            | 312.22 ms (**13.48x**)  |
 
 The benchmarking code is available in the `src/jmh/java/org/cssinline/CSSInlineBench.java` file. The benchmarks were conducted using the stable `rustc 1.91`, `OpenJDK 24.0.1` on Ryzen 9 9950X.
 

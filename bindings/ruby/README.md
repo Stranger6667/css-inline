@@ -245,7 +245,7 @@ The table below shows benchmark results comparing `css_inline`, `roadie`, and `p
 | Basic usage       | 230 B   | 6.07 µs             | 173.50 µs (**28.60x**)  | 345.30 µs (**56.91x**)  |
 | Realistic email 1 | 8.58 KB | 91.23 µs            | 713.40 µs (**7.82x**)   | 6.80 ms (**74.53x**)    |
 | Realistic email 2 | 4.3 KB  | 57.56 µs            | 1.99 ms (**34.56x**)    | ERROR                   |
-| GitHub Page       | 1.81 MB | 39.15 ms            | 8.20 s (**208.62x**)    | 2.40 s (**61.29x**)     |
+| GitHub Page       | 1.81 MB | 21.61 ms            | 8.20 s (**379.45x**)    | 2.40 s (**111.06x**)    |
 
 Please refer to the `test/bench.rb` file to review the benchmark code.
 The results displayed above were measured using stable `rustc 1.91` on Ruby `3.4.7`.

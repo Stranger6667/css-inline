@@ -738,6 +738,24 @@ impl<'a> CSSInliner<'a> {
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
             for selector in selectors.split(',') {
                 let mut matched_any = false;
+                // Quick check: skip selectors whose anchor doesn't exist in the document
+                // This avoids parsing selectors that can't possibly match anything
+                if !document.anchor_exists(selector) {
+                    if let Some(state) = selector_cleanup_state.as_mut() {
+                        if let Some(chunk_index) =
+                            rule_chunk_indices.get(rule_id).copied().flatten()
+                        {
+                            state.record_usage(SelectorUsage {
+                                selector,
+                                declarations: (*start, *end),
+                                rule_id,
+                                chunk_index,
+                                matched: false,
+                            });
+                        }
+                    }
+                    continue;
+                }
                 if let Ok(matching_elements) = document.select(selector, &mut caches) {
                     let specificity = matching_elements.specificity();
                     for matching_element in matching_elements {
