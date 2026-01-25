@@ -1611,3 +1611,107 @@ fn remove_inlined_selectors_empty_style_tag() {
         "<html><head><style></style></head><body><h1>Test</h1></body></html>"
     );
 }
+
+// Tests for anchor_exists fast path with remove_inlined_selectors.
+// These require documents >= 1024 bytes to trigger index building.
+
+fn make_large_html(style: &str) -> String {
+    // Create HTML >= 1024 bytes to enable index-based optimizations
+    let padding = "x".repeat(1000);
+    format!(
+        r#"<html><head><style>{style}</style></head><body><h1 class="exists">Test</h1><!-- {padding} --></body></html>"#
+    )
+}
+
+#[test]
+fn remove_inlined_selectors_nonexistent_class_with_indexes() {
+    // Tests the anchor_exists fast path for class selectors
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html(".nonexistent { color: blue; }");
+    let result = inliner.inline(&html).unwrap();
+    // Class doesn't exist, selector should be kept
+    assert!(result.contains(".nonexistent { color: blue; }"));
+}
+
+#[test]
+fn remove_inlined_selectors_nonexistent_id_with_indexes() {
+    // Tests the anchor_exists fast path for ID selectors
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html("#nonexistent { color: blue; }");
+    let result = inliner.inline(&html).unwrap();
+    // ID doesn't exist, selector should be kept
+    assert!(result.contains("#nonexistent { color: blue; }"));
+}
+
+#[test]
+fn remove_inlined_selectors_nonexistent_tag_with_indexes() {
+    // Tests the anchor_exists fast path for tag selectors
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html("article { color: blue; }");
+    let result = inliner.inline(&html).unwrap();
+    // Tag doesn't exist, selector should be kept
+    assert!(result.contains("article { color: blue; }"));
+}
+
+#[test]
+fn remove_inlined_selectors_mixed_existent_nonexistent_with_indexes() {
+    // Tests mixed selectors: one matches via anchor_exists, one doesn't
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html("h1 { color: blue; } .nonexistent { color: red; }");
+    let result = inliner.inline(&html).unwrap();
+    // h1 exists and matches, so its selector is removed and style is inlined
+    assert!(result.contains(r#"style="color: blue;""#));
+    // .nonexistent doesn't exist, so its selector is kept
+    assert!(result.contains(".nonexistent { color: red; }"));
+}
+
+#[test]
+fn remove_inlined_selectors_comma_list_with_nonexistent_anchor() {
+    // Tests comma-separated selectors where one anchor doesn't exist
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html("h1, .nonexistent { color: blue; }");
+    let result = inliner.inline(&html).unwrap();
+    // h1 matches and gets inlined
+    assert!(result.contains(r#"style="color: blue;""#));
+    // .nonexistent doesn't exist, so that part of selector is kept
+    assert!(result.contains(".nonexistent { color: blue; }"));
+}
+
+#[test]
+fn remove_inlined_selectors_universal_and_attribute_selectors_with_indexes() {
+    // Tests selectors that hit the `_ => true` branch in anchor_exists:
+    // universal (*), attribute ([), pseudo-class (:)
+    // These all return true from anchor_exists, so they proceed to normal matching
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+
+    // Universal selector - matches all elements, gets inlined and removed
+    let html = make_large_html("* { margin: 0; }");
+    let result = inliner.inline(&html).unwrap();
+    assert!(result.contains(r#"style="margin: 0;""#));
+    assert!(!result.contains("* { margin: 0; }"));
+
+    // Attribute selector - can't be inlined, stays in style block
+    let html = make_large_html("[class] { font-weight: bold; }");
+    let result = inliner.inline(&html).unwrap();
+    assert!(result.contains("[class]"));
+
+    // Pure pseudo-class selector starting with colon
+    let html = make_large_html(":hover { color: red; }");
+    let result = inliner.inline(&html).unwrap();
+    // :hover can't be inlined, check it doesn't panic
+    assert!(result.contains(":hover"));
+}
+
+#[test]
+fn remove_inlined_selectors_invalid_identifier_with_indexes() {
+    // Tests edge case where selector starts with . or # but has no valid identifier
+    // CSS parser may reject these, but anchor_exists handles them defensively
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+
+    // Empty class name after dot - extract_identifier returns None, anchor_exists returns true
+    // These are invalid CSS but we handle them gracefully
+    let html = make_large_html(". { color: red; }");
+    let result = inliner.inline(&html).unwrap();
+    // Should not panic, invalid CSS is ignored
+    assert!(!result.contains(r#"style="color: red;""#));
+}

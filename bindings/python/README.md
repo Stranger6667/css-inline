@@ -267,15 +267,15 @@ Most of the time it achieves over a **10x** speed advantage compared to the next
 
 Here is the performance comparison:
 
-|             | Size    | `css_inline 0.19.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`        |
-|-------------|---------|---------------------|------------------------|-------------------------|------------------------|-------------------------|
-| Basic       | 230 B   | 4.11 µs             | 94.34 µs (**22.96x**)  | 509.48 µs (**124.02x**) | 1.02 ms (**248.30x**)  | 852.17 µs (**207.44x**) |
-| Realistic-1 | 8.58 KB | 78.87 µs            | 1.03 ms (**13.10x**)   | 11.68 ms (**148.04x**)  | 26.37 ms (**334.38x**) | 11.61 ms (**147.19x**)  |
-| Realistic-2 | 4.3 KB  | 48.27 µs            | 1.49 ms (**30.81x**)   | ERROR                   | 17.71 ms (**366.87x**) | ERROR                   |
-| GitHub page | 1.81 MB | 29.54 ms            | 10.91 s (**369.13x**)  | ERROR                   | ERROR                  | ERROR                   |
+|             | Size    | `css_inline 0.19.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `pynliner 0.8.0`        |
+|-------------|---------|---------------------|------------------------|-------------------------|-------------------------|
+| Basic       | 230 B   | 4.27 µs             | 85.05 µs (**19.93x**)  | 495.30 µs (**116.05x**) | 867.79 µs (**203.32x**) |
+| Realistic-1 | 8.58 KB | 80.59 µs            | 1.03 ms (**12.76x**)   | 11.55 ms (**143.29x**)  | 11.71 ms (**145.36x**)  |
+| Realistic-2 | 4.3 KB  | 46.88 µs            | 1.44 ms (**30.73x**)   | ERROR                   | ERROR                   |
+| GitHub page | 1.81 MB | 17.57 ms            | 10.78 s (**613.48x**)  | ERROR                   | ERROR                   |
 
 The "Basic" case was obtained by benchmarking the example from the Usage section.
-Note that the `toronado`, `inlinestyler`, and `pynliner` libraries both encountered errors when used to inline CSS in the last scenario.
+Note that the `toronado` and `pynliner` libraries encountered errors when used to inline CSS in the last scenarios.
 
 The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.91`, Python `3.14.2` on Ryzen 9 9950X.
 

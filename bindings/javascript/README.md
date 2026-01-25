@@ -252,7 +252,7 @@ Here is the performance comparison:
 | Basic       | 230 B   | 8.37 µs     | 15.96 µs (**1.91x**) | 42.32 µs (**5.06x**)    | 80.85 µs (**9.66x**)    |
 | Realistic-1 | 8.58 KB | 168.95 µs   | 344.59 µs (**2.04x**)| 524.38 µs (**3.10x**)   | 1.15 ms (**6.78x**)     |
 | Realistic-2 | 4.3 KB  | 90.36 µs    | 180.31 µs (**2.00x**)| 634.52 µs (**7.02x**)   | 898.47 µs (**9.94x**)   |
-| GitHub page | 1.81 MB | 62.31 ms    | 117.81 ms (**1.89x**)| 1.55 s (**24.82x**)     | 312.54 ms (**5.02x**)   |
+| GitHub page | 1.81 MB | 32.73 ms    | 119.60 ms (**3.65x**)| 1.60 s (**48.90x**)     | 326.41 ms (**9.97x**)   |
 
 The "Basic" case was obtained from benchmarking the example from the Usage section.
 

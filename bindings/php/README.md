@@ -281,7 +281,7 @@ Here is the performance comparison:
 | Simple            | 230 B   | 5.69 µs             | 26.22 µs (**4.61x**)         | 134.37 µs (**23.61x**) |
 | Realistic email 1 | 8.58 KB | 94.07 µs            | 288.20 µs (**3.06x**)        | 588.00 µs (**6.25x**)  |
 | Realistic email 2 | 4.3 KB  | 58.15 µs            | 585.24 µs (**10.07x**)       | 2.24 ms (**38.58x**)   |
-| GitHub Page†      | 1.81 MB | 37.72 ms            | ERROR                        | ERROR                  |
+| GitHub Page†      | 1.81 MB | 24.78 ms            | ERROR                        | ERROR                  |
 
 † The GitHub page benchmark contains complex modern CSS that neither `css-to-inline-styles` nor `emogrifier` can process.
 

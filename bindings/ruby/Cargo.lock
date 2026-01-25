@@ -137,12 +137,11 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 [[package]]
 name = "css-inline"
 version = "0.19.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff246a3af11c7b3747663a5d96c991425ee75abc60ef2cbf32d61d1762196c12"
 dependencies = [
  "cssparser",
  "html5ever",
  "lru",
+ "memchr",
  "precomputed-hash",
  "reqwest",
  "rustc-hash 2.1.1",
