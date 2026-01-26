@@ -269,7 +269,7 @@ Caching is disabled by default.
 
 `css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
 
-Benchmarks for `css-inline==0.19.0`:
+Benchmarks for `css-inline==0.19.2`:
 
 - Basic: **4.09 µs**, 230 bytes
 - Realistic-1: **78.94 µs**, 8.58 KB
