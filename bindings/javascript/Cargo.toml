@@ -28,7 +28,7 @@ napi-derive = "3"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "=0.2.108"
 serde-wasm-bindgen = "0.6"
-getrandom = { version = "0.3.0", features = ["wasm_js"] }
+getrandom = { version = "0.4.0", features = ["wasm_js"] }
 serde = { version = "1", features = ["derive"], default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
