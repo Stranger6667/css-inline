@@ -10,7 +10,116 @@ use memchr::{memchr3_iter, memchr_iter};
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
-#[allow(clippy::too_many_arguments)]
+/// Check if an element supports width/height HTML attributes.
+#[inline]
+fn supports_dimension_attrs(name: &LocalName) -> bool {
+    matches!(
+        *name,
+        local_name!("table") | local_name!("td") | local_name!("th") | local_name!("img")
+    )
+}
+
+/// Check if an element is a table element (supports percentage values).
+#[inline]
+fn is_table_element(name: &LocalName) -> bool {
+    matches!(
+        *name,
+        local_name!("table") | local_name!("td") | local_name!("th")
+    )
+}
+
+/// Extracted dimension value for HTML attribute.
+#[derive(Clone, Copy)]
+enum DimensionValue<'a> {
+    /// Numeric value without suffix (for px/unitless)
+    Numeric(&'a str),
+    /// Numeric value that needs % suffix when written
+    Percent(&'a str),
+    /// The "auto" keyword
+    Auto,
+}
+
+impl DimensionValue<'_> {
+    #[inline]
+    fn write_to<W: Write>(&self, writer: &mut W) -> Result<(), InlineError> {
+        match self {
+            DimensionValue::Numeric(n) => writer.write_all(n.as_bytes())?,
+            DimensionValue::Percent(n) => {
+                writer.write_all(n.as_bytes())?;
+                writer.write_all(b"%")?;
+            }
+            DimensionValue::Auto => writer.write_all(b"auto")?,
+        }
+        Ok(())
+    }
+}
+
+/// Extract dimension value for HTML attribute from CSS value.
+#[inline]
+#[allow(clippy::arithmetic_side_effects)]
+fn extract_dimension_value(value: &str, allow_percent: bool) -> Option<DimensionValue<'_>> {
+    let value = value.trim();
+
+    if value.eq_ignore_ascii_case("auto") {
+        return Some(DimensionValue::Auto);
+    }
+
+    // Find where the numeric part ends
+    let bytes = value.as_bytes();
+    let mut end = 0;
+    let mut has_dot = false;
+
+    // Handle optional leading sign
+    if bytes.first() == Some(&b'-') || bytes.first() == Some(&b'+') {
+        end = 1;
+    }
+
+    // Parse digits and optional decimal point
+    while end < bytes.len() {
+        match bytes[end] {
+            b'0'..=b'9' => end += 1,
+            b'.' if !has_dot => {
+                has_dot = true;
+                end += 1;
+            }
+            _ => break,
+        }
+    }
+
+    // Must have at least one digit
+    if end == 0 || (end == 1 && (bytes[0] == b'-' || bytes[0] == b'+')) {
+        return None;
+    }
+
+    let numeric_part = &value[..end];
+    // Trim whitespace between number and unit (e.g., "100 px") for lenient parsing
+    let unit_part = value[end..].trim();
+    // Strip `!important` suffix if present
+    let unit_part = unit_part
+        .strip_suffix("!important")
+        .map_or(unit_part, str::trim);
+
+    match unit_part {
+        // Pixel values - strip the 'px' suffix
+        "" | "px" => Some(DimensionValue::Numeric(numeric_part)),
+        // Percentage - only allowed for table elements
+        "%" if allow_percent => Some(DimensionValue::Percent(numeric_part)),
+        // All other units are not supported
+        _ => None,
+    }
+}
+
+/// Find a style property value from stylesheet rules (not pre-existing inline styles).
+#[inline]
+fn find_style_value<'a>(styles: &'a ElementStyleMap<'_>, property: &str) -> Option<&'a str> {
+    styles
+        .iter()
+        .rev()
+        .find(|(name, _, _)| *name == property)
+        .map(|(_, _, value)| *value)
+}
+
+#[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
 pub(crate) fn serialize_to<W: Write>(
     document: &Document,
     writer: &mut W,
@@ -20,6 +129,8 @@ pub(crate) fn serialize_to<W: Write>(
     minify_css: bool,
     at_rules: Option<&String>,
     mode: InliningMode,
+    apply_width_attributes: bool,
+    apply_height_attributes: bool,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
         document,
@@ -29,12 +140,15 @@ pub(crate) fn serialize_to<W: Write>(
         minify_css,
         at_rules,
         mode,
+        apply_width_attributes,
+        apply_height_attributes,
     );
     let mut ser = HtmlSerializer::new(writer, styles);
     sink.serialize(&mut ser)
 }
 
 /// Intermediary structure for serializing an HTML document.
+#[allow(clippy::struct_excessive_bools)]
 struct Sink<'a> {
     document: &'a Document,
     node: NodeId,
@@ -43,9 +157,12 @@ struct Sink<'a> {
     minify_css: bool,
     at_rules: Option<&'a String>,
     inlining_mode: InliningMode,
+    apply_width_attributes: bool,
+    apply_height_attributes: bool,
 }
 
 impl<'a> Sink<'a> {
+    #[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
     fn new(
         document: &'a Document,
         node: NodeId,
@@ -54,6 +171,8 @@ impl<'a> Sink<'a> {
         minify_css: bool,
         at_rules: Option<&'a String>,
         inlining_mode: InliningMode,
+        apply_width_attributes: bool,
+        apply_height_attributes: bool,
     ) -> Sink<'a> {
         Sink {
             document,
@@ -63,6 +182,8 @@ impl<'a> Sink<'a> {
             minify_css,
             at_rules,
             inlining_mode,
+            apply_width_attributes,
+            apply_height_attributes,
         }
     }
     #[inline]
@@ -75,6 +196,8 @@ impl<'a> Sink<'a> {
             self.minify_css,
             self.at_rules,
             self.inlining_mode,
+            self.apply_width_attributes,
+            self.apply_height_attributes,
         )
     }
     #[inline]
@@ -130,6 +253,8 @@ impl<'a> Sink<'a> {
                     &element.attributes,
                     style_node_id,
                     self.minify_css,
+                    self.apply_width_attributes,
+                    self.apply_height_attributes,
                 )?;
 
                 if element.name.local == local_name!("head") {
@@ -253,6 +378,8 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         attrs: &Attributes,
         style_node_id: Option<NodeId>,
         minify_css: bool,
+        apply_width_attributes: bool,
+        apply_height_attributes: bool,
     ) -> Result<(), InlineError> {
         let html_name = match name.ns {
             ns!(html) => Some(name.local.clone()),
@@ -286,6 +413,36 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             self.writer.write_all(class.value.as_bytes())?;
             self.writer.write_all(b"\"")?;
         }
+
+        // Extract and write width/height HTML attributes before styles is consumed
+        if let Some(ref html_name) = html_name {
+            if supports_dimension_attrs(html_name) {
+                let allow_percent = is_table_element(html_name);
+                if apply_width_attributes && !attrs.contains(local_name!("width")) {
+                    if let Some(dim) = styles
+                        .as_ref()
+                        .and_then(|s| find_style_value(s, "width"))
+                        .and_then(|v| extract_dimension_value(v, allow_percent))
+                    {
+                        self.writer.write_all(b" width=\"")?;
+                        dim.write_to(&mut self.writer)?;
+                        self.writer.write_all(b"\"")?;
+                    }
+                }
+                if apply_height_attributes && !attrs.contains(local_name!("height")) {
+                    if let Some(dim) = styles
+                        .as_ref()
+                        .and_then(|s| find_style_value(s, "height"))
+                        .and_then(|v| extract_dimension_value(v, allow_percent))
+                    {
+                        self.writer.write_all(b" height=\"")?;
+                        dim.write_to(&mut self.writer)?;
+                        self.writer.write_all(b"\"")?;
+                    }
+                }
+            }
+        }
+
         for attr in &attrs.attributes {
             self.writer.write_all(b" ")?;
 
@@ -632,6 +789,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
@@ -653,6 +812,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head></head><body></body></html>");
@@ -674,6 +835,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head><title>&amp; &lt; &gt; &nbsp;</title></head><body></body></html>");
@@ -695,6 +858,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(
@@ -719,6 +884,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
@@ -742,6 +909,8 @@ mod tests {
                 "@media (max-width: 600px) { h1 { font-size: 18px; } }",
             )),
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body></body></html>");

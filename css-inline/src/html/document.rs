@@ -391,7 +391,7 @@ impl Document {
     }
 
     /// Serialize the document to HTML string.
-    #[allow(clippy::too_many_arguments)]
+    #[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
     pub(crate) fn serialize<W: Write>(
         &self,
         writer: &mut W,
@@ -401,6 +401,8 @@ impl Document {
         minify_css: bool,
         at_rules: Option<&String>,
         mode: InliningMode,
+        apply_width_attributes: bool,
+        apply_height_attributes: bool,
     ) -> Result<(), InlineError> {
         serialize_to(
             self,
@@ -411,6 +413,8 @@ impl Document {
             minify_css,
             at_rules,
             mode,
+            apply_width_attributes,
+            apply_height_attributes,
         )
     }
 
@@ -482,6 +486,8 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
+            false,
         )
         .expect("Failed to serialize");
         buffer

@@ -35,6 +35,12 @@
           ),
           keepAtRules: document.getElementById("css-inline-opt-keep-at-rules"),
           minifyCss: document.getElementById("css-inline-opt-minify-css"),
+          applyWidthAttributes: document.getElementById(
+            "css-inline-opt-apply-width-attributes",
+          ),
+          applyHeightAttributes: document.getElementById(
+            "css-inline-opt-apply-height-attributes",
+          ),
           extraCss: document.getElementById("css-inline-opt-extra-css"),
         };
 
@@ -54,6 +60,12 @@
               : false,
             minifyCss: optionControls.minifyCss
               ? optionControls.minifyCss.checked
+              : false,
+            applyWidthAttributes: optionControls.applyWidthAttributes
+              ? optionControls.applyWidthAttributes.checked
+              : false,
+            applyHeightAttributes: optionControls.applyHeightAttributes
+              ? optionControls.applyHeightAttributes.checked
               : false,
           };
 
@@ -291,6 +303,34 @@
                   <span class="block text-xs text-gray-500"
                     >Remove redundant whitespace inside generated inline
                     styles.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-apply-width-attributes"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Apply width attributes</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Add HTML width attributes from CSS for Outlook
+                    compatibility.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-apply-height-attributes"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Apply height attributes</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Add HTML height attributes from CSS for Outlook
+                    compatibility.</span
                   >
                 </span>
               </label>
