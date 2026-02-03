@@ -35,9 +35,16 @@ public class CssInlineConfig {
 	/** Remove selectors that were successfully inlined from inline style blocks. */
 	public final boolean removeInlinedSelectors;
 
+	/** Apply width HTML attributes from CSS width properties on supported elements. */
+	public final boolean applyWidthAttributes;
+
+	/** Apply height HTML attributes from CSS height properties on supported elements. */
+	public final boolean applyHeightAttributes;
+
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
-			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors) {
+			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors,
+			boolean applyWidthAttributes, boolean applyHeightAttributes) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -49,6 +56,8 @@ public class CssInlineConfig {
 		this.cacheSize = cacheSize;
 		this.preallocateNodeCapacity = preallocateNodeCapacity;
 		this.removeInlinedSelectors = removeInlinedSelectors;
+		this.applyWidthAttributes = applyWidthAttributes;
+		this.applyHeightAttributes = applyHeightAttributes;
 	}
 
 	/**
@@ -66,6 +75,8 @@ public class CssInlineConfig {
 		private int cacheSize = 0;
 		private int preallocateNodeCapacity = 32;
 		private boolean removeInlinedSelectors = false;
+		private boolean applyWidthAttributes = false;
+		private boolean applyHeightAttributes = false;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -211,13 +222,39 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Apply width HTML attributes from CSS width properties on supported elements.
+		 * This is useful for email compatibility with clients like Outlook that ignore CSS width.
+		 * Supported elements: table, td, th, img.
+		 *
+		 * @param b true to apply width attributes, false to skip them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setApplyWidthAttributes(boolean b) {
+			this.applyWidthAttributes = b;
+			return this;
+		}
+
+		/**
+		 * Apply height HTML attributes from CSS height properties on supported elements.
+		 * This is useful for email compatibility with clients like Outlook that ignore CSS height.
+		 * Supported elements: table, td, th, img.
+		 *
+		 * @param b true to apply height attributes, false to skip them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setApplyHeightAttributes(boolean b) {
+			this.applyHeightAttributes = b;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
 		 */
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
-					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors);
+					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes);
 		}
 	}
 }

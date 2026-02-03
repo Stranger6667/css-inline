@@ -69,6 +69,10 @@ struct Options {
     preallocate_node_capacity: Option<usize>,
     /// Remove selectors that were successfully inlined from inline `<style>` blocks.
     remove_inlined_selectors: Option<bool>,
+    /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
+    apply_width_attributes: Option<bool>,
+    /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
+    apply_height_attributes: Option<bool>,
 }
 
 impl TryConvert for Options {
@@ -90,6 +94,10 @@ impl TryConvert for Options {
                 .aref::<_, Option<usize>>(ruby.to_symbol("preallocate_node_capacity"))?,
             remove_inlined_selectors: h
                 .aref::<_, Option<bool>>(ruby.to_symbol("remove_inlined_selectors"))?,
+            apply_width_attributes: h
+                .aref::<_, Option<bool>>(ruby.to_symbol("apply_width_attributes"))?,
+            apply_height_attributes: h
+                .aref::<_, Option<bool>>(ruby.to_symbol("apply_height_attributes"))?,
         })
     }
 }
@@ -113,6 +121,8 @@ fn parse_options<Req>(
         preallocate_node_capacity: kwargs.preallocate_node_capacity.unwrap_or(32),
         resolver: Arc::new(rust_inline::DefaultStylesheetResolver),
         remove_inlined_selectors: kwargs.remove_inlined_selectors.unwrap_or(false),
+        apply_width_attributes: kwargs.apply_width_attributes.unwrap_or(false),
+        apply_height_attributes: kwargs.apply_height_attributes.unwrap_or(false),
     })
 }
 

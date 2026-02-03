@@ -154,6 +154,8 @@ public class ConfigExample {
 - **`setCacheSize(int)`** - External stylesheet cache size, must be ≥ 0 (default: `0`)
 - **`setPreallocateNodeCapacity(int)`** - HTML node capacity, must be > 0 (default: `32`)
 - **`setRemoveInlinedSelectors(boolean)`** - Remove selectors that were successfully inlined from `<style>` blocks (default: `false`)
+- **`setApplyWidthAttributes(boolean)`** - Add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
+- **`setApplyHeightAttributes(boolean)`** - Add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
 
 
 ### HTML Fragments

@@ -99,6 +99,10 @@ pub struct CssInlinerOptions {
     pub minify_css: bool,
     /// Remove selectors that were successfully inlined from inline `<style>` blocks.
     pub remove_inlined_selectors: bool,
+    /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
+    pub apply_width_attributes: bool,
+    /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
+    pub apply_height_attributes: bool,
 }
 
 macro_rules! inliner {
@@ -201,6 +205,8 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         extra_css: ptr::null(),
         preallocate_node_capacity: 32,
         remove_inlined_selectors: false,
+        apply_width_attributes: false,
+        apply_height_attributes: false,
     }
 }
 
@@ -258,6 +264,8 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             preallocate_node_capacity: value.preallocate_node_capacity,
             resolver: Arc::new(DefaultStylesheetResolver),
             remove_inlined_selectors: value.remove_inlined_selectors,
+            apply_width_attributes: value.apply_width_attributes,
+            apply_height_attributes: value.apply_height_attributes,
         })
     }
 }

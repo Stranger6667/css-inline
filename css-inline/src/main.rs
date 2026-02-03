@@ -63,6 +63,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         cache_size: Option<usize>,
         minify_css: bool,
         remove_inlined_selectors: bool,
+        apply_width_attributes: bool,
+        apply_height_attributes: bool,
     }
 
     impl Default for ParsedArgs {
@@ -84,6 +86,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 cache_size: None,
                 minify_css: false,
                 remove_inlined_selectors: false,
+                apply_width_attributes: false,
+                apply_height_attributes: false,
             }
         }
     }
@@ -159,6 +163,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "keep-at-rules" => parsed.keep_at_rules = true,
             "minify-css" => parsed.minify_css = true,
             "remove-inlined-selectors" => parsed.remove_inlined_selectors = true,
+            "apply-width-attributes" => parsed.apply_width_attributes = true,
+            "apply-height-attributes" => parsed.apply_height_attributes = true,
             _ => {
                 return Err(ParseError {
                     message: format!("Unknown flag: {flag}"),
@@ -247,6 +253,14 @@ OPTIONS:
 
     --remove-inlined-selectors
         Remove selectors that were successfully inlined from inline <style> blocks.
+
+    --apply-width-attributes
+        Apply width HTML attributes from CSS width properties on supported elements
+        (table, td, th, img). Useful for email compatibility with clients like Outlook.
+
+    --apply-height-attributes
+        Apply height HTML attributes from CSS height properties on supported elements
+        (table, td, th, img). Useful for email compatibility with clients like Outlook.
 
     --base-url
         Used for loading external stylesheets via relative URLs.
@@ -365,6 +379,8 @@ OPTIONS:
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
             remove_inlined_selectors: args.remove_inlined_selectors,
+            apply_width_attributes: args.apply_width_attributes,
+            apply_height_attributes: args.apply_height_attributes,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

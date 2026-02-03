@@ -37,6 +37,10 @@ export interface Options {
   preallocateNodeCapacity?: number
   /** Remove selectors that were successfully inlined from inline `<style>` blocks. */
   removeInlinedSelectors?: boolean
+  /** Apply width HTML attributes from CSS width properties on supported elements (table, td, th, img). */
+  applyWidthAttributes?: boolean
+  /** Apply height HTML attributes from CSS height properties on supported elements (table, td, th, img). */
+  applyHeightAttributes?: boolean
 }
 
 export interface StylesheetCache {

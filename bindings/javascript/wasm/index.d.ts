@@ -13,6 +13,8 @@ export interface InlineOptions {
 	extraCss?: string;
 	preallocateNodeCapacity?: number;
 	removeInlinedSelectors?: boolean;
+	applyWidthAttributes?: boolean;
+	applyHeightAttributes?: boolean;
 }
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 /**

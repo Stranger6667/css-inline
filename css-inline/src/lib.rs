@@ -83,6 +83,16 @@ pub struct InlineOptions<'a> {
     pub resolver: Arc<dyn StylesheetResolver>,
     /// Remove selectors that were successfully inlined from inline `<style>` blocks.
     pub remove_inlined_selectors: bool,
+    /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS width.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    pub apply_width_attributes: bool,
+    /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS height.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    pub apply_height_attributes: bool,
 }
 
 impl std::fmt::Debug for InlineOptions<'_> {
@@ -102,6 +112,8 @@ impl std::fmt::Debug for InlineOptions<'_> {
             .field("extra_css", &self.extra_css)
             .field("preallocate_node_capacity", &self.preallocate_node_capacity)
             .field("remove_inlined_selectors", &self.remove_inlined_selectors)
+            .field("apply_width_attributes", &self.apply_width_attributes)
+            .field("apply_height_attributes", &self.apply_height_attributes)
             .finish_non_exhaustive()
     }
 }
@@ -424,6 +436,26 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS width.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    #[must_use]
+    pub fn apply_width_attributes(mut self, apply: bool) -> Self {
+        self.apply_width_attributes = apply;
+        self
+    }
+
+    /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS height.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    #[must_use]
+    pub fn apply_height_attributes(mut self, apply: bool) -> Self {
+        self.apply_height_attributes = apply;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -448,6 +480,8 @@ impl Default for InlineOptions<'_> {
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
             remove_inlined_selectors: false,
+            apply_width_attributes: false,
+            apply_height_attributes: false,
         }
     }
 }
@@ -832,6 +866,8 @@ impl<'a> CSSInliner<'a> {
             self.options.minify_css,
             at_rules.as_ref(),
             mode,
+            self.options.apply_width_attributes,
+            self.options.apply_height_attributes,
         )?;
         Ok(())
     }

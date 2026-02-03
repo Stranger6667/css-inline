@@ -1196,7 +1196,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, .. } }");
 }
 
 #[test]
@@ -1714,4 +1714,317 @@ fn remove_inlined_selectors_invalid_identifier_with_indexes() {
     let result = inliner.inline(&html).unwrap();
     // Should not panic, invalid CSS is ignored
     assert!(!result.contains(r#"style="color: red;""#));
+}
+
+// Tests for apply_width_attributes and apply_height_attributes
+
+#[test]
+fn apply_width_attribute_img() {
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 100px; }</style></head><body><img src="test.jpg"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="100""#));
+    assert!(result.contains(r#"style="width: 100px;""#));
+}
+
+#[test]
+fn apply_height_attribute_img() {
+    let inliner = CSSInliner::options().apply_height_attributes(true).build();
+    let html = r#"<html><head><style>img { height: 50px; }</style></head><body><img src="test.jpg"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"height="50""#));
+    assert!(result.contains(r#"style="height: 50px;""#));
+}
+
+#[test]
+fn apply_both_dimension_attributes_img() {
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html = r#"<html><head><style>img { width: 200px; height: 100px; }</style></head><body><img src="test.jpg"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="200""#));
+    assert!(result.contains(r#"height="100""#));
+}
+
+#[test]
+fn apply_width_percent_table() {
+    // Tables support percentages
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>table { width: 100%; }</style></head><body><table></table></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="100%""#));
+}
+
+#[test]
+fn apply_width_percent_td() {
+    // TD supports percentages
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>td { width: 50%; }</style></head><body><table><tr><td></td></tr></table></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="50%""#));
+}
+
+#[test]
+fn apply_width_percent_th() {
+    // TH supports percentages
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>th { width: 25%; }</style></head><body><table><tr><th></th></tr></table></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="25%""#));
+}
+
+#[test]
+fn apply_width_percent_img_ignored() {
+    // IMG does NOT support percentages - should not add attribute
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 100%; }</style></head><body><img src="test.jpg"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+    // But the style should still be inlined
+    assert!(result.contains(r#"style="width: 100%;""#));
+}
+
+#[test]
+fn skip_existing_width_attribute() {
+    // Don't override existing HTML attributes
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 100px; }</style></head><body><img width="200"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="200""#));
+    assert!(!result.contains(r#"width="100""#));
+}
+
+#[test]
+fn skip_existing_height_attribute() {
+    // Don't override existing HTML attributes
+    let inliner = CSSInliner::options().apply_height_attributes(true).build();
+    let html = r#"<html><head><style>img { height: 100px; }</style></head><body><img height="200"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"height="200""#));
+    assert!(!result.contains(r#"height="100""#));
+}
+
+#[test]
+fn ignore_complex_css_values() {
+    // calc(), em, rem, etc. are not converted
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+
+    // calc() - not supported
+    let html = r#"<html><head><style>img { width: calc(100% - 20px); }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+
+    // em - not supported
+    let html = r#"<html><head><style>img { width: 10em; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+
+    // rem - not supported
+    let html =
+        r#"<html><head><style>img { width: 10rem; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+
+    // vh - not supported
+    let html = r#"<html><head><style>img { width: 50vh; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+
+    // vw - not supported
+    let html = r#"<html><head><style>img { width: 50vw; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+}
+
+#[test]
+fn apply_auto_width() {
+    // auto should be passed through
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: auto; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="auto""#));
+}
+
+#[test]
+fn apply_unitless_width() {
+    // Unitless values should work (treated as pixels)
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 100; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="100""#));
+}
+
+#[test]
+fn dimension_attributes_disabled_by_default() {
+    let html = r#"<html><head><style>img { width: 100px; height: 50px; }</style></head><body><img></body></html>"#;
+    let result = inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+    assert!(!result.contains(r#" height=""#));
+    // But styles should still be inlined
+    assert!(result.contains(r#"style="width: 100px;height: 50px;""#));
+}
+
+#[test]
+fn dimension_attributes_on_unsupported_elements() {
+    // Only table, td, th, img support dimension attributes
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html = r#"<html><head><style>div { width: 100px; height: 50px; }</style></head><body><div></div></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
+    assert!(!result.contains(r#" height=""#));
+}
+
+#[test]
+fn dimension_attributes_decimal_values() {
+    // Decimal values should work
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html =
+        r#"<html><head><style>img { width: 100.5px; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="100.5""#));
+}
+
+#[test]
+fn dimension_attributes_negative_values() {
+    // Negative values are passed through (let the browser handle validity)
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html =
+        r#"<html><head><style>img { width: -10px; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="-10""#));
+}
+
+#[test]
+fn outlook_compatibility_example() {
+    // Test simulating Outlook-compatible email HTML
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html = r#"<html><head><style>
+        img { width: 600px; height: 400px; }
+        table { width: 100%; }
+        td { width: 50%; height: 100px; }
+    </style></head><body>
+        <table><tr><td><img src="photo.jpg"></td></tr></table>
+    </body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // Verify: width="600" height="400" on img
+    assert!(result.contains(r#"width="600""#));
+    assert!(result.contains(r#"height="400""#));
+    // Verify: width="100%" on table
+    assert!(result.contains(r#"width="100%""#));
+    // Verify: width="50%" height="100" on td
+    assert!(result.contains(r#"width="50%""#));
+    assert!(result.contains(r#"height="100""#));
+}
+
+#[test]
+fn apply_dimensions_all_supported_elements() {
+    // Verify all supported elements (table, td, th, img) work together
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html = r#"<html><head><style>
+        table { width: 600px; height: 400px; }
+        td { width: 200px; height: 100px; }
+        th { width: 150px; height: 50px; }
+        img { width: 100px; height: 75px; }
+    </style></head><body>
+        <table><tr><th></th></tr><tr><td><img src="test.jpg"></td></tr></table>
+    </body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // table
+    assert!(result.contains(r#"width="600""#));
+    assert!(result.contains(r#"height="400""#));
+    // td
+    assert!(result.contains(r#"width="200""#));
+    assert!(result.contains(r#"height="100""#));
+    // th
+    assert!(result.contains(r#"width="150""#));
+    assert!(result.contains(r#"height="50""#));
+    // img
+    assert!(result.contains(r#"width="100""#));
+    assert!(result.contains(r#"height="75""#));
+}
+
+#[test]
+fn apply_zero_width_height() {
+    // Zero values should be applied
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html = r#"<html><head><style>img { width: 0px; height: 0; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="0""#));
+    assert!(result.contains(r#"height="0""#));
+}
+
+#[test]
+fn apply_width_with_important() {
+    // !important declarations are converted to attributes (with !important stripped from the attribute value)
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 100px !important; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // Width attribute is added with the numeric value (no !important)
+    assert!(result.contains(r#"width="100""#));
+    // The style attribute still contains the full value with !important
+    assert!(result.contains(r#"style="width: 100px !important;""#));
+}
+
+#[test]
+fn apply_width_percent_with_important() {
+    // !important percentage values for table elements
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>table { width: 50% !important; }</style></head><body><table></table></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // Width attribute is added with the percentage value (no !important)
+    assert!(result.contains(r#"width="50%""#));
+    // The style attribute still contains the full value with !important
+    assert!(result.contains(r#"style="width: 50% !important;""#));
+}
+
+#[test]
+fn apply_width_specificity() {
+    // More specific selector should win
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>
+        img { width: 50px; }
+        img.large { width: 200px; }
+    </style></head><body><img class="large"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // Should use the more specific rule
+    assert!(result.contains(r#"width="200""#));
+    assert!(!result.contains(r#"width="50""#));
+}
+
+#[test]
+fn apply_width_from_inline_style() {
+    // Dimension attributes are extracted from stylesheet rules, not pre-existing inline styles.
+    // The final style attribute will contain the merged/overridden value (inline wins),
+    // but the dimension attribute is set from the stylesheet rule.
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 50px; }</style></head><body><img style="width: 100px;"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    // Stylesheet value is used for the attribute
+    assert!(result.contains(r#"width="50""#));
+    // Inline style wins in the style attribute (100px overrides 50px)
+    assert!(result.contains(r#"style="width: 100px""#));
+}
+
+#[test]
+fn ignore_shorthand_dimensions() {
+    // Ensure we don't accidentally process shorthands like `border-width`
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html =
+        r#"<html><head><style>img { border-width: 5px; }</style></head><body><img></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(!result.contains(r#" width=""#));
 }

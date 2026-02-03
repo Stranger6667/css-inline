@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `InlineOptions::apply_width_attributes` and `InlineOptions::apply_height_attributes` options to add dimension HTML attributes from CSS properties on supported elements (`table`, `td`, `th`, `img`). [#652](https://github.com/Stranger6667/css-inline/issues/652)
+
 ### Performance
 
 - Skip selectors that reference non-existent classes, IDs, or tags.

@@ -58,6 +58,16 @@ pub struct Options {
     pub preallocate_node_capacity: Option<u32>,
     /// Remove selectors that were successfully inlined from inline `<style>` blocks.
     pub remove_inlined_selectors: Option<bool>,
+    /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS width.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    pub apply_width_attributes: Option<bool>,
+    /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
+    ///
+    /// This is useful for email compatibility with clients like Outlook that ignore CSS height.
+    /// Supported elements: `table`, `td`, `th`, `img`.
+    pub apply_height_attributes: Option<bool>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -132,6 +142,8 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                 }
             },
             remove_inlined_selectors: value.remove_inlined_selectors.unwrap_or(false),
+            apply_width_attributes: value.apply_width_attributes.unwrap_or(false),
+            apply_height_attributes: value.apply_height_attributes.unwrap_or(false),
         })
     }
 }
