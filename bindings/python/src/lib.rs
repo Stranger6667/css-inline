@@ -75,7 +75,7 @@ fn parse_url(url: Option<String>) -> PyResult<Option<rust_inline::Url>> {
 /// StylesheetCache(size=8)
 ///
 /// An LRU Cache for external stylesheets.
-#[pyclass]
+#[pyclass(from_py_object)]
 #[derive(Clone)]
 struct StylesheetCache {
     size: NonZeroUsize,

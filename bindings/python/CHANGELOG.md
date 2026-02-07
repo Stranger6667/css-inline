@@ -6,6 +6,10 @@
 
 - `apply_width_attributes` and `apply_height_attributes` options to add dimension HTML attributes from CSS properties on supported elements (`table`, `td`, `th`, `img`). [#652](https://github.com/Stranger6667/css-inline/issues/652)
 
+### Changed
+
+- Update `PyO3` to `0.28.0`.
+
 ### Performance
 
 - Skip selectors that reference non-existent classes, IDs, or tags.
