@@ -64,7 +64,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.css-inline:css-inline:0.19.0'
+    implementation 'org.css-inline:css-inline:0.20.0'
 }
 ```
 
@@ -81,7 +81,7 @@ dependencies {
     <dependency>
         <groupId>org.css-inline</groupId>
         <artifactId>css-inline</artifactId>
-        <version>0.19.0</version>
+        <version>0.20.0</version>
     </dependency>
 </dependencies>
 ```
@@ -267,7 +267,7 @@ and spaces between properties and values.
 
 Here is the performance comparison:
 
-|             | Size    | `css-inline 0.19.0` | `CSSBox 5.0.0`          |
+|             | Size    | `css-inline 0.20.0` | `CSSBox 5.0.0`          |
 |-------------|---------|---------------------|-------------------------|
 | Basic       | 230 B   | 7.22 µs             | 53.33 µs (**7.38x**)    |
 | Realistic-1 | 8.58 KB | 109.77 µs           | 1.60 ms (**14.61x**)    |
