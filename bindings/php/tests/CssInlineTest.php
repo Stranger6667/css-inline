@@ -276,6 +276,30 @@ class CssInlineTest extends TestCase
         $this->assertIsString($result);
     }
 
+    public function testApplyWidthAttributes(): void
+    {
+        $inliner = new CssInliner(
+            applyWidthAttributes: true,
+        );
+
+        $html = '<html><head><style>td { width: 100px; }</style></head><body><table><tr><td>Test</td></tr></table></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertStringContainsString('width="100"', $result);
+    }
+
+    public function testApplyHeightAttributes(): void
+    {
+        $inliner = new CssInliner(
+            applyHeightAttributes: true,
+        );
+
+        $html = '<html><head><style>td { height: 50px; }</style></head><body><table><tr><td>Test</td></tr></table></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertStringContainsString('height="50"', $result);
+    }
+
     public function testRemoveInlinedSelectors(): void
     {
         $inliner = new CssInliner(
