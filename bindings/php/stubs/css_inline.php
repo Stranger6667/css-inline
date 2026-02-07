@@ -68,6 +68,8 @@ class CssInliner
      * @param int $preallocateNodeCapacity Pre-allocate capacity for HTML nodes
      * @param StylesheetCache|null $cache Cache for external stylesheets
      * @param bool $removeInlinedSelectors Remove selectors that were successfully inlined from style blocks
+     * @param bool $applyWidthAttributes Add width HTML attributes from CSS width properties on supported elements
+     * @param bool $applyHeightAttributes Add height HTML attributes from CSS height properties on supported elements
      */
     public function __construct(
         bool $inlineStyleTags = true,
@@ -81,6 +83,8 @@ class CssInliner
         int $preallocateNodeCapacity = 32,
         ?StylesheetCache $cache = null,
         bool $removeInlinedSelectors = false,
+        bool $applyWidthAttributes = false,
+        bool $applyHeightAttributes = false,
     ) {}
 
     /**
