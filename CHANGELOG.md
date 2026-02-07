@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.20.0] - 2026-02-07
+
 ### Added
 
 - `InlineOptions::apply_width_attributes` and `InlineOptions::apply_height_attributes` options to add dimension HTML attributes from CSS properties on supported elements (`table`, `td`, `th`, `img`). [#652](https://github.com/Stranger6667/css-inline/issues/652)
@@ -516,7 +518,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.19.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.20.0...HEAD
+[0.20.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.19.1...rust-v0.20.0
 [0.19.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.19.0...rust-v0.19.1
 [0.19.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.18.0...rust-v0.19.0
 [0.18.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.17.0...rust-v0.18.0
