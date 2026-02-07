@@ -81,6 +81,8 @@ const INLINE: &'static str = r#"export interface InlineOptions {
     extraCss?: string,
     preallocateNodeCapacity?: number,
     removeInlinedSelectors?: boolean,
+    applyWidthAttributes?: boolean,
+    applyHeightAttributes?: boolean,
 }
 
 export function inline(html: string, options?: InlineOptions): string;
