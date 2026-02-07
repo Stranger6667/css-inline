@@ -1,0 +1,51 @@
+{
+  "name": "@css-inline/css-inline-wasm",
+  "version": "0.20.0",
+  "description": "High-performance library for inlining CSS into HTML 'style' attributes",
+  "keywords": [
+    "css",
+    "html",
+    "email",
+    "stylesheet",
+    "inlining"
+  ],
+  "repository": "https://github.com/Stranger6667/css-inline",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "main": "index.js",
+  "unpkg": "index.min.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./index.mjs",
+      "default": "./index.js"
+    },
+    "./index_bg.wasm": "./index_bg.wasm"
+  },
+  "files": [
+    "index_bg.wasm",
+    "index.js",
+    "index.mjs",
+    "index.min.js",
+    "index.d.ts"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  },
+  "ava": {
+    "require": [
+      "@swc-node/register"
+    ],
+    "typescript": {
+      "rewritePaths": {
+        "src/": "build/"
+      },
+      "compile": false
+    },
+    "timeout": "3m"
+  },
+  "sideEffects": false
+}
