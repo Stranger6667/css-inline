@@ -7,6 +7,10 @@ on:
       - master
   schedule: [cron: "40 1 * * *"]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   JAVA_VERSION: "17"
 
@@ -14,6 +18,7 @@ jobs:
   commitsar:
     name: Verify commit messages
     runs-on: ubuntu-22.04
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v6
         with:
@@ -23,6 +28,7 @@ jobs:
   pre-commit:
     name: Pre-commit checks
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
         with:
@@ -35,6 +41,7 @@ jobs:
   eslint:
     name: ESLint
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
 
@@ -60,6 +67,7 @@ jobs:
   test-stable:
     name: Test (stable)
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -85,6 +93,7 @@ jobs:
   fmt:
     name: Rustfmt
     runs-on: ubuntu-22.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v6
 
@@ -116,6 +125,7 @@ jobs:
   clippy:
     name: Clippy
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -164,10 +174,11 @@ jobs:
   msrv:
     name: MSRV
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
-      - uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: "1.80"
 
@@ -292,6 +303,7 @@ jobs:
 
     name: NodeJS ${{ matrix.node }} on ${{ matrix.settings.target }}
     runs-on: ${{ matrix.settings.host }}
+    timeout-minutes: 30
     env:
       DEBUG: napi:*
       APP_NAME: css-inline
@@ -468,6 +480,7 @@ jobs:
 
     name: Java 17 on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
@@ -504,6 +517,7 @@ jobs:
 
     name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
@@ -534,6 +548,7 @@ jobs:
   build-pyodide:
     name: Build PyOdide wheel
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@nightly
@@ -566,6 +581,7 @@ jobs:
         clang: ["20"]
     name: PHP ${{ matrix.php-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
       - uses: dtolnay/rust-toolchain@stable
@@ -632,12 +648,13 @@ jobs:
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     env:
       BUNDLE_WITHOUT: ${{ matrix.os == 'windows-2022' && 'bench' || '' }}
     steps:
       - uses: actions/checkout@v6
       - name: Set up Ruby & Rust
-        uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        uses: oxidize-rb/actions/setup-ruby-and-rust@v1.4.4
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: true
@@ -670,6 +687,7 @@ jobs:
   test-ruby-gem-install:
     name: Ruby Gem Build & Install Test
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
@@ -680,7 +698,7 @@ jobs:
       - uses: actions/checkout@v6
 
       - name: Set up Ruby & Rust
-        uses: oxidize-rb/actions/setup-ruby-and-rust@main
+        uses: oxidize-rb/actions/setup-ruby-and-rust@v1.4.4
         with:
           ruby-version: ${{ matrix.ruby-version }}
           bundler-cache: false
@@ -732,7 +750,7 @@ jobs:
   test-ruby-gem-install-musl:
     name: Ruby Gem Build & Install Test (Alpine/musl)
     runs-on: ubuntu-22.04
-
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
@@ -758,6 +776,7 @@ jobs:
   test-wasm:
     name: WASM module tests
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -793,6 +812,7 @@ jobs:
   test-c:
     name: C bindings tests
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -814,6 +834,7 @@ jobs:
   features:
     name: Check features
     runs-on: ubuntu-22.04
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v6
 
@@ -832,6 +853,7 @@ jobs:
   coverage:
     name: Code coverage
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v6
 
@@ -876,6 +898,7 @@ jobs:
   fuzz:
     name: Fuzz
     runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v6
 
