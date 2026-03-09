@@ -415,13 +415,13 @@ jobs:
         working-directory: bindings/javascript
 
       - name: Set up QEMU (aarch64)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         if: ${{ contains(fromJson('["aarch64-unknown-linux-gnu", "aarch64-unknown-linux-musl"]'), matrix.settings.target) }}
         with:
           platforms: arm64
 
       - name: Set up QEMU (armv7-unknown-linux-gnueabihf)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
         with:
           platforms: arm
