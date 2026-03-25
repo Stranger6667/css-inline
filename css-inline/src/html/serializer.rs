@@ -700,6 +700,11 @@ fn merge_styles<Wr: Write>(
     let current_declarations_count = parsed_declarations_count;
     // Next, we iterate over the new styles and merge them into our existing set
     // New rules will not override old ones unless they are marked as `!important`
+    let sep = if minify_css {
+        STYLE_SEPARATOR_MIN
+    } else {
+        STYLE_SEPARATOR
+    };
     for (property, _, value) in new_styles {
         match (
             value.trim_end().strip_suffix("!important"),
@@ -708,8 +713,9 @@ fn merge_styles<Wr: Write>(
                 .take(parsed_declarations_count)
                 .find(|style| {
                     style.starts_with(property.as_bytes())
-                        && style.get(property.len()..=property.len().saturating_add(1))
-                            == Some(STYLE_SEPARATOR)
+                        && style
+                            .get(property.len()..property.len().saturating_add(sep.len()))
+                            == Some(sep)
                 }),
         ) {
             // The new rule is `!important` and there's an existing rule with the same name
@@ -717,13 +723,12 @@ fn merge_styles<Wr: Write>(
             // Per CSS spec: inline `!important` takes precedence over stylesheet `!important`
             (Some(value), Some(buffer)) => {
                 if !buffer.ends_with(b"!important") {
-                    // We keep the rule name and the colon-space suffix - '<rule>: `
-                    buffer.truncate(property.len().saturating_add(STYLE_SEPARATOR.len()));
+                    buffer.truncate(property.len().saturating_add(sep.len()));
                     write_declaration_value(buffer, value)?;
+                    buffer.extend_from_slice(b" !important");
                 }
             }
             // There's no existing rule with the same name, but the new rule is `!important`
-            // In this case, we add the new rule with the `!important` suffix removed
             (Some(value), None) => {
                 push_or_update!(
                     declarations_buffer,
@@ -732,6 +737,13 @@ fn merge_styles<Wr: Write>(
                     value,
                     minify_css
                 );
+                // `push_or_update!` increments `parsed_declarations_count`, so subtract 1
+                // to get the slot that was just written and append the `!important` suffix.
+                if let Some(buf) = declarations_buffer
+                    .get_mut(parsed_declarations_count.saturating_sub(1))
+                {
+                    buf.extend_from_slice(b" !important");
+                }
             }
             // There's no existing rule with the same name, and the new rule is not `!important`
             // In this case, we just add the new rule as-is
