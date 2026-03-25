@@ -43,6 +43,7 @@ into:
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
 - Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [Java](https://github.com/Stranger6667/css-inline/tree/master/bindings/java), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
+- [Elixir bindings](https://github.com/knocklabs/css_inline) maintained by [Knock](https://github.com/knocklabs)
 - Command Line Interface
 
 ## Playground

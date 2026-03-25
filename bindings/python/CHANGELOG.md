@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `html5ever` to `0.39`.
+- Update `selectors` to `0.36`.
+
 ### Fixed
 
 - `!important` lost when inlining styles onto elements with existing inline `style` attributes. [#682](https://github.com/Stranger6667/css-inline/issues/682)
