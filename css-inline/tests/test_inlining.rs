@@ -242,7 +242,7 @@ fn important() {
     assert_inlined!(
         style = "h1 { color: blue !important; }",
         body = r#"<h1 style="color: red;">Big Text</h1>"#,
-        expected = r#"<h1 style="color: blue">Big Text</h1>"#
+        expected = r#"<h1 style="color: blue !important">Big Text</h1>"#
     )
 }
 
@@ -251,17 +251,17 @@ fn important_with_space_at_the_end() {
     assert_inlined!(
         style = "h1 { color: blue !important  ; }",
         body = r#"<h1 style="color: red;">Big Text</h1>"#,
-        expected = r#"<h1 style="color: blue">Big Text</h1>"#
+        expected = r#"<h1 style="color: blue !important">Big Text</h1>"#
     )
 }
 
 #[test]
 fn important_no_rule_exists() {
-    // `!important` rules should override existing inline styles
+    // `!important` rules should be added with the flag preserved
     assert_inlined!(
         style = "h1 { color: blue !important; }",
         body = r#"<h1 style="margin:0">Big Text</h1>"#,
-        expected = r#"<h1 style="color: blue;margin: 0">Big Text</h1>"#
+        expected = r#"<h1 style="color: blue !important;margin: 0">Big Text</h1>"#
     )
 }
 
@@ -304,6 +304,74 @@ fn important_inline_wins_over_stylesheet_important() {
 }
 
 #[test]
+fn important_override_with_minify_css() {
+    // With minify_css enabled, `!important` should still be preserved when overriding inline styles.
+    // Regression: the property lookup used ": " (non-minified separator) even when styles were
+    // stored with ":" (minified), causing duplicated properties and lost `!important` flags.
+    let inliner = CSSInliner::options().minify_css(true).build();
+    let html = r#"<html><head><style>h1 { color: blue !important; }</style></head><body><h1 style="color: red;">Big Text</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(
+        result.contains("style=\"color:blue !important\""),
+        "Expected `color:blue !important` with minified separator. Got: {}",
+        result
+    );
+    assert_eq!(
+        result.matches("color").count(),
+        1,
+        "Property should not be duplicated. Got: {}",
+        result
+    );
+}
+
+#[test]
+fn important_no_rule_exists_with_minify_css() {
+    // With minify_css enabled, `!important` should be preserved when adding new rules
+    let inliner = CSSInliner::options().minify_css(true).build();
+    let html = r#"<html><head><style>h1 { color: blue !important; }</style></head><body><h1 style="margin:0">Big Text</h1></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(
+        result.contains("color:blue !important"),
+        "Expected `color:blue !important`. Got: {}",
+        result
+    );
+    assert!(
+        result.contains("margin:0"),
+        "Existing margin should be preserved. Got: {}",
+        result
+    );
+}
+
+#[test]
+fn important_multiple_properties_with_existing_inline() {
+    // Multiple `!important` properties from a stylesheet should all be preserved when merging
+    // with an element that has existing inline styles
+    let inliner = CSSInliner::options().build();
+    let html = r##"<html><head><style>.btn a { display: inline-block !important; padding: 12px 20px !important; text-decoration: none !important; }</style></head><body><div class="btn"><a href="#" style="display: block; color: #fff;">Click</a></div></body></html>"##;
+    let result = inliner.inline(html).unwrap();
+    assert!(
+        result.contains("display: inline-block !important"),
+        "display should have !important. Got: {}",
+        result
+    );
+    assert!(
+        result.contains("padding: 12px 20px !important"),
+        "padding should have !important. Got: {}",
+        result
+    );
+    assert!(
+        result.contains("text-decoration: none !important"),
+        "text-decoration should have !important. Got: {}",
+        result
+    );
+    assert!(
+        result.contains("color: #fff"),
+        "Existing color should be preserved. Got: {}",
+        result
+    );
+}
+
+#[test]
 fn font_family_quoted() {
     // When property value contains double quotes
     assert_inlined!(
@@ -332,7 +400,7 @@ fn font_family_quoted_with_inline_style_override() {
         style = r#"h1 { font-family: "Open Sans", sans-serif !important; }"#,
         body = r#"<h1 style="font-family: Helvetica; whitespace: nowrap">Hello world!</h1>"#,
         // Then it should be replaced with single quotes
-        expected = r#"<h1 style="font-family: 'Open Sans', sans-serif;whitespace: nowrap">Hello world!</h1>"#
+        expected = r#"<h1 style="font-family: 'Open Sans', sans-serif !important;whitespace: nowrap">Hello world!</h1>"#
     )
 }
 
