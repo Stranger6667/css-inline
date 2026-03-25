@@ -713,8 +713,7 @@ fn merge_styles<Wr: Write>(
                 .take(parsed_declarations_count)
                 .find(|style| {
                     style.starts_with(property.as_bytes())
-                        && style
-                            .get(property.len()..property.len().saturating_add(sep.len()))
+                        && style.get(property.len()..property.len().saturating_add(sep.len()))
                             == Some(sep)
                 }),
         ) {
@@ -739,8 +738,8 @@ fn merge_styles<Wr: Write>(
                 );
                 // `push_or_update!` increments `parsed_declarations_count`, so subtract 1
                 // to get the slot that was just written and append the `!important` suffix.
-                if let Some(buf) = declarations_buffer
-                    .get_mut(parsed_declarations_count.saturating_sub(1))
+                if let Some(buf) =
+                    declarations_buffer.get_mut(parsed_declarations_count.saturating_sub(1))
                 {
                     buf.extend_from_slice(b" !important");
                 }
