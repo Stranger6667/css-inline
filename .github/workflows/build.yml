@@ -615,7 +615,7 @@ jobs:
             fi
             sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           else
-            BUILT_LIB=$(find target/release -name "*.so" | head -1)
+            BUILT_LIB=$(find target/release -maxdepth 1 -name "libcss_inline_php.so")
             sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           fi
         working-directory: ./bindings/php
