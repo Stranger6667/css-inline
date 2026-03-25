@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `!important` lost when inlining styles onto elements with existing inline `style` attributes. [#682](https://github.com/Stranger6667/css-inline/issues/682)
+- `!important` lost when `minify_css` is enabled due to separator mismatch during property lookup. [#682](https://github.com/Stranger6667/css-inline/issues/682)
+
 ## [0.20.0] - 2026-02-07
 
 ### Added
