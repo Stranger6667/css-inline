@@ -132,7 +132,7 @@ jobs:
         with:
           target: ${{ matrix.target }}
           manylinux: auto
-          args: --release -m bindings/python/Cargo.toml --out dist
+          args: --release -m bindings/python/Cargo.toml --out dist --interpreter python3.11
       - name: Install built wheel
         if: matrix.target == 'x86_64'
         run: |
