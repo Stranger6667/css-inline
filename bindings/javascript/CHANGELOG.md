@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.20.1] - 2026-03-26
+
 ### Changed
 
 - Update `html5ever` to `0.39`.
@@ -199,7 +201,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.1...HEAD
+[0.20.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.0...javascript-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.2...javascript-v0.20.0
 [0.19.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.1...javascript-v0.19.2
 [0.19.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.0...javascript-v0.19.1
