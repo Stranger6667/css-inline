@@ -123,6 +123,6 @@ h1 {
     color: blue;
 }`,
     ),
-    `<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>`,
+    `<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>\n`,
   );
 });
