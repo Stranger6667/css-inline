@@ -2096,3 +2096,13 @@ fn ignore_shorthand_dimensions() {
     let result = inliner.inline(html).unwrap();
     assert!(!result.contains(r#" width=""#));
 }
+
+// Fragments with leading/trailing whitespace were silently returning only the whitespace.
+// See GH-692
+#[test_case(" <h1>Hello World!</h1>", " <h1 style=\"color: blue;\">Hello World!</h1>"; "one-space")]
+#[test_case("\n<h1>Hello World!</h1>", "\n<h1 style=\"color: blue;\">Hello World!</h1>"; "newline")]
+#[test_case("  <h1>Hello World!</h1>  ", "  <h1 style=\"color: blue;\">Hello World!</h1>  "; "two-spaces")]
+fn inline_fragment_surrounding_whitespace(input: &str, expected: &str) {
+    let inlined = css_inline::inline_fragment(input, "h1 { color: blue; }").unwrap();
+    assert_eq!(inlined, expected);
+}

@@ -284,10 +284,10 @@ impl Document {
 
     /// Remove all the children from node and append them to `new_parent`.
     pub(super) fn reparent_children(&mut self, node: NodeId, new_parent: NodeId) {
-        let mut next_child = self[node].first_child;
-        while let Some(child) = next_child {
+        // Re-read `first_child` each iteration: `append` calls `detach` internally, which clears
+        // `child.next_sibling` and updates `node.first_child` to the former second child.
+        while let Some(child) = self[node].first_child {
             self.append(new_parent, child);
-            next_child = self[child].next_sibling;
         }
     }
 

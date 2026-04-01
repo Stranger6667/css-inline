@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `inline_fragment` silently returning only leading whitespace when the input starts with whitespace. [#692](https://github.com/Stranger6667/css-inline/issues/692)
+
 ## [0.20.1] - 2026-03-26
 
 ### Changed
