@@ -4,7 +4,7 @@
 
 ### Fixed
 
-- `inlineFragment` silently returning only leading whitespace when the input starts with whitespace. [#692](https://github.com/Stranger6667/css-inline/issues/692)
+- `inlineFragment` silently returning only whitespace when the input starts with whitespace or contains structural HTML tags (`<html>`, `<head>`, `<body>`, `<style>`). [#692](https://github.com/Stranger6667/css-inline/issues/692) [#693](https://github.com/Stranger6667/css-inline/issues/693)
 
 ## [0.20.1] - 2026-03-26
 
