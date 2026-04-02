@@ -2106,3 +2106,16 @@ fn inline_fragment_surrounding_whitespace(input: &str, expected: &str) {
     let inlined = css_inline::inline_fragment(input, "h1 { color: blue; }").unwrap();
     assert_eq!(inlined, expected);
 }
+
+// Fragments containing structural HTML tags (<html>, <head>, <body>, <style>) should be handled
+// correctly: structural tags are stripped and content is inlined as expected.
+// See GH-693
+#[test_case("<body><h1>Hello</h1></body>", "", "<h1>Hello</h1>"; "body-tag")]
+#[test_case("<body><style>h1 { color: red; }</style><h1>Hello</h1></body>", "", "<h1 style=\"color: red;\">Hello</h1>"; "body-with-style")]
+#[test_case("<head></head><body><h1>Hello</h1></body>", "h1 { color: red; }", "<h1 style=\"color: red;\">Hello</h1>"; "head-and-body")]
+#[test_case("<style>h1 { color: red; }</style><h1>Hello</h1>", "", "<h1 style=\"color: red;\">Hello</h1>"; "style-tag-and-content")]
+#[test_case("<html><head><style>h1 { color: red; }</style></head><body><h1>Hello</h1></body></html>", "", "<h1 style=\"color: red;\">Hello</h1>"; "full-html-page")]
+fn inline_fragment_structural_tags(input: &str, css: &str, expected: &str) {
+    let inlined = css_inline::inline_fragment(input, css).unwrap();
+    assert_eq!(inlined, expected);
+}
