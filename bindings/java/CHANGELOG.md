@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `CssInline.inline(String html, String css)` convenience overload for applying a CSS string to a full HTML document. [#693](https://github.com/Stranger6667/css-inline/issues/693)
+
 ### Fixed
 
 - `inlineFragment` silently returning only leading whitespace when the input starts with whitespace. [#692](https://github.com/Stranger6667/css-inline/issues/692)

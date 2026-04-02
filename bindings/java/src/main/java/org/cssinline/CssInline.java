@@ -36,6 +36,22 @@ public class CssInline {
 	}
 
 	/**
+	 * Inlines the provided CSS into an HTML document using default configuration.
+	 *
+	 * <p>This is a convenience shortcut for applying a CSS string to a full HTML document.
+	 * Equivalent to building a config with {@code setExtraCss(css)} and calling
+	 * {@link #inline(String, CssInlineConfig)}.
+	 *
+	 * @param html the HTML document to process
+	 * @param css the CSS rules to inline
+	 * @return the HTML document with CSS styles inlined
+	 * @throws CssInlineException if an error occurs during processing
+	 */
+	public static String inline(String html, String css) {
+		return inline(html, new CssInlineConfig.Builder().setExtraCss(css).build());
+	}
+
+	/**
 	 * Inlines CSS styles into HTML elements using default configuration.
 	 *
 	 * @param html

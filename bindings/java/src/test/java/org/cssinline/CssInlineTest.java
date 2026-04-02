@@ -16,6 +16,15 @@ class CssInlineTest {
 	}
 
 	@Test
+	void inlineWithCssShortcut() {
+		String html = "<html><head></head><body><h1>Hello</h1></body></html>";
+
+		String out = CssInline.inline(html, "h1 { color: blue; }");
+
+		assertEquals("<html><head></head><body><h1 style=\"color: blue;\">Hello</h1></body></html>", out);
+	}
+
+	@Test
 	void extraCssAddsBackground() {
 		String html = "<html><head></head><body><h1>Hello</h1></body></html>";
 

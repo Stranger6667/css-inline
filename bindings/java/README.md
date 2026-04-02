@@ -122,6 +122,12 @@ public class Example {
 }
 ```
 
+To apply a CSS string directly to a document, use the `inline(html, css)` shortcut:
+
+```java
+String inlined = CssInline.inline(html, "h1 { color: blue; }");
+```
+
 You can also configure the inlining process:
 
 ```java
