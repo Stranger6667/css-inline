@@ -160,7 +160,7 @@ public class ConfigExample {
 
 ### HTML Fragments
 
-Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `CssInline.inline` if you need to keep the full document structure:
 
 ```java
 import org.cssinline.CssInline;

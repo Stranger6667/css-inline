@@ -88,7 +88,7 @@ The inline function, `css_inline_to()`, doesn't allocate, so you must provide an
 
 Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `css_inline_to` if you need to keep the full document structure:
 
 ```c
 #include "css_inline.h"

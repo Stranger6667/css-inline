@@ -71,7 +71,7 @@ puts inlined
 
 Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `CSSInline.inline` if you need to keep the full document structure:
 
 ```ruby
 require 'css_inline'
