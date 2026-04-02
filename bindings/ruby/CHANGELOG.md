@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [0.20.3] - 2026-04-02
+
+### Changed
+
+- Pin ICU crates to Rust 1.85-compatible versions in the shipped lock file to prevent MSRV breakage for source builds.
+
 ## [0.20.2] - 2026-04-02
 
 ### Fixed
@@ -292,7 +298,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.3...HEAD
+[0.20.3]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.2...ruby-v0.20.3
 [0.20.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.1...ruby-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.0...ruby-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.19.1...ruby-v0.20.0
