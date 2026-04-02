@@ -589,6 +589,14 @@ impl<'a> CSSInliner<'a> {
 
     /// Inline CSS into an HTML fragment.
     ///
+    /// Unlike [`inline`](CSSInliner::inline), this method does not wrap the output in `<html>` and
+    /// `<body>` tags. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output;
+    /// only their contents are preserved. CSS from `<style>` tags within the input is also
+    /// processed and inlined.
+    ///
+    /// If you need to preserve the full HTML document structure, use [`inline`](CSSInliner::inline)
+    /// instead.
+    ///
     /// # Errors
     ///
     /// Inlining might fail for the following reasons:
@@ -608,6 +616,8 @@ impl<'a> CSSInliner<'a> {
     }
 
     /// Inline CSS into an HTML fragment and write the result to a generic writer.
+    ///
+    /// See [`inline_fragment`](CSSInliner::inline_fragment) for details on fragment handling.
     ///
     /// # Errors
     ///
@@ -938,6 +948,8 @@ pub fn inline_to<W: Write>(html: &str, target: &mut W) -> Result<()> {
 }
 
 /// Shortcut for inlining CSS into an HTML fragment with default parameters.
+///
+/// See [`CSSInliner::inline_fragment`] for details on fragment handling.
 ///
 /// # Errors
 ///

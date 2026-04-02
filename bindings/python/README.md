@@ -90,7 +90,7 @@ inlined = css_inline.inline(HTML)
 
 Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment, preserving the original structure:
+Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `inline` if you need to keep the full document structure:
 
 ```python
 FRAGMENT = """<main>
