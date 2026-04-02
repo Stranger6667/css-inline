@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.20.2] - 2026-04-02
+
 ### Fixed
 
 - `inlineFragment` silently returning only whitespace when the input starts with whitespace or contains structural HTML tags (`<html>`, `<head>`, `<body>`, `<style>`). [#692](https://github.com/Stranger6667/css-inline/issues/692) [#693](https://github.com/Stranger6667/css-inline/issues/693)
@@ -205,7 +207,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.2...HEAD
+[0.20.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.1...javascript-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.20.0...javascript-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.2...javascript-v0.20.0
 [0.19.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.19.1...javascript-v0.19.2
