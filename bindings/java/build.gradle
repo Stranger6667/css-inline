@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'org.css-inline'
-version = System.getenv('VERSION') ?: '0.20.1-SNAPSHOT'
+version = System.getenv('VERSION') ?: '0.20.2-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17

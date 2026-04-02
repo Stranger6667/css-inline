@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.20.2] - 2026-04-02
+
 ### Added
 
 - `CssInline.inline(String html, String css)` convenience overload for applying a CSS string to a full HTML document. [#693](https://github.com/Stranger6667/css-inline/issues/693)
@@ -105,7 +107,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.2...HEAD
+[0.20.2]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.1...java-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.0...java-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.19.1...java-v0.20.0
 [0.19.1]: https://github.com/Stranger6667/css-inline/compare/java-v0.19.0...java-v0.19.1
