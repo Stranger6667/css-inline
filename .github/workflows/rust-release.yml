@@ -17,7 +17,7 @@ jobs:
         run: echo "version=${GITHUB_REF#refs/tags/rust-v}" >> $GITHUB_ENV
 
       - name: GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           make_latest: true
           draft: true
