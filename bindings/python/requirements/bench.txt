@@ -24,7 +24,7 @@ iniconfig==2.3.0
     # via pytest
 inlinestyler==0.2.5
     # via -r bench.in
-lxml==5.4.0
+lxml==6.1.0
     # via
     #   inlinestyler
     #   premailer
