@@ -10,7 +10,7 @@ GEM
     addressable (2.9.0)
       public_suffix (>= 2.0.2, < 8.0)
     benchmark-ips (2.14.0)
-    css_parser (1.21.1)
+    css_parser (1.22.0)
       addressable
     diff-lcs (1.6.2)
     htmlentities (4.4.2)
