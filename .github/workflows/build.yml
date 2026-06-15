@@ -209,6 +209,12 @@ jobs:
       - run: cargo update -p derive_more-impl --precise 2.0.1
         working-directory: ./css-inline
 
+      - run: cargo update -p zeroize --precise 1.8.1
+        working-directory: ./css-inline
+
+      - run: cargo update -p hyper-rustls --precise 0.27.7
+        working-directory: ./css-inline
+
       - run: cargo build
         working-directory: ./css-inline
 
