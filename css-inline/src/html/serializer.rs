@@ -398,7 +398,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             self.styles.get_mut(node_id.get()).and_then(|slot| {
                 slot.take().map(|mut styles| {
                     // Sort by specificity for consistent output order
-                    styles.sort_unstable_by(|a, b| a.1.cmp(&b.1));
+                    styles.sort_unstable_by_key(|a| a.1);
                     styles
                 })
             })
