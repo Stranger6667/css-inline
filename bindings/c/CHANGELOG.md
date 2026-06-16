@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-06-16
+
 ### Changed
 
 - Update `selectors` to `0.38`.
@@ -185,7 +187,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.20.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/c-v0.21.0...HEAD
+[0.21.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.20.2...c-v0.21.0
 [0.20.2]: https://github.com/Stranger6667/css-inline/compare/c-v0.20.1...c-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/c-v0.20.0...c-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/c-v0.19.1...c-v0.20.0
