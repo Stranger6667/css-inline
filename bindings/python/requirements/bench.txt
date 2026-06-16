@@ -47,7 +47,7 @@ pytest==9.0.3
     # via pytest-benchmark
 pytest-benchmark==5.2.3
     # via -r bench.in
-requests==2.32.5
+requests==2.33.0
     # via
     #   inlinestyler
     #   premailer
