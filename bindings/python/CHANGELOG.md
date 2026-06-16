@@ -12,6 +12,10 @@
 - Update `cssparser` to `0.37`.
 - Update `PyO3` to `0.29.0`.
 
+### Fixed
+
+- `width`/`height` HTML attributes not derived from an element's own inline `style` attribute. [#725](https://github.com/Stranger6667/css-inline/issues/725)
+
 ## [0.20.2] - 2026-04-02
 
 ### Fixed
