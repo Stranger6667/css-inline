@@ -2075,16 +2075,48 @@ fn apply_width_specificity() {
 
 #[test]
 fn apply_width_from_inline_style() {
-    // Dimension attributes are extracted from stylesheet rules, not pre-existing inline styles.
-    // The final style attribute will contain the merged/overridden value (inline wins),
-    // but the dimension attribute is set from the stylesheet rule.
+    // Inline `style` wins over stylesheet rules (CSS cascade), and the dimension attribute
+    // reflects that effective value.
     let inliner = CSSInliner::options().apply_width_attributes(true).build();
     let html = r#"<html><head><style>img { width: 50px; }</style></head><body><img style="width: 100px;"></body></html>"#;
     let result = inliner.inline(html).unwrap();
-    // Stylesheet value is used for the attribute
-    assert!(result.contains(r#"width="50""#));
-    // Inline style wins in the style attribute (100px overrides 50px)
+    // Effective (inline) value is used for the attribute
+    assert!(result.contains(r#"width="100""#));
     assert!(result.contains(r#"style="width: 100px""#));
+}
+
+#[test]
+fn apply_dimension_from_inline_style_only() {
+    // Dimensions present only in the element's inline `style` attribute (no stylesheet rule)
+    // still produce width/height attributes. See GH-725.
+    let inliner = CSSInliner::options()
+        .apply_width_attributes(true)
+        .apply_height_attributes(true)
+        .build();
+    let html =
+        r#"<html><body><img src="t.jpg" style="width: 600px; height: 400px;"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="600""#));
+    assert!(result.contains(r#"height="400""#));
+}
+
+#[test]
+fn apply_width_stylesheet_important_beats_inline() {
+    // Cascade: stylesheet `!important` beats a normal inline declaration, so the
+    // attribute reflects the stylesheet value (not the inline one).
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 50px !important; }</style></head><body><img style="width: 100px;"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="50""#));
+}
+
+#[test]
+fn apply_width_inline_important_beats_stylesheet_important() {
+    // Inline `!important` wins over stylesheet `!important`.
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let html = r#"<html><head><style>img { width: 50px !important; }</style></head><body><img style="width: 100px !important;"></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert!(result.contains(r#"width="100""#));
 }
 
 #[test]

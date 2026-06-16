@@ -119,6 +119,37 @@ fn find_style_value<'a>(styles: &'a ElementStyleMap<'_>, property: &str) -> Opti
         .map(|(_, _, value)| *value)
 }
 
+/// Find a property value in an element's inline `style` attribute (last declaration wins).
+fn find_inline_style_value<'a>(style: &'a str, property: &str) -> Option<&'a str> {
+    let mut input = cssparser::ParserInput::new(style);
+    let mut css_parser = cssparser::Parser::new(&mut input);
+    let mut declaration_parser = parser::CSSDeclarationListParser;
+    let declarations = cssparser::RuleBodyParser::new(&mut css_parser, &mut declaration_parser);
+    let mut found = None;
+    for (name, value) in declarations.flatten() {
+        if name.eq_ignore_ascii_case(property) {
+            found = Some(value);
+        }
+    }
+    found
+}
+
+/// Pick the cascade-effective value between an inline `style` declaration and a stylesheet rule.
+/// Precedence (high to low): inline `!important`, stylesheet `!important`, inline, stylesheet.
+fn effective_dimension<'a>(
+    inline: Option<&'a str>,
+    stylesheet: Option<&'a str>,
+) -> Option<&'a str> {
+    let important = |v: &str| v.trim_end().ends_with("!important");
+    if inline.is_some_and(important) {
+        inline
+    } else if stylesheet.is_some_and(important) {
+        stylesheet
+    } else {
+        inline.or(stylesheet)
+    }
+}
+
 #[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
 pub(crate) fn serialize_to<W: Write>(
     document: &Document,
@@ -418,11 +449,14 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         if let Some(ref html_name) = html_name {
             if supports_dimension_attrs(html_name) {
                 let allow_percent = is_table_element(html_name);
+                // Resolve the cascade-effective value across the inline `style` and stylesheet.
+                let style_attr = attrs.get(local_name!("style"));
                 if apply_width_attributes && !attrs.contains(local_name!("width")) {
-                    if let Some(dim) = styles
-                        .as_ref()
-                        .and_then(|s| find_style_value(s, "width"))
-                        .and_then(|v| extract_dimension_value(v, allow_percent))
+                    if let Some(dim) = effective_dimension(
+                        style_attr.and_then(|s| find_inline_style_value(s, "width")),
+                        styles.as_ref().and_then(|s| find_style_value(s, "width")),
+                    )
+                    .and_then(|v| extract_dimension_value(v, allow_percent))
                     {
                         self.writer.write_all(b" width=\"")?;
                         dim.write_to(&mut self.writer)?;
@@ -430,10 +464,11 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                     }
                 }
                 if apply_height_attributes && !attrs.contains(local_name!("height")) {
-                    if let Some(dim) = styles
-                        .as_ref()
-                        .and_then(|s| find_style_value(s, "height"))
-                        .and_then(|v| extract_dimension_value(v, allow_percent))
+                    if let Some(dim) = effective_dimension(
+                        style_attr.and_then(|s| find_inline_style_value(s, "height")),
+                        styles.as_ref().and_then(|s| find_style_value(s, "height")),
+                    )
+                    .and_then(|v| extract_dimension_value(v, allow_percent))
                     {
                         self.writer.write_all(b" height=\"")?;
                         dim.write_to(&mut self.writer)?;
