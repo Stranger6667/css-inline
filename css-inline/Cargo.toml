@@ -16,7 +16,8 @@ exclude = [
   "tests",
 ]
 categories = ["web-programming"]
-rust-version = "1.80"
+rust-version = "1.85"
+resolver = "3"
 
 [[bin]]
 name = "css-inline"

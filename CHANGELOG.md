@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.85`.
+
 ## [0.20.2] - 2026-04-02
 
 ### Fixed

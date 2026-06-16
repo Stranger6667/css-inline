@@ -220,16 +220,14 @@ impl Document {
 
         match bytes.first() {
             // Class selector: .classname
-            Some(b'.') => extract_identifier(&bytes[1..]).map_or(true, |name| {
-                self.by_class.contains_key(&LocalName::from(name))
-            }),
+            Some(b'.') => extract_identifier(&bytes[1..])
+                .is_none_or(|name| self.by_class.contains_key(&LocalName::from(name))),
             // ID selector: #id
             Some(b'#') => extract_identifier(&bytes[1..])
-                .map_or(true, |name| self.by_id.contains_key(&LocalName::from(name))),
+                .is_none_or(|name| self.by_id.contains_key(&LocalName::from(name))),
             // Tag selector: starts with ASCII letter
-            Some(b'a'..=b'z' | b'A'..=b'Z') => extract_identifier(bytes).map_or(true, |name| {
-                self.by_tag.contains_key(&LocalName::from(name))
-            }),
+            Some(b'a'..=b'z' | b'A'..=b'Z') => extract_identifier(bytes)
+                .is_none_or(|name| self.by_tag.contains_key(&LocalName::from(name))),
             // Universal (*), attribute ([), pseudo-class (:), empty, or unknown
             _ => true,
         }
