@@ -43,7 +43,7 @@ pygments==2.19.2
     # via pytest
 pynliner==0.8.0
     # via -r bench.in
-pytest==9.0.2
+pytest==9.0.3
     # via pytest-benchmark
 pytest-benchmark==5.2.3
     # via -r bench.in
