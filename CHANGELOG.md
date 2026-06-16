@@ -5,6 +5,8 @@
 ### Changed
 
 - Bump MSRV to `1.85`.
+- Update `selectors` to `0.38`.
+- Update `cssparser` to `0.37`.
 
 ## [0.20.2] - 2026-04-02
 
