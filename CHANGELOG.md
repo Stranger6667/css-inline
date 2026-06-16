@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.0] - 2026-06-16
+
 ### Changed
 
 - Bump MSRV to `1.85`.
@@ -546,7 +548,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.20.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.21.0...HEAD
+[0.21.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.20.2...rust-v0.21.0
 [0.20.2]: https://github.com/Stranger6667/css-inline/compare/rust-v0.20.1...rust-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.20.0...rust-v0.20.1
 [0.20.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.19.1...rust-v0.20.0
