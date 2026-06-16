@@ -10,7 +10,7 @@ packaging==25.0
     # via pytest
 pluggy==1.6.0
     # via pytest
-pygments==2.19.1
+pygments==2.20.0
     # via pytest
 pytest==8.4.0
     # via -r test.in
