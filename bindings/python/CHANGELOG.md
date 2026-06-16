@@ -10,6 +10,7 @@
 
 - Update `selectors` to `0.38`.
 - Update `cssparser` to `0.37`.
+- Update `PyO3` to `0.29.0`.
 
 ## [0.20.2] - 2026-04-02
 
