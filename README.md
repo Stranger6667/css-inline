@@ -59,7 +59,7 @@ To include it in your project, add the following line to the dependencies sectio
 css-inline = "0.20"
 ```
 
-The Minimum Supported Rust Version is 1.80.
+The Minimum Supported Rust Version is 1.85.
 
 ## Usage
 
