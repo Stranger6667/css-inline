@@ -39,7 +39,7 @@ premailer==3.10.0
     # via -r bench.in
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pygments==2.19.2
+pygments==2.20.0
     # via pytest
 pynliner==0.8.0
     # via -r bench.in
