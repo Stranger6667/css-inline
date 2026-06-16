@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Removed
+
+- Support for Python 3.9.
+
 ### Changed
 
 - Update `selectors` to `0.38`.
