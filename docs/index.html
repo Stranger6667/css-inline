@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="CSS inlining tool that embeds styles into HTML element style attributes. WebAssembly-powered browser playground."
+    />
+    <meta
+      name="keywords"
+      content="CSS inlining, WebAssembly, browser playground, Rust, Python, Ruby, JavaScript, Java, PHP, style attribute, HTML, CSS"
+    />
+    <title>CSS Inline | High-performance CSS inlining</title>
+    <link
+      rel="preload"
+      as="fetch"
+      type="application/wasm"
+      href="./index_bg.wasm"
+      crossorigin
+    />
+    <script src="./index.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const optionControls = {
+          inlineStyleTags: document.getElementById(
+            "css-inline-opt-inline-style-tags",
+          ),
+          keepStyleTags: document.getElementById(
+            "css-inline-opt-keep-style-tags",
+          ),
+          keepLinkTags: document.getElementById(
+            "css-inline-opt-keep-link-tags",
+          ),
+          keepAtRules: document.getElementById("css-inline-opt-keep-at-rules"),
+          minifyCss: document.getElementById("css-inline-opt-minify-css"),
+          applyWidthAttributes: document.getElementById(
+            "css-inline-opt-apply-width-attributes",
+          ),
+          applyHeightAttributes: document.getElementById(
+            "css-inline-opt-apply-height-attributes",
+          ),
+          extraCss: document.getElementById("css-inline-opt-extra-css"),
+        };
+
+        const collectOptions = () => {
+          const options = {
+            inlineStyleTags: optionControls.inlineStyleTags
+              ? optionControls.inlineStyleTags.checked
+              : true,
+            keepStyleTags: optionControls.keepStyleTags
+              ? optionControls.keepStyleTags.checked
+              : false,
+            keepLinkTags: optionControls.keepLinkTags
+              ? optionControls.keepLinkTags.checked
+              : false,
+            keepAtRules: optionControls.keepAtRules
+              ? optionControls.keepAtRules.checked
+              : false,
+            minifyCss: optionControls.minifyCss
+              ? optionControls.minifyCss.checked
+              : false,
+            applyWidthAttributes: optionControls.applyWidthAttributes
+              ? optionControls.applyWidthAttributes.checked
+              : false,
+            applyHeightAttributes: optionControls.applyHeightAttributes
+              ? optionControls.applyHeightAttributes.checked
+              : false,
+          };
+
+          const extraCss = optionControls.extraCss
+            ? optionControls.extraCss.value
+            : "";
+          if (extraCss && extraCss.trim().length > 0) {
+            options.extraCss = extraCss;
+          }
+
+          return options;
+        };
+
+        cssInline.initWasm(fetch("./index_bg.wasm")).then(() => {
+          const versionElement = document.getElementById(
+            "css-inline-package-version",
+          );
+          if (versionElement) {
+            versionElement.textContent = `css-inline-js ${cssInline.version()}`;
+          }
+          const submitButton = document.getElementById("css-inline-submit");
+          const html = document.getElementById("css-inline-html");
+          const inlinedCodeElement =
+            document.getElementById("css-inline-result");
+          const inlinedCodeContainer = document.getElementById(
+            "css-inline-result-container",
+          );
+          const inlinedErrorContainer = document.getElementById(
+            "css-inline-error-container",
+          );
+          const inlinedErrorText = document.getElementById(
+            "css-inline-error-text",
+          );
+          const outputSizeSpan = document.getElementById(
+            "css-inline-output-size",
+          );
+          const callTimeSpan = document.getElementById("css-inline-call-time");
+
+          submitButton.addEventListener("click", function () {
+            try {
+              const startTime = performance.now();
+              const options = collectOptions();
+              const inlinedHtml = cssInline.inline(html.value, options);
+              const durationMs = (performance.now() - startTime).toFixed(2);
+
+              const blob = new Blob([inlinedHtml], { type: "text/html" });
+              const sizeInBytes = blob.size;
+              let sizeText;
+
+              if (sizeInBytes < 1024) {
+                sizeText = `${sizeInBytes} bytes`;
+              } else if (sizeInBytes < 1048576) {
+                sizeText = `${(sizeInBytes / 1024).toFixed(2)} KB`;
+              } else {
+                sizeText = `${(sizeInBytes / 1048576).toFixed(2)} MB`;
+              }
+              outputSizeSpan.textContent = sizeText;
+              callTimeSpan.textContent = `${durationMs} ms`;
+              inlinedCodeElement.textContent = inlinedHtml;
+              inlinedErrorContainer.classList.add("hidden");
+              inlinedCodeContainer.classList.remove("hidden");
+            } catch (error) {
+              inlinedCodeContainer.classList.add("hidden");
+              inlinedErrorContainer.classList.remove("hidden");
+              inlinedErrorText.textContent = error;
+            }
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <header class="bg-white">
+      <nav
+        class="mx-auto flex items-center justify-between p-6"
+        aria-label="Global"
+      >
+        <h1 class="text-4xl font-semibold leading-6 text-gray-900">
+          CSS-Inline
+        </h1>
+        <div>
+          <a
+            href="https://github.com/Stranger6667/css-inline"
+            class="text-gray-400 hover:text-gray-500"
+            target="_blank"
+          >
+            <span class="sr-only">GitHub</span>
+            <svg
+              class="h-10 w-10"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                clip-rule="evenodd"
+              />
+            </svg>
+          </a>
+        </div>
+      </nav>
+    </header>
+
+    <main class="mx-auto w-full px-4 sm:px-6 lg:px-12 2xl:px-20">
+      <section class="mt-6">
+        <p class="text-2xl leading-8 text-gray-800">
+          High-performance library for inlining CSS into HTML 'style' attributes
+        </p>
+        <p class="mt-2 text-base leading-7 text-gray-900">
+          css-inline uses components from Mozilla's Servo project and provides
+          bindings for Rust, Python, Ruby, JavaScript, Java, C, and PHP. The
+          playground runs the library compiled to WebAssembly in the browser.
+          Paste HTML with CSS into the text area and click "Inline" to process
+          the output.
+        </p>
+      </section>
+
+      <section class="my-6 grid items-stretch gap-6 lg:grid-cols-3">
+        <div class="lg:col-span-2">
+          <div
+            class="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+          >
+            <div class="flex flex-1 flex-col">
+              <h2 class="text-lg font-semibold text-gray-900">Input HTML</h2>
+              <p class="mt-1 text-sm text-gray-600">
+                Paste HTML with CSS and adjust the settings on the right before
+                inlining.
+              </p>
+              <label for="css-inline-html" class="sr-only">HTML</label>
+              <textarea
+                rows="10"
+                name="html"
+                id="css-inline-html"
+                class="mt-2 flex-1 min-h-[18rem] w-full rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+              >
+<html>
+  <head>
+    <style>h1 { color:blue; }</style>
+  </head>
+  <body>
+    <h1>Big Text</h1>
+  </body>
+</html></textarea
+              >
+            </div>
+            <div
+              class="mt-auto border-t border-gray-100 pt-4 sm:flex sm:items-center sm:justify-between"
+            >
+              <span
+                class="inline-flex items-center rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700"
+                >Runs in your browser</span
+              >
+              <button
+                type="submit"
+                id="css-inline-submit"
+                class="mt-2 inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 sm:mt-0 sm:w-auto"
+              >
+                Inline
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex h-full flex-col rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+        >
+          <div class="flex-1">
+            <h2 class="text-lg font-semibold text-gray-900">Configuration</h2>
+            <p class="mt-1 text-sm text-gray-600">
+              Toggle common css-inline options before running the inliner.
+            </p>
+            <div class="mt-4 space-y-3">
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-inline-style-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                  checked
+                />
+                <span>
+                  <strong>Inline style tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Extract CSS from style tags and apply it to elements.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-style-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep style tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Preserve original style tags after inlining.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-link-tags"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep link tags</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Retain external link tags in the output.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-keep-at-rules"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Keep media/@rules</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Preserve media queries and other at-rules.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-minify-css"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Minify CSS</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Remove redundant whitespace inside generated inline
+                    styles.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-apply-width-attributes"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Apply width attributes</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Add HTML width attributes from CSS for Outlook
+                    compatibility.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-apply-height-attributes"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Apply height attributes</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Add HTML height attributes from CSS for Outlook
+                    compatibility.</span
+                  >
+                </span>
+              </label>
+            </div>
+            <div class="mt-6 flex flex-col gap-1">
+              <label
+                class="block text-sm text-gray-900"
+                for="css-inline-opt-extra-css"
+                ><strong>Extra CSS</strong>
+                <span class="mt-1 block text-xs text-gray-500"
+                  >Inject additional CSS rules before inlining.</span
+                >
+                <textarea
+                  id="css-inline-opt-extra-css"
+                  rows="5"
+                  class="mt-2 min-h-[10rem] w-full rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                  placeholder="body { background: #fff; }"
+                ></textarea>
+              </label>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-1 items-center text-sm text-gray-500">
+            <p>These options apply the next time you press Inline.</p>
+          </div>
+        </div>
+      </section>
+
+      <div id="css-inline-error-container" class="hidden">
+        <div class="mb-4 rounded-md bg-red-100 p-4">
+          <div class="flex">
+            <p class="text-base font-medium text-red-800">
+              <strong>Error!</strong> <span id="css-inline-error-text"></span>
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div id="css-inline-result-container" class="hidden">
+        <div class="mb-4 rounded-md bg-green-100 p-4">
+          <div class="flex">
+            <p class="text-base font-medium text-green-800">
+              <strong>Success!</strong> Below is your HTML with inlined CSS
+              styles
+            </p>
+          </div>
+        </div>
+        <div
+          class="block rounded-md border-0 bg-gray-100 p-3 font-mono text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+        >
+          <pre
+            id="css-inline-result"
+            class="overflow-x-auto whitespace-pre-wrap"
+          ></pre>
+        </div>
+        <div
+          class="mt-3 flex flex-wrap items-center justify-between text-sm text-gray-600"
+        >
+          <p>
+            <strong><span id="css-inline-output-size">124 Kb</span></strong>
+            generated in
+            <strong><span id="css-inline-call-time">2.1 ms</span></strong>
+          </p>
+        </div>
+      </div>
+    </main>
+
+    <footer class="bg-white">
+      <hr />
+      <div
+        class="mx-auto w-full px-4 py-6 sm:px-6 lg:px-12 2xl:px-20 md:flex md:items-center md:justify-between"
+      >
+        <div class="mt-4 md:order-1 md:mt-0">
+          <p class="text-center text-base leading-6 text-gray-500">
+            © css-inline.org by
+            <a
+              href="https://github.com/Stranger6667"
+              class="text-blue-400 hover:text-blue-500"
+              target="_blank"
+              >Dmitry Dygalo</a
+            >
+          </p>
+        </div>
+        <div class="mt-4 md:order-1 md:mt-0">
+          <p
+            id="css-inline-package-version"
+            class="text-center text-base leading-6 text-gray-500"
+          >
+            ...
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
