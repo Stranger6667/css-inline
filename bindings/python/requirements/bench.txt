@@ -51,7 +51,7 @@ requests==2.33.0
     # via
     #   inlinestyler
     #   premailer
-soupsieve==2.8.1
+soupsieve==2.8.4
     # via beautifulsoup4
 toronado==0.1.0
     # via -r bench.in
