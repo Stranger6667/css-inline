@@ -102,7 +102,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         if: ${{ !matrix.settings.docker }}
         with:
           node-version: ${{ matrix.node }}
@@ -207,7 +207,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: "20"
           cache: yarn
@@ -252,7 +252,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Setup node
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 24
           cache: yarn
