@@ -71,7 +71,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.11
           cache: "pip"
@@ -296,7 +296,7 @@ jobs:
           cache: yarn
           cache-dependency-path: bindings/javascript/yarn.lock
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.11
           cache: "pip"
@@ -501,7 +501,7 @@ jobs:
         if: matrix.os == 'macos-15' && matrix.python-version == 'pypy-3.11'
         run: rustup target add x86_64-apple-darwin
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           architecture: x64
@@ -531,7 +531,7 @@ jobs:
           toolchain: nightly-2025-02-01
           targets: wasm32-unknown-emscripten
           components: rust-src
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.13
       - run: |
@@ -645,7 +645,7 @@ jobs:
           directory: ${{ runner.temp }}/llvm-18
           cached: ${{ steps.cache-llvm.outputs.cache-hit }}
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.11
           cache: "pip"
@@ -860,7 +860,7 @@ jobs:
 
       - uses: taiki-e/install-action@cargo-hack
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: 3.11
           cache: "pip"
