@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.1] - 2026-08-08
+
 ### Fixed
 
 - With `keepAtRules` enabled, at-rules without a block (e.g. `@import`) lost their prelude and terminator, fusing with the following rule (`@import@media ...`) and producing a stylesheet browsers reject entirely.
@@ -61,7 +63,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.21.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.21.1...HEAD
+[0.21.1]: https://github.com/Stranger6667/css-inline/compare/php-v0.21.0...php-v0.21.1
 [0.21.0]: https://github.com/Stranger6667/css-inline/compare/php-v0.20.2...php-v0.21.0
 [0.20.2]: https://github.com/Stranger6667/css-inline/compare/php-v0.20.1...php-v0.20.2
 [0.20.1]: https://github.com/Stranger6667/css-inline/compare/php-v0.20.0...php-v0.20.1
