@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- With `keep_at_rules` enabled, at-rules without a block (e.g. `@import`) lost their prelude and terminator, fusing with the following rule (`@import@media ...`) and producing a stylesheet browsers reject entirely.
+
 ## [0.21.0] - 2026-06-16
 
 ### Changed
