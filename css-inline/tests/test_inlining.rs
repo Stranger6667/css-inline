@@ -780,6 +780,44 @@ fn keep_multiple_at_rules() {
 }
 
 #[test]
+fn keep_at_rules_without_block() {
+    // At-rules terminated by a semicolon instead of a block (e.g. `@import`)
+    // must keep their prelude and terminator; otherwise the bare `@import`
+    // fuses with the following rule and browsers discard the whole sheet.
+    let html = r#"
+<html>
+<head>
+<style>
+@import url("print.css");
+@media (max-width: 600px) { h1 { font-size: 18px; } }
+</style>
+</head>
+<body>
+<h1>Test</h1>
+</body>
+</html>
+    "#;
+
+    let options = InlineOptions {
+        keep_at_rules: true,
+        ..Default::default()
+    };
+    let inliner = CSSInliner::new(options);
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head><style>@import url("print.css"); @media (max-width: 600px) { h1 { font-size: 18px; } } </style>
+
+</head>
+<body>
+<h1>Test</h1>
+
+
+    </body></html>"#
+    )
+}
+
+#[test]
 fn extra_css() {
     let html = html!("h1 {background-color: blue;}", "<h1>Hello world!</h1>");
     let options = InlineOptions {

@@ -161,6 +161,21 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
         self.at_rules.push(' ');
         Ok((prelude, (start, self.at_rules.len())))
     }
+
+    fn rule_without_block(
+        &mut self,
+        prelude: Self::Prelude,
+        _start: &ParserState,
+    ) -> Result<Self::AtRule, ()> {
+        // `parse_prelude` has already written `@` + the rule name; without this
+        // the name would fuse with the following rule (e.g. `@import@media ...`),
+        // producing a stylesheet browsers reject entirely.
+        let start = self.at_rules.len();
+        self.at_rules.push_str(prelude);
+        self.at_rules.push(';');
+        self.at_rules.push(' ');
+        Ok((prelude, (start, self.at_rules.len())))
+    }
 }
 
 fn parse_declarations_into<'i>(
