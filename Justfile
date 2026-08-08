@@ -7,6 +7,7 @@ release COMPONENT VERSION:
   set -euo pipefail
   C="{{COMPONENT}}"
   VERSION="{{VERSION}}"
+  [ -z "$(git status --porcelain)" ] || { echo "working tree is not clean"; exit 1; }
   case "$C" in
     rust)       CL=CHANGELOG.md;                     FILES=(css-inline/Cargo.toml) ;;
     c)          CL=bindings/c/CHANGELOG.md;          FILES=(bindings/c/Cargo.toml) ;;
