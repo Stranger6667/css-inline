@@ -11,7 +11,7 @@ impl ToCss for AttrValue {
     where
         W: Write,
     {
-        write!(cssparser::CssStringWriter::new(dest), "{}", &self.0)
+        write!(cssparser::CssStringWriter::new(dest), "{}", self.0)
     }
 }
 

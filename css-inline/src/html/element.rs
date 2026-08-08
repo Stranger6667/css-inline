@@ -66,31 +66,25 @@ impl<'a> Element<'a> {
     fn previous_sibling_element(&self) -> Option<Element<'a>> {
         let mut node = &self.document[self.node_id];
         loop {
-            if let Some(previous_sibling_id) = node.previous_sibling {
-                let previous_sibling = &self.document[previous_sibling_id];
-                if let NodeData::Element { element, .. } = &previous_sibling.data {
-                    return Some(Element::new(self.document, previous_sibling_id, element));
-                }
-                node = previous_sibling;
-            } else {
-                // Node has no previous sibling at all
-                return None;
+            // Returns `None` once the node has no previous sibling at all
+            let previous_sibling_id = node.previous_sibling?;
+            let previous_sibling = &self.document[previous_sibling_id];
+            if let NodeData::Element { element, .. } = &previous_sibling.data {
+                return Some(Element::new(self.document, previous_sibling_id, element));
             }
+            node = previous_sibling;
         }
     }
     fn next_sibling_element(&self) -> Option<Element<'a>> {
         let mut node = &self.document[self.node_id];
         loop {
-            if let Some(next_sibling_id) = node.next_sibling {
-                let next_sibling = &self.document[next_sibling_id];
-                if let NodeData::Element { element, .. } = &next_sibling.data {
-                    return Some(Element::new(self.document, next_sibling_id, element));
-                }
-                node = next_sibling;
-            } else {
-                // Node has no next sibling at all
-                return None;
+            // Returns `None` once the node has no next sibling at all
+            let next_sibling_id = node.next_sibling?;
+            let next_sibling = &self.document[next_sibling_id];
+            if let NodeData::Element { element, .. } = &next_sibling.data {
+                return Some(Element::new(self.document, next_sibling_id, element));
             }
+            node = next_sibling;
         }
     }
     // NOTE: For large documents, it is called in a hot loop.
