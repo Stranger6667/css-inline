@@ -154,9 +154,9 @@ checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
 
 [[package]]
 name = "css-inline"
-version = "0.21.0"
+version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2f845f973dd2b71c48976c504756d7a163c5068dd6857b8d2f8ee1e92a190f6"
+checksum = "75a48bb4803d11b7129efb4d8eabac1c49c1483dcc6fe962f3d3aaba889e7b60"
 dependencies = [
  "cssparser",
  "html5ever",
@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "css-inline-ruby"
-version = "0.21.0"
+version = "0.21.1"
 dependencies = [
  "css-inline",
  "magnus",
@@ -1193,9 +1193,9 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
 name = "selectors"
-version = "0.38.0"
+version = "0.40.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8adfa1c298912827b8a28b223b3b874357397ae706e6190acd9bf28cee99114d"
+checksum = "eeee001a77567bb05e71652718d3ff76d8697c151ac523e68e9513194eb2b75a"
 dependencies = [
  "bitflags",
  "cssparser",
