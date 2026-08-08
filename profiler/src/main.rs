@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             output.clear();
         }
     } else {
-        panic!("Can not find benchmark: {}", &args.benchmark)
+        panic!("Can not find benchmark: {}", args.benchmark)
     }
 
     Ok(())
