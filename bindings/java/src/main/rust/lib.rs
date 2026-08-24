@@ -1,90 +1,122 @@
 use core::fmt;
 use css_inline::{CSSInliner, StylesheetCache};
 use jni::{
-    JNIEnv,
-    errors::Result as JNIResult,
+    Env, EnvUnowned,
+    errors::{ErrorPolicy, Result as JNIResult},
+    jni_sig, jni_str,
     objects::{JClass, JObject, JString},
-    sys::jstring,
+    strings::{JNIStr, JNIString},
 };
-use std::{borrow::Cow, num::NonZeroUsize};
+use std::{any::Any, borrow::Cow, num::NonZeroUsize};
 
 trait JNIExt {
-    fn get_rust_string(&mut self, obj: &JString) -> String;
-    fn to_jstring(&mut self, obj: String) -> jstring;
-    fn get_bool_field(&mut self, obj: &JObject, name: &str) -> JNIResult<bool>;
-    fn get_int_field(&mut self, obj: &JObject, name: &str) -> JNIResult<i32>;
-    fn get_string_field_opt(&mut self, obj: &JObject, name: &str) -> JNIResult<Option<String>>;
+    fn get_rust_string(&mut self, obj: &JString) -> JNIResult<String>;
+    fn get_bool_field(&mut self, obj: &JObject, name: &JNIStr) -> JNIResult<bool>;
+    fn get_int_field(&mut self, obj: &JObject, name: &JNIStr) -> JNIResult<i32>;
+    fn get_string_field_opt(&mut self, obj: &JObject, name: &JNIStr) -> JNIResult<Option<String>>;
 }
 
-impl<'a> JNIExt for JNIEnv<'a> {
-    fn get_rust_string(&mut self, obj: &JString) -> String {
-        self.get_string(obj)
-            .expect("Failed to get Java String")
-            .into()
+impl<'a> JNIExt for Env<'a> {
+    fn get_rust_string(&mut self, obj: &JString) -> JNIResult<String> {
+        Ok(obj.mutf8_chars(self)?.to_string())
     }
 
-    fn to_jstring(&mut self, obj: String) -> jstring {
-        self.new_string(obj)
-            .expect("Failed to get Java String")
-            .into_raw()
+    fn get_bool_field(&mut self, obj: &JObject, name: &JNIStr) -> JNIResult<bool> {
+        self.get_field(obj, name, jni_sig!("Z"))?.z()
     }
 
-    fn get_bool_field(&mut self, obj: &JObject, name: &str) -> JNIResult<bool> {
-        self.get_field(obj, name, "Z")?.z()
+    fn get_int_field(&mut self, obj: &JObject, name: &JNIStr) -> JNIResult<i32> {
+        self.get_field(obj, name, jni_sig!("I"))?.i()
     }
 
-    fn get_int_field(&mut self, obj: &JObject, name: &str) -> JNIResult<i32> {
-        self.get_field(obj, name, "I")?.i()
-    }
-
-    fn get_string_field_opt(&mut self, cfg: &JObject, name: &str) -> JNIResult<Option<String>> {
-        let value = self.get_field(cfg, name, "Ljava/lang/String;")?.l()?;
+    fn get_string_field_opt(&mut self, cfg: &JObject, name: &JNIStr) -> JNIResult<Option<String>> {
+        let value = self
+            .get_field(cfg, name, jni_sig!("Ljava/lang/String;"))?
+            .l()?;
         if value.is_null() {
             Ok(None)
         } else {
-            Ok(Some(self.get_string(&JString::from(value))?.into()))
+            let value = self.new_cast_local_ref::<JString>(&value)?;
+            self.get_rust_string(&value).map(Some)
         }
     }
 }
 
-enum Error<E> {
+enum Error {
     Jni(jni::errors::Error),
-    Other(E),
+    Other(String),
 }
 
-impl<E> From<jni::errors::Error> for Error<E> {
+impl From<jni::errors::Error> for Error {
     fn from(value: jni::errors::Error) -> Self {
         Error::Jni(value)
     }
 }
 
-impl<E: fmt::Display> fmt::Display for Error<E> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Error::Jni(error) => error.fmt(f),
-            Error::Other(error) => error.fmt(f),
+            Error::Other(error) => f.write_str(error),
         }
     }
 }
 
-fn build_inliner(
-    env: &mut JNIEnv,
-    cfg: JObject,
-) -> Result<CSSInliner<'static>, Error<css_inline::ParseError>> {
-    let inline_style_tags = env.get_bool_field(&cfg, "inlineStyleTags")?;
-    let keep_style_tags = env.get_bool_field(&cfg, "keepStyleTags")?;
-    let keep_link_tags = env.get_bool_field(&cfg, "keepLinkTags")?;
-    let keep_at_rules = env.get_bool_field(&cfg, "keepAtRules")?;
-    let minify_css = env.get_bool_field(&cfg, "minifyCss")?;
-    let load_remote_stylesheets = env.get_bool_field(&cfg, "loadRemoteStylesheets")?;
-    let cache_size = env.get_int_field(&cfg, "cacheSize")?;
-    let preallocate_node_capacity = env.get_int_field(&cfg, "preallocateNodeCapacity")?;
-    let remove_inlined_selectors = env.get_bool_field(&cfg, "removeInlinedSelectors")?;
-    let apply_width_attributes = env.get_bool_field(&cfg, "applyWidthAttributes")?;
-    let apply_height_attributes = env.get_bool_field(&cfg, "applyHeightAttributes")?;
+/// Maps Rust errors & panics onto `CssInlineException`.
+struct ThrowCssInlineException;
 
-    let extra_css = env.get_string_field_opt(&cfg, "extraCss")?;
-    let base_url = env.get_string_field_opt(&cfg, "baseUrl")?;
+impl<T: Default, E: fmt::Display> ErrorPolicy<T, E> for ThrowCssInlineException {
+    type Captures<'local: 'method, 'method> = ();
+
+    fn on_error<'local: 'method, 'method>(
+        env: &mut Env<'local>,
+        _: &mut Self::Captures<'local, 'method>,
+        error: E,
+    ) -> JNIResult<T> {
+        throw(env, error.to_string())
+    }
+
+    fn on_panic<'local: 'method, 'method>(
+        env: &mut Env<'local>,
+        _: &mut Self::Captures<'local, 'method>,
+        payload: Box<dyn Any + Send + 'static>,
+    ) -> JNIResult<T> {
+        let message = match payload.downcast_ref::<&'static str>() {
+            Some(message) => (*message).to_string(),
+            None => match payload.downcast_ref::<String>() {
+                Some(message) => message.clone(),
+                None => "Unknown panic".to_string(),
+            },
+        };
+        throw(env, format!("Panic: {message}"))
+    }
+}
+
+fn throw<T: Default>(env: &mut Env, message: String) -> JNIResult<T> {
+    if env.exception_check() {
+        return Ok(T::default());
+    }
+    let exception = env.find_class(jni_str!("org/cssinline/CssInlineException"))?;
+    // `throw_new` reports the exception it just threw via `Err(JavaException)`
+    let _ = env.throw_new(exception, JNIString::new(message));
+    Ok(T::default())
+}
+
+fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Error> {
+    let inline_style_tags = env.get_bool_field(cfg, jni_str!("inlineStyleTags"))?;
+    let keep_style_tags = env.get_bool_field(cfg, jni_str!("keepStyleTags"))?;
+    let keep_link_tags = env.get_bool_field(cfg, jni_str!("keepLinkTags"))?;
+    let keep_at_rules = env.get_bool_field(cfg, jni_str!("keepAtRules"))?;
+    let minify_css = env.get_bool_field(cfg, jni_str!("minifyCss"))?;
+    let load_remote_stylesheets = env.get_bool_field(cfg, jni_str!("loadRemoteStylesheets"))?;
+    let cache_size = env.get_int_field(cfg, jni_str!("cacheSize"))?;
+    let preallocate_node_capacity = env.get_int_field(cfg, jni_str!("preallocateNodeCapacity"))?;
+    let remove_inlined_selectors = env.get_bool_field(cfg, jni_str!("removeInlinedSelectors"))?;
+    let apply_width_attributes = env.get_bool_field(cfg, jni_str!("applyWidthAttributes"))?;
+    let apply_height_attributes = env.get_bool_field(cfg, jni_str!("applyHeightAttributes"))?;
+
+    let extra_css = env.get_string_field_opt(cfg, jni_str!("extraCss"))?;
+    let base_url = env.get_string_field_opt(cfg, jni_str!("baseUrl"))?;
     let mut builder = CSSInliner::options()
         .inline_style_tags(inline_style_tags)
         .keep_style_tags(keep_style_tags)
@@ -103,7 +135,7 @@ fn build_inliner(
             Ok(url) => {
                 builder = builder.base_url(Some(url));
             }
-            Err(error) => return Err(Error::Other(error)),
+            Err(error) => return Err(Error::Other(error.to_string())),
         }
     }
 
@@ -116,49 +148,40 @@ fn build_inliner(
     Ok(builder.build())
 }
 
-fn throw(mut env: JNIEnv, message: String) -> jstring {
-    let exception = env
-        .find_class("org/cssinline/CssInlineException")
-        .expect("CssInlineException class not found");
-    env.throw_new(exception, message)
-        .expect("Failed to throw CssInlineException");
-    std::ptr::null_mut()
+#[unsafe(no_mangle)]
+pub extern "system" fn Java_org_cssinline_CssInline_nativeInline<'caller>(
+    mut env: EnvUnowned<'caller>,
+    _class: JClass<'caller>,
+    input: JString<'caller>,
+    cfg: JObject<'caller>,
+) -> JObject<'caller> {
+    env.with_env(|env| -> Result<JObject, Error> {
+        let html = env.get_rust_string(&input)?;
+        let inliner = build_inliner(env, &cfg)?;
+        let out = inliner
+            .inline(&html)
+            .map_err(|error| Error::Other(error.to_string()))?;
+        Ok(JString::from_str(env, out)?.into())
+    })
+    .resolve::<ThrowCssInlineException>()
 }
 
 #[unsafe(no_mangle)]
-pub extern "system" fn Java_org_cssinline_CssInline_nativeInline(
-    mut env: JNIEnv,
-    _class: JClass,
-    input: JString,
-    cfg: JObject,
-) -> jstring {
-    let html = env.get_rust_string(&input);
-    let inliner = match build_inliner(&mut env, cfg) {
-        Ok(inliner) => inliner,
-        Err(error) => return throw(env, error.to_string()),
-    };
-    match inliner.inline(&html) {
-        Ok(out) => env.to_jstring(out),
-        Err(error) => throw(env, error.to_string()),
-    }
-}
-
-#[unsafe(no_mangle)]
-pub extern "system" fn Java_org_cssinline_CssInline_nativeInlineFragment(
-    mut env: JNIEnv,
-    _class: JClass,
-    input: JString,
-    css: JString,
-    cfg: JObject,
-) -> jstring {
-    let html = env.get_rust_string(&input);
-    let css = env.get_rust_string(&css);
-    let inliner = match build_inliner(&mut env, cfg) {
-        Ok(inliner) => inliner,
-        Err(error) => return throw(env, error.to_string()),
-    };
-    match inliner.inline_fragment(&html, &css) {
-        Ok(out) => env.to_jstring(out),
-        Err(error) => throw(env, error.to_string()),
-    }
+pub extern "system" fn Java_org_cssinline_CssInline_nativeInlineFragment<'caller>(
+    mut env: EnvUnowned<'caller>,
+    _class: JClass<'caller>,
+    input: JString<'caller>,
+    css: JString<'caller>,
+    cfg: JObject<'caller>,
+) -> JObject<'caller> {
+    env.with_env(|env| -> Result<JObject, Error> {
+        let html = env.get_rust_string(&input)?;
+        let css = env.get_rust_string(&css)?;
+        let inliner = build_inliner(env, &cfg)?;
+        let out = inliner
+            .inline_fragment(&html, &css)
+            .map_err(|error| Error::Other(error.to_string()))?;
+        Ok(JString::from_str(env, out)?.into())
+    })
+    .resolve::<ThrowCssInlineException>()
 }

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `jni` to `0.22`.
+
 ### Fixed
 
 - `file://` stylesheet URLs not percent-decoded and broken on Windows drive letters.
