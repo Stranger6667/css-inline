@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 path = "src/main/rust/lib.rs"
 
 [dependencies]
-jni = "0.21.1"
+jni = "0.22.4"
 
 [dependencies.css-inline]
 path = "../../css-inline"
