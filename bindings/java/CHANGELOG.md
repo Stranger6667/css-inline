@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `file://` stylesheet URLs not percent-decoded and broken on Windows drive letters.
+
 ## [0.21.1] - 2026-08-08
 
 ### Fixed

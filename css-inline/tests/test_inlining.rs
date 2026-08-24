@@ -1053,6 +1053,38 @@ h2 { color: red; }
 }
 
 #[test]
+fn file_scheme_absolute_path() {
+    // Directory name contains a space, so its URL form is percent-encoded.
+    // On Windows the URL also carries a drive letter (`file:///C:/...`).
+    let dir = std::env::temp_dir().join("css inline tests");
+    std::fs::create_dir_all(&dir).expect("Failed to create directory");
+    std::fs::write(dir.join("external.css"), "h1 { color: blue; }").expect("Failed to write CSS");
+    let base_url = Url::from_directory_path(&dir).expect("Failed to build base URL");
+
+    let html = r#"
+<html>
+<head>
+<link href="external.css" rel="stylesheet">
+</head>
+<body>
+<h1>Big Text</h1>
+</body>
+</html>"#;
+    let options = InlineOptions {
+        base_url: Some(base_url),
+        ..Default::default()
+    };
+    let inlined = CSSInliner::new(options).inline(html);
+    assert_file(
+        inlined,
+        r#"<body>
+<h1 style="color: blue;">Big Text</h1>
+
+</body></html>"#,
+    );
+}
+
+#[test]
 fn customize_inliner() {
     let options = InlineOptions {
         load_remote_stylesheets: false,

@@ -1,0 +1,2 @@
+# Test fixtures are compared byte-for-byte, so keep LF on Windows checkouts too
+* text=auto eol=lf

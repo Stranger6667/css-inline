@@ -1,5 +1,21 @@
 use crate::{InlineError, Result};
-use std::io::ErrorKind;
+use std::{borrow::Cow, io::ErrorKind, path::Path};
+
+/// Turn a `file://` URL into a filesystem path.
+///
+/// Percent-decodes the path and handles Windows drive letters. URLs with a host
+/// (e.g. `file://relative-dir/`) keep the legacy prefix-stripping behavior.
+fn to_file_path(location: &str) -> Cow<'_, Path> {
+    #[cfg(any(unix, windows, target_os = "redox", target_os = "wasi"))]
+    if let Ok(url) = url::Url::parse(location) {
+        if url.scheme() == "file" && url.host().is_none() {
+            if let Ok(path) = url.to_file_path() {
+                return Cow::Owned(path);
+            }
+        }
+    }
+    Cow::Borrowed(Path::new(location.trim_start_matches("file://")))
+}
 
 /// Blocking way of resolving stylesheets from various sources.
 pub trait StylesheetResolver: Send + Sync {
@@ -52,14 +68,15 @@ pub trait StylesheetResolver: Send + Sync {
     ///
     /// Any filesystem-related error.
     fn retrieve_from_path(&self, path: &str) -> Result<String> {
-        let path = path.trim_start_matches("file://");
-        std::fs::read_to_string(path).map_err(|error| match error.kind() {
+        let path = to_file_path(path);
+        std::fs::read_to_string(&path).map_err(|error| match error.kind() {
             ErrorKind::NotFound => InlineError::MissingStyleSheet {
-                path: path.to_string(),
+                path: path.display().to_string(),
             },
             #[cfg(target_family = "wasm")]
             ErrorKind::Unsupported => self.unsupported(&format!(
-                "Loading local files is not supported on WASM: {path}"
+                "Loading local files is not supported on WASM: {}",
+                path.display()
             )),
             _ => InlineError::IO(error),
         })

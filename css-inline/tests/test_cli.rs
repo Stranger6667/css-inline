@@ -10,6 +10,11 @@ pub mod tests {
     use std::fs;
     use test_case::test_case;
 
+    /// `ErrorKind::NotFound` rendered the way the current platform words it.
+    fn not_found_message() -> String {
+        std::io::Error::from_raw_os_error(2).to_string()
+    }
+
     #[test]
     fn success() {
         css_inline()
@@ -199,10 +204,11 @@ pub mod tests {
             .arg("--extra-css-file=tests/nonexistent.css")
             .assert()
             .failure()
-            .stderr(
+            .stderr(format!(
                 "Status: ERROR\n\
-                 Details: Failed to read CSS file 'tests/nonexistent.css': No such file or directory (os error 2)\n",
-            );
+                 Details: Failed to read CSS file 'tests/nonexistent.css': {}\n",
+                not_found_message()
+            ));
     }
 
     #[test]
@@ -224,9 +230,14 @@ pub mod tests {
 
     #[test]
     fn not_found() {
-        css_inline().arg("unknown.html").assert().failure().stderr(
-            "Filename: unknown.html\nStatus: ERROR\nDetails: No such file or directory (os error 2)\n",
-        );
+        css_inline()
+            .arg("unknown.html")
+            .assert()
+            .failure()
+            .stderr(format!(
+                "Filename: unknown.html\nStatus: ERROR\nDetails: {}\n",
+                not_found_message()
+            ));
     }
 
     #[test]
