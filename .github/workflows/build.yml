@@ -65,8 +65,13 @@ jobs:
         working-directory: ./bindings/javascript
 
   test-stable:
-    name: Test (stable)
-    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15, windows-2022]
+
+    name: Test (stable) on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
@@ -78,7 +83,8 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: python ./css-inline/tests/server.py &
+        # Redirect the output, otherwise the Windows runner waits on the inherited handles
+        run: python ./css-inline/tests/server.py > /dev/null 2>&1 &
         shell: bash
 
       - uses: dtolnay/rust-toolchain@stable
