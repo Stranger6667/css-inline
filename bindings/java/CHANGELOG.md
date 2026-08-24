@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.2] - 2026-08-24
+
 ### Changed
 
 - Update `jni` to `0.22`.
@@ -132,7 +134,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.21.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/java-v0.21.2...HEAD
+[0.21.2]: https://github.com/Stranger6667/css-inline/compare/java-v0.21.1...java-v0.21.2
 [0.21.1]: https://github.com/Stranger6667/css-inline/compare/java-v0.21.0...java-v0.21.1
 [0.21.0]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.2...java-v0.21.0
 [0.20.2]: https://github.com/Stranger6667/css-inline/compare/java-v0.20.1...java-v0.20.2
