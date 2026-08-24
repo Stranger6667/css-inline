@@ -21,7 +21,17 @@ release COMPONENT VERSION:
   PREV=$(grep -oP "compare/${C}-v\K[0-9]+\.[0-9]+\.[0-9]+(?=\.\.\.HEAD)" "$CL")
   PREV_RE=${PREV//./\\.}
   DATE=$(date +%Y-%m-%d)
-  sed -i "s/${PREV_RE}/${VERSION}/g" "${FILES[@]}"
+  # Bump only the package's own version line. A global replace also hits
+  # dependency pins that happen to share the version (`jni = "0.21.1"`).
+  for f in "${FILES[@]}"; do
+    case "$f" in
+      *.md)          sed -i "s/${PREV_RE}/${VERSION}/g" "$f"; continue ;;
+      *Gemfile.lock) ANCHOR="css_inline .${PREV_RE}." ;;
+      *)             ANCHOR="version.*${PREV_RE}" ;;
+    esac
+    grep -qiE "$ANCHOR" "$f" || { echo "no version line matching '${PREV}' in $f"; exit 1; }
+    sed -i "0,/${ANCHOR}/Is/${PREV_RE}/${VERSION}/" "$f"
+  done
   sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" "$CL"
   sed -i "s#compare/${C}-v${PREV_RE}\.\.\.HEAD#compare/${C}-v${VERSION}...HEAD#" "$CL"
   sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$CL"
