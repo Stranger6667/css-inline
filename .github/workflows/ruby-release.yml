@@ -19,6 +19,8 @@ jobs:
   cross-gem:
     name: Compile native gem for ${{ matrix.platform }}
     runs-on: ubuntu-22.04
+    env:
+      RUBY_VERSIONS: "3.2,3.3,3.4,4.0"
 
     strategy:
       fail-fast: false
@@ -42,18 +44,30 @@ jobs:
           bundler-cache: true
           working-directory: ./bindings/ruby
 
-      # `cross-gem` reads `rb_sys` version from the root `Gemfile.lock`, and
-      # falls back to the newest published one when it is missing.
-      - name: Expose Gemfile.lock for rb-sys-dock version detection
-        run: cp bindings/ruby/Gemfile.lock Gemfile.lock
+      # `cross-gem` picks the toolchain from the first `rb_sys` line of the root
+      # `Gemfile.lock`. Copying the file wholesale hands it the `PATH` section's
+      # `~>` constraint instead of the resolved version, so pass only the latter.
+      - name: Expose rb_sys version for rb-sys-dock
+        run: grep -E '^ +rb_sys \([0-9]' bindings/ruby/Gemfile.lock > Gemfile.lock
 
       - name: Compile native gem
         id: cross-gem
         uses: oxidize-rb/actions/cross-gem@v1.4.4
         with:
           platform: ${{ matrix.platform }}
-          ruby-versions: "3.2,3.3,3.4,4.0"
+          ruby-versions: ${{ env.RUBY_VERSIONS }}
           working-directory: ./bindings/ruby
+
+      # rake-compiler only warns when the image lacks a requested Ruby, and still
+      # exits 0 with that ABI silently absent from the gem.
+      - name: Verify every Ruby ABI was built
+        working-directory: ./bindings/ruby
+        run: |
+          for version in ${RUBY_VERSIONS//,/ }; do
+            tar -xOf pkg/*.gem data.tar.gz | tar -tzf - \
+              | grep -q "lib/css_inline/$version/" \
+              || { echo "::error::Ruby $version missing from $(ls pkg/*.gem)"; exit 1; }
+          done
 
       # Pushes to RubyGems are irreversible.
       - name: Smoke test
