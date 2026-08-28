@@ -1,0 +1,24 @@
+# frozen_string_literal: true
+
+require "bundler/gem_tasks"
+require "rspec/core/rake_task"
+
+RSpec::Core::RakeTask.new(:spec) do |task|
+  task.pattern = "spec/css_inline/**/*_spec.rb"
+end
+
+# Rails permits one application per process, so each pipeline's integration spec
+# gets its own.
+namespace :integration do
+  %w[propshaft sprockets].each do |pipeline|
+    desc "Run the integration spec against #{pipeline}"
+    task(pipeline) do
+      sh({ "PIPELINE" => pipeline }, "bundle exec rspec spec/integration")
+    end
+  end
+end
+
+desc "Run the integration spec against every pipeline"
+task integration: %w[integration:propshaft integration:sprockets]
+
+task default: %i[spec integration]
