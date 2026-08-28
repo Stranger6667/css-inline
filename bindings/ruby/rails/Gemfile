@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gemspec
+
+# The sibling native gem, built from this checkout.
+gem "css_inline", path: ".."
+
+# CI picks the Rails version through the environment.
+rails_version = ENV.fetch("RAILS_VERSION", "8.1")
+
+if rails_version == "head"
+  gem "rails", github: "rails/rails"
+  gem "propshaft", github: "rails/propshaft"
+else
+  gem "rails", "~> #{rails_version}.0"
+  gem "propshaft"
+end
+
+# Both pipelines, so each loader runs against a real one. A process boots only
+# one, so the integration spec picks with PIPELINE.
+gem "sprockets-rails"
+
+gem "rspec", "~> 3.13"
+gem "standard", "~> 1.56"
