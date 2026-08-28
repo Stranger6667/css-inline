@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.3] - 2026-08-28
+
 ### Added
 
 - Precompiled native gems for Linux (glibc & musl, x86-64 & aarch64), macOS (x86-64 & arm64), and Windows (`x64-mingw-ucrt`). Installing no longer requires a Rust toolchain on these platforms.
@@ -326,7 +328,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.21.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.21.3...HEAD
+[0.21.3]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.21.2...ruby-v0.21.3
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.21.1...ruby-v0.21.2
 [0.21.1]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.21.0...ruby-v0.21.1
 [0.21.0]: https://github.com/Stranger6667/css-inline/compare/ruby-v0.20.3...ruby-v0.21.0

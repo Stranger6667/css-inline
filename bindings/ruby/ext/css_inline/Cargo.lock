@@ -172,7 +172,7 @@ dependencies = [
 
 [[package]]
 name = "css-inline-ruby"
-version = "0.21.2"
+version = "0.21.3"
 dependencies = [
  "css-inline",
  "magnus",
