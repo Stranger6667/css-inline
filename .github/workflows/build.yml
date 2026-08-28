@@ -624,7 +624,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-15, windows-2022]
-        ruby-version: ["3.2", "3.3", "3.4"]
+        ruby-version: ["3.2", "3.3", "3.4", "4.0"]
 
     name: Ruby ${{ matrix.ruby-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -672,7 +672,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-22.04, macos-15, windows-2022]
-        ruby-version: ["3.2", "3.3", "3.4"]
+        ruby-version: ["3.2", "3.3", "3.4", "4.0"]
 
     steps:
       - uses: actions/checkout@v7

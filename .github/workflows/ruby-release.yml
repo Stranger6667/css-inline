@@ -6,7 +6,47 @@ on:
       - ruby-v*
 
 jobs:
+  cross-gem:
+    name: Compile native gem for ${{ matrix.platform }}
+    runs-on: ubuntu-22.04
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - aarch64-linux
+          - arm64-darwin
+          - x64-mingw-ucrt
+          - x86_64-darwin
+          - x86_64-linux
+          - x86_64-linux-musl
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: ./bindings/ruby
+
+      - name: Compile native gem
+        id: cross-gem
+        uses: oxidize-rb/actions/cross-gem@v1.4.4
+        with:
+          platform: ${{ matrix.platform }}
+          ruby-versions: "3.2,3.3,3.4,4.0"
+          working-directory: ./bindings/ruby
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: cross-gem-${{ matrix.platform }}
+          path: ${{ steps.cross-gem.outputs.gem-path }}
+          if-no-files-found: error
+
   ruby-release:
+    needs: cross-gem
     runs-on: ubuntu-22.04
 
     steps:
@@ -22,12 +62,20 @@ jobs:
       - name: Extract Version
         run: echo "version=${GITHUB_REF#refs/tags/ruby-v}" >> $GITHUB_ENV
 
+      - name: Download native gems
+        uses: actions/download-artifact@v8
+        with:
+          pattern: cross-gem-*
+          merge-multiple: true
+          path: ./bindings/ruby/pkg
+
       - name: GitHub Release
         uses: softprops/action-gh-release@v3
         with:
           make_latest: false
           draft: true
           name: "[Ruby] Release ${{ env.version }}"
+          files: ./bindings/ruby/pkg/*.gem
 
       - name: Publish to RubyGems
         run: |
@@ -37,6 +85,8 @@ jobs:
           printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
           cd ./bindings/ruby
           gem build *.gemspec
-          gem push *.gem
+          for gem in *.gem pkg/*.gem; do
+            gem push "$gem"
+          done
         env:
           GEM_HOST_API_KEY: "${{ secrets.RUBYGEMS_API_KEY }}"
