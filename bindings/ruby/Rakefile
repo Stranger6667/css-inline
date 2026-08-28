@@ -12,12 +12,15 @@ spec.required_ruby_version = nil
 spec.required_rubygems_version = nil
 spec.extensions.clear
 spec.files -= Dir["ext/**/*"]
+# `rb_sys` only builds the extension.
+spec.dependencies.reject! { |d| d.name == "rb_sys" }
 
 Rake::ExtensionTask.new("css_inline", spec) do |c|
   c.lib_dir = "lib/css_inline"
   c.cross_compile = true
   c.cross_platform = [
     "aarch64-linux",
+    "aarch64-linux-musl",
     "arm64-darwin",
     "x64-mingw-ucrt",
     "x64-mingw32",

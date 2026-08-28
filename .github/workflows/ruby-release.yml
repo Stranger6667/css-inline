@@ -4,6 +4,16 @@ on:
   push:
     tags:
       - ruby-v*
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and smoke-test the gems without publishing them"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   cross-gem:
@@ -15,6 +25,7 @@ jobs:
       matrix:
         platform:
           - aarch64-linux
+          - aarch64-linux-musl
           - arm64-darwin
           - x64-mingw-ucrt
           - x86_64-darwin
@@ -31,6 +42,11 @@ jobs:
           bundler-cache: true
           working-directory: ./bindings/ruby
 
+      # `cross-gem` reads `rb_sys` version from the root `Gemfile.lock`, and
+      # falls back to the newest published one when it is missing.
+      - name: Expose Gemfile.lock for rb-sys-dock version detection
+        run: cp bindings/ruby/Gemfile.lock Gemfile.lock
+
       - name: Compile native gem
         id: cross-gem
         uses: oxidize-rb/actions/cross-gem@v1.4.4
@@ -38,6 +54,22 @@ jobs:
           platform: ${{ matrix.platform }}
           ruby-versions: "3.2,3.3,3.4,4.0"
           working-directory: ./bindings/ruby
+
+      # Pushes to RubyGems are irreversible.
+      - name: Smoke test
+        if: matrix.platform == 'x86_64-linux'
+        working-directory: ./bindings/ruby
+        env:
+          BUNDLE_GEMFILE: ""
+        run: |
+          gem install pkg/*.gem --local --no-document
+          ruby -e "
+            require 'css_inline'
+            html = '<html><head><style>h1 { color: red; }</style></head><body><h1>Test</h1></body></html>'
+            result = CSSInline.inline(html)
+            raise 'inlining failed' unless result.include?('style=\"color: red;\"')
+            puts 'smoke test OK'
+          "
 
       - uses: actions/upload-artifact@v7
         with:
@@ -48,6 +80,9 @@ jobs:
   ruby-release:
     needs: cross-gem
     runs-on: ubuntu-22.04
+    env:
+      # A manual run from a branch has no version to release.
+      PUBLISH: ${{ !inputs.dry_run && startsWith(github.ref, 'refs/tags/') }}
 
     steps:
       - uses: actions/checkout@v7
@@ -69,7 +104,15 @@ jobs:
           merge-multiple: true
           path: ./bindings/ruby/pkg
 
+      - name: Build source gem
+        working-directory: ./bindings/ruby
+        run: |
+          gem build *.gemspec
+          mv css_inline-*.gem pkg/
+          ls -l pkg/
+
       - name: GitHub Release
+        if: env.PUBLISH == 'true'
         uses: softprops/action-gh-release@v3
         with:
           make_latest: false
@@ -78,15 +121,23 @@ jobs:
           files: ./bindings/ruby/pkg/*.gem
 
       - name: Publish to RubyGems
+        if: env.PUBLISH == 'true'
+        working-directory: ./bindings/ruby
         run: |
           mkdir -p $HOME/.gem
           touch $HOME/.gem/credentials
           chmod 0600 $HOME/.gem/credentials
           printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
-          cd ./bindings/ruby
-          gem build *.gemspec
-          for gem in *.gem pkg/*.gem; do
+          for gem in pkg/*.gem; do
             gem push "$gem"
           done
         env:
           GEM_HOST_API_KEY: "${{ secrets.RUBYGEMS_API_KEY }}"
+
+      - name: Upload gems (no publish)
+        if: env.PUBLISH != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gems
+          path: ./bindings/ruby/pkg/*.gem
+          if-no-files-found: error

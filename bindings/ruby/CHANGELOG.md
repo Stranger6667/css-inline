@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Precompiled native gems for Linux (glibc & musl, x86-64 & aarch64), macOS (x86-64 & arm64), and Windows (`x64-mingw-ucrt`). Installing no longer requires a Rust toolchain on these platforms.
+- Support for Ruby 4.0.
+
 ## [0.21.2] - 2026-08-24
 
 ### Fixed
