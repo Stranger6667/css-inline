@@ -770,6 +770,45 @@ jobs:
               ruby -e "require \"css_inline\"; puts CSSInline.inline(\"<style>h1{color:red}</style><h1>test</h1>\")"
             '
 
+  test-ruby-rails:
+    name: Rails ${{ matrix.rails-version }} / Ruby ${{ matrix.ruby-version }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # The boundaries: the floor the gemspec declares, and the newest.
+        ruby-version: ["3.2", "4.0"]
+        rails-version: ["7.1", "8.0"]
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Ruby & Rust
+        uses: oxidize-rb/actions/setup-ruby-and-rust@v1.4.4
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: false
+          cargo-cache: true
+          cache-version: v1-${{ matrix.ruby-version }}
+          working-directory: ./bindings/ruby
+
+      # The wrapper depends on the sibling gem by path, so its extension has to
+      # exist before the wrapper's bundle resolves.
+      - name: Build the native extension
+        run: |
+          bundle install
+          bundle exec rake compile
+        working-directory: ./bindings/ruby
+
+      - name: Run specs
+        run: |
+          bundle install
+          bundle exec rake
+        working-directory: ./bindings/ruby/rails
+        env:
+          RAILS_VERSION: ${{ matrix.rails-version }}
+
   test-wasm:
     name: WASM module tests
     runs-on: ubuntu-22.04

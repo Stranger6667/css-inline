@@ -1,0 +1,27 @@
+# frozen_string_literal: true
+
+source "https://rubygems.org"
+
+gemspec
+
+# The sibling native gem, built from this checkout rather than RubyGems.
+gem "css_inline", path: ".."
+
+# Matches premailer-rails' approach: drive the Rails version from the
+# environment instead of pulling in Appraisal.
+rails_version = ENV.fetch("RAILS_VERSION", "8.0")
+
+if rails_version == "head"
+  gem "rails", github: "rails/rails"
+  gem "propshaft", github: "rails/propshaft"
+else
+  gem "rails", "~> #{rails_version}.0"
+  gem "propshaft"
+end
+
+# Both pipelines are installed so their loaders can be tested against the real
+# thing. Only one can be booted per process, so the integration spec picks with
+# PIPELINE; the loader specs drive both directly.
+gem "sprockets-rails"
+
+gem "rspec", "~> 3.13"
