@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Pyodide 3.14 wheels for the `pyemscripten_2026_0` platform. [#786](https://github.com/Stranger6667/css-inline/issues/786)
+
 ## [0.21.2] - 2026-08-24
 
 ### Fixed

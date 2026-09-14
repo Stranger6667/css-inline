@@ -529,28 +529,28 @@ jobs:
     name: Build PyOdide wheel
     runs-on: ubuntu-22.04
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - build: "cp313-*"
+            toolchain: nightly-2025-02-01
+          - build: "cp314-*"
+            toolchain: 1.93.0
     steps:
       - uses: actions/checkout@v7
-      - uses: dtolnay/rust-toolchain@nightly
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          # Nightly 1.86 as 1.87+ is incompatible with PyOdide as of now
-          toolchain: nightly-2025-02-01
+          toolchain: ${{ matrix.toolchain }}
           targets: wasm32-unknown-emscripten
           components: rust-src
-      - uses: actions/setup-python@v7
+      - uses: pypa/cibuildwheel@v4.1.0
         with:
-          python-version: 3.13
-      - run: |
-          pip install pyodide-build>=0.28.0
-          echo EMSCRIPTEN_VERSION=$(pyodide config get emscripten_version) >> $GITHUB_ENV
-      - uses: mymindstorm/setup-emsdk@v16
-        with:
-          version: ${{ env.EMSCRIPTEN_VERSION }}
-      - run: pyodide build
-        working-directory: ./bindings/python
+          package-dir: ./bindings/python
         env:
-          DEFAULT_CROSS_BUILD_ENV_URL: "https://github.com/pyodide/pyodide/releases/download/0.28.0a3/xbuildenv-0.28.0a3.tar.bz2"
-          RUSTFLAGS: "-C link-arg=-sSIDE_MODULE=2 -Z link-native-libraries=no -Z emscripten-wasm-eh"
+          CIBW_PLATFORM: pyodide
+          CIBW_BUILD: ${{ matrix.build }}
+          CIBW_ENABLE: pyodide-eol
 
   test-php:
     strategy:
