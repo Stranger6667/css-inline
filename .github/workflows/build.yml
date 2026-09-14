@@ -546,7 +546,7 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           targets: wasm32-unknown-emscripten
           components: rust-src
-      - uses: pypa/cibuildwheel@v4.1.0
+      - uses: pypa/cibuildwheel@v4.2.1
         with:
           package-dir: ./bindings/python
         env:
