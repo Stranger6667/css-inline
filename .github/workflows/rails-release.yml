@@ -1,0 +1,77 @@
+name: "[Rails] Release"
+
+on:
+  push:
+    tags:
+      - rails-v*
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build the gem without publishing it"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rails-release:
+    runs-on: ubuntu-24.04
+    env:
+      # A manual run from a branch has no version to release.
+      PUBLISH: ${{ !inputs.dry_run && startsWith(github.ref, 'refs/tags/') }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - name: Extract Version
+        run: echo "version=${GITHUB_REF#refs/tags/rails-v}" >> $GITHUB_ENV
+
+      - name: Check the tag matches the gem version
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: ./bindings/ruby/rails
+        run: |
+          gem_version=$(ruby -r ./lib/css_inline/rails/version -e "print CSSInline::Rails::VERSION")
+          if [ "$gem_version" != "${{ env.version }}" ]; then
+            echo "::error::Tag says ${{ env.version }}, version.rb says ${gem_version}"
+            exit 1
+          fi
+
+      - name: Build gem
+        working-directory: ./bindings/ruby/rails
+        run: gem build css_inline-rails.gemspec
+
+      - name: GitHub Release
+        if: env.PUBLISH == 'true'
+        uses: softprops/action-gh-release@v3
+        with:
+          make_latest: false
+          draft: true
+          name: "[Rails] Release ${{ env.version }}"
+          files: ./bindings/ruby/rails/*.gem
+
+      - name: Publish to RubyGems
+        if: env.PUBLISH == 'true'
+        working-directory: ./bindings/ruby/rails
+        run: |
+          mkdir -p $HOME/.gem
+          touch $HOME/.gem/credentials
+          chmod 0600 $HOME/.gem/credentials
+          printf -- "---\n:rubygems_api_key: ${GEM_HOST_API_KEY}\n" > $HOME/.gem/credentials
+          gem push css_inline-rails-*.gem
+        env:
+          GEM_HOST_API_KEY: "${{ secrets.RUBYGEMS_API_KEY }}"
+
+      - name: Upload gem (no publish)
+        if: env.PUBLISH != 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gem
+          path: ./bindings/ruby/rails/*.gem
+          if-no-files-found: error
