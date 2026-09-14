@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.21.3] - 2026-09-14
+
 ### Added
 
 - Pyodide 3.14 wheels for the `pyemscripten_2026_0` platform. [#786](https://github.com/Stranger6667/css-inline/issues/786)
@@ -601,7 +603,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.3...HEAD
+[0.21.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.2...python-v0.21.3
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.1...python-v0.21.2
 [0.21.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.0...python-v0.21.1
 [0.21.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.20.2...python-v0.21.0
