@@ -535,8 +535,10 @@ jobs:
         include:
           - build: "cp313-*"
             toolchain: nightly-2025-02-01
+            artifact: cp313
           - build: "cp314-*"
             toolchain: 1.93.0
+            artifact: cp314
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable

@@ -295,8 +295,10 @@ jobs:
         include:
           - build: "cp313-*"
             toolchain: nightly-2025-02-01
+            artifact: cp313
           - build: "cp314-*"
             toolchain: 1.93.0
+            artifact: cp314
     steps:
       - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
@@ -315,7 +317,7 @@ jobs:
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
-          name: wheel-pyodide-${{ matrix.build }}
+          name: wheel-pyodide-${{ matrix.artifact }}
           if-no-files-found: error
           path: ./bindings/python/dist
 
