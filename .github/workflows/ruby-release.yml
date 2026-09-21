@@ -52,7 +52,7 @@ jobs:
 
       - name: Compile native gem
         id: cross-gem
-        uses: oxidize-rb/actions/cross-gem@v1.4.4
+        uses: oxidize-rb/actions/cross-gem@v1.5.0
         with:
           platform: ${{ matrix.platform }}
           ruby-versions: ${{ env.RUBY_VERSIONS }}
