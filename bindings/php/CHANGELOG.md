@@ -12,6 +12,10 @@
 
 - `remove_inlined_selectors` removed `@`-rules from the `<style>` blocks it rewrites (it should remove only inlined selectors).
 
+### Security
+
+- `class` attribute values not HTML-escaped in the output, allowing markup injection via `"` in a class value. [GHSA-jh54-c7gc-mvcc](https://github.com/Stranger6667/css-inline/security/advisories/GHSA-jh54-c7gc-mvcc)
+
 ## [0.21.2] - 2026-08-24
 
 ### Fixed

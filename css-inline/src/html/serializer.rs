@@ -440,7 +440,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
         self.writer.write_all(name.local.as_bytes())?;
         if let Some(class) = &attrs.class {
             self.writer.write_all(b" class=\"")?;
-            self.writer.write_all(class.value.as_bytes())?;
+            self.write_attributes(&class.value)?;
             self.writer.write_all(b"\"")?;
         }
 
@@ -933,6 +933,29 @@ mod tests {
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
+    }
+
+    #[test]
+    fn test_class_attribute_escaped() {
+        let doc = Document::parse_with_options(
+            b"<!DOCTYPE html><html><head></head><body class='\"><img src=x onerror=alert(1)> &amp; \xC2\xA0'></body></html>",
+            0,
+            InliningMode::Document,
+        );
+        let mut buffer = Vec::new();
+        doc.serialize(
+            &mut buffer,
+            vec![None; doc.nodes.len()],
+            false,
+            false,
+            false,
+            None,
+            InliningMode::Document,
+            false,
+            false,
+        )
+        .expect("Should not fail");
+        assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body class=\"&quot;><img src=x onerror=alert(1)> &amp; &nbsp;\"></body></html>");
     }
 
     #[test]
