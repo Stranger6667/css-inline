@@ -269,7 +269,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: actions/setup-python@v7
         with:
-          python-version: pypy${{ matrix.python-version }}
+          # The manylinux container builds for PyPy 7.3; the install check must run on the same ABI.
+          python-version: pypy${{ matrix.python-version }}-v7.3.x
       - name: Build wheels
         uses: messense/maturin-action@v1
         with:
