@@ -15,7 +15,7 @@ pub(crate) type Name<'i> = cssparser::CowRcStr<'i>;
 pub(crate) type Declaration<'i> = (Name<'i>, &'i str);
 pub(crate) type QualifiedRule<'i> = (&'i str, (usize, usize));
 
-fn exhaust<'i>(input: &mut cssparser::Parser<'i, '_>) -> &'i str {
+fn exhaust<'i>(input: &mut cssparser::Parser<'i>) -> &'i str {
     let start = input.position();
     while input.next().is_ok() {}
     input.slice_from(start)
@@ -29,20 +29,20 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSRuleListParser<'_, 'i> {
     type QualifiedRule = QualifiedRule<'i>;
     type Error = ();
 
-    fn parse_prelude<'t>(
+    fn parse_prelude(
         &mut self,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<Self::Error>> {
         // Proceed with parsing until the end of the prelude.
         Ok(exhaust(input))
     }
 
-    fn parse_block<'t>(
+    fn parse_block(
         &mut self,
         prelude: Self::Prelude,
         _: &ParserState,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::QualifiedRule, cssparser::ParseError<Self::Error>> {
         Ok((prelude, parse_declarations_into(input, self.0)))
     }
 }
@@ -52,12 +52,12 @@ impl<'i> cssparser::DeclarationParser<'i> for CSSDeclarationListParser {
     type Declaration = Declaration<'i>;
     type Error = ();
 
-    fn parse_value<'t>(
+    fn parse_value(
         &mut self,
         name: Name<'i>,
-        input: &mut cssparser::Parser<'i, 't>,
+        input: &mut cssparser::Parser<'i>,
         _declaration_start: &ParserState,
-    ) -> Result<Self::Declaration, cssparser::ParseError<'i, Self::Error>> {
+    ) -> Result<Self::Declaration, cssparser::ParseError<Self::Error>> {
         Ok((name, exhaust(input)))
     }
 }
@@ -115,19 +115,19 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_
     type QualifiedRule = QualifiedRule<'i>;
     type Error = ();
 
-    fn parse_prelude<'t>(
+    fn parse_prelude(
         &mut self,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<Self::Error>> {
         Ok(exhaust(input))
     }
 
-    fn parse_block<'t>(
+    fn parse_block(
         &mut self,
         prelude: Self::Prelude,
         _: &ParserState,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::QualifiedRule, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::QualifiedRule, cssparser::ParseError<Self::Error>> {
         Ok((prelude, parse_declarations_into(input, self.declarations)))
     }
 }
@@ -137,22 +137,22 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
     type AtRule = QualifiedRule<'i>;
     type Error = ();
 
-    fn parse_prelude<'t>(
+    fn parse_prelude(
         &mut self,
         name: cssparser::CowRcStr<'i>,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::Prelude, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::Prelude, cssparser::ParseError<Self::Error>> {
         self.at_rules.push('@');
         self.at_rules.push_str(&name);
         Ok(exhaust(input))
     }
 
-    fn parse_block<'t>(
+    fn parse_block(
         &mut self,
         prelude: Self::Prelude,
         _start: &ParserState,
-        input: &mut cssparser::Parser<'i, 't>,
-    ) -> Result<Self::AtRule, cssparser::ParseError<'i, Self::Error>> {
+        input: &mut cssparser::Parser<'i>,
+    ) -> Result<Self::AtRule, cssparser::ParseError<Self::Error>> {
         let start = self.at_rules.len();
         self.at_rules.push_str(prelude);
         self.at_rules.push('{');
@@ -179,7 +179,7 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
 }
 
 fn parse_declarations_into<'i>(
-    input: &mut cssparser::Parser<'i, '_>,
+    input: &mut cssparser::Parser<'i>,
     declarations: &mut Vec<Declaration<'i>>,
 ) -> (usize, usize) {
     let mut parser = CSSDeclarationListParser;

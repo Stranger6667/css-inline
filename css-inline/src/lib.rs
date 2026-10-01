@@ -726,8 +726,7 @@ impl<'a> CSSInliner<'a> {
         if let (Some(state), Some(chunks)) = (&mut selector_cleanup_state, css_chunks) {
             state.chunks = chunks;
         }
-        let mut parse_input = cssparser::ParserInput::new(&raw_styles);
-        let mut parser = cssparser::Parser::new(&mut parse_input);
+        let mut parser = cssparser::Parser::new(&raw_styles);
         // Allocating some memory for all the parsed declarations
         #[allow(
             clippy::cast_precision_loss,

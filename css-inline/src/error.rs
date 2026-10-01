@@ -1,5 +1,5 @@
 //! Errors that may happen during inlining.
-use cssparser::{BasicParseErrorKind, ParseError, ParseErrorKind};
+use cssparser::{BasicParseErrorKind, ParseError, ParseErrorKind, SourceLocation};
 use std::{
     borrow::Cow,
     error::Error,
@@ -62,16 +62,37 @@ impl Display for InlineError {
     }
 }
 
-impl From<(ParseError<'_, ()>, &str)> for InlineError {
-    fn from(error: (ParseError<'_, ()>, &str)) -> Self {
+impl From<(ParseError<()>, &str, SourceLocation)> for InlineError {
+    fn from(error: (ParseError<()>, &str, SourceLocation)) -> Self {
+        // `cssparser` does not store the offending token or rule name; the source slice ends with it
+        let source = error.1;
         match error.0.kind {
             ParseErrorKind::Basic(kind) => match kind {
-                BasicParseErrorKind::UnexpectedToken(token) => {
-                    Self::ParseError(Cow::Owned(format!("Unexpected token: {token:?}")))
+                BasicParseErrorKind::UnexpectedToken => {
+                    let mut parser = cssparser::Parser::new(source);
+                    let mut last = None;
+                    while let Ok(token) = parser.next() {
+                        last = Some(format!("{token:?}"));
+                    }
+                    match last {
+                        Some(token) => {
+                            Self::ParseError(Cow::Owned(format!("Unexpected token: {token}")))
+                        }
+                        None => Self::ParseError(Cow::Borrowed("Unexpected token")),
+                    }
                 }
                 BasicParseErrorKind::EndOfInput => Self::ParseError(Cow::Borrowed("End of input")),
-                BasicParseErrorKind::AtRuleInvalid(value) => {
-                    Self::ParseError(Cow::Owned(format!("Invalid @ rule: {value}")))
+                BasicParseErrorKind::AtRuleInvalid => {
+                    let name = source
+                        .trim_start()
+                        .trim_start_matches('@')
+                        .split(|c: char| c.is_whitespace() || matches!(c, '{' | ';'))
+                        .next()
+                        .unwrap_or_default();
+                    Self::ParseError(Cow::Owned(format!("Invalid @ rule: {name}")))
+                }
+                BasicParseErrorKind::TooManyNestedBlocks => {
+                    Self::ParseError(Cow::Borrowed("Too many nested blocks"))
                 }
                 BasicParseErrorKind::AtRuleBodyInvalid => {
                     Self::ParseError(Cow::Borrowed("Invalid @ rule body"))

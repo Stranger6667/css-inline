@@ -28,11 +28,11 @@ impl ElementSource<'_> {
 
 /// Compile selectors from a string and create an element iterator that yields elements matching these selectors.
 #[inline]
-pub(crate) fn select<'a, 'b, 'c>(
+pub(crate) fn select<'a, 'c>(
     document: &'a Document,
-    selectors: &'b str,
+    selectors: &str,
     caches: &'c mut SelectorCaches,
-) -> Result<Select<'a, 'c>, ParseError<'b>> {
+) -> Result<Select<'a, 'c>, ParseError> {
     Selectors::compile(selectors).map(|selectors| {
         // Only use indexes if they were built during parsing
         let source = if document.has_indexes() {

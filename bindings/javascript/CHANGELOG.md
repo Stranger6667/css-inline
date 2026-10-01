@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `cssparser` to `0.38`.
+- Update `html5ever` to `0.40`.
+- Update `selectors` to `0.41`.
+
 ## [0.21.2] - 2026-08-24
 
 ### Fixed
