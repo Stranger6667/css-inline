@@ -29,5 +29,5 @@ python-discovery==1.6.1
     # via virtualenv
 tox==4.26.0
     # via -r dev.in
-virtualenv==21.7.12
+virtualenv==21.7.13
     # via tox
