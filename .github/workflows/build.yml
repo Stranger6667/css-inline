@@ -132,12 +132,20 @@ jobs:
     name: Clippy
     runs-on: ubuntu-22.04
     timeout-minutes: 20
+    env:
+      # `rb-sys` regenerates its Ruby bindings when this changes; otherwise cached ones are reused
+      RUBY_VERSION: "3.2"
     steps:
       - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
+
+      # magnus builds against the installed Ruby; the runner's system Ruby is older than the gem supports
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
 
       - uses: Swatinem/rust-cache@v2
         with:
