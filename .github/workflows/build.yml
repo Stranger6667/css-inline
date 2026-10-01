@@ -192,6 +192,12 @@ jobs:
         with:
           workspaces: css-inline
 
+      # Pinned: newer releases may require a newer rustc than MSRV
+      - run: |
+          cargo generate-lockfile
+          cargo update -p yoke-derive --precise 0.8.4
+        working-directory: ./css-inline
+
       - run: cargo build
         working-directory: ./css-inline
 
@@ -546,6 +552,11 @@ jobs:
           toolchain: ${{ matrix.toolchain }}
           targets: wasm32-unknown-emscripten
           components: rust-src
+      # Pinned: newer releases may require a newer rustc than the pinned toolchain
+      - run: |
+          cargo generate-lockfile
+          cargo update -p yoke-derive --precise 0.8.4
+        working-directory: ./bindings/python
       - uses: pypa/cibuildwheel@v4.2.1
         with:
           package-dir: ./bindings/python
