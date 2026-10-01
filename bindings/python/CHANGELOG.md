@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.22.0] - 2026-10-02
+
 ### Changed
 
 - Update `cssparser` to `0.38`.
@@ -617,7 +619,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.3...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.0...HEAD
+[0.22.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.3...python-v0.22.0
 [0.21.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.2...python-v0.21.3
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.1...python-v0.21.2
 [0.21.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.0...python-v0.21.1
