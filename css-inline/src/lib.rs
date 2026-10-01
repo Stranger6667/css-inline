@@ -141,12 +141,16 @@ struct SelectorUsage<'i> {
 struct RuleRemainder<'i> {
     selectors: SelectorList<'i>,
     declarations: (usize, usize),
+    /// Offset of the first selector in the combined CSS.
+    offset: usize,
 }
 
 #[derive(Debug, Default)]
 struct SelectorCleanupState<'i> {
     chunks: Vec<CssChunk>,
     usages: Vec<SelectorUsage<'i>>,
+    /// `@`-rule ranges in the combined CSS, per chunk; empty for chunks without a style node.
+    chunk_at_rules: Vec<Vec<Range<usize>>>,
 }
 
 impl<'i> SelectorCleanupState<'i> {
@@ -154,8 +158,26 @@ impl<'i> SelectorCleanupState<'i> {
         self.usages.push(usage);
     }
 
-    fn has_unmatched(&self) -> bool {
+    /// Keep the `@`-rule starting at `rule` and ending at byte `end` of `source` in the `<style>`
+    /// block it came from.
+    fn record_at_rule(&mut self, source: &str, rule: &str, end: usize) {
+        if !rule.starts_with('@') {
+            return;
+        }
+        let start = (rule.as_ptr() as usize).wrapping_sub(source.as_ptr() as usize);
+        if let Some(idx) = find_chunk_index(&self.chunks, start) {
+            let chunk = &self.chunks[idx];
+            if chunk.style_node.is_some() {
+                // An unterminated `@`-rule runs into the following blocks; it ends with its own.
+                self.chunk_at_rules[idx].push(start..end.min(chunk.range.end));
+            }
+        }
+    }
+
+    /// Whether any rewritten `<style>` block keeps content.
+    fn needs_css(&self) -> bool {
         self.usages.iter().any(|usage| !usage.matched)
+            || self.chunk_at_rules.iter().any(|ranges| !ranges.is_empty())
     }
 }
 
@@ -232,11 +254,18 @@ fn apply_selector_cleanup<'i>(
     document: &mut Document,
     requested_keep_style_tags: bool,
     declarations: &[parser::Declaration<'i>],
+    source: &'i str,
 ) {
-    if state.usages.is_empty() || state.chunks.is_empty() {
+    if state.chunks.is_empty() {
         return;
     }
-    rewrite_style_blocks(state, document, requested_keep_style_tags, declarations);
+    rewrite_style_blocks(
+        state,
+        document,
+        requested_keep_style_tags,
+        declarations,
+        source,
+    );
 }
 
 fn rewrite_style_blocks<'i>(
@@ -244,7 +273,9 @@ fn rewrite_style_blocks<'i>(
     document: &mut Document,
     requested_keep_style_tags: bool,
     declarations: &[parser::Declaration<'i>],
+    source: &'i str,
 ) {
+    let source_start = source.as_ptr() as usize;
     let mut chunk_remainders: Vec<Vec<RuleRemainder<'i>>> =
         (0..state.chunks.len()).map(|_| Vec::new()).collect();
     let mut remainder_lookup: FxHashMap<(usize, usize), usize> = FxHashMap::default();
@@ -263,6 +294,7 @@ fn rewrite_style_blocks<'i>(
             chunk_remainders[usage.chunk_index].push(RuleRemainder {
                 selectors: SelectorList::new(),
                 declarations: usage.declarations,
+                offset: (trimmed.as_ptr() as usize).wrapping_sub(source_start),
             });
             idx
         });
@@ -272,21 +304,29 @@ fn rewrite_style_blocks<'i>(
     }
 
     for (idx, chunk) in state.chunks.iter().enumerate() {
-        let rules = &chunk_remainders[idx];
-        if rules.is_empty() {
+        // Remainders and `@`-rules, keyed by their offset so the block keeps source order.
+        let mut items: Vec<(usize, String)> = Vec::new();
+        for remainder in &chunk_remainders[idx] {
+            let mut text = String::new();
+            append_rule(&mut text, remainder, declarations);
+            items.push((remainder.offset, text.trim().to_string()));
+        }
+        for range in &state.chunk_at_rules[idx] {
+            items.push((range.start, source[range.clone()].trim().to_string()));
+        }
+        items.retain(|(_, text)| !text.is_empty());
+        if items.is_empty() {
             handle_empty_remainder(document, chunk, requested_keep_style_tags);
             continue;
         }
-        let mut buffer = String::new();
-        for remainder in rules {
-            append_rule(&mut buffer, remainder, declarations);
-        }
-        if buffer.trim().is_empty() {
-            handle_empty_remainder(document, chunk, requested_keep_style_tags);
-            continue;
-        }
+        items.sort_by_key(|(offset, _)| *offset);
+        let buffer = items
+            .into_iter()
+            .map(|(_, text)| text)
+            .collect::<Vec<_>>()
+            .join("\n");
         if let Some(node_id) = chunk.style_node {
-            overwrite_style_node(document, node_id, buffer.trim_end());
+            overwrite_style_node(document, node_id, &buffer);
         }
     }
 }
@@ -660,7 +700,9 @@ impl<'a> CSSInliner<'a> {
         //      selector's specificity. When two rules overlap on the same declaration, then
         //      the one with higher specificity replaces another.
         //   2. Resulting styles are merged into existing "style" tags.
-        let track_selector_cleanup = self.options.remove_inlined_selectors;
+        // Without `inline_style_tags` no `<style>` rule is inlined, so none is removed.
+        let track_selector_cleanup =
+            self.options.remove_inlined_selectors && self.options.inline_style_tags;
         let mut size_estimate: usize = if self.options.inline_style_tags {
             document
                 .styles()
@@ -724,6 +766,7 @@ impl<'a> CSSInliner<'a> {
             None
         };
         if let (Some(state), Some(chunks)) = (&mut selector_cleanup_state, css_chunks) {
+            state.chunk_at_rules = vec![Vec::new(); chunks.len()];
             state.chunks = chunks;
         }
         let mut parser = cssparser::Parser::new(&raw_styles);
@@ -755,13 +798,30 @@ impl<'a> CSSInliner<'a> {
             Some(at_rules)
         } else if !raw_styles.is_empty() {
             // At this point, we collected some styles from at least one source, hence we need to process it.
-            for rule in cssparser::StyleSheetParser::new(
-                &mut parser,
-                &mut parser::CSSRuleListParser::new(&mut declarations),
-            )
-            .flatten()
-            {
-                rule_list.push(rule);
+            // `CSSRuleListParser` rejects `@`-rules. Selector cleanup keeps them in the rewritten
+            // `<style>` blocks, so it needs each rejected rule's span.
+            let mut rule_list_parser = parser::CSSRuleListParser::new(&mut declarations);
+            let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_list_parser);
+            // A rejected rule's block stays pending until the parser moves on; skipping
+            // whitespace consumes it, so the rule's span ends there.
+            // The error carries the rule's start, past any whitespace and comments.
+            let mut rejected = None;
+            loop {
+                if let Some(rule) = rejected.take() {
+                    items.input.skip_whitespace();
+                    let end = items.input.position().byte_index();
+                    if let Some(state) = selector_cleanup_state.as_mut() {
+                        state.record_at_rule(&raw_styles, rule, end);
+                    }
+                }
+                match items.next() {
+                    None => break,
+                    Some(Ok(rule)) => rule_list.push(rule),
+                    Some(Err((_, rule, _))) if selector_cleanup_state.is_some() => {
+                        rejected = Some(rule);
+                    }
+                    Some(Err(_)) => {}
+                }
             }
             None
         } else {
@@ -857,7 +917,7 @@ impl<'a> CSSInliner<'a> {
         }
         let cleanup_requires_css = selector_cleanup_state
             .as_ref()
-            .is_some_and(SelectorCleanupState::has_unmatched);
+            .is_some_and(SelectorCleanupState::needs_css);
         let keep_style_tags = self.options.keep_style_tags || cleanup_requires_css;
         if let Some(state) = selector_cleanup_state.as_ref() {
             apply_selector_cleanup(
@@ -865,6 +925,7 @@ impl<'a> CSSInliner<'a> {
                 &mut document,
                 self.options.keep_style_tags,
                 &declarations,
+                &raw_styles,
             );
         }
         document.serialize(
