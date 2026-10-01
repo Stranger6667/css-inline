@@ -417,11 +417,11 @@ impl Document {
     }
 
     /// Filter this node iterator to elements matching the given selectors.
-    pub(crate) fn select<'a, 'b, 'c>(
+    pub(crate) fn select<'a, 'c>(
         &'a self,
-        selectors: &'b str,
+        selectors: &str,
         caches: &'c mut SelectorCaches,
-    ) -> Result<Select<'a, 'c>, ParseError<'b>> {
+    ) -> Result<Select<'a, 'c>, ParseError> {
         select(self, selectors, caches)
     }
 }

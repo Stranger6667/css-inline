@@ -36,12 +36,11 @@ impl Specificity {
     }
 }
 
-pub(crate) type ParseError<'i> = cssparser::ParseError<'i, SelectorParseErrorKind<'i>>;
+pub(crate) type ParseError = cssparser::ParseError<SelectorParseErrorKind>;
 
 /// Parse CSS selectors into `SelectorList`.
-fn parse(selectors: &str) -> Result<SelectorList<InlinerSelectors>, ParseError<'_>> {
-    let mut input = cssparser::ParserInput::new(selectors);
-    let parser = &mut cssparser::Parser::new(&mut input);
+fn parse(selectors: &str) -> Result<SelectorList<InlinerSelectors>, ParseError> {
+    let parser = &mut cssparser::Parser::new(selectors);
     SelectorList::parse(&parser::SelectorParser, parser, ParseRelative::No)
 }
 
@@ -86,7 +85,7 @@ fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
 impl Selectors {
     /// Compile a list of selectors.
     #[inline]
-    pub(super) fn compile(selectors: &str) -> Result<Selectors, ParseError<'_>> {
+    pub(super) fn compile(selectors: &str) -> Result<Selectors, ParseError> {
         parse(selectors).map(|list| Selectors(list.slice().into()))
     }
 

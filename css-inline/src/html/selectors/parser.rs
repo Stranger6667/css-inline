@@ -1,5 +1,5 @@
 use super::{pseudo_classes::PseudoClass, selector_impl::InlinerSelectors, ParseError};
-use cssparser::{CowRcStr, SourceLocation};
+use cssparser::CowRcStr;
 use selectors::{parser::SelectorParseErrorKind, Parser};
 
 /// CSS selector parser.
@@ -7,14 +7,10 @@ pub(crate) struct SelectorParser;
 
 impl<'i> Parser<'i> for SelectorParser {
     type Impl = InlinerSelectors;
-    type Error = SelectorParseErrorKind<'i>;
+    type Error = SelectorParseErrorKind;
 
     #[allow(clippy::enum_glob_use)]
-    fn parse_non_ts_pseudo_class(
-        &self,
-        location: SourceLocation,
-        name: CowRcStr<'i>,
-    ) -> Result<PseudoClass, ParseError<'i>> {
+    fn parse_non_ts_pseudo_class(&self, name: CowRcStr<'i>) -> Result<PseudoClass, ParseError> {
         use self::PseudoClass::*;
         if name.eq_ignore_ascii_case("any-link") {
             Ok(AnyLink)
@@ -37,11 +33,9 @@ impl<'i> Parser<'i> for SelectorParser {
         } else if name.eq_ignore_ascii_case("indeterminate") {
             Ok(Indeterminate)
         } else {
-            Err(
-                location.new_custom_error(SelectorParseErrorKind::UnsupportedPseudoClassOrElement(
-                    name,
-                )),
-            )
+            Err(ParseError::custom(
+                SelectorParseErrorKind::UnsupportedPseudoClassOrElement,
+            ))
         }
     }
 }

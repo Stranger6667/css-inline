@@ -677,6 +677,10 @@ fn media_query_ignore() {
 
 #[test_case("@wrong { color: --- }", "Invalid @ rule: wrong")]
 #[test_case("ttt { 123 }", "Unexpected token: CurlyBracketBlock")]
+#[test_case("@wrong;", "Invalid @ rule: wrong")]
+#[test_case("color: red; @foo {}", "Invalid @ rule: foo")]
+#[test_case("@-x-y{a:b}", "Invalid @ rule: -x-y")]
+#[test_case("a {{{{", "Unexpected token: CurlyBracketBlock")]
 #[test_case("----", "End of input")]
 fn invalid_rule(style: &str, expected: &str) {
     let html = html!(

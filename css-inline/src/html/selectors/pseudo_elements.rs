@@ -1,4 +1,3 @@
-use super::selector_impl::InlinerSelectors;
 use cssparser::ToCss;
 use std::fmt;
 
@@ -14,6 +13,4 @@ impl ToCss for PseudoElement {
     }
 }
 
-impl selectors::parser::PseudoElement for PseudoElement {
-    type Impl = InlinerSelectors;
-}
+impl selectors::parser::PseudoElement for PseudoElement {}

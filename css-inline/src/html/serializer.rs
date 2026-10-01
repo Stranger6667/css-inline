@@ -121,8 +121,7 @@ fn find_style_value<'a>(styles: &'a ElementStyleMap<'_>, property: &str) -> Opti
 
 /// Find a property value in an element's inline `style` attribute (last declaration wins).
 fn find_inline_style_value<'a>(style: &'a str, property: &str) -> Option<&'a str> {
-    let mut input = cssparser::ParserInput::new(style);
-    let mut css_parser = cssparser::Parser::new(&mut input);
+    let mut css_parser = cssparser::Parser::new(style);
     let mut declaration_parser = parser::CSSDeclarationListParser;
     let declarations = cssparser::RuleBodyParser::new(&mut css_parser, &mut declaration_parser);
     let mut found = None;
@@ -705,8 +704,7 @@ fn merge_styles<Wr: Write>(
 ) -> Result<(), InlineError> {
     // This function is designed with a focus on reusing existing allocations where possible
     // We start by parsing the current declarations in the "style" attribute
-    let mut parser_input = cssparser::ParserInput::new(current_style);
-    let mut parser = cssparser::Parser::new(&mut parser_input);
+    let mut parser = cssparser::Parser::new(current_style);
     let mut declaration_parser = parser::CSSDeclarationListParser;
     let current_declarations = cssparser::RuleBodyParser::new(&mut parser, &mut declaration_parser);
     // We manually manage the length of our buffer. The buffer may contain slots used

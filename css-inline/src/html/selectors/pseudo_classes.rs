@@ -1,4 +1,3 @@
-use super::selector_impl::InlinerSelectors;
 use cssparser::ToCss;
 use selectors::parser::NonTSPseudoClass;
 use std::fmt;
@@ -18,8 +17,6 @@ pub(crate) enum PseudoClass {
 }
 
 impl NonTSPseudoClass for PseudoClass {
-    type Impl = InlinerSelectors;
-
     fn is_active_or_hover(&self) -> bool {
         matches!(*self, PseudoClass::Active | PseudoClass::Hover)
     }
