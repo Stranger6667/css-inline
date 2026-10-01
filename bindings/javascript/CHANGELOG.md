@@ -8,6 +8,10 @@
 - Update `html5ever` to `0.40`.
 - Update `selectors` to `0.41`.
 
+### Fixed
+
+- `remove_inlined_selectors` removed `@`-rules from the `<style>` blocks it rewrites (it should remove only inlined selectors).
+
 ## [0.21.2] - 2026-08-24
 
 ### Fixed

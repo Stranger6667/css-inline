@@ -2225,3 +2225,113 @@ fn inline_fragment_structural_tags(input: &str, css: &str, expected: &str) {
     let inlined = css_inline::inline_fragment(input, css).unwrap();
     assert_eq!(inlined, expected);
 }
+
+#[test]
+fn remove_inlined_selectors_keeps_at_rules() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_keeps_at_rules_with_keep_style_tags() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_style_tags(true)
+        .build();
+    let html = r#"<html><head><style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_keeps_source_order_with_at_rules() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h2 { color: red; } @media (max-width: 600px) { h1 { font-size: 18px; } } h3 { color: green; } h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        "<html><head><style>h2 { color: red; }\n@media (max-width: 600px) { h1 { font-size: 18px; } }\nh3 { color: green; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_keeps_at_rules_without_block() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>@import url("print.css"); h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head><style>@import url("print.css");</style></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}
+
+#[test]
+#[allow(deprecated)]
+fn remove_inlined_selectors_without_inlining_style_tags_keeps_blocks() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .inline_style_tags(false)
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .build();
+    let html = r#"<html><head><style>h1 { color: blue } @media (x) { h1 { color: red } }</style></head><body><h1>T</h1></body></html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert!(
+        inlined.contains("<style>h1 { color: blue } @media (x) { h1 { color: red } }</style>"),
+        "{inlined}"
+    );
+    assert!(inlined.contains("<h1>T</h1>"), "{inlined}");
+}
+
+#[test]
+fn remove_inlined_selectors_keeps_at_rules_after_comments() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1 { color: blue; } /* mobile */ @media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1>Test</h1></body></html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert!(
+        inlined.contains("@media (max-width: 600px) { h1 { font-size: 18px; } }</style>"),
+        "{inlined}"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_ignores_at_rules_outside_style_tags() {
+    // An `@`-rule from `extra_css` has no `<style>` block to stay in.
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .extra_css(Some(
+            "@media (max-width: 600px) { h1 { font-size: 18px; } }".into(),
+        ))
+        .build();
+    let html = r#"<html><head><style></style><style>h1 { color: blue; }</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_ends_unterminated_at_rules_with_their_block() {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; }</style><style>h2 { color: green; }</style></head><body><h1>Test</h1><h2>Test</h2></body></html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert!(
+        inlined.contains("<style>@media (max-width: 600px) { h1 { font-size: 18px; }</style>"),
+        "{inlined}"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_ignores_rejected_qualified_rules() {
+    // A trailing selector without a block is rejected by the parser but is not an `@`-rule.
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = r#"<html><head><style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } } h2</style></head><body><h1>Test</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style="color: blue;">Test</h1></body></html>"#
+    );
+}

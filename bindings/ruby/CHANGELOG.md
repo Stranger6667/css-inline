@@ -9,6 +9,10 @@
 - Update `selectors` to `0.41`.
 - Update `magnus` to `0.9`.
 
+### Fixed
+
+- `remove_inlined_selectors` removed `@`-rules from the `<style>` blocks it rewrites (it should remove only inlined selectors).
+
 ## [0.21.3] - 2026-08-28
 
 ### Added
