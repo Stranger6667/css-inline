@@ -14,7 +14,7 @@ release COMPONENT VERSION:
     python)     CL=bindings/python/CHANGELOG.md;     FILES=(bindings/python/Cargo.toml) ;;
     java)       CL=bindings/java/CHANGELOG.md;       FILES=(bindings/java/Cargo.toml bindings/java/build.gradle bindings/java/README.md) ;;
     php)        CL=bindings/php/CHANGELOG.md;        FILES=(bindings/php/Cargo.toml bindings/php/stubs/css_inline.php) ;;
-    ruby)       CL=bindings/ruby/CHANGELOG.md;       FILES=(bindings/ruby/css_inline.gemspec bindings/ruby/ext/css_inline/Cargo.toml bindings/ruby/Gemfile.lock) ;;
+    ruby)       CL=bindings/ruby/CHANGELOG.md;       FILES=(bindings/ruby/css_inline.gemspec bindings/ruby/ext/css_inline/Cargo.toml bindings/ruby/Gemfile.lock bindings/ruby/rails/lib/css_inline/rails/version.rb) ;;
     javascript) CL=bindings/javascript/CHANGELOG.md; FILES=(bindings/javascript/Cargo.toml bindings/javascript/package.json bindings/javascript/wasm/package.json bindings/javascript/npm/*/package.json) ;;
     *) echo "unknown component: $C"; exit 1 ;;
   esac
@@ -32,15 +32,24 @@ release COMPONENT VERSION:
     grep -qiE "$ANCHOR" "$f" || { echo "no version line matching '${PREV}' in $f"; exit 1; }
     sed -i "0,/${ANCHOR}/Is/${PREV_RE}/${VERSION}/" "$f"
   done
-  sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" "$CL"
-  sed -i "s#compare/${C}-v${PREV_RE}\.\.\.HEAD#compare/${C}-v${VERSION}...HEAD#" "$CL"
-  sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$CL"
+  bump_changelog() {
+    local cl="$1" tag_prefix="$2"
+    sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" "$cl"
+    sed -i "s#compare/${tag_prefix}-v${PREV_RE}\.\.\.HEAD#compare/${tag_prefix}-v${VERSION}...HEAD#" "$cl"
+    sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${tag_prefix}-v${PREV}...${tag_prefix}-v${VERSION}" "$cl"
+  }
+  bump_changelog "$CL" "$C"
+  # Tags to create. Ruby also ships the Rails wrapper, which has its own gem,
+  # changelog and release workflow but moves in lockstep with `css_inline`.
+  TAGS=("${C}-v${VERSION}")
   if [ "$C" = ruby ]; then
+    bump_changelog bindings/ruby/rails/CHANGELOG.md rails
+    TAGS+=("rails-v${VERSION}")
     cargo update -p css-inline --manifest-path bindings/ruby/Cargo.toml
     cp bindings/ruby/Cargo.lock bindings/ruby/ext/css_inline/Cargo.lock
   fi
   git add -u
   git commit -m "chore(${C}): Release ${VERSION}"
-  git tag "${C}-v${VERSION}"
+  for t in "${TAGS[@]}"; do git tag "$t"; done
   git push origin master
-  git push origin "${C}-v${VERSION}"
+  for t in "${TAGS[@]}"; do git push origin "$t"; done
