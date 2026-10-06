@@ -6,11 +6,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
+`css_inline` inlines CSS into HTML `style` attributes. Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
-This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
-
-For instance, the crate transforms HTML like this:
+It turns this HTML:
 
 ```html
 <html>
@@ -29,37 +27,55 @@ into:
 <html>
   <head></head>
   <body>
-    <h1 style="color:blue;">Big Text</h1>
+    <h1 style="color: blue;">Big Text</h1>
   </body>
 </html>
 ```
 
-- Extremely fast with a minimal memory footprint
-- Uses reliable components from Mozilla's Servo project
+- Inlines a 4-9 KB email in under 100 µs (see [Performance](#performance))
+- Parses with `html5ever` and `cssparser` from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
-- Resolves external stylesheets (including local files)
-- Optionally caches external stylesheets
+- Resolves external stylesheets, including local files
+- Caches external stylesheets (optional)
 - Works on Linux, Windows, and macOS
-- Supports HTML5 & CSS3
+- Parses HTML5 and CSS3
 - Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [Java](https://github.com/Stranger6667/css-inline/tree/master/bindings/java), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
 - [Elixir bindings](https://github.com/knocklabs/css_inline) maintained by [Knock](https://github.com/knocklabs)
-- Command Line Interface
+- [Command Line Interface](#command-line-interface)
 
 ## Playground
 
-If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/).
 
 ## Installation
 
-To include it in your project, add the following line to the dependencies section in your project's `Cargo.toml` file:
+Add `css-inline` to the dependencies in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-css-inline = "0.20"
+css-inline = "0.22"
 ```
 
-The Minimum Supported Rust Version is 1.85.
+Minimum Supported Rust Version: 1.85.
+
+Cargo features:
+
+| Feature | Default | Enables |
+|---------|---------|---------|
+| `http` | yes | Loading remote stylesheets over `http(s)` (pulls in `reqwest`) |
+| `file` | yes | Loading stylesheets from the local filesystem |
+| `stylesheet-cache` | yes | `StylesheetCache` and the `cache` option (pulls in `lru`) |
+| `cli` | yes | Parallel processing in the `css-inline` binary (pulls in `rayon`) |
+
+The `cli` feature pulls `rayon` into library builds. For library-only use, list the features you need:
+
+```toml
+[dependencies]
+css-inline = { version = "0.22", default-features = false, features = ["http", "file", "stylesheet-cache"] }
+```
+
+Without `http` and `file`, `css-inline` returns an error for any `link` stylesheet it cannot load.
 
 ## Usage
 
@@ -75,14 +91,23 @@ const HTML: &str = r#"<html>
 
 fn main() -> css_inline::Result<()> {
     let inlined = css_inline::inline(HTML)?;
-    // Do something with inlined HTML, e.g. send an email
+    assert_eq!(
+        inlined,
+        r#"<html><head>
+    
+</head>
+<body>
+    <h1 style="color: blue;">Big Text</h1>
+
+</body></html>"#
+    );
     Ok(())
 }
 ```
 
-Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+`inline` adds missing `html` and `body` tags, so the output is a complete HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `inline` if you need to keep the full document structure:
+To inline CSS into an HTML fragment, call `inline_fragment` with the fragment and the CSS. The output stays a fragment: `inline_fragment` does not add `<html>`, `<head>` or `<body>`, and if the input contains them, it keeps only their contents. Use `inline` for full documents:
 
 ```rust
 const FRAGMENT: &str = r#"<main>
@@ -104,13 +129,31 @@ h1 {
 
 fn main() -> css_inline::Result<()> {
     let inlined = css_inline::inline_fragment(FRAGMENT, CSS)?;
+    assert_eq!(
+        inlined,
+        r#"<main>
+<h1 style="color: blue;">Hello</h1>
+<section>
+<p style="color: red;">who am i</p>
+</section>
+</main>"#
+    );
     Ok(())
 }
 ```
 
+`inline` and `inline_fragment` return `css_inline::Result<String>`, with `css_inline::InlineError` as the error type:
+
+- `MissingStyleSheet`: a local stylesheet file does not exist
+- `Network`: fetching a remote stylesheet failed (`http` feature)
+- `IO`: reading a stylesheet failed, or writing to the target of `inline_to` / `inline_fragment_to` (which write into any `std::io::Write`) failed
+- `ParseError`: a CSS syntax error that `css-inline` cannot skip
+
+A stylesheet that fails to load aborts inlining with an error. Inside a `style` tag or stylesheet, `css-inline` skips rules with invalid or unsupported selectors and inlines the rest.
+
 ### Configuration
 
-`css-inline` can be configured by using `CSSInliner::options()` that implements the Builder pattern:
+Configure `css-inline` with the builder that `CSSInliner::options()` returns:
 
 ```rust
 const HTML: &str = "...";
@@ -125,21 +168,23 @@ fn main() -> css_inline::Result<()> {
 }
 ```
 
-- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `true`
-- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
-- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
-- `minify_css`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
-- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
-- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
-- `cache`. Specifies cache for external stylesheets. Default: `None`
-- `extra_css`. Extra CSS to be inlined. Default: `None`
-- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
-- `remove_inlined_selectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
-- `apply_width_attributes`. Specifies whether to add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
-- `apply_height_attributes`. Specifies whether to add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
+`CSSInliner` is `Send + Sync`: build it once and reuse it across calls and threads.
 
-You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
+- `inline_style_tags`. Inline CSS from `style` tags. With `false`, `css-inline` ignores their CSS and still removes the tags unless `keep_style_tags` is `true`. Default: `true`
+- `keep_style_tags`. Keep `style` tags after inlining. Default: `false`
+- `keep_link_tags`. Keep `link` tags after inlining. Default: `false`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `false`
+- `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `false`
+- `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `None`
+- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`
+- `cache`. Cache for external stylesheets. Default: `None`
+- `extra_css`. Extra CSS to inline. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`
+- `remove_inlined_selectors`. Remove inlined selectors from `<style>` blocks and keep the blocks for rules that could not be inlined (e.g. `p:hover`), even when `keep_style_tags` is `false`. Default: `false`
+- `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+
+Add `data-css-inline="ignore"` to a tag to skip inlining styles into it:
 
 ```html
 <head>
@@ -151,7 +196,7 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 </body>
 ```
 
-The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
+On a `link` or `style` tag, the same attribute excludes its styles from inlining:
 
 ```html
 <head>
@@ -163,9 +208,8 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
-Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+Add `data-css-inline="keep"` to a `style` tag to keep it in the output, for example to preserve `@media` queries for responsive emails.
+The tag stays even when `keep_style_tags` is `false`.
 
 ```html
 <head>
@@ -177,10 +221,9 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
-get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
-separate `style` tags but inline any styles which can be inlined.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+A `style` attribute cannot hold at-rules, so `css-inline` drops them by default.
+Set `keep_at_rules` to `true` to inline regular rules and keep at-rules such as `@media` in a `style` tag.
+That tag stays even when `keep_style_tags` is `false`.
 
 ```html
 <head>
@@ -192,8 +235,7 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
-and spaces between properties and values.
+Set `minify_css` to `true` to drop trailing semicolons and spaces between properties and values in inlined styles:
 
 ```html
 <head>
@@ -205,7 +247,9 @@ and spaces between properties and values.
 </body>
 ```
 
-If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+To load stylesheets from the filesystem, set `base_url` with the `file://` scheme.
+`css-inline` joins relative `link` hrefs onto it, so end the directory with `/`: with `file://styles/email/`, `href="main.css"` resolves to `styles/email/main.css`; without the slash, to `styles/main.css`.
+A standard URL parser reads `styles` in `file://styles/email/` as a host. `css-inline` instead treats `styles/email/` as a path relative to the current directory. Use `file:///abs/path/` for an absolute path.
 
 ```rust
 const HTML: &str = "...";
@@ -215,13 +259,13 @@ fn main() -> css_inline::Result<()> {
     let inliner = css_inline::CSSInliner::options()
         .base_url(Some(base_url))
         .build();
-    let inlined = inliner.inline(HTML);
+    let inlined = inliner.inline(HTML)?;
     // Do something with inlined HTML, e.g. send an email
     Ok(())
 }
 ```
 
-For resolving remote stylesheets it is possible to implement a custom resolver:
+To control how `css-inline` fetches external stylesheets, implement `StylesheetResolver`. Override `retrieve`, or only `retrieve_from_url` / `retrieve_from_path`. The trait's default `unsupported` method builds an `InlineError::IO` with `std::io::ErrorKind::Unsupported` for locations your resolver rejects:
 
 ```rust
 #[derive(Debug, Default)]
@@ -241,7 +285,7 @@ fn main() -> css_inline::Result<()> {
 }
 ```
 
-You can also cache external stylesheets to avoid excessive network requests:
+To fetch each external stylesheet once, enable the cache (requires the `stylesheet-cache` feature, on by default):
 
 ```rust
 use std::num::NonZeroUsize;
@@ -250,7 +294,7 @@ use std::num::NonZeroUsize;
 fn main() -> css_inline::Result<()> {
     let inliner = css_inline::CSSInliner::options()
         .cache(
-            // This is an LRU cache
+            // LRU cache keyed by resolved URL; holds up to 5 stylesheets
             css_inline::StylesheetCache::new(
                 NonZeroUsize::new(5).expect("Invalid cache size")
             )
@@ -266,20 +310,24 @@ fn main() -> css_inline::Result<()> {
 }
 ```
 
-Caching is disabled by default.
+The `cache` option defaults to `None`, so `css-inline` fetches stylesheets on every call until you set it.
 
 ## Performance
 
-`css-inline` typically inlines HTML emails within hundreds of microseconds, though results may vary with input complexity.
+The table shows absolute timings of the Rust crate. The [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python#performance), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby#performance) and [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript#performance) READMEs compare `css-inline` with other inliners.
 
-Benchmarks for `css-inline==0.20.0`:
+Benchmarks for `css-inline==0.22.0`:
 
-- Basic: **4.09 µs**, 230 bytes
-- Realistic-1: **78.94 µs**, 8.58 KB
-- Realistic-2: **48.56 µs**, 4.3 KB
-- GitHub page: **16.78 ms**, 1.81 MB
+| Case | Bench ID | Time | Size |
+|------|----------|------|------|
+| Basic | `simple` | **4.10 µs** | 230 bytes |
+| Realistic-1 | `big_email_1` | **74.41 µs** | 8.58 KB |
+| Realistic-2 | `big_email_2` | **42.13 µs** | 4.30 KB |
+| GitHub page | `big_page` | **16.51 ms** | 1.81 MB |
 
-These benchmarks, conducted using `rustc 1.91` on Ryzen 9 9950X, can be found in `css-inline/benches/inliner.rs`.
+Criterion mean time, measured with `rustc 1.99` on a Ryzen 9 9950X.
+
+The harness is [`css-inline/benches/inliner.rs`](https://github.com/Stranger6667/css-inline/blob/master/css-inline/benches/inliner.rs) (Criterion); inputs are in [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json). Run it with `cargo bench` from the `css-inline/` directory.
 
 ## Command Line Interface
 
@@ -293,14 +341,21 @@ cargo install css-inline
 
 ### Usage
 
-The following command inlines CSS in multiple documents in parallel. The resulting files will be saved
-as `inlined.email1.html` and `inlined.email2.html`:
+This command inlines CSS in two documents in parallel and writes `inlined.email1.html` and `inlined.email2.html` next to the input files:
 
 ```text
 css-inline email1.html email2.html
 ```
 
-For full details of the options available, you can use the `--help` flag:
+Piped input goes to stdout: `cat email.html | css-inline > out.html`.
+
+Key flags:
+
+- `--base-url`: base URL for relative stylesheet links
+- `--extra-css-file <PATH>`: inline extra CSS from a file (repeatable)
+- `--output-filename-prefix`: output prefix instead of `inlined.`
+
+List all options with `--help`:
 
 ```text
 css-inline --help
@@ -308,14 +363,14 @@ css-inline --help
 
 ## Further reading
 
-If you're interested in learning how this library was created and how it works internally, check out these articles:
+Articles on how this library was built and how it works:
 
 - [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 - [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
 
 ## Support
 
-If you have any questions or discussions related to this library, please join our [gitter](https://gitter.im/Stranger6667/css-inline)!
+Ask questions in the [gitter](https://gitter.im/Stranger6667/css-inline) chat.
 
 ## License
 
