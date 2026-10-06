@@ -5,11 +5,10 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
+`css_inline` moves CSS from `<style>` and `<link>` tags into HTML `style` attributes.
+Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
-This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
-
-For instance, the library transforms HTML like this:
+It turns this HTML:
 
 ```html
 <html>
@@ -28,36 +27,45 @@ into:
 <html>
   <head></head>
   <body>
-    <h1 style="color:blue;">Big Text</h1>
+    <h1 style="color: blue;">Big Text</h1>
   </body>
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo project
+- Parses and matches CSS with components from Mozilla's Servo project
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
-- Optionally caches external stylesheets
+- Caches external stylesheets (opt-in)
 - Can process multiple documents in parallel
 - Works on Linux, Windows, and macOS
 - Supports HTML5 & CSS3
-- Tested on Ruby 3.2, 3.3, and 3.4.
+- Tested on Ruby 3.2, 3.3, 3.4, and 4.0
 
 ## Playground
 
-If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/).
 
 ## Installation
 
-Add this line to your application's `Gemfile`:
+Add this line to your application's `Gemfile` and run `bundle install`:
 
-```
+```ruby
 gem 'css_inline'
 ```
 
+Or install it directly:
+
+```sh
+gem install css_inline
+```
+
+RubyGems ships precompiled native gems for Ruby 3.2 to 4.0 on Linux (x86_64, aarch64, glibc and musl), macOS (x86_64, arm64) and Windows (x64 UCRT).
+On other platforms, `gem install` builds the extension from source and needs a Rust toolchain.
+
 ## Usage
 
-To inline CSS in an HTML document:
+Inline CSS in an HTML document:
 
 ```ruby
 require 'css_inline'
@@ -66,39 +74,39 @@ html = "<html><head><style>h1 { color:blue; }</style></head><body><h1>Big Text</
 inlined = CSSInline.inline(html)
 
 puts inlined
-# Outputs: "<html><head></head><body><h1 style=\"color:blue;\">Big Text</h1></body></html>"
+# <html><head></head><body><h1 style="color: blue;">Big Text</h1></body></html>
 ```
 
-Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+`css-inline` adds missing `html`, `head` and `body` tags, so the output is a valid HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `CSSInline.inline` if you need to keep the full document structure:
+To inline CSS into an HTML fragment, use `inline_fragment`. It strips structural tags (`<html>`, `<head>`, `<body>`) from the output and keeps their contents. Use `CSSInline.inline` to keep the full document structure:
 
 ```ruby
 require 'css_inline'
 
-fragment = """
-<main>
-<h1>Hello</h1>
-<section>
-<p>who am i</p>
-</section>
-</main>
-"""
+fragment = <<~HTML
+  <main>
+  <h1>Hello</h1>
+  <section>
+  <p>who am i</p>
+  </section>
+  </main>
+HTML
 
-css = """
-p {
-    color: red;
-}
+css = <<~CSS
+  p {
+      color: red;
+  }
 
-h1 {
-    color: blue;
-}
-"""
+  h1 {
+      color: blue;
+  }
+CSS
 
 inlined = CSSInline.inline_fragment(fragment, css)
 
 puts inlined
-# HTML becomes this:
+# Output:
 # <main>
 # <h1 style="color: blue;">Hello</h1>
 # <section>
@@ -107,23 +115,27 @@ puts inlined
 # </main>
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers `inline_many` and `inline_many_fragments` functions.
-This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
+To inline many documents in parallel, use `inline_many` and `inline_many_fragments`:
 
 ```ruby
 require 'css_inline'
 
 inlined = CSSInline.inline_many(["...", "..."])
+inlined = CSSInline.inline_many_fragments(["<h1>...</h1>", "<p>...</p>"], ["h1 { color: blue; }", "p { color: red; }"])
 ```
 
-Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs.
-This results in faster execution times compared to employing parallel processing techniques at the Ruby level.
+`inline_many_fragments` pairs HTML and CSS by index.
 
-**Note**: To fully benefit from `inline_many`, you should run your application on a multicore machine.
+**Warning**: pass arrays of equal length. If they differ, `inline_many_fragments` drops the extra items of the longer array without an error.
+
+If one input fails, the whole call raises and returns no results.
+
+Both functions process inputs on a Rust thread pool ([rayon](https://github.com/rayon-rs/rayon)), one thread per CPU core.
+Ruby threads can't run this CPU-bound work in parallel because of the Global VM Lock, so `inline_many` gains over a Ruby loop only on a multicore machine.
 
 ## Configuration
 
-For customization options use the `CSSInliner` class:
+Pass options as keyword arguments to `CSSInline::CSSInliner.new`:
 
 ```ruby
 require 'css_inline'
@@ -132,21 +144,25 @@ inliner = CSSInline::CSSInliner.new(keep_style_tags: true)
 inliner.inline("...")
 ```
 
-- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `true`
-- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `false`
-- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
-- `minify_css`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
-- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `nil`
-- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
-- `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size: 5)`). Default: `nil`
-- `extra_css`. Extra CSS to be inlined. Default: `nil`
-- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
-- `remove_inlined_selectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
-- `apply_width_attributes`. Specifies whether to add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
-- `apply_height_attributes`. Specifies whether to add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
+A `CSSInliner` instance has the same four methods as the module: `inline`, `inline_fragment`, `inline_many` and `inline_many_fragments`.
+Reuse one instance to share its stylesheet cache across calls.
+The module functions accept the same keyword arguments, for example `CSSInline.inline(html, keep_style_tags: true)`.
 
-You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
+- `inline_style_tags`. Inline CSS from `style` tags. Default: `true`
+- `keep_style_tags`. Keep `style` tags after inlining. Default: `false`
+- `keep_link_tags`. Keep `link` tags after inlining. Default: `false`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `false`
+- `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `false`
+- `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `nil`
+- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`
+- `cache`. Cache for external stylesheets, for example `CSSInline::StylesheetCache.new(size: 5)`. Default: `nil`
+- `extra_css`. Extra CSS to inline. Default: `nil`
+- `preallocate_node_capacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`
+- `remove_inlined_selectors`. Remove inlined selectors from `<style>` blocks. Default: `false`
+- `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+
+To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute to it:
 
 ```html
 <head>
@@ -158,7 +174,7 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 </body>
 ```
 
-The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
+The same attribute on a `link` or `style` tag skips that stylesheet:
 
 ```html
 <head>
@@ -170,9 +186,9 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
-Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+To keep a `style` tag in the output, add the `data-css-inline="keep"` attribute.
+Use it to keep `@media` queries for responsive emails in separate `style` tags.
+`css-inline` keeps such tags even when `keep_style_tags` is `false`.
 
 ```html
 <head>
@@ -184,14 +200,13 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
-get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
-separate `style` tags but inline any styles which can be inlined.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+Another way is the `keep_at_rules` option. At-rules can't go into `style` attributes, so `css-inline` removes them by default.
+With `keep_at_rules: true`, it inlines regular rules and keeps at-rules, such as `@media` queries, in `style` tags.
+It keeps these tags even when `keep_style_tags` is `false`.
 
 ```html
 <head>
-  <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <!-- With keep_at_rules: true, "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
 </head>
 <body>
@@ -199,12 +214,11 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
-and spaces between properties and values.
+With `minify_css: true`, `css-inline` removes trailing semicolons and spaces between properties and values in inlined styles.
 
 ```html
 <head>
-  <!-- With minify_css=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <!-- With minify_css: true, the <h1> will have `style="color:blue;font-weight:bold"` -->
   <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
@@ -212,17 +226,20 @@ and spaces between properties and values.
 </body>
 ```
 
-If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+To load stylesheets from the filesystem, use the `file://` scheme.
+`css-inline` treats a `file://` URL without a third slash, such as `file://styles/email/`, as a path relative to the current working directory.
+Standard URL parsers read `styles` there as a host, so this form is specific to `css-inline`.
+For an absolute path, use three slashes: `file:///path/to/styles/`.
 
 ```ruby
 require 'css_inline'
 
-# styles/email is relative to the current directory
+# Loads stylesheets from ./styles/email/
 inliner = CSSInline::CSSInliner.new(base_url: "file://styles/email/")
 inliner.inline("...")
 ```
 
-You can also cache external stylesheets to avoid excessive network requests:
+To avoid repeated network requests, cache external stylesheets:
 
 ```ruby
 require 'css_inline'
@@ -233,32 +250,45 @@ inliner = CSSInline::CSSInliner.new(
 inliner.inline("...")
 ```
 
-Caching is disabled by default.
+The cache covers every `link` stylesheet, `file://` included. `size` is the number of stylesheets to keep (default: `8`). When the cache is full, it evicts the least recently used stylesheet.
+Caching is off by default.
+
+## Errors
+
+All functions raise `ArgumentError` when they can't load a stylesheet (missing file, network error), can't parse one, or get an invalid `base_url`:
+
+```ruby
+require 'css_inline'
+
+begin
+  CSSInline.inline('<link rel="stylesheet" href="missing.css"><h1>Hi</h1>')
+rescue ArgumentError => e
+  puts e.message
+  # Missing stylesheet file: missing.css
+end
+```
 
 ## Performance
 
-This library uses components from Mozilla's Servo project for CSS parsing and matching.
-Performance benchmarks show 50-100x faster execution than `roadie` and `premailer`.
+`css_inline` runs 8.1x to 354x faster than `roadie` and 57x to 123x faster than `premailer` on these documents:
 
-The table below shows benchmark results comparing `css_inline`, `roadie`, and `premailer` on typical HTML documents:
-
-|                   | Size    | `css_inline 0.19.0` | `roadie 5.2.1`          | `premailer 1.21.0`      |
+|                   | Size    | `css_inline 0.22.0` | `roadie 5.2.1`          | `premailer 1.27.0`      |
 |-------------------|---------|---------------------|-------------------------|-------------------------|
-| Basic usage       | 230 B   | 6.07 µs             | 173.50 µs (**28.60x**)  | 345.30 µs (**56.91x**)  |
-| Realistic email 1 | 8.58 KB | 91.23 µs            | 713.40 µs (**7.82x**)   | 6.80 ms (**74.53x**)    |
-| Realistic email 2 | 4.3 KB  | 57.56 µs            | 1.99 ms (**34.56x**)    | ERROR                   |
-| GitHub Page       | 1.81 MB | 21.61 ms            | 8.20 s (**379.45x**)    | 2.40 s (**111.06x**)    |
+| Basic usage       | 230 B   | 5.84 µs             | 168.88 µs (**28.92x**)  | 331.07 µs (**56.69x**)  |
+| Realistic email 1 | 8.58 KB | 87.66 µs            | 713.78 µs (**8.14x**)   | 6.95 ms (**79.28x**)    |
+| Realistic email 2 | 4.30 KB | 50.45 µs            | 1.98 ms (**39.25x**)    | ERROR                   |
+| GitHub Page       | 1.81 MB | 19.01 ms            | 6.73 s (**354.02x**)    | 2.34 s (**123.09x**)    |
 
-Please refer to the `test/bench.rb` file to review the benchmark code.
-The results displayed above were measured using stable `rustc 1.91` on Ruby `3.4.7`.
+`premailer` fails on "Realistic email 2" with `ArgumentError: Cannot parse 0 calc((100% - 500px) / 2)`.
+
+Inputs come from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): Basic usage is `simple`, Realistic email 1 and 2 are `big_email_1` and `big_email_2`, GitHub Page is `big_page`.
+The benchmark code is in [`test/bench.rb`](https://github.com/Stranger6667/css-inline/blob/master/bindings/ruby/test/bench.rb) and uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (5 s per case; `roadie` completes one run on the GitHub page in that time).
+We measured these results with stable `rustc 1.99` on Ruby `3.4.8`, Ryzen 9 9950X.
 
 ## Further reading
 
-If you want to know how this library was created & how it works internally, you could take a look at these articles:
-
-- [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
-- [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
+- [How the Rust crate works](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 
 ## License
 
-This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).
+[MIT license](https://opensource.org/licenses/MIT).
