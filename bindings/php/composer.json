@@ -9,7 +9,7 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "^3.65",
-    "pelago/emogrifier": "^7.3",
+    "pelago/emogrifier": "^8.2",
     "phpbench/phpbench": "^1.4",
     "phpunit/phpunit": "^10.5",
     "tijsverkoyen/css-to-inline-styles": "^2.3"
