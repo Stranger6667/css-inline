@@ -10,7 +10,7 @@ use TijsVerkoyen\CssToInlineStyles\CssToInlineStyles;
 
 class InlineBench
 {
-    // Large/complex pages that other libraries can't handle
+    // `css-to-inline-styles` returns these pages without inlining any styles, `emogrifier` needs ~8.5 s per run
     private const SKIP_FOR_OTHER_LIBS = ['big_page'];
 
     private CssToInlineStyles $cssToInlineStyles;
