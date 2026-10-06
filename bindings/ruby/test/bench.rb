@@ -4,7 +4,7 @@ require "premailer"
 require "roadie"
 require_relative "../lib/css_inline"
 
-file = File.read('../../benchmarks/benchmarks.json')
+file = File.read(File.join(__dir__, '../../../benchmarks/benchmarks.json'))
 benchmarks = JSON.parse(file)
 
 Premailer::Adapter.use = :nokogiri_fast
