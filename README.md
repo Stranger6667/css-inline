@@ -82,7 +82,7 @@ Without `http` and `file`, `css-inline` returns an error for any `link` styleshe
 ```rust
 const HTML: &str = r#"<html>
 <head>
-    <style>h1 { color:blue; }</style>
+<style>h1 { color:blue; }</style>
 </head>
 <body>
     <h1>Big Text</h1>
@@ -94,7 +94,7 @@ fn main() -> css_inline::Result<()> {
     assert_eq!(
         inlined,
         r#"<html><head>
-    
+
 </head>
 <body>
     <h1 style="color: blue;">Big Text</h1>
