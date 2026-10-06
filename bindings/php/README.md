@@ -4,11 +4,9 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
+`css_inline` inlines CSS into HTML `style` attributes. Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
-This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
-
-For instance, the library transforms HTML like this:
+It turns this HTML:
 
 ```html
 <html>
@@ -27,28 +25,37 @@ into:
 <html>
   <head></head>
   <body>
-    <h1 style="color:blue;">Big Text</h1>
+    <h1 style="color: blue;">Big Text</h1>
   </body>
 </html>
 ```
 
-- Uses reliable components from Mozilla's Servo project
-- 3-25x faster than alternatives
+- Uses HTML and CSS parsing components from Mozilla's Servo project
+- 3-473x faster than `css-to-inline-styles` and `emogrifier` ([benchmarks](#performance))
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
-- Optionally caches external stylesheets
-- Can process multiple documents in parallel
+- Caches external stylesheets (opt-in)
+- Processes multiple documents in parallel
 - Works on Linux and macOS (Windows is not supported)
 - Supports HTML5 & CSS3
 
 ## Playground
 
-If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+Try `css-inline` in the WebAssembly [playground](https://css-inline.org/).
 
 ## Installation
 
-`css_inline` is distributed as a PHP extension. You'll need to compile it from source:
+`css_inline` ships as a PHP extension that you build from source.
+
+Requirements:
+- PHP 8.2 or higher
+- Rust toolchain
+- PHP development headers and `php-config` (for example, the `php-dev` package on Debian/Ubuntu)
+- `libclang`, which `ext-php-rs` uses to generate PHP bindings
+- Linux or macOS (the underlying `ext-php-rs` library does not support Windows)
+
+Build the extension:
 
 ```shell
 git clone https://github.com/Stranger6667/css-inline.git
@@ -56,7 +63,7 @@ cd css-inline/bindings/php
 cargo build --release
 ```
 
-Then copy the compiled extension to your PHP extensions directory:
+Copy the compiled extension to your PHP extensions directory:
 
 ```shell
 # Linux
@@ -66,16 +73,17 @@ cp target/release/libcss_inline_php.so $(php-config --extension-dir)/css_inline.
 cp target/release/libcss_inline_php.dylib $(php-config --extension-dir)/css_inline.so
 ```
 
-Enable the extension in your `php.ini`:
+Enable the extension in your `php.ini` (`php --ini` shows its location):
 
 ```ini
 extension=css_inline
 ```
 
-Requirements:
-- PHP 8.2 or higher
-- Rust toolchain (for building from source)
-- Linux or macOS (Windows is not supported by the underlying `ext-php-rs` library)
+Check that PHP loads it:
+
+```shell
+php -m | grep css_inline
+```
 
 ## Usage
 
@@ -98,14 +106,14 @@ $inlined = CssInline\inline($html);
 // <html>
 // <head></head>
 // <body>
-//     <h1 style="color:blue;">Big Text</h1>
+//     <h1 style="color: blue;">Big Text</h1>
 // </body>
 // </html>
 ```
 
-Note that `css_inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+`CssInline\inline` adds missing `html`, `head` and `body` tags, so the output is a complete HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `CssInline\inline` if you need to keep the full document structure:
+To inline CSS into an HTML fragment, pass the fragment and the CSS to `CssInline\inlineFragment`. It returns a fragment without adding `html`, `head` or `body` tags. If the input contains these tags, the output keeps only their contents. To get a full document, use `CssInline\inline`:
 
 ```php
 <?php
@@ -138,22 +146,41 @@ $inlined = CssInline\inlineFragment($fragment, $css);
 // </main>
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers `inlineMany` and `inlineManyFragments` functions.
-This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
+`CssInline\inlineMany` and `CssInline\inlineManyFragments` process several documents in parallel and return an array of results in input order:
 
 ```php
 <?php
 
-$results = CssInline\inlineMany([$html1, $html2, $html3]);
+$results = CssInline\inlineMany([
+    '<html><head><style>h1 { color:blue; }</style></head><body><h1>One</h1></body></html>',
+    '<html><head><style>h1 { color:red; }</style></head><body><h1>Two</h1></body></html>',
+]);
+
+// The same CSS applies to every fragment
+$fragments = CssInline\inlineManyFragments(['<h1>One</h1>', '<h1>Two</h1>'], 'h1 { color:blue; }');
 ```
 
-Under the hood, `inlineMany` spawns threads at the Rust layer to handle the parallel processing of inputs.
+Both functions run on a Rust thread pool, so the speedup depends on the number of CPU cores. If any input fails, the whole call throws `CssInline\InlineError`.
 
-**Note**: To fully benefit from `inlineMany`, you should run your application on a multicore machine.
+### Errors
+
+Inlining functions and methods throw `CssInline\InlineError` (a subclass of `\Exception`) when inlining fails, for example when a stylesheet fails to load. The `CssInliner` constructor also throws `CssInline\InlineError` for an invalid `baseUrl`.
+
+```php
+<?php
+
+use CssInline\InlineError;
+
+try {
+    $inlined = CssInline\inline($html);
+} catch (InlineError $e) {
+    echo $e->getMessage();
+}
+```
 
 ### Configuration
 
-For configuration options use the `CssInliner` class:
+Pass options to the `CssInliner` constructor as named arguments. It has the same methods as the functions above: `inline`, `inlineFragment`, `inlineMany` and `inlineManyFragments`.
 
 ```php
 <?php
@@ -164,21 +191,21 @@ $inliner = new CssInliner(keepStyleTags: true);
 $inliner->inline($html);
 ```
 
-- `inlineStyleTags`. Specifies whether to inline CSS from "style" tags. Default: `true`
-- `keepStyleTags`. Specifies whether to keep "style" tags after inlining. Default: `false`
-- `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `keepAtRules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
-- `minifyCss`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
-- `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
-- `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
-- `cache`. Specifies caching options for external stylesheets (for example, `new StylesheetCache(size: 5)`). Default: `null`
-- `extraCss`. Extra CSS to be inlined. Default: `null`
-- `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
-- `removeInlinedSelectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
-- `applyWidthAttributes`. Specifies whether to add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
-- `applyHeightAttributes`. Specifies whether to add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
+- `inlineStyleTags`. Inline CSS from `style` tags. Default: `true`
+- `keepStyleTags`. Keep `style` tags after inlining. Default: `false`
+- `keepLinkTags`. Keep `link` tags after inlining. Default: `false`
+- `keepAtRules`. Keep at-rules (rules starting with `@`) after inlining. Default: `false`
+- `minifyCss`. Remove trailing semicolons and spaces between properties and values. Default: `false`
+- `baseUrl`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `null`
+- `loadRemoteStylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`
+- `cache`. Cache for external stylesheets, for example `new CssInline\StylesheetCache(size: 5)`. Default: `null`
+- `extraCss`. Extra CSS to inline. Default: `null`
+- `preallocateNodeCapacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it near your document's node count to avoid reallocations. Default: `32`
+- `removeInlinedSelectors`. Remove selectors from `<style>` blocks once inlined. Default: `false`
+- `applyWidthAttributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `applyHeightAttributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
 
-You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
+To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute to it:
 
 ```html
 <head>
@@ -190,7 +217,7 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 </body>
 ```
 
-The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
+The same attribute on a `link` or `style` tag makes `css_inline` skip its CSS:
 
 ```html
 <head>
@@ -202,9 +229,9 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
-Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
-Such tags will be kept in the resulting HTML even if the `keepStyleTags` option is set to `false`.
+To keep a `style` tag in the output, add the `data-css-inline="keep"` attribute.
+Use it to keep `@media` queries for responsive emails in separate `style` tags.
+The tag stays even when `keepStyleTags` is `false`.
 
 ```html
 <head>
@@ -216,14 +243,13 @@ Such tags will be kept in the resulting HTML even if the `keepStyleTags` option 
 </body>
 ```
 
-Another possibility is to set `keepAtRules` option to `true`. At-rules cannot be inlined into HTML therefore they
-get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
-separate `style` tags but inline any styles which can be inlined.
-Such tags will be kept in the resulting HTML even if the `keepStyleTags` option is explicitly set to `false`.
+Another option is `keepAtRules: true`. A `style` attribute cannot hold at-rules, so `css_inline` removes them by default.
+With `keepAtRules: true`, it inlines regular rules and keeps at-rules, such as `@media` queries, in `style` tags.
+These tags stay even when `keepStyleTags` is `false`.
 
 ```html
 <head>
-  <!-- With keepAtRules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <!-- With keepAtRules: true, "color: blue" goes into the <h1> style attribute and @media stays in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
 </head>
 <body>
@@ -231,12 +257,11 @@ Such tags will be kept in the resulting HTML even if the `keepStyleTags` option 
 </body>
 ```
 
-If you set the `minifyCss` option to `true`, the inlined styles will be minified by removing trailing semicolons
-and spaces between properties and values.
+With `minifyCss: true`, `css_inline` removes trailing semicolons and spaces between properties and values in inlined styles.
 
 ```html
 <head>
-  <!-- With minifyCss=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <!-- With minifyCss: true, the <h1> gets `style="color:blue;font-weight:bold"` -->
   <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
@@ -244,19 +269,25 @@ and spaces between properties and values.
 </body>
 ```
 
-If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+To load stylesheets from the filesystem, use the `file://` scheme in `baseUrl`.
+An absolute directory takes three slashes: `file:///var/www/styles/`.
+`css_inline` also accepts two slashes for a path relative to the working directory of the PHP process.
+Standard URL parsing would read `styles` in `file://styles/email/` as a host name. `css_inline` treats it as the relative path `styles/email/` on purpose:
 
 ```php
 <?php
 
 use CssInline\CssInliner;
 
-// styles/email is relative to the current directory
+// Absolute path
+$inliner = new CssInliner(baseUrl: "file:///var/www/styles/email/");
+
+// Relative to the working directory (non-standard)
 $inliner = new CssInliner(baseUrl: "file://styles/email/");
 $inliner->inline($html);
 ```
 
-You can also cache external stylesheets to avoid excessive network requests:
+To avoid repeated network requests, cache external stylesheets. `size` sets the maximum number of cached stylesheets. A size of zero throws `\Exception`. When the cache is full, it evicts the least recently used stylesheet:
 
 ```php
 <?php
@@ -274,29 +305,29 @@ Caching is disabled by default.
 
 ## Performance
 
-`css_inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other PHP alternatives in terms of speed.
+`css_inline` is 3-473x faster than `css-to-inline-styles` and `emogrifier` on the inputs below:
 
-Here is the performance comparison:
-
-|                   | Size    | `css_inline 0.19.0` | `css-to-inline-styles 2.3.0` | `emogrifier 7.3.0`     |
+|                   | Size    | `css_inline 0.22.0` | `css-to-inline-styles 2.4.0` | `emogrifier 8.2.0`     |
 |-------------------|---------|---------------------|------------------------------|------------------------|
-| Simple            | 230 B   | 5.69 µs             | 26.22 µs (**4.61x**)         | 134.37 µs (**23.61x**) |
-| Realistic email 1 | 8.58 KB | 94.07 µs            | 288.20 µs (**3.06x**)        | 588.00 µs (**6.25x**)  |
-| Realistic email 2 | 4.3 KB  | 58.15 µs            | 585.24 µs (**10.07x**)       | 2.24 ms (**38.58x**)   |
-| GitHub Page†      | 1.81 MB | 24.78 ms            | ERROR                        | ERROR                  |
+| Simple            | 230 B   | 5.27 µs             | 27.81 µs (**5.28x**)         | 155.93 µs (**29.59x**) |
+| Realistic email 1 | 8.58 KB | 88.10 µs            | 287.67 µs (**3.27x**)        | 638.54 µs (**7.25x**)  |
+| Realistic email 2 | 4.30 KB | 52.90 µs            | 613.71 µs (**11.60x**)       | 2.44 ms (**46.06x**)   |
+| GitHub Page       | 1.81 MB | 17.91 ms            | skipped†                     | 8.47 s (**472.92x**)‡  |
 
-† The GitHub page benchmark contains complex modern CSS that neither `css-to-inline-styles` nor `emogrifier` can process.
+† `css-to-inline-styles` returns the GitHub page without inlining any styles.
+‡ Timed outside phpbench: median of 5 runs. At 10 iterations of 100 revolutions, `composer bench` would spend about 2.4 hours on this cell, so it skips it.
 
-Please refer to the `benchmarks/InlineBench.php` file to review the benchmark code.
-The results displayed above were measured using stable `rustc 1.91` on PHP `8.4.14`.
+The benchmark code lives in [`bindings/php/benchmarks/InlineBench.php`](https://github.com/Stranger6667/css-inline/blob/master/bindings/php/benchmarks/InlineBench.php). It reads the `simple`, `big_email_1`, `big_email_2` and `big_page` inputs from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json).
+To reproduce, build the extension, then run `composer install` and `composer bench` in `bindings/php` (phpbench, 10 iterations of 100 revolutions each; the table shows the median iteration).
+Measured with stable `rustc 1.99` on PHP `8.5.6`, Ryzen 9 9950X.
 
 ## Further reading
 
-If you want to know how this library was created & how it works internally, you could take a look at these articles:
+These articles explain how this library was built and how it works:
 
 - [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 - [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
 
 ## License
 
-This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).
+`css_inline` uses the [MIT license](https://opensource.org/licenses/MIT).
