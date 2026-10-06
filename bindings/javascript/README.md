@@ -5,46 +5,34 @@
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
 [<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
-`css-inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
+`css-inline` inlines CSS into HTML `style` attributes. Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
-This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
-
-For instance, the library transforms HTML like this:
+It turns this HTML:
 
 ```html
-<html>
-  <head>
-    <style>h1 { color:blue; }</style>
-  </head>
-  <body>
-    <h1>Big Text</h1>
-  </body>
-</html>
+<html><head><style>h1 { color:blue; }</style></head><body><h1>Big Text</h1></body></html>
 ```
 
 into:
 
 ```html
-<html>
-  <head></head>
-  <body>
-    <h1 style="color:blue;">Big Text</h1>
-  </body>
-</html>
+<html><head></head><body><h1 style="color: blue;">Big Text</h1></body></html>
 ```
 
-- Uses reliable components from Mozilla's Servo project
+`css-inline` keeps whitespace text nodes from the input, so indented HTML stays indented in the output.
+
+- Builds on Mozilla Servo components (`html5ever`, `cssparser`, `selectors`)
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
 - Optionally caches external stylesheets
-- Works on Linux, Windows, and macOS
+- Works on Linux, Windows, macOS and Android
 - Supports HTML5 & CSS3
-- Tested on Node.js 20 & 22.
+- Tested on Node.js 20 & 22
 
 ## Playground
 
-If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/).
 
 ## Installation
 
@@ -56,80 +44,60 @@ Install with `npm`:
 npm i @css-inline/css-inline
 ```
 
+The package ships TypeScript types (`index.d.ts`).
+
+npm installs a prebuilt binary for your platform, so you don't need Rust. Prebuilt targets:
+`linux-x64-gnu`, `linux-x64-musl`, `linux-arm64-gnu`, `linux-arm64-musl`, `linux-arm-gnueabihf`,
+`darwin-x64`, `darwin-arm64`, `win32-x64-msvc`, `win32-arm64-msvc`, `android-arm64`, `android-arm-eabi`.
+
 ## Usage
 
-```typescript
+```javascript
 import { inline } from "@css-inline/css-inline";
+// CommonJS: const { inline } = require("@css-inline/css-inline");
 
-var inlined = inline(
-  `
-  <html>
-    <head>
-      <style>h1 { color:red }</style>
-    </head>
-    <body>
-      <h1>Test</h1>
-    </body>
-  </html>
-  `,
+const inlined = inline(
+  "<html><head><style>h1 { color:red }</style></head><body><h1>Test</h1></body></html>",
 );
-// Do something with the inlined HTML, e.g. send an email
+// <html><head></head><body><h1 style="color: red;">Test</h1></body></html>
 ```
 
-Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+`inline` adds missing `html`, `head` and `body` tags, so the output is a complete HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `inline` if you need to keep the full document structure:
+`inlineFragment(html, css, options?)` inlines the `css` string into an HTML fragment. It never adds `<html>`, `<head>` or `<body>`; if the input has them, it keeps only their contents. Use `inline` to keep the full document structure:
 
 ```javascript
 import { inlineFragment } from "@css-inline/css-inline";
 
-var inlined = inlineFragment(
-  `
-  <main>
-    <h1>Hello</h1>
-    <section>
-      <p>who am i</p>
-    </section>
-  </main>
-  `,
-  `
-  p {
-      color: red;
-  }
-
-  h1 {
-      color: blue;
-  }
-  `
+const inlined = inlineFragment(
+  "<main><h1>Hello</h1><section><p>who am i</p></section></main>",
+  "p { color: red; } h1 { color: blue; }",
 );
-// HTML becomes this:
-// <main>
-// <h1 style="color: blue;">Hello</h1>
-// <section>
-// <p style="color: red;">who am i</p>
-// </section>
-// </main>
+// <main><h1 style="color: blue;">Hello</h1><section><p style="color: red;">who am i</p></section></main>
 ```
 
 ### Configuration
 
-- `inlineStyleTags`. Specifies whether to inline CSS from "style" tags. Default: `true`
-- `keepStyleTags`. Specifies whether to keep "style" tags after inlining. Default: `false`
-- `keepLinkTags`. Specifies whether to keep "link" tags after inlining. Default: `false`
-- `keepAtRules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `false`
-- `minifyCss`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `false`
-- `baseUrl`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `null`
-- `loadRemoteStylesheets`. Specifies whether remote stylesheets should be loaded. Default: `true`
-- `cache`. Specifies caching options for external stylesheets (for example, `{size: 5}`). Default: `null`
-- `extraCss`. Extra CSS to be inlined. Default: `null`
-- `preallocateNodeCapacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
-- `removeInlinedSelectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `false`
-- `applyWidthAttributes`. Specifies whether to add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
-- `applyHeightAttributes`. Specifies whether to add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `false`
+Pass options as the second argument to `inline` or the third to `inlineFragment`.
 
-You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
+- `inlineStyleTags`. Inline CSS from `style` tags. Default: `true`
+- `keepStyleTags`. Keep `style` tags after inlining. Default: `false`
+- `keepLinkTags`. Keep `link` tags after inlining. Default: `false`
+- `keepAtRules`. Keep at-rules (`@media`, `@font-face`, ...) after inlining. Default: `false`
+- `minifyCss`. Remove trailing semicolons and spaces between properties and values. Default: `false`
+- `baseUrl`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem; end directory URLs with `/` (`file:///path/to/styles/`), or `css-inline` resolves relative to the parent directory. Default: `null`
+- `loadRemoteStylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. `false` skips every `link` tag. Default: `true`
+- `cache`. LRU cache for external stylesheets, keyed by resolved URL. `size` is the number of stylesheets to keep and must be greater than zero, e.g. `{ size: 5 }`. Default: `null`
+- `extraCss`. Extra CSS to inline. Default: `null`
+- `preallocateNodeCapacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`
+- `removeInlinedSelectors`. Remove selectors that were inlined from `<style>` blocks. Default: `false`
+- `applyWidthAttributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `applyHeightAttributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+
+To skip inlining for a tag, add the `data-css-inline="ignore"` attribute:
 
 ```html
+<html>
 <head>
     <style>h1 { color:blue; }</style>
 </head>
@@ -140,7 +108,7 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 </html>
 ```
 
-The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
+The same attribute on a `link` or `style` tag excludes its styles:
 
 ```html
 <head>
@@ -152,9 +120,8 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
-Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+To keep a `style` tag in the output, add `data-css-inline="keep"`. Use it to keep `@media` queries for responsive emails in separate `style` tags.
+`css-inline` keeps such tags even when `keepStyleTags` is `false`.
 
 ```html
 <head>
@@ -166,14 +133,13 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
-get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
-separate `style` tags but inline any styles which can be inlined.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+At-rules cannot be inlined into HTML, so `css-inline` removes them by default.
+Set `keepAtRules: true` to keep them in `style` tags and inline the remaining styles.
+`css-inline` keeps these tags even when `keepStyleTags` is `false`.
 
 ```html
 <head>
-  <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <!-- With keepAtRules: true, "color: blue" goes into <h1> and @media stays in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
 </head>
 <body>
@@ -181,12 +147,11 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
-and spaces between properties and values.
+With `minifyCss: true`, `css-inline` removes trailing semicolons and spaces between properties and values in inlined styles.
 
 ```html
 <head>
-  <!-- With minify_css=true, the <h1> will have `style="color:blue;font-weight:bold"` -->
+  <!-- With minifyCss: true, <h1> gets style="color:blue;font-weight:bold" -->
   <style>h1 { color: blue; font-weight: bold; }</style>
 </head>
 <body>
@@ -194,12 +159,12 @@ and spaces between properties and values.
 </body>
 ```
 
-You can also cache external stylesheets to avoid excessive network requests:
+Caching is off by default. Enable it to avoid fetching the same external stylesheet on every call:
 
-```typescript
+```javascript
 import { inline } from "@css-inline/css-inline";
 
-var inlined = inline(
+const inlined = inline(
   `
   <html>
     <head>
@@ -215,18 +180,28 @@ var inlined = inline(
 );
 ```
 
-Caching is disabled by default.
+`inline` and `inlineFragment` are synchronous. `css-inline` fetches remote stylesheets with a blocking HTTP request, so the call blocks the event loop until the fetch completes.
+Set `loadRemoteStylesheets: false` to skip all `link` tags.
+
+### Errors
+
+`inline` and `inlineFragment` throw an `Error`:
+
+- Invalid `baseUrl`: `relative URL without a base: not a url`
+- Failed fetch: `error sending request for url (http://127.0.0.1:9/a.css): http://127.0.0.1:9/a.css`
+- Missing local file: `Missing stylesheet file: /path/to/missing.css`
+- `cache: { size: 0 }`: `Cache size must be an integer greater than zero`
 
 ## WebAssembly
 
-`css-inline` also ships a WebAssembly module built with `wasm-bindgen` to run in browsers.
+`@css-inline/css-inline-wasm` runs `css-inline` in browsers. It is built with `wasm-bindgen`.
 
 ```html
+<iframe id="output"></iframe>
 <script src="https://unpkg.com/@css-inline/css-inline-wasm"></script>
 <script>
-    // Initialize the WASM module first
-    cssInline.initWasm(fetch('https://unpkg.com/@css-inline/css-inline-wasm/index_bg.wasm'));
-
+  // `initWasm` is async: wait for it before calling `inline`
+  cssInline.initWasm(fetch('https://unpkg.com/@css-inline/css-inline-wasm/index_bg.wasm')).then(() => {
     const inlinedHtml = cssInline.inline(`<html>
   <head>
     <style>h1 { color:blue; }</style>
@@ -235,31 +210,31 @@ Caching is disabled by default.
     <h1>Big Text</h1>
   </body>
 </html>`);
-
-    document.getElementById('output').src = inlinedHtml
+    document.getElementById('output').srcdoc = inlinedHtml;
+  });
 </script>
 ```
 
-**NOTE**: WASM module currently lacks support for fetching stylesheets from network or filesystem and caching.
+**NOTE**: The WASM module cannot load stylesheets from the network or filesystem and has no `cache` option. See [its README](https://github.com/Stranger6667/css-inline/blob/master/bindings/javascript/wasm/README.md) for npm install, Node.js setup and `link` tag handling. The unpkg URLs above load the latest release; pin a version (`@css-inline/css-inline-wasm@0.22.0`) to match your installed package.
 
 ## Performance
 
-`css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other JavaScript alternatives in terms of speed.
-Most of the time it achieves over a **3x** speed advantage compared to the next fastest alternative.
-
-Here is the performance comparison:
+Native `css-inline` runs 3.15x to 10.33x faster than `juice` and `inline-css` on the cases below. The WASM build runs 1.37x to 1.68x slower than native.
 
 |             | Size    | `css-inline`| `css-inline-wasm`    | `juice`                 | `inline-css`            |
 |-------------|---------|-------------|----------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 8.37 µs     | 15.96 µs (**1.91x**) | 42.32 µs (**5.06x**)    | 80.85 µs (**9.66x**)    |
-| Realistic-1 | 8.58 KB | 168.95 µs   | 344.59 µs (**2.04x**)| 524.38 µs (**3.10x**)   | 1.15 ms (**6.78x**)     |
-| Realistic-2 | 4.3 KB  | 90.36 µs    | 180.31 µs (**2.00x**)| 634.52 µs (**7.02x**)   | 898.47 µs (**9.94x**)   |
-| GitHub page | 1.81 MB | 32.73 ms    | 119.60 ms (**3.65x**)| 1.60 s (**48.90x**)     | 326.41 ms (**9.97x**)   |
+| Basic       | 230 B   | 8.42 µs     | 12.96 µs (**1.54x**) | 41.05 µs (**4.88x**)    | 78.16 µs (**9.28x**)    |
+| Realistic-1 | 8.58 KB | 161.13 µs   | 270.56 µs (**1.68x**)| 508.13 µs (**3.15x**)   | 1.07 ms (**6.62x**)     |
+| Realistic-2 | 4.30 KB | 85.15 µs    | 133.48 µs (**1.57x**)| 605.33 µs (**7.11x**)   | 839.63 µs (**9.86x**)   |
+| GitHub page | 1.81 MB | 31.04 ms    | 42.61 ms (**1.37x**) | 320.68 ms (**10.33x**)  | ERROR                   |
 
-The "Basic" case was obtained from benchmarking the example from the Usage section.
+`inline-css` fails on the GitHub page because it cannot parse its CSS: `Error: Unexpected } (line 193, char 13771)`.
 
-The benchmarking code is available in the `benches/bench.ts` file. The benchmarks were conducted using the stable `rustc 1.91` on Node.js `v22.21.1`.
+Inputs come from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): "Basic" is `simple`, "Realistic-1" and "Realistic-2" are `big_email_1` and `big_email_2`, "GitHub page" is `big_page`.
+Ratios are relative to `css-inline`.
+
+[`benches/bench.ts`](https://github.com/Stranger6667/css-inline/blob/master/bindings/javascript/benches/bench.ts) runs the suite with `benny` (mean time; `css-inline 0.22.0`, `juice 11.0.3`, `inline-css 4.0.3`), built with stable `rustc 1.99` on Node.js `v24.18.0`, Ryzen 9 9950X.
 
 ## License
 
-This project is licensed under the terms of the [MIT license](https://opensource.org/licenses/MIT).
+Licensed under the [MIT license](https://opensource.org/licenses/MIT).
