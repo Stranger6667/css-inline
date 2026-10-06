@@ -2,7 +2,7 @@ import json
 import multiprocessing
 import pathlib
 
-# import inlinestyler.utils  # Disabled: doesn't build on Python 3.14
+# inlinestyler is excluded: it crashes with current lxml ('CSSSelector' object has no attribute 'evaluate')
 import premailer
 import pynliner
 import pytest
@@ -24,7 +24,6 @@ all_functions = parametrize_functions(
     css_inline.inline,
     premailer.transform,
     pynliner.fromString,
-    # inlinestyler.utils.inline_css,  # Disabled: doesn't build on Python 3.14
     toronado.from_string,
 )
 
@@ -38,14 +37,12 @@ all_many_functions = parametrize_functions(
     parallel(css_inline.inline),
     parallel(premailer.transform),
     parallel(pynliner.fromString),
-    # parallel(inlinestyler.utils.inline_css),  # Disabled: doesn't build on Python 3.14
     parallel(toronado.from_string),
     ids=(
         "css_inline",
         "css_inline_pyprocess",
         "premailer",
         "pynliner",
-        # "inlinestyler",
         "toronado",
     ),
 )
