@@ -15,7 +15,7 @@ release COMPONENT VERSION:
     java)       CL=bindings/java/CHANGELOG.md;       FILES=(bindings/java/Cargo.toml bindings/java/build.gradle bindings/java/README.md) ;;
     php)        CL=bindings/php/CHANGELOG.md;        FILES=(bindings/php/Cargo.toml bindings/php/stubs/css_inline.php) ;;
     ruby)       CL=bindings/ruby/CHANGELOG.md;       FILES=(bindings/ruby/css_inline.gemspec bindings/ruby/ext/css_inline/Cargo.toml bindings/ruby/Gemfile.lock) ;;
-    javascript) CL=bindings/javascript/CHANGELOG.md; FILES=(bindings/javascript/Cargo.toml bindings/javascript/package.json bindings/javascript/wasm/package.json bindings/javascript/npm/*/package.json) ;;
+    javascript) CL=bindings/javascript/CHANGELOG.md; FILES=(bindings/javascript/Cargo.toml bindings/javascript/package.json bindings/javascript/wasm/package.json bindings/javascript/npm/*/package.json bindings/javascript/README.md bindings/javascript/wasm/README.md) ;;
     *) echo "unknown component: $C"; exit 1 ;;
   esac
   PREV=$(grep -oP "compare/${C}-v\K[0-9]+\.[0-9]+\.[0-9]+(?=\.\.\.HEAD)" "$CL")
