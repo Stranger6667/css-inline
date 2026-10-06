@@ -9,9 +9,9 @@
 
 `css_inline` is a high-performance library for inlining CSS into HTML 'style' attributes.
 
-This library is designed for scenarios such as preparing HTML emails or embedding HTML into third-party web pages.
+Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
-For instance, the library transforms HTML like this:
+It turns this HTML:
 
 ```html
 <html>
@@ -27,28 +27,29 @@ For instance, the library transforms HTML like this:
 into:
 
 ```html
-<html>
-  <head></head>
+<html><head>
+
+  </head>
   <body>
-    <h1 style="color:blue;">Big Text</h1>
-  </body>
-</html>
+    <h1 style="color: blue;">Big Text</h1>
+
+</body></html>
 ```
 
-- Uses reliable components from Mozilla's Servo project
-- 10-500x faster than alternatives
+- Uses components from Mozilla's Servo project
+- 14x to 680x faster than `premailer`, the fastest Python alternative (see [Performance](#performance))
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
-- Optionally caches external stylesheets
-- Can process multiple documents in parallel
-- Works on Linux, Windows, macOS and in the browser via PyOdide
+- Caches external stylesheets (opt-in)
+- Processes multiple documents in parallel
+- Works on Linux, Windows, macOS and in the browser via Pyodide
 - Supports HTML5 & CSS3
 - Tested on CPython 3.10, 3.11, 3.12, 3.13, 3.14 and PyPy 3.11.
 
 ## Playground
 
-If you'd like to try `css-inline`, you can check the WebAssembly-powered [playground](https://css-inline.org/) to see the results instantly.
+Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/).
 
 ## Installation
 
@@ -58,8 +59,16 @@ Install with `pip`:
 pip install css_inline
 ```
 
-Pre-compiled wheels are available for most popular platforms.
-If not available for your platform, a Rust compiler will be needed to build this package from source. Rust version 1.65 or higher is required.
+The PyPI name is `css-inline`; `pip` accepts `css_inline` too. Import it as `css_inline`.
+
+PyPI ships pre-compiled wheels for:
+
+- Linux (glibc and musl): x86_64, aarch64, armv7; glibc also i686
+- macOS: x86_64, arm64
+- Windows: x64, x86
+- PyPy 3.11: Linux x86_64 and aarch64, macOS x86_64
+
+On other platforms, `pip` builds the package from source, which requires Rust 1.85 or newer.
 
 ## Usage
 
@@ -76,21 +85,18 @@ HTML = """<html>
 </html>"""
 
 inlined = css_inline.inline(HTML)
-# HTML becomes this:
+# <html><head>
 #
-# <html>
-# <head>
-#    <style>h1 { color:blue; }</style>
 # </head>
 # <body>
-#     <h1 style="color:blue;">Big Text</h1>
-# </body>
-# </html>
+#     <h1 style="color: blue;">Big Text</h1>
+#
+# </body></html>
 ```
 
-Note that `css-inline` automatically adds missing `html` and `body` tags, so the output is a valid HTML document.
+`inline` adds missing `html`, `head` and `body` tags, so the output is a complete HTML document.
 
-Alternatively, you can inline CSS into an HTML fragment. Structural tags (`<html>`, `<head>`, `<body>`) are stripped from the output; only their contents are preserved. Use `inline` if you need to keep the full document structure:
+To inline CSS into an HTML fragment, use `inline_fragment(html, css)`. Both arguments are required; `css` holds the stylesheet to apply. The output stays a fragment: no `<html>`, `<head>` or `<body>` wrapper. Use `inline` for full documents:
 
 ```python
 FRAGMENT = """<main>
@@ -111,7 +117,6 @@ h1 {
 """
 
 inlined = css_inline.inline_fragment(FRAGMENT, CSS)
-# HTML becomes this:
 # <main>
 # <h1 style="color: blue;">Hello</h1>
 # <section>
@@ -120,23 +125,26 @@ inlined = css_inline.inline_fragment(FRAGMENT, CSS)
 # </main>
 ```
 
-When there is a need to inline multiple HTML documents simultaneously, `css_inline` offers `inline_many` and `inline_many_fragments` functions.
-This feature allows for concurrent processing of several inputs, significantly improving performance when dealing with a large number of documents.
+To inline many documents at once, use `inline_many` or `inline_many_fragments`.
+Both process inputs in parallel and return a list of strings in input order.
+`inline_many_fragments` pairs `htmls[i]` with `css[i]`.
+
+**Warning**: if the lists differ in length, `inline_many_fragments` silently drops the extra items from the longer list.
+`CSSInliner` has the same two methods.
 
 ```python
 import css_inline
 
 css_inline.inline_many(["<...>", "<...>"])
+css_inline.inline_many_fragments(["<p>a</p>", "<p>b</p>"], ["p { color: red; }", "p { color: blue; }"])
 ```
 
-Under the hood, `inline_many`, spawns threads at the Rust layer to handle the parallel processing of inputs.
-This results in faster execution times compared to employing parallel processing techniques at the Python level.
-
-**Note**: To fully benefit from `inline_many`, you should run your application on a multicore machine.
+`inline_many` processes inputs in parallel on a Rust thread pool ([Rayon](https://github.com/rayon-rs/rayon)), so you don't need `multiprocessing`.
+The speedup scales with the number of CPU cores.
 
 ### Configuration
 
-For configuration options use the `CSSInliner` class:
+Pass options to the `CSSInliner` class:
 
 ```python
 import css_inline
@@ -145,21 +153,21 @@ inliner = css_inline.CSSInliner(keep_style_tags=True)
 inliner.inline("...")
 ```
 
-- `inline_style_tags`. Specifies whether to inline CSS from "style" tags. Default: `True`
-- `keep_style_tags`. Specifies whether to keep "style" tags after inlining. Default: `False`
-- `keep_link_tags`. Specifies whether to keep "link" tags after inlining. Default: `False`
-- `keep_at_rules`. Specifies whether to keep "at-rules" (starting with `@`) after inlining. Default: `False`
-- `minify_css`. Specifies whether to remove trailing semicolons and spaces between properties and values. Default: `False`
-- `base_url`. The base URL used to resolve relative URLs. If you'd like to load stylesheets from your filesystem, use the `file://` scheme. Default: `None`
-- `load_remote_stylesheets`. Specifies whether remote stylesheets should be loaded. Default: `True`
-- `cache`. Specifies caching options for external stylesheets (for example, `StylesheetCache(size=5)`). Default: `None`
-- `extra_css`. Extra CSS to be inlined. Default: `None`
-- `preallocate_node_capacity`. **Advanced**. Preallocates capacity for HTML nodes during parsing. This can improve performance when you have an estimate of the number of nodes in your HTML document. Default: `32`
-- `remove_inlined_selectors`. Specifies whether to remove selectors that were successfully inlined from `<style>` blocks. Default: `False`
-- `apply_width_attributes`. Specifies whether to add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
-- `apply_height_attributes`. Specifies whether to add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
+- `inline_style_tags`. Inline CSS from `style` tags. Default: `True`
+- `keep_style_tags`. Keep `style` tags after inlining. Default: `False`
+- `keep_link_tags`. Keep `link` tags after inlining. Default: `False`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `False`
+- `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `False`
+- `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `None`
+- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `True`
+- `cache`. Cache for external stylesheets, for example `StylesheetCache(size=5)`. Default: `None`
+- `extra_css`. Extra CSS to inline. Default: `None`
+- `preallocate_node_capacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`
+- `remove_inlined_selectors`. Remove inlined selectors from `<style>` blocks. Default: `False`
+- `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
+- `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
 
-You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="ignore"` attribute to it:
+To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute:
 
 ```html
 <head>
@@ -171,7 +179,7 @@ You can also skip CSS inlining for an HTML tag by adding the `data-css-inline="i
 </body>
 ```
 
-The `data-css-inline="ignore"` attribute also allows you to skip `link` and `style` tags:
+The same attribute on a `link` or `style` tag makes the inliner skip that stylesheet:
 
 ```html
 <head>
@@ -183,9 +191,9 @@ The `data-css-inline="ignore"` attribute also allows you to skip `link` and `sty
 </body>
 ```
 
-Alternatively, you may keep `style` from being removed by using the `data-css-inline="keep"` attribute.
-This is useful if you want to keep `@media` queries for responsive emails in separate `style` tags.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is set to `false`.
+To keep a `style` tag in the output, add `data-css-inline="keep"`.
+Use it for `@media` queries in responsive emails.
+The tag stays even with `keep_style_tags=False`.
 
 ```html
 <head>
@@ -197,14 +205,13 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-Another possibility is to set `keep_at_rules` option to `true`. At-rules cannot be inlined into HTML therefore they
-get removed by default. This is useful if you want to keep at-rules, e.g. `@media` queries for responsive emails in
-separate `style` tags but inline any styles which can be inlined.
-Such tags will be kept in the resulting HTML even if the `keep_style_tags` option is explicitly set to `false`.
+At-rules can't go into `style` attributes, so the inliner removes them by default.
+Set `keep_at_rules=True` to keep them, for example `@media` queries for responsive emails, in a `style` tag while inlining everything else.
+The tag stays even with `keep_style_tags=False`.
 
 ```html
 <head>
-  <!-- With keep_at_rules=true "color:blue" will get inlined into <h1> but @media will be kept in <style> -->
+  <!-- With keep_at_rules=True, "color: blue" goes into <h1> and @media stays in <style> -->
   <style>h1 { color: blue; } @media (max-width: 600px) { h1 { font-size: 18px; } }</style>
 </head>
 <body>
@@ -212,8 +219,7 @@ Such tags will be kept in the resulting HTML even if the `keep_style_tags` optio
 </body>
 ```
 
-If you set the the `minify_css` option to `true`, the inlined styles will be minified by removing trailing semicolons
-and spaces between properties and values.
+`minify_css=True` removes trailing semicolons and spaces between properties and values in inlined styles.
 
 ```html
 <head>
@@ -225,17 +231,24 @@ and spaces between properties and values.
 </body>
 ```
 
-If you'd like to load stylesheets from your filesystem, use the `file://` scheme:
+To load stylesheets from the filesystem, use the `file://` scheme.
+Standard URL parsing reads `file://styles/email/` as host `styles` and path `/email/`.
+`css-inline` deviates from the standard here: for a `file://` URL with a host, it drops the `file://` prefix and treats `styles/email/` as a path relative to the current directory.
+With either form, `<link href="main.css">` resolves against the base, so keep the trailing slash: without it, `main.css` replaces the last segment (`styles/main.css`).
 
 ```python
 import css_inline
 
-# styles/email is relative to the current directory
+# Absolute directory: three slashes
+inliner = css_inline.CSSInliner(base_url="file:///srv/app/styles/email/")
+inliner.inline("...")
+
+# Relative to the current directory: two slashes
 inliner = css_inline.CSSInliner(base_url="file://styles/email/")
 inliner.inline("...")
 ```
 
-You can also cache external stylesheets to avoid excessive network requests:
+To avoid repeated network requests, cache external stylesheets:
 
 ```python
 import css_inline
@@ -246,11 +259,25 @@ inliner = css_inline.CSSInliner(
 inliner.inline("...")
 ```
 
-Caching is disabled by default.
+`size` is the maximum number of stylesheets in the cache and must be greater than zero; otherwise `StylesheetCache` raises `InlineError`. When it is full, the least recently used entry is evicted. Caching is off by default.
+
+### Errors
+
+Inlining raises `css_inline.InlineError`, a `ValueError` subclass, when a stylesheet fails to load (missing file, network error) or to parse.
+An invalid `base_url` raises a plain `ValueError`.
+
+```python
+import css_inline
+
+try:
+    css_inline.inline('<link href="missing.css" rel="stylesheet">')
+except css_inline.InlineError as exc:
+    print(exc)  # Missing stylesheet file: missing.css
+```
 
 ## XHTML compatibility
 
-If you'd like to work around some XHTML compatibility issues like closing empty tags (`<hr>` vs. `<hr/>`), you can use the following snippet that involves `lxml`:
+`css-inline` outputs HTML5, so void tags stay unclosed (`<hr>`, not `<hr/>`). For XHTML output, re-serialize with `lxml`:
 
 ```python
 import css_inline
@@ -264,36 +291,33 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 
 ## Performance
 
-`css-inline` is powered by efficient tooling from Mozilla's Servo project and significantly outperforms other Python alternatives in terms of speed.
-Most of the time it achieves over a **10x** speed advantage compared to the next fastest alternative.
+`css-inline` is 14x to 680x faster than the next fastest Python inliner, `premailer`, on the inputs below:
 
-Here is the performance comparison:
+|             | Size    | `css_inline 0.22.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `pynliner 0.8.0`        |
+|-------------|---------|---------------------|------------------------|-------------------------|-------------------------|
+| Basic       | 230 B   | 4.19 µs             | 90.77 µs (**21.66x**)  | 538.65 µs (**128.56x**) | 951.89 µs (**227.18x**) |
+| Realistic-1 | 8.58 KB | 78.15 µs            | 1.12 ms (**14.32x**)   | 12.25 ms (**156.77x**)  | 12.92 ms (**165.31x**)  |
+| Realistic-2 | 4.30 KB | 42.70 µs            | 1.47 ms (**34.38x**)   | ERROR                   | ERROR                   |
+| GitHub page | 1.81 MB | 16.79 ms            | 11.42 s (**680.16x**)  | ERROR                   | ERROR                   |
 
-|             | Size    | `css_inline 0.19.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `inlinestyler 0.2.5`   | `pynliner 0.8.0`        |
-|-------------|---------|---------------------|------------------------|-------------------------|------------------------|-------------------------|
-| Basic       | 230 B   | 4.27 µs             | 85.05 µs (**19.93x**)  | 495.30 µs (**116.05x**) | 1.02 ms (**238.87x**)  | 867.79 µs (**203.32x**) |
-| Realistic-1 | 8.58 KB | 80.59 µs            | 1.03 ms (**12.76x**)   | 11.55 ms (**143.29x**)  | 26.37 ms (**327.21x**) | 11.71 ms (**145.36x**)  |
-| Realistic-2 | 4.3 KB  | 46.88 µs            | 1.44 ms (**30.73x**)   | ERROR                   | 17.71 ms (**377.77x**) | ERROR                   |
-| GitHub page | 1.81 MB | 17.57 ms            | 10.78 s (**613.48x**)  | ERROR                   | ERROR                  | ERROR                   |
+`toronado` and `pynliner` fail on Realistic-2 and the GitHub page because those inputs contain CSS they do not support: `toronado` raises `ExpressionError: Pseudo-elements are not supported.`, `pynliner` raises `Exception: No match was found. We're done or something is broken`.
+`inlinestyler` 0.2.5 is not in the table: it crashes with current `lxml` (`'CSSSelector' object has no attribute 'evaluate'`).
 
-The "Basic" case was obtained by benchmarking the example from the Usage section.
-Note that the `toronado`, `inlinestyler`, and `pynliner` libraries encountered errors when used to inline CSS in the last scenarios.
-
-The benchmarking code is available in the `benches/bench.py` file. The benchmarks were conducted using the stable `rustc 1.91`, Python `3.14.2` on Ryzen 9 9950X.
+Inputs live in [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): Basic is `simple`, Realistic-1 is `big_email_1`, Realistic-2 is `big_email_2`, GitHub page is `big_page`.
+Benchmark code: [`benches/bench.py`](https://github.com/Stranger6667/css-inline/blob/master/bindings/python/benches/bench.py) (`pytest-benchmark`, mean time). Environment: `rustc 1.99` (stable), Python `3.14.5`, Ryzen 9 9950X.
 
 ## Comparison with other libraries
 
-Besides performance, `css-inline` differs from other Python libraries for CSS inlining.
+Compared to other Python inliners, `css-inline`:
 
-- Generally supports more CSS features than other libraries (for example, `toronado` and `pynliner` do not support pseudo-elements);
-- It has fewer configuration options and is not as flexible as `premailer`;
-- Works on fewer platforms than LXML-based libraries (`premailer`, `inlinestyler`, `toronado`, and optionally `pynliner`);
-- Does not have debug logs yet;
-- Supports only HTML 5.
+- Supports more CSS features. For example, `toronado` and `pynliner` don't support pseudo-elements.
+- Has fewer configuration options than `premailer`.
+- Has no debug logs.
+- Supports only HTML5.
 
 ## Further reading
 
-If you want to know how this library was created & how it works internally, you could take a look at these articles:
+How the library works internally:
 
 - [Rust crate](https://dygalo.dev/blog/rust-for-a-pythonista-2/)
 - [Python bindings](https://dygalo.dev/blog/rust-for-a-pythonista-3/)
