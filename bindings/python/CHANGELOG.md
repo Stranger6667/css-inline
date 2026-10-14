@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.22.1] - 2026-10-14
+
 ### Fixed
 
 - `remove_inlined_selectors` removed `@`-rules from the `<style>` blocks it rewrites when `keep_at_rules` is enabled (it should keep them). [#815](https://github.com/Stranger6667/css-inline/issues/815)
@@ -623,7 +625,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.1...HEAD
+[0.22.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.0...python-v0.22.1
 [0.22.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.3...python-v0.22.0
 [0.21.3]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.2...python-v0.21.3
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.1...python-v0.21.2
