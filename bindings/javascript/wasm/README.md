@@ -25,7 +25,7 @@ With a bundler or ESM:
 import { initWasm, inline, inlineFragment } from "@css-inline/css-inline-wasm";
 
 // `initWasm` is async and runs once: wait for it before calling `inline`
-await initWasm(fetch("https://unpkg.com/@css-inline/css-inline-wasm@0.22.0/index_bg.wasm"));
+await initWasm(fetch("https://unpkg.com/@css-inline/css-inline-wasm@0.22.1/index_bg.wasm"));
 
 const html = inline("<html><head><style>h1 { color:blue; }</style></head><body><h1>Big Text</h1></body></html>");
 // <html><head></head><body><h1 style="color: blue;">Big Text</h1></body></html>
@@ -47,9 +47,9 @@ From a CDN, the script defines a global `cssInline`. Pin the version in both URL
 
 ```html
 <iframe id="output"></iframe>
-<script src="https://unpkg.com/@css-inline/css-inline-wasm@0.22.0"></script>
+<script src="https://unpkg.com/@css-inline/css-inline-wasm@0.22.1"></script>
 <script>
-  cssInline.initWasm(fetch("https://unpkg.com/@css-inline/css-inline-wasm@0.22.0/index_bg.wasm")).then(() => {
+  cssInline.initWasm(fetch("https://unpkg.com/@css-inline/css-inline-wasm@0.22.1/index_bg.wasm")).then(() => {
     const inlinedHtml = cssInline.inline("<html><head><style>h1 { color:blue; }</style></head><body><h1>Big Text</h1></body></html>");
     document.getElementById("output").srcdoc = inlinedHtml;
   });
