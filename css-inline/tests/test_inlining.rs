@@ -1615,7 +1615,25 @@ h1 { color: blue; }
     let result = inliner.inline(html).unwrap();
     assert_eq!(
         result,
-        "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } </style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+        "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } </style><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_with_at_rules_in_fragment() {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .build();
+    let html = r#"<style>
+p { color: black; }
+@media (prefers-color-scheme: dark) { p { color: white !important; } }
+</style><p>Example</p>"#;
+    let result = inliner.inline_fragment(html, "").unwrap();
+    assert_eq!(
+        result,
+        "<style>@media (prefers-color-scheme: dark) { p { color: white !important; } }</style><p style=\"color: black;\">Example</p>"
     );
 }
 

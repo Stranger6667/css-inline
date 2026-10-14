@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `remove_inlined_selectors` removed `@`-rules from the `<style>` blocks it rewrites when `keep_at_rules` is enabled (it should keep them). [#815](https://github.com/Stranger6667/css-inline/issues/815)
+
 ## [0.22.0] - 2026-10-02
 
 ### Changed

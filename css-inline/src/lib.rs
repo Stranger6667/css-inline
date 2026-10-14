@@ -181,6 +181,40 @@ impl<'i> SelectorCleanupState<'i> {
     }
 }
 
+fn collect_rules<'i, P>(
+    items: &mut cssparser::StyleSheetParser<'i, '_, P>,
+    source: &'i str,
+    mut rules: Option<&mut Vec<parser::QualifiedRule<'i>>>,
+    mut state: Option<&mut SelectorCleanupState<'i>>,
+) where
+    P: cssparser::QualifiedRuleParser<'i, QualifiedRule = parser::QualifiedRule<'i>, Error = ()>
+        + cssparser::AtRuleParser<'i, AtRule = parser::QualifiedRule<'i>, Error = ()>,
+{
+    // A rejected rule's block stays pending until the parser moves on; skipping
+    // whitespace consumes it, so the rule's span ends there.
+    // The error carries the rule's start, past any whitespace and comments.
+    let mut rejected = None;
+    loop {
+        if let Some(rule) = rejected.take() {
+            items.input.skip_whitespace();
+            let end = items.input.position().byte_index();
+            if let Some(state) = state.as_mut() {
+                state.record_at_rule(source, rule, end);
+            }
+        }
+        match items.next() {
+            None => break,
+            Some(Ok(rule)) => {
+                if let Some(rules) = rules.as_mut() {
+                    rules.push(rule);
+                }
+            }
+            Some(Err((_, rule, _))) if state.is_some() => rejected = Some(rule),
+            Some(Err(_)) => {}
+        }
+    }
+}
+
 /// Find which chunk contains the given byte offset.
 fn find_chunk_index(chunks: &[CssChunk], offset: usize) -> Option<usize> {
     chunks
@@ -783,46 +817,31 @@ impl<'a> CSSInliner<'a> {
                 .max(16),
         );
         let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
+        // Both parsers reject `@`-rules. Selector cleanup keeps them in the rewritten `<style>`
+        // blocks, so it needs each rejected rule's span.
         let at_rules = if self.options.keep_at_rules {
             let mut at_rules = String::new();
-            for rule in cssparser::StyleSheetParser::new(
-                &mut parser,
-                &mut parser::AtRuleFilteringParser::new(&mut declarations, &mut at_rules),
-            )
-            .flatten()
-            {
-                if self.options.inline_style_tags {
-                    rule_list.push(rule);
-                }
-            }
+            let mut rule_parser =
+                parser::AtRuleFilteringParser::new(&mut declarations, &mut at_rules);
+            let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_parser);
+            let rules = self.options.inline_style_tags.then_some(&mut rule_list);
+            collect_rules(
+                &mut items,
+                &raw_styles,
+                rules,
+                selector_cleanup_state.as_mut(),
+            );
             Some(at_rules)
         } else if !raw_styles.is_empty() {
             // At this point, we collected some styles from at least one source, hence we need to process it.
-            // `CSSRuleListParser` rejects `@`-rules. Selector cleanup keeps them in the rewritten
-            // `<style>` blocks, so it needs each rejected rule's span.
-            let mut rule_list_parser = parser::CSSRuleListParser::new(&mut declarations);
-            let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_list_parser);
-            // A rejected rule's block stays pending until the parser moves on; skipping
-            // whitespace consumes it, so the rule's span ends there.
-            // The error carries the rule's start, past any whitespace and comments.
-            let mut rejected = None;
-            loop {
-                if let Some(rule) = rejected.take() {
-                    items.input.skip_whitespace();
-                    let end = items.input.position().byte_index();
-                    if let Some(state) = selector_cleanup_state.as_mut() {
-                        state.record_at_rule(&raw_styles, rule, end);
-                    }
-                }
-                match items.next() {
-                    None => break,
-                    Some(Ok(rule)) => rule_list.push(rule),
-                    Some(Err((_, rule, _))) if selector_cleanup_state.is_some() => {
-                        rejected = Some(rule);
-                    }
-                    Some(Err(_)) => {}
-                }
-            }
+            let mut rule_parser = parser::CSSRuleListParser::new(&mut declarations);
+            let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_parser);
+            collect_rules(
+                &mut items,
+                &raw_styles,
+                Some(&mut rule_list),
+                selector_cleanup_state.as_mut(),
+            );
             None
         } else {
             None
