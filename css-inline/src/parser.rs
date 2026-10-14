@@ -153,13 +153,13 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
         _start: &ParserState,
         input: &mut cssparser::Parser<'i>,
     ) -> Result<Self::AtRule, cssparser::ParseError<Self::Error>> {
-        let start = self.at_rules.len();
         self.at_rules.push_str(prelude);
         self.at_rules.push('{');
         self.at_rules.push_str(exhaust(input));
         self.at_rules.push('}');
         self.at_rules.push(' ');
-        Ok((prelude, (start, self.at_rules.len())))
+        // Rejected so it never acts as a selector; the caller still sees its span.
+        Err(input.new_error_for_next_token())
     }
 
     fn rule_without_block(
@@ -170,11 +170,10 @@ impl<'i> cssparser::AtRuleParser<'i> for AtRuleFilteringParser<'_, 'i, '_> {
         // `parse_prelude` has already written `@` + the rule name; without this
         // the name would fuse with the following rule (e.g. `@import@media ...`),
         // producing a stylesheet browsers reject entirely.
-        let start = self.at_rules.len();
         self.at_rules.push_str(prelude);
         self.at_rules.push(';');
         self.at_rules.push(' ');
-        Ok((prelude, (start, self.at_rules.len())))
+        Err(())
     }
 }
 
