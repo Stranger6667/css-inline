@@ -36,6 +36,10 @@ release COMPONENT VERSION:
   sed -i "s#compare/${C}-v${PREV_RE}\.\.\.HEAD#compare/${C}-v${VERSION}...HEAD#" "$CL"
   sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$CL"
   if [ "$C" = ruby ]; then
+    # The gem builds the core from crates.io; pin it to the core's current version.
+    CORE=$(grep -m1 -oP '^version = "\K[^"]+' css-inline/Cargo.toml)
+    sed -i "/^\[dependencies.css-inline\]$/,/^version/s/^version = .*/version = \"${CORE}\"/" bindings/ruby/ext/css_inline/Cargo.toml
+    grep -A1 '^\[dependencies.css-inline\]$' bindings/ruby/ext/css_inline/Cargo.toml | grep -qx "version = \"${CORE}\"" || { echo "css-inline pin not bumped to ${CORE}"; exit 1; }
     cargo update -p css-inline --manifest-path bindings/ruby/Cargo.toml
     cp bindings/ruby/Cargo.lock bindings/ruby/ext/css_inline/Cargo.lock
   fi
