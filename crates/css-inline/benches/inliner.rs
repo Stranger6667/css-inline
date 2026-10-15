@@ -9,8 +9,11 @@ struct Benchmark {
 }
 
 fn inlining(c: &mut Criterion) {
-    let benchmarks_str =
-        fs::read_to_string("../benchmarks/benchmarks.json").expect("Failed to load benchmarks");
+    let benchmarks_str = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../benchmarks/benchmarks.json"
+    ))
+    .expect("Failed to load benchmarks");
     let benchmarks: Vec<Benchmark> =
         serde_json::from_str(&benchmarks_str).expect("Failed to load benchmarks");
     for benchmark in benchmarks.iter() {
@@ -28,8 +31,11 @@ fn inlining(c: &mut Criterion) {
 }
 
 fn inlining_remove_selectors(c: &mut Criterion) {
-    let benchmarks_str =
-        fs::read_to_string("../benchmarks/benchmarks.json").expect("Failed to load benchmarks");
+    let benchmarks_str = fs::read_to_string(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../benchmarks/benchmarks.json"
+    ))
+    .expect("Failed to load benchmarks");
     let benchmarks: Vec<Benchmark> =
         serde_json::from_str(&benchmarks_str).expect("Failed to load benchmarks");
     let inliner = CSSInliner::options().remove_inlined_selectors(true).build();

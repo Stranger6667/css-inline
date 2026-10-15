@@ -20,13 +20,13 @@ rayon = "1"
 url = "2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
-path = "../../css-inline"
+path = "../../crates/css-inline"
 version = "*"
 default-features = false
 features = ["stylesheet-cache"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
-path = "../../css-inline"
+path = "../../crates/css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]

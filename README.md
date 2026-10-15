@@ -327,7 +327,7 @@ Benchmarks for `css-inline==0.22.0`:
 
 Criterion mean time, measured with `rustc 1.99` on a Ryzen 9 9950X.
 
-The harness is [`css-inline/benches/inliner.rs`](https://github.com/Stranger6667/css-inline/blob/master/css-inline/benches/inliner.rs) (Criterion); inputs are in [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json). Run it with `cargo bench` from the `css-inline/` directory.
+The harness is [`crates/css-inline/benches/inliner.rs`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline/benches/inliner.rs) (Criterion); inputs are in [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json). Run it with `cargo bench -p css-inline`.
 
 ## Command Line Interface
 

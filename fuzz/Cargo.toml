@@ -11,7 +11,7 @@ cargo-fuzz = true
 libfuzzer-sys = "0.4"
 
 [dependencies.css-inline]
-path = ".."
+path = "../crates/css-inline"
 default-features = false
 features = ["http", "file"]
 

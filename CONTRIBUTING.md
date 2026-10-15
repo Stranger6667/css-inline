@@ -51,13 +51,13 @@ It would be awesome if you can submit a failing test that demonstrates the probl
 Running tests requires a test server running in background:
 
 ```
-python ./css-inline/tests/server.py &
+python ./crates/css-inline/tests/server.py &
 ```
 
-Then run tests inside the `css-inline` directory:
+Then run tests from the repository root:
 
 ```
-cargo test
+cargo test --workspace
 ```
 
 ## Preferred communication language

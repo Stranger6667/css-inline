@@ -1,12 +1,12 @@
 [package]
 name = "css-inline"
 version = "0.22.1"
-authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
-edition = "2021"
-license = "MIT"
-readme = "../README.md"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+readme = "../../README.md"
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
-repository = "https://github.com/Stranger6667/css-inline"
+repository.workspace = true
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 exclude = [
   ".github",
@@ -16,8 +16,7 @@ exclude = [
   "tests",
 ]
 categories = ["web-programming"]
-rust-version = "1.85"
-resolver = "3"
+rust-version.workspace = true
 
 [[bin]]
 name = "css-inline"
@@ -53,7 +52,3 @@ test-case = "3.3"
 [[bench]]
 name = "inliner"
 harness = false
-
-[profile.release]
-lto = "fat"
-codegen-units = 1

@@ -32,13 +32,13 @@ getrandom = { version = "0.4.0", features = ["wasm_js"] }
 serde = { version = "1", features = ["derive"], default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
-path = "../../css-inline"
+path = "../../crates/css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
-path = "../../css-inline"
+path = "../../crates/css-inline"
 version = "*"
 default-features = false
 

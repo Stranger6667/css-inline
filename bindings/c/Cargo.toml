@@ -15,7 +15,7 @@ libc = "0.2"
 cbindgen = "0.29"
 
 [dependencies.css-inline]
-path = "../../css-inline"
+path = "../../crates/css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
