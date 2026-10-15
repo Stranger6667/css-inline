@@ -1,0 +1,22 @@
+[package]
+name = "css-inline-ruby"
+version = "0.22.1"
+authors.workspace = true
+edition = "2024"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+name = "css_inline"
+crate-type = ["cdylib"]
+
+[dependencies]
+magnus = "0.9"
+rayon = "1"
+
+[dependencies.css-inline]
+path = "../css-inline"
+default-features = false
+features = ["http", "file", "stylesheet-cache"]

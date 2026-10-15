@@ -1,7 +1,7 @@
 [workspace]
 members = ["crates/*", "profiler"]
-# Built by their own toolchains (maturin, gradle, cargo-fuzz) with their own profiles and `target/`
-exclude = ["bindings", "fuzz"]
+# Built by `cargo fuzz` with its own profile and `target/`
+exclude = ["fuzz"]
 resolver = "3"
 
 [workspace.package]
