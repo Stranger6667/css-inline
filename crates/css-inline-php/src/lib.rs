@@ -178,6 +178,7 @@ pub fn inline_many_fragments(htmls: Vec<String>, css: &str) -> PhpResult<Vec<Str
 #[php_module]
 pub fn get_module(module: ModuleBuilder) -> ModuleBuilder {
     module
+        .name("css_inline")
         .constant(wrap_constant!(VERSION))
         .class::<InlineError>()
         .class::<StylesheetCache>()

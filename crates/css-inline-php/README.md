@@ -59,7 +59,7 @@ Build the extension:
 
 ```shell
 git clone https://github.com/Stranger6667/css-inline.git
-cd css-inline/bindings/php
+cd css-inline/crates/css-inline-php
 cargo build --release
 ```
 
@@ -67,10 +67,10 @@ Copy the compiled extension to your PHP extensions directory:
 
 ```shell
 # Linux
-cp target/release/libcss_inline_php.so $(php-config --extension-dir)/css_inline.so
+cp ../../target/release/libcss_inline_php.so $(php-config --extension-dir)/css_inline.so
 
 # macOS
-cp target/release/libcss_inline_php.dylib $(php-config --extension-dir)/css_inline.so
+cp ../../target/release/libcss_inline_php.dylib $(php-config --extension-dir)/css_inline.so
 ```
 
 Enable the extension in your `php.ini` (`php --ini` shows its location):
@@ -317,8 +317,8 @@ Caching is disabled by default.
 † `css-to-inline-styles` returns the GitHub page without inlining any styles.
 ‡ Timed outside phpbench: median of 5 runs. At 10 iterations of 100 revolutions, `composer bench` would spend about 2.4 hours on this cell, so it skips it.
 
-The benchmark code lives in [`bindings/php/benchmarks/InlineBench.php`](https://github.com/Stranger6667/css-inline/blob/master/bindings/php/benchmarks/InlineBench.php). It reads the `simple`, `big_email_1`, `big_email_2` and `big_page` inputs from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json).
-To reproduce, build the extension, then run `composer install` and `composer bench` in `bindings/php` (phpbench, 10 iterations of 100 revolutions each; the table shows the median iteration).
+The benchmark code lives in [`crates/css-inline-php/benchmarks/InlineBench.php`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-php/benchmarks/InlineBench.php). It reads the `simple`, `big_email_1`, `big_email_2` and `big_page` inputs from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json).
+To reproduce, build the extension, then run `composer install` and `composer bench` in `crates/css-inline-php` (phpbench, 10 iterations of 100 revolutions each; the table shows the median iteration).
 Measured with stable `rustc 1.99` on PHP `8.5.6`, Ryzen 9 9950X.
 
 ## Further reading

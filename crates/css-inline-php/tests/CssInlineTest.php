@@ -8,6 +8,11 @@ use PHPUnit\Framework\TestCase;
 
 class CssInlineTest extends TestCase
 {
+    public function testExtensionName(): void
+    {
+        $this->assertTrue(extension_loaded('css_inline'));
+    }
+
     public function testVersion(): void
     {
         $this->assertMatchesRegularExpression('/^\d+\.\d+\.\d+$/', \CssInline\VERSION);
