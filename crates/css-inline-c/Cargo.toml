@@ -1,8 +1,11 @@
 [package]
 name = "css-inline-c"
 version = "0.22.1"
-authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
+authors.workspace = true
 edition = "2024"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [lib]
 name = "css_inline"
@@ -15,7 +18,7 @@ libc = "0.2"
 cbindgen = "0.29"
 
 [dependencies.css-inline]
-path = "../../crates/css-inline"
+path = "../css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]

@@ -109,9 +109,6 @@ jobs:
       - run: cargo fmt --all -- --check
 
       - run: cargo fmt --all -- --check
-        working-directory: ./bindings/c
-
-      - run: cargo fmt --all -- --check
         working-directory: ./bindings/java
 
       - run: cargo fmt --all -- --check
@@ -141,7 +138,6 @@ jobs:
           workspaces: |
             .
             bindings/ruby
-            bindings/c
 
       - name: Rust
         run: cargo clippy --workspace --all-targets -- -D warnings
@@ -153,10 +149,6 @@ jobs:
       - name: Ruby
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/ruby
-
-      - name: C
-        run: cargo clippy -- -D warnings
-        working-directory: ./bindings/c
 
   msrv:
     name: MSRV
@@ -811,17 +803,16 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Build
-        run: cargo build
-        working-directory: ./bindings/c
+        run: cargo build -p css-inline-c
 
       - name: Run tests
         run: |
           gcc -c -I. tests/main.c
-          gcc main.o target/debug/libcss_inline.so -o out
+          gcc main.o ../../target/debug/libcss_inline.so -o out
           ./out
-        working-directory: ./bindings/c
+        working-directory: ./crates/css-inline-c
         env:
-          LD_LIBRARY_PATH: target/debug
+          LD_LIBRARY_PATH: ../../target/debug
 
   features:
     name: Check features

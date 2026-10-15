@@ -18,8 +18,7 @@ jobs:
         run: echo "version=${GITHUB_REF#refs/tags/c-v}" >> $GITHUB_ENV
 
       - name: Build
-        run: cargo build --release
-        working-directory: ./bindings/c
+        run: cargo build -p css-inline-c --release
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v3
@@ -28,5 +27,5 @@ jobs:
           draft: true
           name: "[C] Release ${{ env.version }}"
           files: |
-            bindings/c/target/release/libcss_inline.so
-            bindings/c/css_inline.h
+            target/release/libcss_inline.so
+            crates/css-inline-c/css_inline.h
