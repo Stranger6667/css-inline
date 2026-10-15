@@ -11,7 +11,7 @@ release COMPONENT VERSION:
   case "$C" in
     rust)       CL=CHANGELOG.md;                     FILES=(crates/css-inline/Cargo.toml) ;;
     c)          CL=bindings/c/CHANGELOG.md;          FILES=(bindings/c/Cargo.toml) ;;
-    python)     CL=bindings/python/CHANGELOG.md;     FILES=(bindings/python/Cargo.toml) ;;
+    python)     CL=crates/css-inline-python/CHANGELOG.md;     FILES=(crates/css-inline-python/Cargo.toml) ;;
     java)       CL=bindings/java/CHANGELOG.md;       FILES=(bindings/java/Cargo.toml bindings/java/build.gradle bindings/java/README.md) ;;
     php)        CL=bindings/php/CHANGELOG.md;        FILES=(bindings/php/Cargo.toml bindings/php/stubs/css_inline.php) ;;
     ruby)       CL=bindings/ruby/CHANGELOG.md;       FILES=(bindings/ruby/css_inline.gemspec bindings/ruby/ext/css_inline/Cargo.toml bindings/ruby/Gemfile.lock) ;;

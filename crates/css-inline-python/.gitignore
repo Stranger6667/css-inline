@@ -6,18 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
-# Rust
-/target
-
 # Distribution / packaging
 /dist/
 /build/
 /.eggs/
 *.egg-info/
-
-# Rust
-/target
-*.so
 
 # Testing
 .hypothesis

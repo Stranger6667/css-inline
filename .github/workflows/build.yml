@@ -91,7 +91,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - run: cargo test --workspace --no-fail-fast
+      # The Python binding is an `extension-module` cdylib without Rust tests, and its test harness does not link
+      # libpython; pytest covers it in `test-python`
+      - run: cargo test --workspace --no-fail-fast --exclude css-inline-python
 
   fmt:
     name: Rustfmt
@@ -114,9 +116,6 @@ jobs:
 
       - run: cargo fmt --all -- --check
         working-directory: ./bindings/javascript
-
-      - run: cargo fmt --all -- --check
-        working-directory: ./bindings/python
 
       - run: cargo fmt --all -- --check
         working-directory: ./bindings/ruby
@@ -145,16 +144,11 @@ jobs:
           workspaces: |
             .
             bindings/javascript
-            bindings/python
             bindings/ruby
             bindings/c
 
       - name: Rust
         run: cargo clippy --workspace --all-targets -- -D warnings
-
-      - name: Python
-        run: cargo clippy -- -D warnings
-        working-directory: ./bindings/python
 
       - name: Java
         run: cargo clippy -- -D warnings
@@ -520,11 +514,11 @@ jobs:
         shell: bash
 
       - run: python -m pip install -r requirements/dev.txt
-        working-directory: ./bindings/python
+        working-directory: ./crates/css-inline-python
 
       - name: Run ${{ matrix.python }} tox job
         run: tox -e py
-        working-directory: ./bindings/python
+        working-directory: ./crates/css-inline-python
 
   build-pyodide:
     name: Build PyOdide wheel
@@ -551,10 +545,10 @@ jobs:
       - run: |
           cargo generate-lockfile
           cargo update -p yoke-derive --precise 0.8.4
-        working-directory: ./bindings/python
+        working-directory: ./crates/css-inline-python
       - uses: pypa/cibuildwheel@v4.3.1
         with:
-          package-dir: ./bindings/python
+          package-dir: ./crates/css-inline-python
         env:
           CIBW_PLATFORM: pyodide
           CIBW_BUILD: ${{ matrix.build }}

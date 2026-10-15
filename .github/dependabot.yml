@@ -5,15 +5,11 @@ updates:
     schedule:
       interval: "weekly"
   - package-ecosystem: "cargo"
-    directory: "/css-inline"
+    directory: "/"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
     directory: "/bindings/c"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/bindings/python"
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
