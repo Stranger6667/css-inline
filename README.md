@@ -40,7 +40,7 @@ into:
 - Caches external stylesheets (optional)
 - Works on Linux, Windows, and macOS
 - Parses HTML5 and CSS3
-- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js), [Java](https://github.com/Stranger6667/css-inline/tree/master/bindings/java), [C](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js/wasm) module to run in browsers.
+- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js), [Java](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-java), [C](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js/wasm) module to run in browsers.
 - [Elixir bindings](https://github.com/knocklabs/css_inline) maintained by [Knock](https://github.com/knocklabs)
 - [Command Line Interface](#command-line-interface)
 

@@ -50,21 +50,16 @@ jobs:
           targets: ${{ matrix.target }}
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            css-inline
-            bindings/java
 
       - name: Build native library
-        working-directory: bindings/java
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cargo build --release -p css-inline-java --target ${{ matrix.target }}
 
       - name: Upload native library
         uses: actions/upload-artifact@v7
         with:
           name: native-${{ matrix.platform }}
           if-no-files-found: error
-          path: bindings/java/target/${{ matrix.target }}/release/${{ matrix.lib }}
+          path: target/${{ matrix.target }}/release/${{ matrix.lib }}
 
   build-jar:
     name: Build JAR file
@@ -85,7 +80,7 @@ jobs:
           path: native-libs
 
       - name: Assemble JAR with native libraries
-        working-directory: bindings/java
+        working-directory: crates/css-inline-java
         run: |
           mkdir -p src/main/resources/org/cssinline/native/{linux-x86_64,darwin-x86_64,darwin-aarch64,win32-x86_64}
 
@@ -102,7 +97,7 @@ jobs:
         with:
           name: java-jar
           if-no-files-found: error
-          path: bindings/java/build/libs/*.jar
+          path: crates/css-inline-java/build/libs/*.jar
 
   test-jar:
     needs: build-jar
@@ -180,13 +175,13 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: java-jar
-          path: bindings/java/build/libs
+          path: crates/css-inline-java/build/libs
 
       - name: Extract version
         run: echo "version=${GITHUB_REF#refs/tags/java-v}" >> $GITHUB_ENV
 
       - name: Publish to GitHub Packages
-        working-directory: bindings/java
+        working-directory: crates/css-inline-java
         run: gradle publish -Pversion=${{ env.version }}
         env:
           GITHUB_ACTOR: ${{ github.actor }}
