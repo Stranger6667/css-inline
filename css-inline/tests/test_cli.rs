@@ -225,6 +225,23 @@ pub mod tests {
     }
 
     #[test]
+    fn multiple_files_with_one_missing() {
+        let _ = fs::remove_file("tests/inlined.multiple.example.html");
+        css_inline()
+            .arg("tests/example.html")
+            .arg("tests/missing.html")
+            .arg("--output-filename-prefix=inlined.multiple.")
+            .assert()
+            .code(1)
+            .stdout("tests/example.html: SUCCESS\n")
+            .stderr(format!(
+                "Filename: tests/missing.html\nStatus: ERROR\nDetails: {}\n",
+                not_found_message()
+            ));
+        assert!(fs::metadata("tests/inlined.multiple.example.html").is_ok());
+    }
+
+    #[test]
     fn extra_css() {
         css_inline()
             .arg("tests/example.html")

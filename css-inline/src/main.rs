@@ -8,7 +8,6 @@ fn main() {
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     use core::fmt;
     use css_inline::{CSSInliner, DefaultStylesheetResolver, InlineOptions};
-    use rayon::prelude::*;
     use std::{
         borrow::Cow,
         error::Error,
@@ -16,12 +15,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         fmt::Write as FmtWrite,
         fs::{read_to_string, File},
         io::{self, Read, Write},
+        num::NonZeroUsize,
         path::PathBuf,
         str::FromStr,
         sync::{
-            atomic::{AtomicI32, Ordering},
+            atomic::{AtomicI32, AtomicUsize, Ordering},
             Arc,
         },
+        thread,
     };
 
     fn parse_url(url: Option<&str>) -> Result<Option<url::Url>, url::ParseError> {
@@ -325,30 +326,27 @@ OPTIONS:
                 exit_code.store(1, Ordering::SeqCst);
             }
         } else {
-            args.files
-                .par_iter()
-                .map(|file_path| {
-                    read_to_string(file_path)
-                        .and_then(|contents| {
-                            let path = file_path.as_path();
-                            let mut new_filename = args
-                                .output_filename_prefix
-                                .clone()
-                                .unwrap_or_else(|| OsString::from("inlined."));
-                            new_filename.push(
-                                path.to_path_buf()
-                                    .file_name()
-                                    .expect("It is already read, therefore it is a file"),
-                            );
-                            let new_path = path.with_file_name(new_filename);
-                            File::create(new_path).map(|file| (file, contents))
-                        })
-                        .map(|(mut file, contents)| {
-                            (file_path, inliner.inline_to(contents.as_str(), &mut file))
-                        })
-                        .map_err(|error| (file_path, error))
-                })
-                .for_each(|result| match result {
+            let process = |file_path: &PathBuf| {
+                let result = read_to_string(file_path)
+                    .and_then(|contents| {
+                        let path = file_path.as_path();
+                        let mut new_filename = args
+                            .output_filename_prefix
+                            .clone()
+                            .unwrap_or_else(|| OsString::from("inlined."));
+                        new_filename.push(
+                            path.to_path_buf()
+                                .file_name()
+                                .expect("It is already read, therefore it is a file"),
+                        );
+                        let new_path = path.with_file_name(new_filename);
+                        File::create(new_path).map(|file| (file, contents))
+                    })
+                    .map(|(mut file, contents)| {
+                        (file_path, inliner.inline_to(contents.as_str(), &mut file))
+                    })
+                    .map_err(|error| (file_path, error));
+                match result {
                     Ok((filename, result)) => match result {
                         Ok(()) => println!("{}: SUCCESS", filename.display()),
                         Err(error) => {
@@ -360,7 +358,23 @@ OPTIONS:
                         format_error(Some(&filename.to_string_lossy()), error);
                         exit_code.store(1, Ordering::SeqCst);
                     }
-                });
+                }
+            };
+            let next = AtomicUsize::new(0);
+            let workers = thread::available_parallelism()
+                .map_or(1, NonZeroUsize::get)
+                .min(args.files.len());
+            thread::scope(|scope| {
+                for _ in 0..workers {
+                    scope.spawn(|| {
+                        while let Some(file_path) =
+                            args.files.get(next.fetch_add(1, Ordering::Relaxed))
+                        {
+                            process(file_path);
+                        }
+                    });
+                }
+            });
         }
     }
     std::process::exit(exit_code.into_inner());
