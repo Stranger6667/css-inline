@@ -11,6 +11,7 @@
 
 ### Fixed
 
+- CLI leaving an empty output file when inlining fails.
 - `--load-remote-stylesheets` CLI flag rejected without an explicit `=true` value.
 - `--` end-of-options marker rejected by the CLI.
 - `-V` not accepted by the CLI as an alias for `--version`.
