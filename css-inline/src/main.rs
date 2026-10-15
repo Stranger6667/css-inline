@@ -161,6 +161,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             "keep-style-tags" => parsed.keep_style_tags = true,
             "keep-link-tags" => parsed.keep_link_tags = true,
             "keep-at-rules" => parsed.keep_at_rules = true,
+            "load-remote-stylesheets" => parsed.load_remote_stylesheets = true,
             "minify-css" => parsed.minify_css = true,
             "remove-inlined-selectors" => parsed.remove_inlined_selectors = true,
             "apply-width-attributes" => parsed.apply_width_attributes = true,
