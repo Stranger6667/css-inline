@@ -146,6 +146,19 @@ pub mod tests {
         )
     }
 
+    #[cfg(feature = "file")]
+    #[test_case("--load-remote-stylesheets"; "bare")]
+    #[test_case("--load-remote-stylesheets=true"; "explicit true")]
+    fn load_remote_stylesheets(flag: &str) {
+        css_inline()
+            .arg(flag)
+            .arg("--base-url=file://tests/")
+            .write_stdin(r#"<html><head><link href="external.css" rel="stylesheet"></head><body><h1>Hello world!</h1></body></html>"#)
+            .assert()
+            .success()
+            .stdout("<html><head></head><body><h1 style=\"color: blue;\">Hello world!</h1></body></html>");
+    }
+
     #[test]
     #[cfg(feature = "stylesheet-cache")]
     fn cache_valid() {

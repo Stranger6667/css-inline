@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `--load-remote-stylesheets` CLI flag rejected without an explicit `=true` value.
+
 ## [0.22.1] - 2026-10-14
 
 ### Fixed
