@@ -1,9 +1,11 @@
 [package]
 name = "css-inline-python"
 version = "0.22.1"
-authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
+authors.workspace = true
 edition = "2024"
-rust-version = "1.85"
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 include = ["src/lib.rs", "README.md", "CHANGELOG.md", "build.rs"]
 
 [lib]
@@ -20,17 +22,13 @@ rayon = "1"
 url = "2"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
-path = "../../crates/css-inline"
+path = "../css-inline"
 version = "*"
 default-features = false
 features = ["stylesheet-cache"]
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
-path = "../../crates/css-inline"
+path = "../css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
-
-[profile.release]
-codegen-units = 1
-lto = "fat"

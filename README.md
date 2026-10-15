@@ -40,7 +40,7 @@ into:
 - Caches external stylesheets (optional)
 - Works on Linux, Windows, and macOS
 - Parses HTML5 and CSS3
-- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [Java](https://github.com/Stranger6667/css-inline/tree/master/bindings/java), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
+- Bindings for [Python](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-python), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby), [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript), [Java](https://github.com/Stranger6667/css-inline/tree/master/bindings/java), [C](https://github.com/Stranger6667/css-inline/tree/master/bindings/c), [PHP](https://github.com/Stranger6667/css-inline/tree/master/bindings/php), and a [WebAssembly](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript/wasm) module to run in browsers.
 - [Elixir bindings](https://github.com/knocklabs/css_inline) maintained by [Knock](https://github.com/knocklabs)
 - [Command Line Interface](#command-line-interface)
 
@@ -314,7 +314,7 @@ The `cache` option defaults to `None`, so `css-inline` fetches stylesheets on ev
 
 ## Performance
 
-The table shows absolute timings of the Rust crate. The [Python](https://github.com/Stranger6667/css-inline/tree/master/bindings/python#performance), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby#performance) and [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript#performance) READMEs compare `css-inline` with other inliners.
+The table shows absolute timings of the Rust crate. The [Python](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-python#performance), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby#performance) and [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript#performance) READMEs compare `css-inline` with other inliners.
 
 Benchmarks for `css-inline==0.22.0`:
 

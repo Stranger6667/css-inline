@@ -304,7 +304,7 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 `inlinestyler` 0.2.5 is not in the table: it crashes with current `lxml` (`'CSSSelector' object has no attribute 'evaluate'`).
 
 Inputs live in [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): Basic is `simple`, Realistic-1 is `big_email_1`, Realistic-2 is `big_email_2`, GitHub page is `big_page`.
-Benchmark code: [`benches/bench.py`](https://github.com/Stranger6667/css-inline/blob/master/bindings/python/benches/bench.py) (`pytest-benchmark`, mean time). Environment: `rustc 1.99` (stable), Python `3.14.5`, Ryzen 9 9950X.
+Benchmark code: [`benches/bench.py`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-python/benches/bench.py) (`pytest-benchmark`, mean time). Environment: `rustc 1.99` (stable), Python `3.14.5`, Ryzen 9 9950X.
 
 ## Comparison with other libraries
 
