@@ -77,7 +77,7 @@ test("remote file stylesheet", (t) => {
   t.is(
     inline(`<html>
 <head>
-<link href="../../css-inline/tests/external.css" rel="stylesheet">
+<link href="../../crates/css-inline/tests/external.css" rel="stylesheet">
 <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml">
 <style>
 h2 { color: red; }

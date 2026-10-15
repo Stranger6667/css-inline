@@ -9,7 +9,7 @@ release COMPONENT VERSION:
   VERSION="{{VERSION}}"
   [ -z "$(git status --porcelain)" ] || { echo "working tree is not clean"; exit 1; }
   case "$C" in
-    rust)       CL=CHANGELOG.md;                     FILES=(css-inline/Cargo.toml) ;;
+    rust)       CL=CHANGELOG.md;                     FILES=(crates/css-inline/Cargo.toml) ;;
     c)          CL=bindings/c/CHANGELOG.md;          FILES=(bindings/c/Cargo.toml) ;;
     python)     CL=bindings/python/CHANGELOG.md;     FILES=(bindings/python/Cargo.toml) ;;
     java)       CL=bindings/java/CHANGELOG.md;       FILES=(bindings/java/Cargo.toml bindings/java/build.gradle bindings/java/README.md) ;;
@@ -37,7 +37,7 @@ release COMPONENT VERSION:
   sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$CL"
   if [ "$C" = ruby ]; then
     # The gem builds the core from crates.io; pin it to the core's current version.
-    CORE=$(grep -m1 -oP '^version = "\K[^"]+' css-inline/Cargo.toml)
+    CORE=$(grep -m1 -oP '^version = "\K[^"]+' crates/css-inline/Cargo.toml)
     sed -i "/^\[dependencies.css-inline\]$/,/^version/s/^version = .*/version = \"${CORE}\"/" bindings/ruby/ext/css_inline/Cargo.toml
     grep -A1 '^\[dependencies.css-inline\]$' bindings/ruby/ext/css_inline/Cargo.toml | grep -qx "version = \"${CORE}\"" || { echo "css-inline pin not bumped to ${CORE}"; exit 1; }
     cargo update -p css-inline --manifest-path bindings/ruby/Cargo.toml

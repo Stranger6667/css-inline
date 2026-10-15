@@ -27,4 +27,4 @@ jobs:
         env:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
 
-      - run: cargo publish --manifest-path css-inline/Cargo.toml
+      - run: cargo publish -p css-inline

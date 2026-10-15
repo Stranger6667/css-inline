@@ -106,7 +106,7 @@ RSpec.describe 'CssInline' do
 
   [
     ["http://127.0.0.1:1234/external.css", {}],
-    ["../../css-inline/tests/external.css", {}],
+    ["../../crates/css-inline/tests/external.css", {}],
     ["external.css", {"base_url": "http://127.0.0.1:1234"}]
   ].each do |href, kwargs|
       it "Resolves remote stylesheets: #{href}" do

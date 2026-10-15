@@ -21,17 +21,13 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: css-inline
 
       - run: cargo install cargo-codspeed
 
-      - run: cargo codspeed build
-        working-directory: ./css-inline
+      - run: cargo codspeed build -p css-inline
 
       - uses: CodSpeedHQ/action@v5.4.2
         with:
-          run: cargo codspeed run
+          run: cargo codspeed run -p css-inline
           mode: "instrumentation"
           token: ${{ secrets.CODSPEED_TOKEN }}
-          working-directory: ./css-inline

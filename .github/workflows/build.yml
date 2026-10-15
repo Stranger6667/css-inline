@@ -84,17 +84,14 @@ jobs:
 
       - name: Start background server
         # Redirect the output, otherwise the Windows runner waits on the inherited handles
-        run: python ./css-inline/tests/server.py > /dev/null 2>&1 &
+        run: python ./crates/css-inline/tests/server.py > /dev/null 2>&1 &
         shell: bash
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: css-inline
 
-      - run: cargo test --no-fail-fast
-        working-directory: ./css-inline
+      - run: cargo test --workspace --no-fail-fast
 
   fmt:
     name: Rustfmt
@@ -108,10 +105,6 @@ jobs:
           components: rustfmt
 
       - run: cargo fmt --all -- --check
-        working-directory: ./css-inline
-
-      - run: cargo fmt --all -- --check
-        working-directory: ./profiler
 
       - run: cargo fmt --all -- --check
         working-directory: ./bindings/c
@@ -150,20 +143,14 @@ jobs:
       - uses: Swatinem/rust-cache@v2
         with:
           workspaces: |
-            css-inline
+            .
             bindings/javascript
             bindings/python
             bindings/ruby
             bindings/c
-            bindings/profiler
 
       - name: Rust
-        run: cargo clippy -- -D warnings
-        working-directory: ./css-inline
-
-      - name: Profiler
-        run: cargo clippy -- -D warnings
-        working-directory: ./profiler
+        run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Python
         run: cargo clippy -- -D warnings
@@ -197,17 +184,13 @@ jobs:
           toolchain: "1.85"
 
       - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: css-inline
 
       # Pinned: newer releases may require a newer rustc than MSRV
       - run: |
           cargo generate-lockfile
           cargo update -p yoke-derive --precise 0.8.4
-        working-directory: ./css-inline
 
-      - run: cargo build
-        working-directory: ./css-inline
+      - run: cargo build -p css-inline
 
   test-javascript:
     strategy:
@@ -323,7 +306,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: python ./css-inline/tests/server.py &
+        run: python ./crates/css-inline/tests/server.py &
         shell: bash
 
       - name: Install Rust
@@ -533,7 +516,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: python ./css-inline/tests/server.py &
+        run: python ./crates/css-inline/tests/server.py &
         shell: bash
 
       - run: python -m pip install -r requirements/dev.txt
@@ -683,7 +666,7 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: python ./css-inline/tests/server.py &
+        run: python ./crates/css-inline/tests/server.py &
         shell: bash
 
       - run: bundle exec rake test
@@ -864,13 +847,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: css-inline
           cache-all-crates: "true"
 
       - uses: taiki-e/install-action@cargo-hack
 
-      - run: cargo hack check --feature-powerset --lib
-        working-directory: ./css-inline
+      - run: cargo hack check --feature-powerset --lib -p css-inline
 
   coverage:
     name: Code coverage
@@ -883,7 +864,6 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: css-inline
           cache-all-crates: "true"
 
       - name: Install cargo-llvm-cov
@@ -898,16 +878,14 @@ jobs:
           cache-dependency-path: "**/requirements-*.txt"
 
       - name: Start background server
-        run: python ./css-inline/tests/server.py &
+        run: python ./crates/css-inline/tests/server.py &
         shell: bash
 
       - name: Run tests
-        run: cargo hack llvm-cov --no-report --feature-powerset
-        working-directory: ./css-inline
+        run: cargo hack llvm-cov --no-report --feature-powerset -p css-inline
 
       - name: Generate coverage reports
         run: cargo llvm-cov report --lcov --output-path lcov.info
-        working-directory: ./css-inline
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v7
@@ -928,10 +906,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: css-inline
+          workspaces: fuzz
           cache-all-crates: "true"
 
       - run: cargo install cargo-fuzz
 
       - run: cargo fuzz run inline -- -max_total_time=60
-        working-directory: ./css-inline
