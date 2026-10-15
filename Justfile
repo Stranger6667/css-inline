@@ -10,7 +10,7 @@ release COMPONENT VERSION:
   [ -z "$(git status --porcelain)" ] || { echo "working tree is not clean"; exit 1; }
   case "$C" in
     rust)       CL=CHANGELOG.md;                     FILES=(crates/css-inline/Cargo.toml) ;;
-    c)          CL=bindings/c/CHANGELOG.md;          FILES=(bindings/c/Cargo.toml) ;;
+    c)          CL=crates/css-inline-c/CHANGELOG.md;          FILES=(crates/css-inline-c/Cargo.toml) ;;
     python)     CL=crates/css-inline-python/CHANGELOG.md;     FILES=(crates/css-inline-python/Cargo.toml) ;;
     java)       CL=bindings/java/CHANGELOG.md;       FILES=(bindings/java/Cargo.toml bindings/java/build.gradle bindings/java/README.md) ;;
     php)        CL=bindings/php/CHANGELOG.md;        FILES=(bindings/php/Cargo.toml bindings/php/stubs/css_inline.php) ;;

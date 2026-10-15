@@ -9,10 +9,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/c"
-    schedule:
-      interval: "daily"
-  - package-ecosystem: "cargo"
     directory: "/bindings/ruby"
     schedule:
       interval: "daily"

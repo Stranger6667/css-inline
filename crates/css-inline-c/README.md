@@ -49,9 +49,9 @@ On other platforms, build the library from source with Rust installed, then copy
 
 ```shell
 git clone https://github.com/Stranger6667/css-inline
-cd css-inline/bindings/c
+cd css-inline/crates/css-inline-c
 cargo build --release
-cp target/release/libcss_inline.so css_inline.h /path/to/your/project/
+cp ../../target/release/libcss_inline.so css_inline.h /path/to/your/project/
 ```
 
 Compile and run your program from that directory:
