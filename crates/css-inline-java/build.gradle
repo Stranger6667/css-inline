@@ -85,7 +85,7 @@ jmh {
         '--enable-native-access=ALL-UNNAMED'
     ]
 
-    def nativeDir = file('target/release')
+    def nativeDir = file('../../target/release')
     if (nativeDir.exists()) {
         jvmArgs = baseArgs + ["-Djava.library.path=${nativeDir.absolutePath}"]
         println "Using native library path: ${nativeDir.absolutePath}"
@@ -98,7 +98,7 @@ jmh {
 test {
     useJUnitPlatform()
 
-    def nativeDir = file('target/release')
+    def nativeDir = file('../../target/release')
     if (nativeDir.exists()) {
         jvmArgs += "-Djava.library.path=${nativeDir.absolutePath}"
         println "Test using native library path: ${nativeDir.absolutePath}"
