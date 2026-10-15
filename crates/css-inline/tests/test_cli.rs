@@ -299,6 +299,15 @@ pub mod tests {
             .stdout("<html><head></head><body><h1 style=\"background-color: blue;\">Hello world!</h1></body></html>");
     }
 
+    #[test]
+    fn stdin_keeps_trailing_whitespace() {
+        css_inline()
+            .write_stdin("<html><body><textarea>x\n\n")
+            .assert()
+            .success()
+            .stdout("<html><head></head><body><textarea>x\n\n</textarea></body></html>");
+    }
+
     #[test_case("--help", "css-inline inlines CSS into HTML")]
     #[test_case("-h", "css-inline inlines CSS into HTML")]
     #[test_case("--version", "css-inline")]

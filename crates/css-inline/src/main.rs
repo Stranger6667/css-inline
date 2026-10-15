@@ -321,7 +321,7 @@ OPTIONS:
         if args.files.is_empty() {
             let mut buffer = String::new();
             io::stdin().read_to_string(&mut buffer)?;
-            if let Err(error) = inliner.inline_to(buffer.as_str().trim(), &mut io::stdout()) {
+            if let Err(error) = inliner.inline_to(&buffer, &mut io::stdout()) {
                 format_error(None, error);
                 exit_code.store(1, Ordering::SeqCst);
             }
