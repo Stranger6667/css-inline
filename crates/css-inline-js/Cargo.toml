@@ -1,14 +1,14 @@
 [package]
 name = "css-inline-js"
 version = "0.22.1"
-authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
+authors.workspace = true
 edition = "2024"
 readme = "README.md"
 description = "High-performance library for inlining CSS into HTML 'style' attributes"
-repository = "https://github.com/Stranger6667/css-inline"
+repository.workspace = true
 keywords = ["css", "html", "email", "stylesheet", "inlining"]
 categories = ["web-programming"]
-license = "MIT"
+license.workspace = true
 rust-version = "1.88"
 include = ["src/*.rs", "LICENSE", "README.md", "CHANGELOG.md"]
 
@@ -32,20 +32,15 @@ getrandom = { version = "0.4.0", features = ["wasm_js"] }
 serde = { version = "1", features = ["derive"], default-features = false }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.css-inline]
-path = "../../crates/css-inline"
+path = "../css-inline"
 version = "*"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.css-inline]
-path = "../../crates/css-inline"
+path = "../css-inline"
 version = "*"
 default-features = false
 
 [build-dependencies]
 napi-build = "2"
-
-[profile.release]
-lto = true
-opt-level = "z"
-codegen-units = 1
