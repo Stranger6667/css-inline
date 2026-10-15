@@ -286,6 +286,7 @@ pub mod tests {
     #[test_case("-h", "css-inline inlines CSS into HTML")]
     #[test_case("--version", "css-inline")]
     #[test_case("-v", "css-inline")]
+    #[test_case("-V", "css-inline")]
     fn args(arg: &str, expected: &str) {
         let stdout = css_inline().arg(arg).assert().success().to_string();
         assert!(stdout.contains(expected), "{}", stdout);
@@ -297,7 +298,7 @@ pub mod tests {
             .arg("--base-url")
             .assert()
             .failure()
-            .stderr("Error parsing arguments: Flag --base-url requires a value\n");
+            .stderr("Error parsing arguments: missing argument for option '--base-url'\n");
     }
 
     #[test]
@@ -306,7 +307,40 @@ pub mod tests {
             .arg("-abc")
             .assert()
             .failure()
-            .stderr("Error parsing arguments: Invalid flag: -abc\n");
+            .stderr("Error parsing arguments: invalid option '-a'\n");
+    }
+
+    #[test]
+    fn end_of_options_marker() {
+        css_inline()
+            .arg("--output-filename-prefix=inlined.end-of-options.")
+            .arg("--")
+            .arg("tests/example.html")
+            .assert()
+            .success()
+            .stdout("tests/example.html: SUCCESS\n");
+    }
+
+    #[test]
+    fn flag_after_end_of_options_marker_is_path() {
+        css_inline()
+            .arg("--")
+            .arg("--keep-style-tags")
+            .assert()
+            .failure()
+            .stderr(format!(
+                "Filename: --keep-style-tags\nStatus: ERROR\nDetails: {}\n",
+                not_found_message()
+            ));
+    }
+
+    #[test_case(&["--unknown-flag"]; "unknown long")]
+    #[test_case(&["-b"]; "unknown short")]
+    #[test_case(&["--base-url"]; "missing value")]
+    #[test_case(&["--keep-style-tags=true"]; "unexpected value")]
+    #[test_case(&["--inline-style-tags=invalid"]; "invalid value")]
+    fn usage_error_exit_code(args: &[&str]) {
+        css_inline().args(args).assert().code(2);
     }
 
     #[test]
@@ -336,7 +370,7 @@ pub mod tests {
             .arg("-b")
             .assert()
             .failure()
-            .stderr("Unknown flag: b\n");
+            .stderr("Error parsing arguments: invalid option '-b'\n");
     }
 
     #[test]
@@ -345,7 +379,7 @@ pub mod tests {
             .arg("--unknown-flag")
             .assert()
             .failure()
-            .stderr("Unknown flag: unknown-flag\n");
+            .stderr("Error parsing arguments: invalid option '--unknown-flag'\n");
     }
 
     #[test]
@@ -354,7 +388,7 @@ pub mod tests {
             .arg("--unknown-flag=value")
             .assert()
             .failure()
-            .stderr("Unknown flag: --unknown-flag\n");
+            .stderr("Error parsing arguments: invalid option '--unknown-flag'\n");
     }
 
     #[test]

@@ -24,7 +24,7 @@ name = "css-inline"
 
 [features]
 default = ["cli", "http", "file", "stylesheet-cache"]
-cli = ["rayon"]
+cli = ["dep:lexopt", "rayon"]
 http = ["reqwest"]
 file = []
 stylesheet-cache = ["lru"]
@@ -32,6 +32,7 @@ stylesheet-cache = ["lru"]
 [dependencies]
 cssparser = "0.38.0"
 html5ever = "0.40.1"
+lexopt = { version = "0.3.2", optional = true }
 lru = { version = "0.18.0", optional = true }
 memchr = "2.7"
 precomputed-hash = "0.1.1"

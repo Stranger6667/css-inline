@@ -2,9 +2,17 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Use `lexopt` for CLI argument parsing.
+- CLI usage errors exit with code 2 instead of 1.
+- Consistent CLI usage error messages, e.g. `Error parsing arguments: invalid option '--foo'`.
+
 ### Fixed
 
 - `--load-remote-stylesheets` CLI flag rejected without an explicit `=true` value.
+- `--` end-of-options marker rejected by the CLI.
+- `-V` not accepted by the CLI as an alias for `--version`.
 
 ## [0.22.1] - 2026-10-14
 
