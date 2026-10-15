@@ -16,7 +16,3 @@ updates:
     directory: "/bindings/ruby"
     schedule:
       interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/bindings/javascript"
-    schedule:
-      interval: "daily"

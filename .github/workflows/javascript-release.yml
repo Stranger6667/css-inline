@@ -107,7 +107,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-          cache-dependency-path: bindings/javascript/yarn.lock
+          cache-dependency-path: crates/css-inline-js/yarn.lock
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -140,65 +140,65 @@ jobs:
       - name: Config yarn (x86_64-unknown-linux-musl)
         if: matrix.settings.target == 'x86_64-unknown-linux-musl'
         run: yarn config set supportedArchitectures.libc "musl"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-unknown-linux-gnu)
         if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "glibc"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-unknown-linux-musl)
         if: matrix.settings.target == 'aarch64-unknown-linux-musl'
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "musl"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (armv7-unknown-linux-gnueabihf)
         if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
         run: yarn config set supportedArchitectures.cpu "arm"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-linux-android)
         if: matrix.settings.target == 'aarch64-linux-android'
         run: yarn config set supportedArchitectures.cpu "arm64"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-pc-windows-msvc)
         if: matrix.settings.target == 'aarch64-pc-windows-msvc'
         run: yarn config set supportedArchitectures.cpu "arm64"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (armv7-linux-androideabi)
         if: matrix.settings.target == 'armv7-linux-androideabi'
         run: yarn config set supportedArchitectures.cpu "arm"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Install dependencies
         run: yarn install
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Build in docker
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/css-inline-js"
           run: ${{ matrix.settings.build }}
 
       - name: Build
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: bindings/javascript/${{ env.APP_NAME }}.*.node
+          path: crates/css-inline-js/${{ env.APP_NAME }}.*.node
           if-no-files-found: error
 
   artifacts-wasm:
@@ -211,13 +211,14 @@ jobs:
         with:
           node-version: "20"
           cache: yarn
-          cache-dependency-path: bindings/javascript/yarn.lock
+          cache-dependency-path: crates/css-inline-js/yarn.lock
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: bindings/javascript
+          # From the crate directory, so `cargo metadata` picks up its `.cargo/config.toml`
+          workspaces: crates/css-inline-js -> ../../target
           cache-all-crates: "true"
 
       - name: Install wasm-pack
@@ -225,17 +226,17 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
       - name: Build Wasm
         run: yarn build:wasm
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: wasm32
-          path: bindings/javascript/wasm/
+          path: crates/css-inline-js/wasm/
           if-no-files-found: error
 
   release:
@@ -256,7 +257,7 @@ jobs:
         with:
           node-version: 24
           cache: yarn
-          cache-dependency-path: bindings/javascript/yarn.lock
+          cache-dependency-path: crates/css-inline-js/yarn.lock
           registry-url: "https://registry.npmjs.org"
 
       - name: Cache NPM dependencies
@@ -269,21 +270,21 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Download all artifacts
         uses: actions/download-artifact@v8
         with:
           path: artifacts
 
-      - run: mv -f ./artifacts ./bindings/javascript
+      - run: mv -f ./artifacts ./crates/css-inline-js
 
       - name: Move Wasm artifacts
-        run: mv -f ./bindings/javascript/artifacts/wasm32/ ./bindings/javascript/wasm-dist
+        run: mv -f ./crates/css-inline-js/artifacts/wasm32/ ./crates/css-inline-js/wasm-dist
 
       - name: Move Node.js artifacts
         run: yarn artifacts
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Extract Version
         run: echo "version=${GITHUB_REF#refs/tags/javascript-v}" >> $GITHUB_ENV
@@ -295,13 +296,13 @@ jobs:
           draft: true
           name: "[JavaScript] Release ${{ env.version }}"
           files: |
-            bindings/javascript/npm/**/*.node
+            crates/css-inline-js/npm/**/*.node
 
       - name: Publish to npm packages
         run: |
           npm publish --access public --provenance
           cd wasm-dist
           npm publish --access public --provenance
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_AUTH_TOKEN }}

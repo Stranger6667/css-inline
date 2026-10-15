@@ -63,7 +63,7 @@ From a CDN, the script defines a global `cssInline`. Pin the version in both URL
 - `inlineFragment(html, css, options?)`: `css` is a CSS string.
 - `version()`
 
-Options match the [Node.js package](https://github.com/Stranger6667/css-inline/tree/master/bindings/javascript#configuration) except `cache`, which WASM lacks:
+Options match the [Node.js package](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js#configuration) except `cache`, which WASM lacks:
 `inlineStyleTags`, `keepStyleTags`, `keepLinkTags`, `keepAtRules`, `minifyCss`, `baseUrl`, `loadRemoteStylesheets`, `extraCss`, `preallocateNodeCapacity`, `removeInlinedSelectors`, `applyWidthAttributes`, `applyHeightAttributes`.
 
 ## Playground

@@ -7,3 +7,8 @@ linker = "arm-linux-gnueabihf-gcc"
 
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg", "getrandom_backend=\"wasm_js\""]
+
+# The workspace `rust-version` is the core's MSRV; the npm packages need no such limit.
+# Applies when the lockfile is created from this directory, as the JS CI and release jobs do.
+[resolver]
+incompatible-rust-versions = "allow"

@@ -1,6 +1,6 @@
 [workspace]
 members = ["crates/*", "profiler"]
-# Built by their own toolchains (maturin, napi, gradle, cargo-fuzz) with their own profiles and `target/`
+# Built by their own toolchains (maturin, gradle, cargo-fuzz) with their own profiles and `target/`
 exclude = ["bindings", "fuzz"]
 resolver = "3"
 
@@ -19,3 +19,10 @@ codegen-units = 1
 [profile.profiling]
 inherits = "release"
 debug = true
+
+# Size-optimized build for the JavaScript and WASM packages: `yarn build` / `yarn build:wasm` in `crates/css-inline-js`
+[profile.release-js]
+inherits = "release"
+lto = true
+opt-level = "z"
+codegen-units = 1

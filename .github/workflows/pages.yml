@@ -14,7 +14,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          mv bindings/javascript/wasm/ docs/
+          mv crates/css-inline-js/wasm/ docs/
           touch docs/.nojekyll
           echo "css-inline.org" > docs/CNAME
           git add --force docs/

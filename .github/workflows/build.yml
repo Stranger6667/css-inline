@@ -58,11 +58,11 @@ jobs:
 
       - name: "Install dependencies"
         run: yarn install --immutable --registry https://registry.npmjs.org --network-timeout 300000
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
       - name: ESLint
         run: yarn lint
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
   test-stable:
     strategy:
@@ -115,9 +115,6 @@ jobs:
         working-directory: ./bindings/java
 
       - run: cargo fmt --all -- --check
-        working-directory: ./bindings/javascript
-
-      - run: cargo fmt --all -- --check
         working-directory: ./bindings/ruby
 
   clippy:
@@ -143,7 +140,6 @@ jobs:
         with:
           workspaces: |
             .
-            bindings/javascript
             bindings/ruby
             bindings/c
 
@@ -153,10 +149,6 @@ jobs:
       - name: Java
         run: cargo clippy -- -D warnings
         working-directory: ./bindings/java
-
-      - name: JavaScript
-        run: cargo clippy -- -D warnings
-        working-directory: ./bindings/javascript
 
       - name: Ruby
         run: cargo clippy -- -D warnings
@@ -291,7 +283,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: yarn
-          cache-dependency-path: bindings/javascript/yarn.lock
+          cache-dependency-path: crates/css-inline-js/yarn.lock
 
       - uses: actions/setup-python@v7
         with:
@@ -334,59 +326,59 @@ jobs:
       - name: Config yarn (x86_64-unknown-linux-musl)
         if: matrix.settings.target == 'x86_64-unknown-linux-musl'
         run: yarn config set supportedArchitectures.libc "musl"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-unknown-linux-gnu)
         if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "glibc"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-unknown-linux-musl)
         if: matrix.settings.target == 'aarch64-unknown-linux-musl'
         run: |
           yarn config set supportedArchitectures.cpu "arm64"
           yarn config set supportedArchitectures.libc "musl"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (armv7-unknown-linux-gnueabihf)
         if: matrix.settings.target == 'armv7-unknown-linux-gnueabihf'
         run: yarn config set supportedArchitectures.cpu "arm"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-linux-android)
         if: matrix.settings.target == 'aarch64-linux-android'
         run: yarn config set supportedArchitectures.cpu "arm64"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (aarch64-pc-windows-msvc)
         if: matrix.settings.target == 'aarch64-pc-windows-msvc'
         run: yarn config set supportedArchitectures.cpu "arm64"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Config yarn (armv7-linux-androideabi)
         if: matrix.settings.target == 'armv7-linux-androideabi'
         run: yarn config set supportedArchitectures.cpu "arm"
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Install dependencies
         run: yarn install
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Build in docker
         uses: addnab/docker-run-action@v3
         if: ${{ matrix.settings.docker }}
         with:
           image: ${{ matrix.settings.docker }}
-          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--user 0:0 -v ${{ github.workspace }}/.cargo-cache/git/db:/usr/local/cargo/git/db -v ${{ github.workspace }}/.cargo/registry/cache:/usr/local/cargo/registry/cache -v ${{ github.workspace }}/.cargo/registry/index:/usr/local/cargo/registry/index -v ${{ github.workspace }}:/build -w /build/crates/css-inline-js"
           run: ${{ matrix.settings.build }}
 
       - name: Build
         run: ${{ matrix.settings.build }}
         if: ${{ !matrix.settings.docker }}
         shell: bash
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Set up QEMU (aarch64)
         uses: docker/setup-qemu-action@v4
@@ -406,22 +398,22 @@ jobs:
       - name: Test (x86_64-apple-darwin & x86_64-pc-windows-msvc)
         if: ${{ contains(fromJson('["x86_64-apple-darwin", "x86_64-pc-windows-msvc"]'), matrix.settings.target) }}
         run: yarn test
-        working-directory: bindings/javascript
+        working-directory: crates/css-inline-js
 
       - name: Test (x86_64-unknown-linux-gnu)
         if: matrix.settings.target == 'x86_64-unknown-linux-gnu'
-        run: docker run --rm --network host -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-slim yarn test
+        run: docker run --rm --network host -v $(pwd):/build -w /build/crates/css-inline-js node:${{ matrix.node }}-slim yarn test
 
       - name: Test (x86_64-unknown-linux-musl)
         if: matrix.settings.target == 'x86_64-unknown-linux-musl'
-        run: docker run --rm --network host -v $(pwd):/build -w /build/bindings/javascript node:${{ matrix.node }}-alpine yarn test
+        run: docker run --rm --network host -v $(pwd):/build -w /build/crates/css-inline-js node:${{ matrix.node }}-alpine yarn test
 
       - name: Test (aarch64-unknown-linux-gnu)
         if: matrix.settings.target == 'aarch64-unknown-linux-gnu'
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-slim
-          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/crates/css-inline-js"
           run: |
             set -e
             yarn test
@@ -431,7 +423,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-alpine
-          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm64 --network host -v ${{ github.workspace }}:/build -w /build/crates/css-inline-js"
           run: |
             set -e
             yarn test
@@ -441,7 +433,7 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: node:${{ matrix.node }}-bookworm-slim
-          options: "--platform linux/arm/v7 --network host -v ${{ github.workspace }}:/build -w /build/bindings/javascript"
+          options: "--platform linux/arm/v7 --network host -v ${{ github.workspace }}:/build -w /build/crates/css-inline-js"
           run: |
             set -e
             yarn test
@@ -784,13 +776,14 @@ jobs:
         with:
           node-version: "20"
           cache: yarn
-          cache-dependency-path: bindings/javascript/yarn.lock
+          cache-dependency-path: crates/css-inline-js/yarn.lock
 
       - uses: dtolnay/rust-toolchain@stable
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: bindings/javascript
+          # From the crate directory, so `cargo metadata` picks up its `.cargo/config.toml`
+          workspaces: crates/css-inline-js -> ../../target
           cache-all-crates: "true"
 
       - name: Install wasm-pack
@@ -798,15 +791,15 @@ jobs:
 
       - name: Install dependencies
         run: yarn install
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
       - name: Build Wasm
         run: yarn build:wasm
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
       - name: Test Wasm
         run: yarn test:wasm
-        working-directory: ./bindings/javascript
+        working-directory: ./crates/css-inline-js
 
   test-c:
     name: C bindings tests
