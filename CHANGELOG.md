@@ -14,6 +14,7 @@
 - `--load-remote-stylesheets` CLI flag rejected without an explicit `=true` value.
 - `--` end-of-options marker rejected by the CLI.
 - `-V` not accepted by the CLI as an alias for `--version`.
+- Trailing whitespace stripped from CLI input read from stdin.
 
 ## [0.22.1] - 2026-10-14
 
