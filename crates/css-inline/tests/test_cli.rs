@@ -281,6 +281,7 @@ pub mod tests {
 
     #[test]
     fn invalid_css_in_file() {
+        let _ = fs::remove_file("tests/inlined.invalid-example.html");
         css_inline()
             .arg("tests/invalid-example.html")
             .assert()
@@ -288,6 +289,7 @@ pub mod tests {
             .stderr(
                 "Filename: tests/invalid-example.html\nStatus: ERROR\nDetails: Invalid @ rule: wrong\n",
             );
+        assert!(fs::metadata("tests/inlined.invalid-example.html").is_err());
     }
 
     #[test]

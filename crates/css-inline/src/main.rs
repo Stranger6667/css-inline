@@ -13,7 +13,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         error::Error,
         ffi::OsString,
         fmt::Write as FmtWrite,
-        fs::{read_to_string, File},
+        fs::{self, read_to_string, File},
         io::{self, Read, Write},
         num::NonZeroUsize,
         path::PathBuf,
@@ -327,35 +327,26 @@ OPTIONS:
             }
         } else {
             let process = |file_path: &PathBuf| {
-                let result = read_to_string(file_path)
-                    .and_then(|contents| {
-                        let path = file_path.as_path();
-                        let mut new_filename = args
-                            .output_filename_prefix
-                            .clone()
-                            .unwrap_or_else(|| OsString::from("inlined."));
-                        new_filename.push(
-                            path.to_path_buf()
-                                .file_name()
-                                .expect("It is already read, therefore it is a file"),
-                        );
-                        let new_path = path.with_file_name(new_filename);
-                        File::create(new_path).map(|file| (file, contents))
-                    })
-                    .map(|(mut file, contents)| {
-                        (file_path, inliner.inline_to(contents.as_str(), &mut file))
-                    })
-                    .map_err(|error| (file_path, error));
-                match result {
-                    Ok((filename, result)) => match result {
-                        Ok(()) => println!("{}: SUCCESS", filename.display()),
-                        Err(error) => {
-                            format_error(Some(&filename.to_string_lossy()), error);
-                            exit_code.store(1, Ordering::SeqCst);
-                        }
-                    },
-                    Err((filename, error)) => {
-                        format_error(Some(&filename.to_string_lossy()), error);
+                let inline = || -> Result<(), Box<dyn Error>> {
+                    let contents = read_to_string(file_path)?;
+                    // Inline into memory first, so a failure leaves no output file behind
+                    let inlined = inliner.inline(&contents)?;
+                    let mut new_filename = args
+                        .output_filename_prefix
+                        .clone()
+                        .unwrap_or_else(|| OsString::from("inlined."));
+                    new_filename.push(
+                        file_path
+                            .file_name()
+                            .expect("It is already read, therefore it is a file"),
+                    );
+                    fs::write(file_path.with_file_name(new_filename), inlined)?;
+                    Ok(())
+                };
+                match inline() {
+                    Ok(()) => println!("{}: SUCCESS", file_path.display()),
+                    Err(error) => {
+                        format_error(Some(&file_path.to_string_lossy()), error);
                         exit_code.store(1, Ordering::SeqCst);
                     }
                 }
