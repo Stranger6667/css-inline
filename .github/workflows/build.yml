@@ -91,9 +91,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      # The Python binding is an `extension-module` cdylib without Rust tests, and its test harness does not link
-      # libpython; pytest covers it in `test-python`. The PHP binding needs PHP and libclang; `test-php` covers it
-      - run: cargo test --workspace --no-fail-fast --exclude css-inline-python --exclude css-inline-php
+      # The Python and Ruby bindings are cdylibs without Rust tests whose test harnesses do not link the
+      # interpreter; `test-python` and `test-ruby` cover them. The PHP binding needs PHP and libclang; `test-php` covers it
+      - run: cargo test --workspace --no-fail-fast --exclude css-inline-python --exclude css-inline-php --exclude css-inline-ruby
 
   fmt:
     name: Rustfmt
@@ -107,9 +107,6 @@ jobs:
           components: rustfmt
 
       - run: cargo fmt --all -- --check
-
-      - run: cargo fmt --all -- --check
-        working-directory: ./bindings/ruby
 
   clippy:
     name: Clippy
@@ -134,15 +131,10 @@ jobs:
         with:
           workspaces: |
             .
-            bindings/ruby
 
       # The PHP binding needs PHP and libclang
       - name: Rust
         run: cargo clippy --workspace --all-targets --exclude css-inline-php -- -D warnings
-
-      - name: Ruby
-        run: cargo clippy -- -D warnings
-        working-directory: ./bindings/ruby
 
   msrv:
     name: MSRV
@@ -619,7 +611,7 @@ jobs:
           bundler-cache: true
           cargo-cache: true
           cache-version: v2-${{ matrix.ruby-version }}
-          working-directory: ./bindings/ruby
+          working-directory: ./crates/css-inline-ruby
 
       - name: Setup LLVM & Clang
         id: clang
@@ -641,7 +633,7 @@ jobs:
         shell: bash
 
       - run: bundle exec rake test
-        working-directory: ./bindings/ruby
+        working-directory: ./crates/css-inline-ruby
 
   test-ruby-gem-install:
     name: Ruby Gem Build & Install Test
@@ -663,7 +655,7 @@ jobs:
           bundler-cache: false
           cargo-cache: true
           cache-version: v1-${{ matrix.ruby-version }}
-          working-directory: ./bindings/ruby
+          working-directory: ./crates/css-inline-ruby
 
       - name: Setup LLVM & Clang
         id: clang
@@ -677,18 +669,18 @@ jobs:
       - name: Build gem
         run: |
           gem build css_inline.gemspec
-        working-directory: ./bindings/ruby
+        working-directory: ./crates/css-inline-ruby
 
       - name: Install rb_sys
         run: gem install rb_sys -v '~> 0.9.116' --no-document
-        working-directory: ./bindings/ruby
+        working-directory: ./crates/css-inline-ruby
 
       - name: Install gem from built file
         run: |
           GEM_FILE=$(ls css_inline-*.gem | head -1)
           echo "Installing gem: $GEM_FILE"
           gem install "./$GEM_FILE" --local --no-document
-        working-directory: ./bindings/ruby
+        working-directory: ./crates/css-inline-ruby
         shell: bash
 
       - name: Test gem installation
@@ -742,7 +734,7 @@ jobs:
               curl --proto "=https" --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.85.0
               source ~/.cargo/env
               gem update --system
-              cd bindings/ruby
+              cd crates/css-inline-ruby
               gem install rb_sys -v "~> 0.9" --no-document
               gem build css_inline.gemspec
               gem install css_inline-*.gem --local --no-document

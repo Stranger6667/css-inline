@@ -9,6 +9,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/bindings/ruby"
+    directory: "/crates/css-inline-ruby/ext/css_inline"
     schedule:
       interval: "daily"

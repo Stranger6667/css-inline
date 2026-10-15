@@ -282,7 +282,7 @@ end
 `premailer` fails on "Realistic email 2" with `ArgumentError: Cannot parse 0 calc((100% - 500px) / 2)`.
 
 Inputs come from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): Basic usage is `simple`, Realistic email 1 and 2 are `big_email_1` and `big_email_2`, GitHub Page is `big_page`.
-The benchmark code is in [`test/bench.rb`](https://github.com/Stranger6667/css-inline/blob/master/bindings/ruby/test/bench.rb) and uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (5 s per case; `roadie` completes one run on the GitHub page in that time).
+The benchmark code is in [`test/bench.rb`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-ruby/test/bench.rb) and uses [`benchmark-ips`](https://github.com/evanphx/benchmark-ips) (5 s per case; `roadie` completes one run on the GitHub page in that time).
 We measured these results with stable `rustc 1.99` on Ruby `3.4.8`, Ryzen 9 9950X.
 
 ## Further reading

@@ -3,7 +3,6 @@
 /target/
 fuzz/target/
 fuzz/corpus/
-bindings/*/target/
 
 node_modules/
 

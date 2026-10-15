@@ -10,13 +10,11 @@ Gem::Specification.new do |spec|
   EOF
   spec.files = [
     *Dir["lib/**/*.rb"],
-    *Dir["ext/css_inline/src/**/*.rs"],
+    *Dir["src/**/*.rs"],
     "ext/css_inline/Cargo.toml",
     "ext/css_inline/Cargo.lock",
     "ext/css_inline/extconf.rb",
     "README.md",
-    "Cargo.toml",
-    "Cargo.lock",
   ].compact
   spec.extensions = ["ext/css_inline/extconf.rb"]
   spec.rdoc_options = ["--main", "README.rdoc", "--charset", "utf-8", "--exclude", "ext/"]
@@ -26,8 +24,8 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.metadata = {
     "bug_tracker_uri"   => "https://github.com/Stranger6667/css-inline/issues",
-    "changelog_uri"     => "https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby/CHANGELOG.md",
-    "source_code_uri"   => "https://github.com/Stranger6667/css-inline/tree/master/bindings/ruby",
+    "changelog_uri"     => "https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-ruby/CHANGELOG.md",
+    "source_code_uri"   => "https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-ruby",
     "funding_uri" => "https://github.com/sponsors/Stranger6667/",
   }
 

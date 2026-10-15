@@ -16,6 +16,8 @@ spec.files -= Dir["ext/**/*"]
 spec.dependencies.reject! { |d| d.name == "rb_sys" }
 
 Rake::ExtensionTask.new("css_inline", spec) do |c|
+  # Build the workspace member against the local `css-inline` crate; `gem install` uses `ext/css_inline`
+  c.ext_dir = "."
   c.lib_dir = "lib/css_inline"
   c.cross_compile = true
   c.cross_platform = [

@@ -14,6 +14,7 @@ rust-version = "1.85"
 [lib]
 name = "css_inline"
 crate-type = ["cdylib"]
+path = "../../src/lib.rs"
 
 [dependencies]
 magnus = "0.9"
@@ -23,3 +24,6 @@ rayon = "1"
 version = "0.22.1"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
+
+# Standalone build for `gem install`: the gem ships only this crate, not the repository workspace
+[workspace]
