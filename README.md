@@ -66,9 +66,9 @@ Cargo features:
 | `http` | yes | Loading remote stylesheets over `http(s)` (pulls in `reqwest`) |
 | `file` | yes | Loading stylesheets from the local filesystem |
 | `stylesheet-cache` | yes | `StylesheetCache` and the `cache` option (pulls in `lru`) |
-| `cli` | yes | Parallel processing in the `css-inline` binary (pulls in `rayon`) |
+| `cli` | yes | The `css-inline` binary (pulls in `lexopt`) |
 
-The `cli` feature pulls `rayon` into library builds. For library-only use, list the features you need:
+For library-only use, list the features you need:
 
 ```toml
 [dependencies]
