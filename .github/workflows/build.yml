@@ -92,8 +92,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       # The Python binding is an `extension-module` cdylib without Rust tests, and its test harness does not link
-      # libpython; pytest covers it in `test-python`
-      - run: cargo test --workspace --no-fail-fast --exclude css-inline-python
+      # libpython; pytest covers it in `test-python`. The PHP binding needs PHP and libclang; `test-php` covers it
+      - run: cargo test --workspace --no-fail-fast --exclude css-inline-python --exclude css-inline-php
 
   fmt:
     name: Rustfmt
@@ -136,8 +136,9 @@ jobs:
             .
             bindings/ruby
 
+      # The PHP binding needs PHP and libclang
       - name: Rust
-        run: cargo clippy --workspace --all-targets -- -D warnings
+        run: cargo clippy --workspace --all-targets --exclude css-inline-php -- -D warnings
 
       - name: Ruby
         run: cargo clippy -- -D warnings
@@ -567,16 +568,16 @@ jobs:
           cargo build --release
           EXT_DIR=$(php -r "echo ini_get('extension_dir');")
           if [[ "${{ matrix.os }}" == "macos-15" ]]; then
-            BUILT_LIB=$(find target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
+            BUILT_LIB=$(find ../../target/release -name "libcss_inline_php.dylib" -o -name "css_inline_php.dylib" | head -1)
             if [[ -z "$BUILT_LIB" ]]; then
-              BUILT_LIB=$(find target/release -name "*.dylib" | head -1)
+              BUILT_LIB=$(find ../../target/release -name "*.dylib" | head -1)
             fi
             sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           else
-            BUILT_LIB=$(find target/release -maxdepth 1 -name "libcss_inline_php.so")
+            BUILT_LIB=$(find ../../target/release -maxdepth 1 -name "libcss_inline_php.so")
             sudo cp "$BUILT_LIB" "$EXT_DIR/css_inline.so"
           fi
-        working-directory: ./bindings/php
+        working-directory: ./crates/css-inline-php
         shell: bash
       - name: Enable and verify extension
         run: |
@@ -589,13 +590,13 @@ jobs:
         shell: bash
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist
-        working-directory: ./bindings/php
+        working-directory: ./crates/css-inline-php
       - name: Lint PHP code
         run: composer lint
-        working-directory: ./bindings/php
+        working-directory: ./crates/css-inline-php
       - name: Run tests
         run: composer test
-        working-directory: ./bindings/php
+        working-directory: ./crates/css-inline-php
 
   test-ruby:
     strategy:

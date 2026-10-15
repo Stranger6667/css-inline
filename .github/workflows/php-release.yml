@@ -65,7 +65,6 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: bindings/php
           cache-all-crates: "true"
 
       - name: Build
@@ -75,15 +74,15 @@ jobs:
           else
             cargo build --release
           fi
-        working-directory: bindings/php
+        working-directory: crates/css-inline-php
 
       - name: Rename artifact
         run: |
           mkdir -p dist
           if [ "${{ matrix.cross }}" = "true" ]; then
-            cp bindings/php/target/${{ matrix.target }}/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
+            cp target/${{ matrix.target }}/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
           else
-            cp bindings/php/target/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
+            cp target/release/${{ matrix.artifact }} dist/css_inline-php${{ matrix.php }}-${{ matrix.target }}.so
           fi
 
       - name: Upload artifact

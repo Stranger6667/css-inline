@@ -21,7 +21,7 @@
   },
   "scripts": {
     "test": "phpunit",
-    "bench": "EXT=$(if [ \"$(uname)\" = \"Darwin\" ]; then echo 'dylib'; else echo 'so'; fi) && phpbench run --report=default --iterations=10 --revs=100 --php-config='{\"extension\": \"target/release/libcss_inline_php.'$EXT'\"}'",
+    "bench": "EXT=$(if [ \"$(uname)\" = \"Darwin\" ]; then echo 'dylib'; else echo 'so'; fi) && phpbench run --report=default --iterations=10 --revs=100 --php-config='{\"extension\": \"../../target/release/libcss_inline_php.'$EXT'\"}'",
     "fmt": "php-cs-fixer fix",
     "lint": "php-cs-fixer fix --dry-run --diff"
   },
