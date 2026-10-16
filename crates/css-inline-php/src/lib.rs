@@ -29,7 +29,9 @@ pub struct StylesheetCache {
 impl StylesheetCache {
     pub fn __construct(size: usize) -> PhpResult<StylesheetCache> {
         let size = NonZeroUsize::new(size).ok_or_else(|| {
-            PhpException::default("Cache size must be an integer greater than zero".to_string())
+            PhpException::from_message(
+                "Cache size must be an integer greater than zero".to_string(),
+            )
         })?;
         Ok(StylesheetCache { size })
     }
@@ -53,7 +55,6 @@ impl CssInliner {
         baseUrl = None,
         extraCss = None,
         preallocateNodeCapacity = 32,
-        cache = None,
         removeInlinedSelectors = false,
         applyWidthAttributes = false,
         applyHeightAttributes = false,
@@ -76,7 +77,7 @@ impl CssInliner {
         applyHeightAttributes: bool,
     ) -> PhpResult<CssInliner> {
         if preallocateNodeCapacity < 0 {
-            return Err(PhpException::default(
+            return Err(PhpException::from_message(
                 "preallocateNodeCapacity must be a non-negative integer".to_string(),
             ));
         }
