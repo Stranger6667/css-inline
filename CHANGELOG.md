@@ -12,6 +12,7 @@
 ### Changed
 
 - Use `lexopt` for CLI argument parsing.
+- Update `reqwest` to `0.13`.
 - Replace `rayon` with a `std::thread` worker pool in the CLI.
 - CLI usage errors exit with code 2 instead of 1.
 - Consistent CLI usage error messages, e.g. `Error parsing arguments: invalid option '--foo'`.
