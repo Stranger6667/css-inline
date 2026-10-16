@@ -225,6 +225,7 @@ The tag stays even when `keep_style_tags` is `false`.
 A `style` attribute cannot hold at-rules, so `css-inline` drops them by default.
 Set `keep_at_rules` to `true` to inline regular rules and keep at-rules such as `@media` in a `style` tag.
 That tag stays even when `keep_style_tags` is `false`.
+`@layer` is the exception: rules inside cascade layers are inlined with layer precedence, and at-rules nested in a layer are kept wrapped in it.
 
 ```html
 <head>
