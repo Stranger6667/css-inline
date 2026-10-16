@@ -181,11 +181,19 @@ const inlined = inline(
 ```
 
 `inline` and `inlineFragment` are synchronous. `css-inline` fetches remote stylesheets with a blocking HTTP request, so the call blocks the event loop until the fetch completes.
+`inlineAsync` and `inlineFragmentAsync` take the same arguments and return a `Promise`. They load all external stylesheets concurrently, off the event loop:
+
+```typescript
+import { inlineAsync } from "@css-inline/css-inline";
+
+const inlined = await inlineAsync(html, { baseUrl: "https://example.com/" });
+```
+
 Set `loadRemoteStylesheets: false` to skip all `link` tags.
 
 ### Errors
 
-`inline` and `inlineFragment` throw an `Error`:
+`inline` and `inlineFragment` throw an `Error`, and `inlineAsync` and `inlineFragmentAsync` reject with the same `Error`:
 
 - Invalid `baseUrl`: `relative URL without a base: not a url`
 - Failed fetch: `error sending request for url (http://127.0.0.1:9/a.css): http://127.0.0.1:9/a.css`

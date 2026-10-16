@@ -32,6 +32,35 @@ pub fn inline_fragment(
     inline_fragment_inner(html, css, options)
 }
 
+#[cfg(not(target_arch = "wasm32"))]
+#[napi]
+/// Inline CSS styles into the HTML, loading external stylesheets without blocking the event loop.
+pub async fn inline_async(
+    html: String,
+    options: Option<Options>,
+) -> Result<String, errors::JsError> {
+    let inliner = css_inline::CSSInliner::new(options.unwrap_or_default().try_into()?);
+    Ok(inliner
+        .inline_async(&html)
+        .await
+        .map_err(errors::InlineError)?)
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+#[napi]
+/// Inline CSS styles into an HTML fragment, loading external stylesheets without blocking the event loop.
+pub async fn inline_fragment_async(
+    html: String,
+    css: String,
+    options: Option<Options>,
+) -> Result<String, errors::JsError> {
+    let inliner = css_inline::CSSInliner::new(options.unwrap_or_default().try_into()?);
+    Ok(inliner
+        .inline_fragment_async(&html, &css)
+        .await
+        .map_err(errors::InlineError)?)
+}
+
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen(skip_typescript)]
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.

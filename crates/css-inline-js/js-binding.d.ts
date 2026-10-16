@@ -3,8 +3,14 @@
 /** Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string. */
 export declare function inline(html: string, options?: Options | undefined | null): string
 
+/** Inline CSS styles into the HTML, loading external stylesheets without blocking the event loop. */
+export declare function inlineAsync(html: string, options?: Options | undefined | null): Promise<string>
+
 /** Inline CSS styles into an HTML fragment. */
 export declare function inlineFragment(html: string, css: string, options?: Options | undefined | null): string
+
+/** Inline CSS styles into an HTML fragment, loading external stylesheets without blocking the event loop. */
+export declare function inlineFragmentAsync(html: string, css: string, options?: Options | undefined | null): Promise<string>
 
 export interface Options {
   /**
