@@ -117,7 +117,7 @@ pub struct DefaultStylesheetResolver;
     async_trait::async_trait
 )]
 impl StylesheetResolver for DefaultStylesheetResolver {
-    #[cfg(feature = "http")]
+    #[cfg(all(feature = "http", not(target_family = "wasm")))]
     fn retrieve_from_url(&self, url: &str) -> Result<String> {
         let into_error = |error| InlineError::Network {
             error,

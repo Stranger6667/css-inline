@@ -764,7 +764,7 @@ jobs:
           cache-all-crates: "true"
 
       - name: Install wasm-pack
-        run: cargo install wasm-pack
+        run: cargo install --locked wasm-pack
 
       - name: Install dependencies
         run: yarn install
@@ -773,6 +773,9 @@ jobs:
       - name: Build Wasm
         run: yarn build:wasm
         working-directory: ./crates/css-inline-js
+
+      - name: Start background server
+        run: python ./crates/css-inline/tests/server.py > /dev/null 2>&1 &
 
       - name: Test Wasm
         run: yarn test:wasm
