@@ -6,6 +6,10 @@
 
 - Support for CSS cascade layers (`@layer`). [#340](https://github.com/Stranger6667/css-inline/issues/340)
 
+### Changed
+
+- Update `reqwest` to `0.13`.
+
 ## [0.22.1] - 2026-10-14
 
 ### Fixed

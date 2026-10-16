@@ -24,7 +24,7 @@ name = "css-inline"
 [features]
 default = ["cli", "http", "file", "stylesheet-cache"]
 cli = ["dep:lexopt"]
-http = ["dep:reqwest", "reqwest/blocking"]
+http = ["dep:reqwest", "reqwest/blocking", "dep:rustls", "dep:webpki-roots"]
 async = ["dep:async-trait", "dep:futures-channel", "dep:futures-util"]
 file = []
 stylesheet-cache = ["lru"]
@@ -39,11 +39,15 @@ lexopt = { version = "0.3.2", optional = true }
 lru = { version = "0.18.0", optional = true }
 memchr = "2.7"
 precomputed-hash = "0.1.1"
-reqwest = { version = "0.12.0", optional = true, default-features = false, features = ["rustls-tls"] }
+reqwest = { version = "0.13.5", optional = true, default-features = false, features = ["rustls-no-provider"] }
 rustc-hash = "2.0.0"
 selectors = "0.41.0"
 smallvec = "1"
 url = "2"
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+rustls = { version = "0.23", optional = true, default-features = false, features = ["ring", "std", "tls12"] }
+webpki-roots = { version = "1", optional = true }
 
 [dev-dependencies]
 assert_cmd = "2.0.6"

@@ -104,6 +104,38 @@ pub trait StylesheetResolver: Send + Sync {
     }
 }
 
+/// TLS with `ring` and the bundled Mozilla roots, passed per client to leave the process-wide
+/// `rustls` provider to the host application.
+#[cfg(all(feature = "http", not(target_family = "wasm")))]
+fn tls_config() -> rustls::ClientConfig {
+    static CONFIG: std::sync::OnceLock<rustls::ClientConfig> = std::sync::OnceLock::new();
+    CONFIG
+        .get_or_init(|| {
+            rustls::ClientConfig::builder_with_provider(std::sync::Arc::new(
+                rustls::crypto::ring::default_provider(),
+            ))
+            .with_safe_default_protocol_versions()
+            .expect("`ring` supports the default protocol versions")
+            .with_root_certificates(rustls::RootCertStore {
+                roots: webpki_roots::TLS_SERVER_ROOTS.to_vec(),
+            })
+            .with_no_client_auth()
+        })
+        .clone()
+}
+
+#[cfg(all(feature = "http", feature = "async", not(target_family = "wasm")))]
+fn async_client() -> reqwest::Result<reqwest::Client> {
+    reqwest::Client::builder()
+        .tls_backend_preconfigured(tls_config())
+        .build()
+}
+
+#[cfg(all(feature = "http", feature = "async", target_family = "wasm"))]
+fn async_client() -> reqwest::Result<reqwest::Client> {
+    reqwest::Client::builder().build()
+}
+
 /// Default stylesheet resolver.
 #[derive(Debug, Default)]
 pub struct DefaultStylesheetResolver;
@@ -123,7 +155,12 @@ impl StylesheetResolver for DefaultStylesheetResolver {
             error,
             location: url.to_string(),
         };
-        reqwest::blocking::get(url)
+        reqwest::blocking::Client::builder()
+            .tls_backend_preconfigured(tls_config())
+            .build()
+            .map_err(into_error)?
+            .get(url)
+            .send()
             .map_err(into_error)?
             .text()
             .map_err(into_error)
@@ -148,7 +185,10 @@ impl StylesheetResolver for DefaultStylesheetResolver {
                 error,
                 location: location.to_string(),
             };
-            reqwest::get(location)
+            async_client()
+                .map_err(into_error)?
+                .get(location)
+                .send()
                 .await
                 .map_err(into_error)?
                 .text()
