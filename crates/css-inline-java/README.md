@@ -67,7 +67,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.css-inline:css-inline:0.22.1'
+    implementation 'org.css-inline:css-inline:0.23.0'
 }
 ```
 
@@ -84,7 +84,7 @@ dependencies {
     <dependency>
         <groupId>org.css-inline</groupId>
         <artifactId>css-inline</artifactId>
-        <version>0.22.1</version>
+        <version>0.23.0</version>
     </dependency>
 </dependencies>
 ```
@@ -290,7 +290,7 @@ The `style` tags that hold these at-rules stay even with `setKeepStyleTags(false
 
 `css-inline` against [CSSBox](https://github.com/radkovo/CSSBox), average time per call (lower is better). Bold numbers show how many times slower CSSBox is:
 
-|             | Size    | `css-inline 0.22.1` | `CSSBox 5.0.0`          |
+|             | Size    | `css-inline 0.23.0` | `CSSBox 5.0.0`          |
 |-------------|---------|---------------------|-------------------------|
 | Basic       | 230 B   | 6.95 µs             | 54.13 µs (**7.79x**)    |
 | Realistic-1 | 8.58 KB | 100.76 µs           | 1.65 ms (**16.33x**)    |
