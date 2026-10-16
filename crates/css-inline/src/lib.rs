@@ -39,6 +39,8 @@ use selectors::context::SelectorCaches;
 use smallvec::SmallVec;
 use std::{borrow::Cow, fmt::Formatter, io::Write, ops::Range, sync::Arc};
 
+#[cfg(feature = "async")]
+pub use async_trait::async_trait;
 use html::{Document, InliningMode, NodeData, NodeId, Specificity};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 use rustc_hash::FxHashMap;
@@ -658,7 +660,9 @@ impl<'a> CSSInliner<'a> {
     /// using the same inliner panicked while resolving external stylesheets.
     #[inline]
     pub fn inline_to<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
-        self.inline_to_impl(html, None, target, InliningMode::Document)
+        self.inline_to_impl(html, None, target, InliningMode::Document, &|url| {
+            self.options.resolver.retrieve(url)
+        })
     }
 
     /// Inline CSS into an HTML fragment.
@@ -711,7 +715,130 @@ impl<'a> CSSInliner<'a> {
         css: &str,
         target: &mut W,
     ) -> Result<()> {
-        self.inline_to_impl(html, Some(css), target, InliningMode::Fragment)
+        self.inline_to_impl(html, Some(css), target, InliningMode::Fragment, &|url| {
+            self.options.resolver.retrieve(url)
+        })
+    }
+
+    /// Non-blocking version of [`CSSInliner::inline`]. External stylesheets are fetched concurrently
+    /// via [`StylesheetResolver::retrieve_async`].
+    ///
+    /// # Errors
+    ///
+    /// Same as [`CSSInliner::inline`].
+    ///
+    /// # Panics
+    ///
+    /// If the external stylesheet cache lock is poisoned.
+    #[cfg(feature = "async")]
+    pub async fn inline_async(&self, html: &str) -> Result<String> {
+        let mut out = allocate_output_buffer(html);
+        self.inline_to_async(html, &mut out).await?;
+        Ok(String::from_utf8_lossy(&out).to_string())
+    }
+
+    /// Non-blocking version of [`CSSInliner::inline_to`].
+    ///
+    /// # Errors
+    ///
+    /// Same as [`CSSInliner::inline_to`].
+    ///
+    /// # Panics
+    ///
+    /// If the external stylesheet cache lock is poisoned.
+    #[cfg(feature = "async")]
+    pub async fn inline_to_async<W: Write>(&self, html: &str, target: &mut W) -> Result<()> {
+        let stylesheets = self.fetch_stylesheets(html, InliningMode::Document).await?;
+        self.inline_to_impl(html, None, target, InliningMode::Document, &|url| {
+            // `fetch_stylesheets` collects the same URLs from the same HTML
+            Ok(stylesheets[url].clone())
+        })
+    }
+
+    /// Non-blocking version of [`CSSInliner::inline_fragment`].
+    ///
+    /// # Errors
+    ///
+    /// Same as [`CSSInliner::inline_fragment`].
+    ///
+    /// # Panics
+    ///
+    /// If the external stylesheet cache lock is poisoned.
+    #[cfg(feature = "async")]
+    pub async fn inline_fragment_async(&self, html: &str, css: &str) -> Result<String> {
+        let mut out = allocate_output_buffer(html);
+        self.inline_fragment_to_async(html, css, &mut out).await?;
+        Ok(String::from_utf8_lossy(&out).to_string())
+    }
+
+    /// Non-blocking version of [`CSSInliner::inline_fragment_to`].
+    ///
+    /// # Errors
+    ///
+    /// Same as [`CSSInliner::inline_fragment_to`].
+    ///
+    /// # Panics
+    ///
+    /// If the external stylesheet cache lock is poisoned.
+    #[cfg(feature = "async")]
+    pub async fn inline_fragment_to_async<W: Write>(
+        &self,
+        html: &str,
+        css: &str,
+        target: &mut W,
+    ) -> Result<()> {
+        let stylesheets = self.fetch_stylesheets(html, InliningMode::Fragment).await?;
+        self.inline_to_impl(html, Some(css), target, InliningMode::Fragment, &|url| {
+            // `fetch_stylesheets` collects the same URLs from the same HTML
+            Ok(stylesheets[url].clone())
+        })
+    }
+
+    #[cfg(feature = "async")]
+    async fn fetch_stylesheets(
+        &self,
+        html: &str,
+        mode: InliningMode,
+    ) -> Result<FxHashMap<String, String>> {
+        let mut stylesheets = FxHashMap::default();
+        if !self.options.load_remote_stylesheets {
+            return Ok(stylesheets);
+        }
+        let mut missing = Vec::new();
+        {
+            // Dropped before any `.await`, as `Document` is not `Send`
+            let document = Document::parse_with_options(
+                html.as_bytes(),
+                self.options.preallocate_node_capacity,
+                mode,
+            );
+            let mut urls = document
+                .stylesheets()
+                .map(|href| self.get_full_url(href).into_owned())
+                .collect::<Vec<_>>();
+            urls.sort_unstable();
+            urls.dedup();
+            for url in urls {
+                // Copied, so an eviction before `inline_to_impl` reads the cache does not lose it
+                #[cfg(feature = "stylesheet-cache")]
+                if let Some(lock) = self.options.cache.as_ref() {
+                    let mut cache = lock.lock().expect("Cache lock is poisoned");
+                    if let Some(css) = cache.get(&url) {
+                        stylesheets.insert(url, css.clone());
+                        continue;
+                    }
+                }
+                missing.push(url);
+            }
+        }
+        let fetched = futures_util::future::try_join_all(
+            missing
+                .iter()
+                .map(|url| self.options.resolver.retrieve_async(url)),
+        )
+        .await?;
+        stylesheets.extend(missing.into_iter().zip(fetched));
+        Ok(stylesheets)
     }
 
     #[allow(clippy::too_many_lines)]
@@ -721,6 +848,7 @@ impl<'a> CSSInliner<'a> {
         css: Option<&str>,
         target: &mut W,
         mode: InliningMode,
+        retrieve: &dyn Fn(&str) -> Result<String>,
     ) -> Result<()> {
         let mut document = Document::parse_with_options(
             html.as_bytes(),
@@ -777,7 +905,7 @@ impl<'a> CSSInliner<'a> {
                     }
                 }
 
-                let css = self.options.resolver.retrieve(url.as_ref())?;
+                let css = retrieve(url.as_ref())?;
                 css_buffer.push(None, &css, true);
 
                 #[cfg(feature = "stylesheet-cache")]
@@ -1064,6 +1192,52 @@ pub fn inline_fragment(html: &str, css: &str) -> Result<String> {
 #[inline]
 pub fn inline_fragment_to<W: Write>(html: &str, css: &str, target: &mut W) -> Result<()> {
     CSSInliner::default().inline_fragment_to(html, css, target)
+}
+
+/// Shortcut for non-blocking inlining with default parameters. See [`CSSInliner::inline_async`].
+///
+/// # Errors
+///
+/// Same as [`CSSInliner::inline`].
+#[cfg(feature = "async")]
+pub async fn inline_async(html: &str) -> Result<String> {
+    CSSInliner::default().inline_async(html).await
+}
+
+/// Shortcut for non-blocking inlining with default parameters, writing the output to a generic writer.
+///
+/// # Errors
+///
+/// Same as [`CSSInliner::inline`].
+#[cfg(feature = "async")]
+pub async fn inline_to_async<W: Write>(html: &str, target: &mut W) -> Result<()> {
+    CSSInliner::default().inline_to_async(html, target).await
+}
+
+/// Shortcut for non-blocking inlining into an HTML fragment with default parameters.
+///
+/// # Errors
+///
+/// Same as [`CSSInliner::inline_fragment`].
+#[cfg(feature = "async")]
+pub async fn inline_fragment_async(html: &str, css: &str) -> Result<String> {
+    CSSInliner::default().inline_fragment_async(html, css).await
+}
+
+/// Shortcut for non-blocking inlining into an HTML fragment with default parameters, writing the output to a generic writer.
+///
+/// # Errors
+///
+/// Same as [`CSSInliner::inline_fragment`].
+#[cfg(feature = "async")]
+pub async fn inline_fragment_to_async<W: Write>(
+    html: &str,
+    css: &str,
+    target: &mut W,
+) -> Result<()> {
+    CSSInliner::default()
+        .inline_fragment_to_async(html, css, target)
+        .await
 }
 
 #[cfg(test)]

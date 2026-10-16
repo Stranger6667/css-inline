@@ -67,6 +67,7 @@ Cargo features:
 | `file` | yes | Loading stylesheets from the local filesystem |
 | `stylesheet-cache` | yes | `StylesheetCache` and the `cache` option (pulls in `lru`) |
 | `cli` | yes | The `css-inline` binary (pulls in `lexopt`) |
+| `async` | no | Non-blocking `*_async` inlining functions and `StylesheetResolver::retrieve_async` |
 
 For library-only use, list the features you need:
 
@@ -282,6 +283,52 @@ fn main() -> css_inline::Result<()> {
         .resolver(std::sync::Arc::new(CustomStylesheetResolver))
         .build();
     Ok(())
+}
+```
+
+Every inlining function has a non-blocking `*_async` counterpart behind the `async` feature:
+
+```toml
+css-inline = { version = "0.22", features = ["async"] }
+```
+
+External stylesheets of a document are fetched concurrently, each URL once, and stylesheets already in the `cache` are not fetched again. The returned futures are `Send`. The default resolver reads local files on a separate thread and fetches remote ones with async `reqwest` (requires the `http` feature and a Tokio runtime):
+
+```rust
+const HTML: &str = "...";
+
+#[cfg(feature = "async")]
+#[tokio::main(flavor = "current_thread")]
+async fn main() -> css_inline::Result<()> {
+    let inlined = css_inline::inline_async(HTML).await?;
+    // Or with a configured inliner
+    let inliner = css_inline::CSSInliner::options()
+        .keep_style_tags(true)
+        .build();
+    let inlined = inliner.inline_async(HTML).await?;
+    Ok(())
+}
+
+// This block is here for testing purposes
+#[cfg(not(feature = "async"))]
+fn main() -> css_inline::Result<()> {
+    Ok(())
+}
+```
+
+`StylesheetResolver::retrieve_async` calls the blocking `retrieve` by default, so a custom resolver that implements only `retrieve` blocks the executor while it runs. Override `retrieve_async` instead, using the re-exported `css_inline::async_trait` attribute. Custom resolvers work with any executor:
+
+```rust
+#[derive(Debug, Default)]
+pub struct CustomStylesheetResolver;
+
+#[cfg_attr(feature = "async", css_inline::async_trait)]
+impl css_inline::StylesheetResolver for CustomStylesheetResolver {
+    #[cfg(feature = "async")]
+    async fn retrieve_async(&self, location: &str) -> css_inline::Result<String> {
+        // Fetch `location` with your async client
+        Ok(String::new())
+    }
 }
 ```
 

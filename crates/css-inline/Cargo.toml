@@ -24,18 +24,22 @@ name = "css-inline"
 [features]
 default = ["cli", "http", "file", "stylesheet-cache"]
 cli = ["dep:lexopt"]
-http = ["reqwest"]
+http = ["dep:reqwest", "reqwest/blocking"]
+async = ["dep:async-trait", "dep:futures-channel", "dep:futures-util"]
 file = []
 stylesheet-cache = ["lru"]
 
 [dependencies]
+async-trait = { version = "0.1", optional = true }
 cssparser = "0.38.0"
+futures-channel = { version = "0.3", optional = true }
+futures-util = { version = "0.3", optional = true, default-features = false, features = ["alloc"] }
 html5ever = "0.40.1"
 lexopt = { version = "0.3.2", optional = true }
 lru = { version = "0.18.0", optional = true }
 memchr = "2.7"
 precomputed-hash = "0.1.1"
-reqwest = { version = "0.12.0", optional = true, default-features = false, features = ["rustls-tls", "blocking"] }
+reqwest = { version = "0.12.0", optional = true, default-features = false, features = ["rustls-tls"] }
 rustc-hash = "2.0.0"
 selectors = "0.41.0"
 smallvec = "1"
@@ -48,6 +52,7 @@ criterion = { version = "0.8.1", features = [], default-features = false }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 test-case = "3.3"
+tokio = { version = "1", features = ["macros", "rt"] }
 
 [[bench]]
 name = "inliner"
