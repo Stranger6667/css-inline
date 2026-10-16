@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `inlineAsync` and `inlineFragmentAsync` in the WASM module, loading remote stylesheets with `fetch`. [#264](https://github.com/Stranger6667/css-inline/issues/264)
+
 ## [0.22.1] - 2026-10-14
 
 ### Fixed

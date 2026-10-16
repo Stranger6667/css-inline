@@ -2,7 +2,9 @@ import init, {
   InitInput,
   InlineOptions,
   inline as __inline,
+  inlineAsync as __inlineAsync,
   inlineFragment as __inlineFragment,
+  inlineFragmentAsync as __inlineFragmentAsync,
   version as __version,
 } from "./wasm/dist";
 
@@ -35,6 +37,21 @@ export function inlineFragment(
   options?: InlineOptions,
 ): string {
   return __inlineFragment(html, css, options);
+}
+
+export function inlineAsync(
+  html: string,
+  options?: InlineOptions,
+): Promise<string> {
+  return __inlineAsync(html, options);
+}
+
+export function inlineFragmentAsync(
+  html: string,
+  css: string,
+  options?: InlineOptions,
+): Promise<string> {
+  return __inlineFragmentAsync(html, css, options);
 }
 
 export function version(): string {

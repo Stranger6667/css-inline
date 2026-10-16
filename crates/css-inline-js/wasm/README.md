@@ -70,15 +70,26 @@ Options match the [Node.js package](https://github.com/Stranger6667/css-inline/t
 
 Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/).
 
+## Remote stylesheets
+
+`inlineAsync` and `inlineFragmentAsync` return a `Promise` and load remote `link` stylesheets with `fetch`.
+In browsers, the server hosting a stylesheet must allow cross-origin requests (CORS).
+
+```javascript
+const inlined = await inlineAsync(html, { baseUrl: "https://example.com/" });
+```
+
 ## Restrictions
 
-The WASM module cannot load stylesheets from the network or filesystem.
-`inline` and `inlineFragment` throw a string (not an `Error`) for every `link` stylesheet:
+The WASM module cannot read the filesystem, and the synchronous `inline` and `inlineFragment` cannot load any `link` stylesheet.
+They throw a string (not an `Error`):
 
-- Remote URL: `Loading remote stylesheets is not supported on WASM: <url>`
-- Relative `href` (with or without `baseUrl`) or `file://`: `Loading local files is not supported on WASM: <url>`
+- Remote URL: `Loading remote stylesheets is not supported on WASM: <url>`. Use `inlineAsync` instead.
+- `file://` or a relative `href` without an `http(s)` `baseUrl`: `Loading local files is not supported on WASM: <url>`
 
-To avoid the error, either:
+`inlineAsync` and `inlineFragmentAsync` throw the same local file error, and `<error>: <url>` when a fetch fails.
+
+To skip `link` tags, either:
 
 - pass `loadRemoteStylesheets: false` to skip every `link` tag, remote and local, or
 - add `data-css-inline="ignore"` to the `link` tag.

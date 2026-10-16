@@ -118,9 +118,10 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                 #[cfg(target_arch = "wasm32")]
                 {
                     #[derive(Debug, Default)]
-                    pub struct UnsupportedResolver;
+                    pub struct WasmResolver;
 
-                    impl css_inline::StylesheetResolver for UnsupportedResolver {
+                    #[css_inline::async_trait(?Send)]
+                    impl css_inline::StylesheetResolver for WasmResolver {
                         fn retrieve(&self, location: &str) -> css_inline::Result<String> {
                             let message = if location.starts_with("https")
                                 || location.starts_with("http")
@@ -133,8 +134,20 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
                             };
                             Err(self.unsupported(&message))
                         }
+                        async fn retrieve_async(
+                            &self,
+                            location: &str,
+                        ) -> css_inline::Result<String> {
+                            if location.starts_with("https") || location.starts_with("http") {
+                                css_inline::DefaultStylesheetResolver
+                                    .retrieve_async(location)
+                                    .await
+                            } else {
+                                self.retrieve(location)
+                            }
+                        }
                     }
-                    Arc::new(UnsupportedResolver)
+                    Arc::new(WasmResolver)
                 }
                 #[cfg(not(target_arch = "wasm32"))]
                 {

@@ -36,12 +36,7 @@ pub fn inline_fragment(
 #[wasm_bindgen(skip_typescript)]
 /// Inline CSS styles from <style> tags to matching elements in the HTML tree and return a string.
 pub fn inline(html: String, options: JsValue) -> Result<String, errors::JsError> {
-    let options: Options = if options.is_undefined() {
-        Options::default()
-    } else {
-        serde_wasm_bindgen::from_value(options)?
-    };
-    inline_inner(html, options)
+    inline_inner(html, parse_options(options)?)
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -52,12 +47,42 @@ pub fn inline_fragment(
     css: String,
     options: JsValue,
 ) -> Result<String, errors::JsError> {
-    let options: Options = if options.is_undefined() {
-        Options::default()
+    inline_fragment_inner(html, css, parse_options(options)?)
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(js_name = "inlineAsync", skip_typescript)]
+/// Inline CSS styles into the HTML, fetching remote stylesheets without blocking.
+pub async fn inline_async(html: String, options: JsValue) -> Result<String, errors::JsError> {
+    let inliner = css_inline::CSSInliner::new(parse_options(options)?.try_into()?);
+    Ok(inliner
+        .inline_async(&html)
+        .await
+        .map_err(errors::InlineError)?)
+}
+
+#[cfg(target_arch = "wasm32")]
+#[wasm_bindgen(js_name = "inlineFragmentAsync", skip_typescript)]
+/// Inline CSS styles into an HTML fragment, fetching remote stylesheets without blocking.
+pub async fn inline_fragment_async(
+    html: String,
+    css: String,
+    options: JsValue,
+) -> Result<String, errors::JsError> {
+    let inliner = css_inline::CSSInliner::new(parse_options(options)?.try_into()?);
+    Ok(inliner
+        .inline_fragment_async(&html, &css)
+        .await
+        .map_err(errors::InlineError)?)
+}
+
+#[cfg(target_arch = "wasm32")]
+fn parse_options(options: JsValue) -> Result<Options, errors::JsError> {
+    if options.is_undefined() {
+        Ok(Options::default())
     } else {
-        serde_wasm_bindgen::from_value(options)?
-    };
-    inline_fragment_inner(html, css, options)
+        Ok(serde_wasm_bindgen::from_value(options)?)
+    }
 }
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(skip_typescript))]
@@ -87,6 +112,8 @@ const INLINE: &'static str = r#"export interface InlineOptions {
 
 export function inline(html: string, options?: InlineOptions): string;
 export function inlineFragment(html: string, css: string, options?: InlineOptions): string;
+export function inlineAsync(html: string, options?: InlineOptions): Promise<string>;
+export function inlineFragmentAsync(html: string, css: string, options?: InlineOptions): Promise<string>;
 export function version(): string;"#;
 
 fn inline_inner(html: String, options: Options) -> std::result::Result<String, errors::JsError> {

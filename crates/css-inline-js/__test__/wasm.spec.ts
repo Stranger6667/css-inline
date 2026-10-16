@@ -3,7 +3,13 @@ import { join } from "path";
 
 import test from "ava";
 
-import { inline, inlineFragment, initWasm } from "../wasm";
+import {
+  inline,
+  inlineAsync,
+  inlineFragment,
+  inlineFragmentAsync,
+  initWasm,
+} from "../wasm";
 
 test.before(async () => {
   await initWasm(fs.readFile(join(__dirname, "../wasm/index_bg.wasm")));
@@ -124,5 +130,57 @@ h1 {
 }`,
     ),
     `<main>\n<h1 style="color: blue;">Hello</h1>\n<section>\n<p style="color: red;">who am i</p>\n</section>\n</main>\n`,
+  );
+});
+
+test("async remote stylesheet", async (t) => {
+  t.is(
+    await inlineAsync(
+      "<html><head><link href='http://127.0.0.1:1234/external.css' rel='stylesheet'></head><body><h1>Test</h1></body></html>",
+    ),
+    '<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>',
+  );
+});
+
+test("async relative remote stylesheet", async (t) => {
+  t.is(
+    await inlineAsync(
+      "<html><head><link href='external.css' rel='stylesheet'></head><body><h1>Test</h1></body></html>",
+      { baseUrl: "http://127.0.0.1:1234/" },
+    ),
+    '<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>',
+  );
+});
+
+test("async fragment with remote stylesheet", async (t) => {
+  t.is(
+    await inlineFragmentAsync(
+      "<link href='http://127.0.0.1:1234/external.css' rel='stylesheet'><h1>Test</h1><h2>Sub</h2>",
+      "h2 { color: red; }",
+    ),
+    '<h1 style="color: blue;">Test</h1><h2 style="color: red;">Sub</h2>',
+  );
+});
+
+test("async network error", async (t) => {
+  const error = await t.throwsAsync(
+    inlineAsync(
+      "<html><head><link href='http://127.0.0.1:1/external.css' rel='stylesheet'></head><body></body></html>",
+    ),
+    { any: true },
+  );
+  t.true(String(error).includes("http://127.0.0.1:1/external.css"));
+});
+
+test("async unsupported filesystem operation", async (t) => {
+  const error = await t.throwsAsync(
+    inlineAsync(
+      "<html><head><link href='tests/external.css' rel='stylesheet'></head><body></body></html>",
+    ),
+    { any: true },
+  );
+  t.is(
+    error,
+    "Loading local files is not supported on WASM: tests/external.css",
   );
 });
