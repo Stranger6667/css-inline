@@ -37,11 +37,12 @@ pub use error::InlineError;
 use lru::{DefaultHasher, LruCache};
 use selectors::context::SelectorCaches;
 use smallvec::SmallVec;
-use std::{borrow::Cow, fmt::Formatter, io::Write, ops::Range, sync::Arc};
+use std::{borrow::Cow, fmt::Formatter, io::Write, iter::Peekable, ops::Range, sync::Arc};
 
 #[cfg(feature = "async")]
 pub use async_trait::async_trait;
-use html::{Document, InliningMode, NodeData, NodeId, Specificity};
+use html::{Document, InliningMode, NodeData, NodeId, Precedence};
+use parser::{LayerId, Layers, Rule, Span};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 use rustc_hash::FxHashMap;
 pub use url::{ParseError, Url};
@@ -151,69 +152,172 @@ struct RuleRemainder<'i> {
 struct SelectorCleanupState<'i> {
     chunks: Vec<CssChunk>,
     usages: Vec<SelectorUsage<'i>>,
-    /// `@`-rule ranges in the combined CSS, per chunk; empty for chunks without a style node.
-    chunk_at_rules: Vec<Vec<Range<usize>>>,
 }
 
 impl<'i> SelectorCleanupState<'i> {
     fn record_usage(&mut self, usage: SelectorUsage<'i>) {
         self.usages.push(usage);
     }
-
-    /// Keep the `@`-rule starting at `rule` and ending at byte `end` of `source` in the `<style>`
-    /// block it came from.
-    fn record_at_rule(&mut self, source: &str, rule: &str, end: usize) {
-        if !rule.starts_with('@') {
-            return;
-        }
-        let start = (rule.as_ptr() as usize).wrapping_sub(source.as_ptr() as usize);
-        if let Some(idx) = find_chunk_index(&self.chunks, start) {
-            let chunk = &self.chunks[idx];
-            if chunk.style_node.is_some() {
-                // An unterminated `@`-rule runs into the following blocks; it ends with its own.
-                self.chunk_at_rules[idx].push(start..end.min(chunk.range.end));
-            }
-        }
-    }
-
-    /// Whether any rewritten `<style>` block keeps content.
-    fn needs_css(&self) -> bool {
-        self.usages.iter().any(|usage| !usage.matched)
-            || self.chunk_at_rules.iter().any(|ranges| !ranges.is_empty())
-    }
 }
 
-fn collect_rules<'i, P>(
-    items: &mut cssparser::StyleSheetParser<'i, '_, P>,
+/// A kept `@layer` block; the range covers its contents.
+struct LayerBlock<'i> {
+    range: Range<usize>,
+    prelude: &'i str,
+    layer: LayerId,
+    created: bool,
+}
+
+/// Renders the `@`-rules and leftover style rules that stay in the output, wrapped in their
+/// `@layer` blocks.
+struct KeptCss<'a, 'i> {
     source: &'i str,
-    mut rules: Option<&mut Vec<parser::QualifiedRule<'i>>>,
-    mut state: Option<&mut SelectorCleanupState<'i>>,
-) where
-    P: cssparser::QualifiedRuleParser<'i, QualifiedRule = parser::QualifiedRule<'i>, Error = ()>
-        + cssparser::AtRuleParser<'i, AtRule = parser::QualifiedRule<'i>, Error = ()>,
-{
-    // A rejected rule's block stays pending until the parser moves on; skipping
-    // whitespace consumes it, so the rule's span ends there.
-    // The error carries the rule's start, past any whitespace and comments.
-    let mut rejected = None;
-    loop {
-        if let Some(rule) = rejected.take() {
-            items.input.skip_whitespace();
-            let end = items.input.position().byte_index();
-            if let Some(state) = state.as_mut() {
-                state.record_at_rule(source, rule, end);
+    layers: &'a Layers<'i>,
+    /// Layers whose rules stay in the output, with their ancestors.
+    kept: Vec<bool>,
+}
+
+impl<'a, 'i> KeptCss<'a, 'i> {
+    /// Rules stay in the output as kept `@`-rules, as selector cleanup leftovers, or verbatim
+    /// when the `<style>` tags are kept as they are.
+    fn new(
+        source: &'i str,
+        layers: &'a Layers<'i>,
+        spans: &[Span<'i>],
+        rules: &[Rule<'i>],
+        cleanup: Option<&SelectorCleanupState<'i>>,
+        verbatim_styles: bool,
+    ) -> Self {
+        let mut kept = vec![false; layers.len()];
+        let mut mark = |mut id: LayerId| {
+            while id != 0 && !kept[id] {
+                kept[id] = true;
+                id = layers.parent(id);
+            }
+        };
+        for span in spans {
+            if let Span::AtRule { layer, .. } = span {
+                mark(*layer);
             }
         }
-        match items.next() {
-            None => break,
-            Some(Ok(rule)) => {
-                if let Some(rules) = rules.as_mut() {
-                    rules.push(rule);
+        if let Some(state) = cleanup {
+            for usage in state.usages.iter().filter(|usage| !usage.matched) {
+                mark(rules[usage.rule_id].layer);
+            }
+        }
+        if verbatim_styles {
+            for rule in rules {
+                mark(rule.layer);
+            }
+        }
+        KeptCss {
+            source,
+            layers,
+            kept,
+        }
+    }
+
+    /// Whether `layer` or an ancestor has rules in the output, so its position matters.
+    fn is_kept(&self, mut layer: LayerId) -> bool {
+        while layer != 0 {
+            if self.kept[layer] {
+                return true;
+            }
+            layer = self.layers.parent(layer);
+        }
+        false
+    }
+
+    /// Render the spans within `range` of the source together with `items` (offset, text),
+    /// `sep`-separated within `@layer` blocks.
+    fn render(
+        &self,
+        spans: &[Span<'i>],
+        range: &Range<usize>,
+        mut items: Vec<(usize, String)>,
+        sep: &str,
+    ) -> Vec<String> {
+        let mut blocks = Vec::new();
+        for span in spans.iter().filter(|span| range.contains(&span.start())) {
+            match span {
+                // An unterminated `@`-rule runs into the following blocks; it ends with its own.
+                Span::AtRule { range: at_rule, .. } => items.push((
+                    at_rule.start,
+                    self.source[at_rule.start..at_rule.end.min(range.end)]
+                        .trim()
+                        .to_string(),
+                )),
+                Span::LayerStatement {
+                    start,
+                    prelude,
+                    layers,
+                } => {
+                    if layers.iter().any(|&layer| self.is_kept(layer)) {
+                        items.push((*start, format!("@layer {};", prelude.trim())));
+                    }
+                }
+                Span::LayerBlock {
+                    range: block,
+                    prelude,
+                    layer,
+                    created,
+                } => blocks.push(LayerBlock {
+                    range: block.start..block.end.min(range.end),
+                    prelude,
+                    layer: *layer,
+                    created: *created,
+                }),
+            }
+        }
+        items.retain(|(_, text)| !text.is_empty());
+        items.sort_by_key(|(offset, _)| *offset);
+        blocks.sort_by_key(|block| block.range.start);
+        self.render_tree(&mut items.into_iter().peekable(), &blocks, range.end, sep)
+    }
+
+    /// Blocks are sorted by start and nest, so the blocks starting inside one are its children.
+    #[allow(clippy::arithmetic_side_effects)]
+    fn render_tree(
+        &self,
+        items: &mut Peekable<std::vec::IntoIter<(usize, String)>>,
+        blocks: &[LayerBlock<'i>],
+        end: usize,
+        sep: &str,
+    ) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut i = 0;
+        while let Some(block) = blocks.get(i) {
+            while let Some((_, text)) = items.next_if(|(offset, _)| *offset < block.range.start) {
+                out.push(text);
+            }
+            let mut j = i + 1;
+            while blocks
+                .get(j)
+                .is_some_and(|child| child.range.start < block.range.end)
+            {
+                j += 1;
+            }
+            let inner = self.render_tree(items, &blocks[i + 1..j], block.range.end, sep);
+            let prelude = block.prelude.trim();
+            if inner.is_empty() {
+                // The block declared the layer; a statement keeps its position.
+                if block.created && !prelude.is_empty() && self.is_kept(block.layer) {
+                    out.push(format!("@layer {prelude};"));
+                }
+            } else {
+                let inner = inner.join(sep);
+                if prelude.is_empty() {
+                    out.push(format!("@layer {{{sep}{inner}{sep}}}"));
+                } else {
+                    out.push(format!("@layer {prelude} {{{sep}{inner}{sep}}}"));
                 }
             }
-            Some(Err((_, rule, _))) if state.is_some() => rejected = Some(rule),
-            Some(Err(_)) => {}
+            i = j;
         }
+        while let Some((_, text)) = items.next_if(|(offset, _)| *offset < end) {
+            out.push(text);
+        }
+        out
     }
 }
 
@@ -227,7 +331,7 @@ fn find_chunk_index(chunks: &[CssChunk], offset: usize) -> Option<usize> {
 /// Compute chunk indices for all rules based on where their selectors point in the source.
 #[allow(clippy::arithmetic_side_effects)]
 fn compute_rule_chunk_indices(
-    rules: &[(&str, (usize, usize))],
+    rules: &[Rule<'_>],
     source: &str,
     chunks: &[CssChunk],
 ) -> Vec<Option<usize>> {
@@ -236,8 +340,8 @@ fn compute_rule_chunk_indices(
 
     rules
         .iter()
-        .map(|(selectors, _)| {
-            let sel_start = selectors.as_ptr() as usize;
+        .map(|rule| {
+            let sel_start = rule.selectors.as_ptr() as usize;
             // Check if selectors slice is within source bounds
             if sel_start >= source_start && sel_start < source_end {
                 let offset = sel_start.wrapping_sub(source_start);
@@ -285,32 +389,16 @@ impl CssBuffer {
     }
 }
 
+/// Rewrite the `<style>` blocks to what remains after inlining; whether any of them keeps content.
 fn apply_selector_cleanup<'i>(
     state: &SelectorCleanupState<'i>,
     document: &mut Document,
     requested_keep_style_tags: bool,
     declarations: &[parser::Declaration<'i>],
-    source: &'i str,
-) {
-    if state.chunks.is_empty() {
-        return;
-    }
-    rewrite_style_blocks(
-        state,
-        document,
-        requested_keep_style_tags,
-        declarations,
-        source,
-    );
-}
-
-fn rewrite_style_blocks<'i>(
-    state: &SelectorCleanupState<'i>,
-    document: &mut Document,
-    requested_keep_style_tags: bool,
-    declarations: &[parser::Declaration<'i>],
-    source: &'i str,
-) {
+    kept: &KeptCss<'_, 'i>,
+    spans: &[Span<'i>],
+) -> bool {
+    let source = kept.source;
     let source_start = source.as_ptr() as usize;
     let mut chunk_remainders: Vec<Vec<RuleRemainder<'i>>> =
         (0..state.chunks.len()).map(|_| Vec::new()).collect();
@@ -339,7 +427,11 @@ fn rewrite_style_blocks<'i>(
             .push(trimmed);
     }
 
+    let mut keeps_content = false;
     for (idx, chunk) in state.chunks.iter().enumerate() {
+        let Some(node_id) = chunk.style_node else {
+            continue;
+        };
         // Remainders and `@`-rules, keyed by their offset so the block keeps source order.
         let mut items: Vec<(usize, String)> = Vec::new();
         for remainder in &chunk_remainders[idx] {
@@ -347,24 +439,15 @@ fn rewrite_style_blocks<'i>(
             append_rule(&mut text, remainder, declarations);
             items.push((remainder.offset, text.trim().to_string()));
         }
-        for range in &state.chunk_at_rules[idx] {
-            items.push((range.start, source[range.clone()].trim().to_string()));
-        }
-        items.retain(|(_, text)| !text.is_empty());
-        if items.is_empty() {
+        let rules = kept.render(spans, &chunk.range, items, "\n");
+        if rules.is_empty() {
             handle_empty_remainder(document, chunk, requested_keep_style_tags);
             continue;
         }
-        items.sort_by_key(|(offset, _)| *offset);
-        let buffer = items
-            .into_iter()
-            .map(|(_, text)| text)
-            .collect::<Vec<_>>()
-            .join("\n");
-        if let Some(node_id) = chunk.style_node {
-            overwrite_style_node(document, node_id, &buffer);
-        }
+        keeps_content = true;
+        overwrite_style_node(document, node_id, &rules.join("\n"));
     }
+    keeps_content
 }
 
 fn handle_empty_remainder(
@@ -928,10 +1011,8 @@ impl<'a> CSSInliner<'a> {
             None
         };
         if let (Some(state), Some(chunks)) = (&mut selector_cleanup_state, css_chunks) {
-            state.chunk_at_rules = vec![Vec::new(); chunks.len()];
             state.chunks = chunks;
         }
-        let mut parser = cssparser::Parser::new(&raw_styles);
         // Allocating some memory for all the parsed declarations
         #[allow(
             clippy::cast_precision_loss,
@@ -945,34 +1026,31 @@ impl<'a> CSSInliner<'a> {
                 .max(16),
         );
         let mut rule_list = Vec::with_capacity(declarations.capacity() / 3);
-        // Both parsers reject `@`-rules. Selector cleanup keeps them in the rewritten `<style>`
-        // blocks, so it needs each rejected rule's span.
-        let at_rules = if self.options.keep_at_rules {
-            let mut at_rules = String::new();
-            let mut rule_parser =
-                parser::AtRuleFilteringParser::new(&mut declarations, &mut at_rules);
+        // `@`-rules are not inlined. `keep_at_rules` moves them to a new `<style>` and selector
+        // cleanup keeps them in the rewritten ones, so both need their spans.
+        let mut spans = (self.options.keep_at_rules || track_selector_cleanup).then(Vec::new);
+        let mut rule_parser = parser::RuleParser::new(
+            &raw_styles,
+            &mut declarations,
+            &mut rule_list,
+            spans.as_mut(),
+        );
+        if !raw_styles.is_empty() {
+            let mut parser = cssparser::Parser::new(&raw_styles);
             let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_parser);
-            let rules = self.options.inline_style_tags.then_some(&mut rule_list);
-            collect_rules(
-                &mut items,
-                &raw_styles,
-                rules,
-                selector_cleanup_state.as_mut(),
-            );
-            Some(at_rules)
-        } else if !raw_styles.is_empty() {
-            // At this point, we collected some styles from at least one source, hence we need to process it.
-            let mut rule_parser = parser::CSSRuleListParser::new(&mut declarations);
-            let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_parser);
-            collect_rules(
-                &mut items,
-                &raw_styles,
-                Some(&mut rule_list),
-                selector_cleanup_state.as_mut(),
-            );
-            None
-        } else {
-            None
+            parser::collect_rules(&mut items);
+        }
+        let layers = rule_parser.into_layers();
+        let spans = spans.unwrap_or_default();
+        if self.options.keep_at_rules && !self.options.inline_style_tags {
+            // The styles were collected only for their `@`-rules.
+            rule_list.clear();
+        }
+        let ranks = layers.ranks();
+        // Important declarations cascade in reverse layer order.
+        let last_rank = u32::try_from(layers.len().saturating_sub(1)).unwrap_or(u32::MAX);
+        let reversed = |precedence: Precedence| {
+            Precedence(last_rank.saturating_sub(precedence.0), precedence.1)
         };
         // Compute chunk indices for all rules once, before processing
         let rule_chunk_indices = selector_cleanup_state
@@ -980,13 +1058,15 @@ impl<'a> CSSInliner<'a> {
             .map(|state| compute_rule_chunk_indices(&rule_list, &raw_styles, &state.chunks))
             .unwrap_or_default();
         // Vec indexed by NodeId for O(1) access instead of hash lookups
-        let mut styles: Vec<Option<SmallVec<[_; 4]>>> = vec![None; document.nodes.len()];
+        let mut styles: Vec<Option<html::ElementStyleMap<'_>>> = vec![None; document.nodes.len()];
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
-        for (rule_id, (selectors, (start, end))) in rule_list.iter().enumerate() {
+        for (rule_id, rule) in rule_list.iter().enumerate() {
+            let (start, end) = rule.declarations;
+            let rank = ranks[rule.layer];
             // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
             // With `is` or `where` selectors (Level 4) this split should be done on the parser level
-            for selector in selectors.split(',') {
+            for selector in rule.selectors.split(',') {
                 let mut matched_any = false;
                 // Quick check: skip selectors whose anchor doesn't exist in the document
                 // This avoids parsing selectors that can't possibly match anything
@@ -997,7 +1077,7 @@ impl<'a> CSSInliner<'a> {
                         {
                             state.record_usage(SelectorUsage {
                                 selector,
-                                declarations: (*start, *end),
+                                declarations: (start, end),
                                 rule_id,
                                 chunk_index,
                                 matched: false,
@@ -1007,34 +1087,40 @@ impl<'a> CSSInliner<'a> {
                     continue;
                 }
                 if let Ok(matching_elements) = document.select(selector, &mut caches) {
-                    let specificity = matching_elements.specificity();
+                    let precedence = Precedence(rank, matching_elements.specificity());
                     for matching_element in matching_elements {
                         matched_any = true;
                         let element_styles = styles[matching_element.node_id.get()]
                             .get_or_insert_with(SmallVec::new);
                         // Iterate over pairs of property name & value
                         // Example: `padding`, `0`
-                        for (name, value) in &declarations[*start..*end] {
+                        for (name, value) in &declarations[start..end] {
                             let prop_name = name.as_ref();
                             // Linear search for existing property
                             if let Some(idx) =
                                 element_styles.iter().position(|(n, _, _)| *n == prop_name)
                             {
-                                let entry: &mut (&str, Specificity, &str) =
-                                    &mut element_styles[idx];
+                                let entry = &mut element_styles[idx];
                                 let new_important = value.trim_end().ends_with("!important");
                                 let old_important = entry.2.trim_end().ends_with("!important");
                                 match (new_important, old_important) {
-                                    // Equal importance; the higher specificity wins.
-                                    (false, false) | (true, true) => {
-                                        if entry.1 <= specificity {
-                                            entry.1 = specificity;
+                                    // Both normal; the later layer, then the higher specificity wins.
+                                    (false, false) => {
+                                        if entry.1 <= precedence {
+                                            entry.1 = precedence;
+                                            entry.2 = *value;
+                                        }
+                                    }
+                                    // Both important; the earlier layer, then the higher specificity wins.
+                                    (true, true) => {
+                                        if reversed(entry.1) <= reversed(precedence) {
+                                            entry.1 = precedence;
                                             entry.2 = *value;
                                         }
                                     }
                                     // Only the new value is important; it wins.
                                     (true, false) => {
-                                        entry.1 = specificity;
+                                        entry.1 = precedence;
                                         entry.2 = *value;
                                     }
                                     // The old value is important and the new one is not; keep
@@ -1042,7 +1128,7 @@ impl<'a> CSSInliner<'a> {
                                     (false, true) => {}
                                 }
                             } else {
-                                element_styles.push((prop_name, specificity, *value));
+                                element_styles.push((prop_name, precedence, *value));
                             }
                         }
                     }
@@ -1051,7 +1137,7 @@ impl<'a> CSSInliner<'a> {
                     if let Some(chunk_index) = rule_chunk_indices.get(rule_id).copied().flatten() {
                         state.record_usage(SelectorUsage {
                             selector,
-                            declarations: (*start, *end),
+                            declarations: (start, end),
                             rule_id,
                             chunk_index,
                             matched: matched_any,
@@ -1062,18 +1148,31 @@ impl<'a> CSSInliner<'a> {
                 // Which means that they will fall into this category and will be ignored
             }
         }
-        let cleanup_requires_css = selector_cleanup_state
-            .as_ref()
-            .is_some_and(SelectorCleanupState::needs_css);
-        let keep_style_tags = self.options.keep_style_tags || cleanup_requires_css;
-        if let Some(state) = selector_cleanup_state.as_ref() {
-            apply_selector_cleanup(
-                state,
-                &mut document,
-                self.options.keep_style_tags,
-                &declarations,
+        let mut keep_style_tags = self.options.keep_style_tags;
+        let mut at_rules = None;
+        if self.options.keep_at_rules || selector_cleanup_state.is_some() {
+            let kept = KeptCss::new(
                 &raw_styles,
+                &layers,
+                &spans,
+                &rule_list,
+                selector_cleanup_state.as_ref(),
+                self.options.keep_style_tags && !track_selector_cleanup,
             );
+            if self.options.keep_at_rules {
+                let rules = kept.render(&spans, &(0..raw_styles.len()), Vec::new(), " ");
+                at_rules = (!rules.is_empty()).then(|| format!("{} ", rules.join(" ")));
+            }
+            if let Some(state) = selector_cleanup_state.as_ref() {
+                keep_style_tags |= apply_selector_cleanup(
+                    state,
+                    &mut document,
+                    self.options.keep_style_tags,
+                    &declarations,
+                    &kept,
+                    &spans,
+                );
+            }
         }
         document.serialize(
             target,

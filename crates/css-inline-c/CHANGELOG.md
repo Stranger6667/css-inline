@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Support for CSS cascade layers (`@layer`). [#340](https://github.com/Stranger6667/css-inline/issues/340)
+
 ## [0.22.1] - 2026-10-14
 
 ### Fixed
