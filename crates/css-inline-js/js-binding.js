@@ -573,5 +573,7 @@ if (!nativeBinding) {
 
 module.exports = nativeBinding
 module.exports.inline = nativeBinding.inline
+module.exports.inlineAsync = nativeBinding.inlineAsync
 module.exports.inlineFragment = nativeBinding.inlineFragment
+module.exports.inlineFragmentAsync = nativeBinding.inlineFragmentAsync
 module.exports.version = nativeBinding.version

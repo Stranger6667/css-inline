@@ -256,8 +256,10 @@ if (!nativeBinding) {
   }
 }
 
-const { inline, inlineFragment, version } = nativeBinding
+const { inline, inlineAsync, inlineFragment, inlineFragmentAsync, version } = nativeBinding
 
 module.exports.inline = inline
+module.exports.inlineAsync = inlineAsync
 module.exports.inlineFragment = inlineFragment
+module.exports.inlineFragmentAsync = inlineFragmentAsync
 module.exports.version = version
