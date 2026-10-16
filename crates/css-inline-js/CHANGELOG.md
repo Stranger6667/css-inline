@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-16
+
 ### Added
 
 - `inlineAsync` and `inlineFragmentAsync`, loading external stylesheets concurrently without blocking the event loop.
@@ -263,7 +265,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.0...HEAD
+[0.23.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.1...javascript-v0.23.0
 [0.22.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.0...javascript-v0.22.1
 [0.22.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.21.2...javascript-v0.22.0
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.21.1...javascript-v0.21.2
