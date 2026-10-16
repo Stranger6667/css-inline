@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Added
+
+- Non-blocking `inline_async`, `inline_to_async`, `inline_fragment_async` and `inline_fragment_to_async`, as top-level functions and `CSSInliner` methods, behind the `async` feature. External stylesheets are fetched concurrently. [#246](https://github.com/Stranger6667/css-inline/issues/246)
+- `StylesheetResolver::retrieve_async` for custom non-blocking resolvers.
+
 ### Changed
 
 - Use `lexopt` for CLI argument parsing.

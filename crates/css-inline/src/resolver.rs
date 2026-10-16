@@ -17,7 +17,15 @@ fn to_file_path(location: &str) -> Cow<'_, Path> {
     Cow::Borrowed(Path::new(location.trim_start_matches("file://")))
 }
 
-/// Blocking way of resolving stylesheets from various sources.
+/// Way of resolving stylesheets from various sources.
+#[cfg_attr(
+    all(feature = "async", target_family = "wasm"),
+    async_trait::async_trait(?Send)
+)]
+#[cfg_attr(
+    all(feature = "async", not(target_family = "wasm")),
+    async_trait::async_trait
+)]
 pub trait StylesheetResolver: Send + Sync {
     /// Retrieve a stylesheet from a network or local filesystem location.
     ///
@@ -81,6 +89,15 @@ pub trait StylesheetResolver: Send + Sync {
             _ => InlineError::IO(error),
         })
     }
+    /// Non-blocking version of [`StylesheetResolver::retrieve`]. Calls it by default.
+    ///
+    /// # Errors
+    ///
+    /// Any network or filesystem related error, or an error during response parsing.
+    #[cfg(feature = "async")]
+    async fn retrieve_async(&self, location: &str) -> Result<String> {
+        self.retrieve(location)
+    }
     /// Return the "Unsupported" kind of error.
     fn unsupported(&self, reason: &str) -> InlineError {
         std::io::Error::new(ErrorKind::Unsupported, reason).into()
@@ -91,6 +108,14 @@ pub trait StylesheetResolver: Send + Sync {
 #[derive(Debug, Default)]
 pub struct DefaultStylesheetResolver;
 
+#[cfg_attr(
+    all(feature = "async", target_family = "wasm"),
+    async_trait::async_trait(?Send)
+)]
+#[cfg_attr(
+    all(feature = "async", not(target_family = "wasm")),
+    async_trait::async_trait
+)]
 impl StylesheetResolver for DefaultStylesheetResolver {
     #[cfg(feature = "http")]
     fn retrieve_from_url(&self, url: &str) -> Result<String> {
@@ -102,5 +127,37 @@ impl StylesheetResolver for DefaultStylesheetResolver {
             .map_err(into_error)?
             .text()
             .map_err(into_error)
+    }
+
+    #[cfg(feature = "async")]
+    async fn retrieve_async(&self, location: &str) -> Result<String> {
+        if !(location.starts_with("https") || location.starts_with("http")) {
+            #[cfg(target_family = "wasm")]
+            return self.retrieve(location);
+            #[cfg(not(target_family = "wasm"))]
+            {
+                let (tx, rx) = futures_channel::oneshot::channel();
+                let location = location.to_string();
+                std::thread::spawn(move || tx.send(DefaultStylesheetResolver.retrieve(&location)));
+                return rx.await.expect("Stylesheet reading thread panicked");
+            }
+        }
+        #[cfg(feature = "http")]
+        {
+            let into_error = |error| InlineError::Network {
+                error,
+                location: location.to_string(),
+            };
+            reqwest::get(location)
+                .await
+                .map_err(into_error)?
+                .text()
+                .await
+                .map_err(into_error)
+        }
+        #[cfg(not(feature = "http"))]
+        {
+            Err(self.unsupported("Loading external URLs requires the `http` feature"))
+        }
     }
 }
