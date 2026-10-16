@@ -12,7 +12,7 @@ name = "css_inline_php"
 crate-type = ["cdylib"]
 
 [dependencies]
-ext-php-rs = "0.15.2"
+ext-php-rs = "0.16.3"
 rayon = "1"
 
 [dependencies.css-inline]
