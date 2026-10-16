@@ -153,4 +153,26 @@ class CssInlineTest {
 
       assertEquals("<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>", out);
   }
+
+  @Test
+  void keepsCssVariablesByDefault() {
+      String html = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
+
+      String out = CssInline.inline(html);
+
+      assertEquals("<html style=\"--c: red;\"><head></head><body><h1 style=\"color: var(--c);\">Test</h1></body></html>", out);
+  }
+
+  @Test
+  void resolveCssVariables() {
+      String html = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
+
+      CssInlineConfig cfg = new CssInlineConfig.Builder().setResolveCssVariables(true).build();
+
+      String out = CssInline.inline(html, cfg);
+
+      assertEquals("<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>", out);
+      assertFalse(out.contains("var("));
+      assertFalse(out.contains("--c"));
+  }
 }

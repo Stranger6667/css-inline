@@ -17,7 +17,7 @@ repos:
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
-        exclude: index.d.ts|index.js|README.md|example.html|index.min.js|index.mjs|index_bg.wasm|js-binding.*
+        exclude: index.d.ts|index.js|README.md|example.html|variables.html|index.min.js|index.mjs|index_bg.wasm|js-binding.*
         require_serial: true
 
   - repo: https://github.com/jorisroovers/gitlint

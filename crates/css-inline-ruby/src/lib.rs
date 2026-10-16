@@ -73,6 +73,9 @@ struct Options {
     apply_width_attributes: Option<bool>,
     /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
     apply_height_attributes: Option<bool>,
+    /// Substitute `var()` references with the values of the custom properties they refer to
+    /// and drop the `--*` declarations from the inlined styles.
+    resolve_css_variables: Option<bool>,
 }
 
 impl TryConvert for Options {
@@ -98,6 +101,8 @@ impl TryConvert for Options {
                 .aref::<_, Option<bool>>(ruby.to_symbol("apply_width_attributes"))?,
             apply_height_attributes: h
                 .aref::<_, Option<bool>>(ruby.to_symbol("apply_height_attributes"))?,
+            resolve_css_variables: h
+                .aref::<_, Option<bool>>(ruby.to_symbol("resolve_css_variables"))?,
         })
     }
 }
@@ -123,6 +128,7 @@ fn parse_options<Req>(
         remove_inlined_selectors: kwargs.remove_inlined_selectors.unwrap_or(false),
         apply_width_attributes: kwargs.apply_width_attributes.unwrap_or(false),
         apply_height_attributes: kwargs.apply_height_attributes.unwrap_or(false),
+        resolve_css_variables: kwargs.resolve_css_variables.unwrap_or(false),
     })
 }
 

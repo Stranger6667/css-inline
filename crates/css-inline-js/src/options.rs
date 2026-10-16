@@ -68,6 +68,11 @@ pub struct Options {
     /// This is useful for email compatibility with clients like Outlook that ignore CSS height.
     /// Supported elements: `table`, `td`, `th`, `img`.
     pub apply_height_attributes: Option<bool>,
+    /// Substitute `var()` references with the values of the custom properties they refer to
+    /// and drop the `--*` declarations from the inlined styles.
+    ///
+    /// Email clients do not support custom properties; this makes the output work without them.
+    pub resolve_css_variables: Option<bool>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -157,6 +162,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             remove_inlined_selectors: value.remove_inlined_selectors.unwrap_or(false),
             apply_width_attributes: value.apply_width_attributes.unwrap_or(false),
             apply_height_attributes: value.apply_height_attributes.unwrap_or(false),
+            resolve_css_variables: value.resolve_css_variables.unwrap_or(false),
         })
     }
 }

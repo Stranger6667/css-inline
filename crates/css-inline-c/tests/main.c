@@ -142,6 +142,20 @@ static void test_remove_inlined_selectors(void) {
   assert(strcmp(output, "<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>") == 0);
 }
 
+static void test_resolve_css_variables(void) {
+  char html[] = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
+  CssInlinerOptions options = css_inliner_default_options();
+  char output[MAX_SIZE];
+  // Off by default: `var()` and the custom property stay in the output
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html style=\"--c: red;\"><head></head><body><h1 style=\"color: var(--c);\">Test</h1></body></html>") == 0);
+  options.resolve_css_variables = true;
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>") == 0);
+  assert(strstr(output, "var(") == NULL);
+  assert(strstr(output, "--c") == NULL);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
@@ -152,5 +166,6 @@ int main(void) {
   test_cache_invalid();
   test_inline_fragment();
   test_remove_inlined_selectors();
+  test_resolve_css_variables();
   return 0;
 }

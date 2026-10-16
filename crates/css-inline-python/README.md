@@ -166,6 +166,7 @@ inliner.inline("...")
 - `remove_inlined_selectors`. Remove inlined selectors from `<style>` blocks. Default: `False`
 - `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`). Default: `False`
+- `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `False`
 
 To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute:
 

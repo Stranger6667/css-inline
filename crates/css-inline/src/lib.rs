@@ -96,6 +96,11 @@ pub struct InlineOptions<'a> {
     /// This is useful for email compatibility with clients like Outlook that ignore CSS height.
     /// Supported elements: `table`, `td`, `th`, `img`.
     pub apply_height_attributes: bool,
+    /// Substitute `var()` references with the values of the custom properties they refer to
+    /// and drop the `--*` declarations from the inlined styles.
+    ///
+    /// Email clients do not support custom properties; this makes the output work without them.
+    pub resolve_css_variables: bool,
 }
 
 impl std::fmt::Debug for InlineOptions<'_> {
@@ -117,6 +122,7 @@ impl std::fmt::Debug for InlineOptions<'_> {
             .field("remove_inlined_selectors", &self.remove_inlined_selectors)
             .field("apply_width_attributes", &self.apply_width_attributes)
             .field("apply_height_attributes", &self.apply_height_attributes)
+            .field("resolve_css_variables", &self.resolve_css_variables)
             .finish_non_exhaustive()
     }
 }
@@ -615,6 +621,14 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Substitute `var()` references with the values of the custom properties they refer to
+    /// and drop the `--*` declarations from the inlined styles.
+    #[must_use]
+    pub fn resolve_css_variables(mut self, resolve: bool) -> Self {
+        self.resolve_css_variables = resolve;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -641,6 +655,7 @@ impl Default for InlineOptions<'_> {
             remove_inlined_selectors: false,
             apply_width_attributes: false,
             apply_height_attributes: false,
+            resolve_css_variables: false,
         }
     }
 }
@@ -1184,6 +1199,7 @@ impl<'a> CSSInliner<'a> {
             mode,
             self.options.apply_width_attributes,
             self.options.apply_height_attributes,
+            self.options.resolve_css_variables,
         )?;
         Ok(())
     }

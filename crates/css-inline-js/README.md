@@ -93,6 +93,7 @@ Pass options as the second argument to `inline` or the third to `inlineFragment`
 - `removeInlinedSelectors`. Remove selectors that were inlined from `<style>` blocks. Default: `false`
 - `applyWidthAttributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `applyHeightAttributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `resolveCssVariables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 
 To skip inlining for a tag, add the `data-css-inline="ignore"` attribute:
 

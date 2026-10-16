@@ -70,6 +70,7 @@ class CssInliner
      * @param bool $removeInlinedSelectors Remove selectors that were successfully inlined from style blocks
      * @param bool $applyWidthAttributes Add width HTML attributes from CSS width properties on supported elements
      * @param bool $applyHeightAttributes Add height HTML attributes from CSS height properties on supported elements
+     * @param bool $resolveCssVariables Replace var() references with the values of the custom properties they refer to and drop the --* declarations
      */
     public function __construct(
         bool $inlineStyleTags = true,
@@ -85,6 +86,7 @@ class CssInliner
         bool $removeInlinedSelectors = false,
         bool $applyWidthAttributes = false,
         bool $applyHeightAttributes = false,
+        bool $resolveCssVariables = false,
     ) {}
 
     /**

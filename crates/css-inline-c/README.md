@@ -237,6 +237,7 @@ Fields:
 - `remove_inlined_selectors`. Remove selectors from `<style>` blocks once inlined. Default: `false`
 - `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 
 With the defaults, the library loads every stylesheet that a `link` tag references, over the network or from local files. Set `load_remote_stylesheets` to `false` to block both network and file access for `link` tags.
 

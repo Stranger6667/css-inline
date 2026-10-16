@@ -179,6 +179,7 @@ public class ConfigExample {
 - **`setRemoveInlinedSelectors(boolean)`** - Remove inlined selectors from `<style>` blocks (default: `false`)
 - **`setApplyWidthAttributes(boolean)`** - Add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
 - **`setApplyHeightAttributes(boolean)`** - Add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
+- **`setResolveCssVariables(boolean)`** - Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations (default: `false`)
 
 `inline` and `inlineFragment` throw `org.cssinline.CssInlineException` (a `RuntimeException`) when inlining fails. A malformed `setBaseUrl` value passes `build()` and fails here, as does a stylesheet that cannot be loaded.
 

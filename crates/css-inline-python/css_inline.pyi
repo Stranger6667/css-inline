@@ -15,6 +15,9 @@ class CSSInliner:
         extra_css: str | None = None,
         preallocate_node_capacity: int | None = 32,
         remove_inlined_selectors: bool = False,
+        apply_width_attributes: bool = False,
+        apply_height_attributes: bool = False,
+        resolve_css_variables: bool = False,
     ) -> None: ...
     def inline(self, html: str) -> str: ...
     def inline_fragment(self, html: str, css: str) -> str: ...
@@ -34,6 +37,9 @@ def inline(
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
     remove_inlined_selectors: bool = False,
+    apply_width_attributes: bool = False,
+    apply_height_attributes: bool = False,
+    resolve_css_variables: bool = False,
 ) -> str: ...
 def inline_fragment(
     html: str,
@@ -49,6 +55,9 @@ def inline_fragment(
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
     remove_inlined_selectors: bool = False,
+    apply_width_attributes: bool = False,
+    apply_height_attributes: bool = False,
+    resolve_css_variables: bool = False,
 ) -> str: ...
 def inline_many(
     html: list[str],
@@ -63,6 +72,9 @@ def inline_many(
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
     remove_inlined_selectors: bool = False,
+    apply_width_attributes: bool = False,
+    apply_height_attributes: bool = False,
+    resolve_css_variables: bool = False,
 ) -> list[str]: ...
 def inline_many_fragments(
     html: list[str],
@@ -78,6 +90,9 @@ def inline_many_fragments(
     extra_css: str | None = None,
     preallocate_node_capacity: int | None = 32,
     remove_inlined_selectors: bool = False,
+    apply_width_attributes: bool = False,
+    apply_height_attributes: bool = False,
+    resolve_css_variables: bool = False,
 ) -> list[str]: ...
 
 class InlineError(ValueError): ...

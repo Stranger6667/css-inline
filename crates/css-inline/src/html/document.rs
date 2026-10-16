@@ -401,6 +401,7 @@ impl Document {
         mode: InliningMode,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
+        resolve_css_variables: bool,
     ) -> Result<(), InlineError> {
         serialize_to(
             self,
@@ -413,6 +414,7 @@ impl Document {
             mode,
             apply_width_attributes,
             apply_height_attributes,
+            resolve_css_variables,
         )
     }
 
@@ -484,6 +486,7 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
             false,
             false,
         )

@@ -103,6 +103,9 @@ pub struct CssInlinerOptions {
     pub apply_width_attributes: bool,
     /// Apply `height` HTML attributes from CSS `height` properties on supported elements.
     pub apply_height_attributes: bool,
+    /// Substitute `var()` references with the values of the custom properties they refer to
+    /// and drop the `--*` declarations from the inlined styles.
+    pub resolve_css_variables: bool,
 }
 
 macro_rules! inliner {
@@ -207,6 +210,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         remove_inlined_selectors: false,
         apply_width_attributes: false,
         apply_height_attributes: false,
+        resolve_css_variables: false,
     }
 }
 
@@ -266,6 +270,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             remove_inlined_selectors: value.remove_inlined_selectors,
             apply_width_attributes: value.apply_width_attributes,
             apply_height_attributes: value.apply_height_attributes,
+            resolve_css_variables: value.resolve_css_variables,
         })
     }
 }

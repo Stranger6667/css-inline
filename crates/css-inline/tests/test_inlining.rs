@@ -1338,7 +1338,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, .. } }");
 }
 
 #[test]

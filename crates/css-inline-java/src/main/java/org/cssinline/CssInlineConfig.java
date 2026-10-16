@@ -41,10 +41,13 @@ public class CssInlineConfig {
 	/** Apply height HTML attributes from CSS height properties on supported elements. */
 	public final boolean applyHeightAttributes;
 
+	/** Substitute var() references with the values of the custom properties they refer to and drop the --* declarations. */
+	public final boolean resolveCssVariables;
+
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
 			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors,
-			boolean applyWidthAttributes, boolean applyHeightAttributes) {
+			boolean applyWidthAttributes, boolean applyHeightAttributes, boolean resolveCssVariables) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -58,6 +61,7 @@ public class CssInlineConfig {
 		this.removeInlinedSelectors = removeInlinedSelectors;
 		this.applyWidthAttributes = applyWidthAttributes;
 		this.applyHeightAttributes = applyHeightAttributes;
+		this.resolveCssVariables = resolveCssVariables;
 	}
 
 	/**
@@ -77,6 +81,7 @@ public class CssInlineConfig {
 		private boolean removeInlinedSelectors = false;
 		private boolean applyWidthAttributes = false;
 		private boolean applyHeightAttributes = false;
+		private boolean resolveCssVariables = false;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -248,13 +253,27 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Substitute var() references with the values of the custom properties they refer to
+		 * and drop the --* declarations from the inlined styles.
+		 * Email clients do not support custom properties; this makes the output work without them.
+		 *
+		 * @param b true to resolve CSS variables, false to keep them as is
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setResolveCssVariables(boolean b) {
+			this.resolveCssVariables = b;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
 		 */
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
-					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes);
+					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes,
+					resolveCssVariables);
 		}
 	}
 }

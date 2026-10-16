@@ -15,6 +15,7 @@ export interface InlineOptions {
 	removeInlinedSelectors?: boolean;
 	applyWidthAttributes?: boolean;
 	applyHeightAttributes?: boolean;
+	resolveCssVariables?: boolean;
 }
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 /**
@@ -25,6 +26,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export declare const initWasm: (module_or_path: Promise<InitInput> | InitInput) => Promise<void>;
 export declare function inline(html: string, options?: InlineOptions): string;
 export declare function inlineFragment(html: string, css: string, options?: InlineOptions): string;
+export declare function inlineAsync(html: string, options?: InlineOptions): Promise<string>;
+export declare function inlineFragmentAsync(html: string, css: string, options?: InlineOptions): Promise<string>;
 export declare function version(): string;
 
 export {};

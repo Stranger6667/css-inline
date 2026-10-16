@@ -246,6 +246,29 @@ def test_remove_inlined_selectors_inliner():
     )
 
 
+CSS_VARIABLES_HTML = (
+    "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>"
+)
+
+
+def test_resolve_css_variables_default():
+    result = css_inline.inline(CSS_VARIABLES_HTML)
+    assert result == '<html style="--c: red;"><head></head><body><h1 style="color: var(--c);">Test</h1></body></html>'
+
+
+def test_resolve_css_variables():
+    result = css_inline.inline(CSS_VARIABLES_HTML, resolve_css_variables=True)
+    assert result == '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>'
+    assert "var(" not in result
+    assert "--c" not in result
+
+
+def test_resolve_css_variables_inliner():
+    inliner = css_inline.CSSInliner(resolve_css_variables=True)
+    result = inliner.inline(CSS_VARIABLES_HTML)
+    assert result == '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>'
+
+
 @given(
     document=st.text(),
     keep_style_tags=st.booleans() | st.none(),

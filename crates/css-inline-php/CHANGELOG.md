@@ -5,6 +5,7 @@
 ### Added
 
 - Support for CSS cascade layers (`@layer`). [#340](https://github.com/Stranger6667/css-inline/issues/340)
+- Resolving CSS variables (`var()`) to their values with the `resolveCssVariables` option. [#180](https://github.com/Stranger6667/css-inline/issues/180)
 
 ### Changed
 
