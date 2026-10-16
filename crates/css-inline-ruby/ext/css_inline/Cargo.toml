@@ -21,7 +21,7 @@ magnus = "0.9"
 rayon = "1"
 
 [dependencies.css-inline]
-version = "0.22.1"
+version = "0.23.0"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
 
