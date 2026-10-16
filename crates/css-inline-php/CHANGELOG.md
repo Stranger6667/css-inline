@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.23.0] - 2026-10-16
+
 ### Added
 
 - Support for CSS cascade layers (`@layer`). [#340](https://github.com/Stranger6667/css-inline/issues/340)
@@ -100,7 +102,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.22.1...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/php-v0.23.0...HEAD
+[0.23.0]: https://github.com/Stranger6667/css-inline/compare/php-v0.22.1...php-v0.23.0
 [0.22.1]: https://github.com/Stranger6667/css-inline/compare/php-v0.22.0...php-v0.22.1
 [0.22.0]: https://github.com/Stranger6667/css-inline/compare/php-v0.21.2...php-v0.22.0
 [0.21.2]: https://github.com/Stranger6667/css-inline/compare/php-v0.21.1...php-v0.21.2

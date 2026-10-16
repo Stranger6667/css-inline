@@ -7,7 +7,7 @@ namespace CssInline;
 /**
  * Library version.
  */
-const VERSION = '0.22.1';
+const VERSION = '0.23.0';
 
 /**
  * Inline CSS from a style tag into matching elements.
