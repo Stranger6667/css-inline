@@ -41,6 +41,9 @@
           applyHeightAttributes: document.getElementById(
             "css-inline-opt-apply-height-attributes",
           ),
+          resolveCssVariables: document.getElementById(
+            "css-inline-opt-resolve-css-variables",
+          ),
           extraCss: document.getElementById("css-inline-opt-extra-css"),
         };
 
@@ -66,6 +69,9 @@
               : false,
             applyHeightAttributes: optionControls.applyHeightAttributes
               ? optionControls.applyHeightAttributes.checked
+              : false,
+            resolveCssVariables: optionControls.resolveCssVariables
+              ? optionControls.resolveCssVariables.checked
               : false,
           };
 
@@ -330,6 +336,20 @@
                   <span class="block text-xs text-gray-500"
                     >Add HTML height attributes from CSS for Outlook
                     compatibility.</span
+                  >
+                </span>
+              </label>
+              <label class="flex items-start gap-3 text-sm text-gray-900">
+                <input
+                  id="css-inline-opt-resolve-css-variables"
+                  type="checkbox"
+                  class="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 accent-indigo-600 focus:ring-indigo-600"
+                />
+                <span>
+                  <strong>Resolve CSS variables</strong>
+                  <span class="block text-xs text-gray-500"
+                    >Replace var() references with their values and drop the --*
+                    declarations.</span
                   >
                 </span>
               </label>

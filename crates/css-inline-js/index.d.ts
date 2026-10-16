@@ -47,6 +47,8 @@ export interface Options {
   applyWidthAttributes?: boolean
   /** Apply height HTML attributes from CSS height properties on supported elements (table, td, th, img). */
   applyHeightAttributes?: boolean
+  /** Substitute `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. */
+  resolveCssVariables?: boolean
 }
 
 export interface StylesheetCache {

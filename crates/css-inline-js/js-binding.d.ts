@@ -57,6 +57,13 @@ export interface Options {
    * Supported elements: `table`, `td`, `th`, `img`.
    */
   applyHeightAttributes?: boolean
+  /**
+   * Substitute `var()` references with the values of the custom properties they refer to
+   * and drop the `--*` declarations from the inlined styles.
+   *
+   * Email clients do not support custom properties; this makes the output work without them.
+   */
+  resolveCssVariables?: boolean
 }
 
 export interface StylesheetCache {

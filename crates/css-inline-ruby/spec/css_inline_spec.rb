@@ -197,4 +197,19 @@ h2 { color: red; }
     expect(result).to eq('<html><head><style>h2 { color: red; }</style></head><body><h1 style="color: blue;">Test</h1></body></html>')
   end
 
+  it 'Keeps CSS variables by default' do
+    html = '<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>'
+    result = CSSInline::inline(html)
+    expect(result).to eq('<html style="--c: red;"><head></head><body><h1 style="color: var(--c);">Test</h1></body></html>')
+  end
+
+  it 'Resolves CSS variables' do
+    html = '<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>'
+    inliner = CSSInline::CSSInliner.new(resolve_css_variables: true)
+    result = inliner.inline(html)
+    expect(result).to eq('<html><head></head><body><h1 style="color: red;">Test</h1></body></html>')
+    expect(result).not_to include('var(')
+    expect(result).not_to include('--c')
+  end
+
 end

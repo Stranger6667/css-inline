@@ -65,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         remove_inlined_selectors: bool,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
+        resolve_css_variables: bool,
     }
 
     impl Default for ParsedArgs {
@@ -88,6 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 remove_inlined_selectors: false,
                 apply_width_attributes: false,
                 apply_height_attributes: false,
+                resolve_css_variables: false,
             }
         }
     }
@@ -127,6 +129,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Long("remove-inlined-selectors") => parsed.remove_inlined_selectors = true,
                 Long("apply-width-attributes") => parsed.apply_width_attributes = true,
                 Long("apply-height-attributes") => parsed.apply_height_attributes = true,
+                Long("resolve-css-variables") => parsed.resolve_css_variables = true,
                 Long("inline-style-tags") => {
                     parsed.inline_style_tags = parse_value(parser.value()?, "inline-style-tags")?;
                 }
@@ -241,6 +244,10 @@ OPTIONS:
         Apply height HTML attributes from CSS height properties on supported elements
         (table, td, th, img). Useful for email compatibility with clients like Outlook.
 
+    --resolve-css-variables
+        Substitute var() references with the values of the custom properties they refer to
+        and drop the --* declarations from the inlined styles.
+
     --base-url
         Used for loading external stylesheets via relative URLs.
 
@@ -316,6 +323,7 @@ OPTIONS:
             remove_inlined_selectors: args.remove_inlined_selectors,
             apply_width_attributes: args.apply_width_attributes,
             apply_height_attributes: args.apply_height_attributes,
+            resolve_css_variables: args.resolve_css_variables,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

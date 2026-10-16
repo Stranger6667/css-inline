@@ -184,6 +184,7 @@ fn main() -> css_inline::Result<()> {
 - `remove_inlined_selectors`. Remove inlined selectors from `<style>` blocks and keep the blocks for rules that could not be inlined (e.g. `p:hover`), even when `keep_style_tags` is `false`. Default: `false`
 - `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 
 Add `data-css-inline="ignore"` to a tag to skip inlining styles into it:
 
@@ -248,6 +249,26 @@ Set `minify_css` to `true` to drop trailing semicolons and spaces between proper
   <h1>Big Text</h1>
 </body>
 ```
+
+Set `resolve_css_variables` to `true` for CSS that uses custom properties (e.g. Tailwind v4 or design tokens), which email clients do not support. `var()` references are replaced with the values the properties have on each element, with fallbacks for undefined or cyclic ones, and the `--*` declarations are dropped:
+
+```html
+<html>
+  <head>
+    <style>
+      :root { --brand: #17bebb; --space: 4px; }
+      .cta { color: var(--brand); padding: calc(var(--space) * 2); border: var(--w, 1px) solid; }
+    </style>
+  </head>
+  <body>
+    <!-- With resolve_css_variables=true, the <a> will have
+         `style="color: #17bebb;padding: calc(4px * 2);border: 1px solid;"` -->
+    <a class="cta">Buy</a>
+  </body>
+</html>
+```
+
+A declaration whose `var()` cannot be resolved and has no fallback is dropped. Custom properties defined inside `@media` and other at-rules are not inlined, so they do not take part.
 
 To load stylesheets from the filesystem, set `base_url` with the `file://` scheme.
 `css-inline` joins relative `link` hrefs onto it, so end the directory with `/`: with `file://styles/email/`, `href="main.css"` resolves to `styles/email/main.css`; without the slash, to `styles/main.css`.

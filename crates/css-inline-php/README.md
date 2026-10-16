@@ -204,6 +204,7 @@ $inliner->inline($html);
 - `removeInlinedSelectors`. Remove selectors from `<style>` blocks once inlined. Default: `false`
 - `applyWidthAttributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `applyHeightAttributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
+- `resolveCssVariables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 
 To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute to it:
 

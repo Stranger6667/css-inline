@@ -6,6 +6,7 @@ mod node;
 mod parser;
 mod selectors;
 mod serializer;
+mod variables;
 
 pub(crate) use self::selectors::Specificity;
 pub(crate) use document::Document;

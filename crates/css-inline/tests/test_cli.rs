@@ -104,6 +104,33 @@ pub mod tests {
     }
 
     #[test]
+    fn resolve_css_variables() {
+        css_inline()
+            .arg("--resolve-css-variables")
+            .write_stdin(r#"<html><head><style>:root{--c:red} p{color:var(--c)}</style></head><body><p style="--m: 1px; margin: var(--m)">x</p></body></html>"#)
+            .assert()
+            .success()
+            .stdout("<html><head></head><body><p style=\"color: red;margin: 1px\">x</p></body></html>");
+    }
+
+    #[test]
+    fn resolve_css_variables_in_file() {
+        css_inline()
+            .arg("tests/variables.html")
+            .arg("--resolve-css-variables")
+            .arg("--output-filename-prefix=inlined.resolve-css-variables.")
+            .assert()
+            .success()
+            .stdout("tests/variables.html: SUCCESS\n");
+        let content =
+            fs::read_to_string("tests/inlined.resolve-css-variables.variables.html").unwrap();
+        assert_eq!(
+            content,
+            "<html><head></head><body><p style=\"color: #00c;padding: 4px calc(4px * 2);margin: 0\">x</p><p style=\"color: #c00;padding: 4px calc(4px * 2);\">y</p>\n</body></html>"
+        );
+    }
+
+    #[test]
     fn dont_inline_styles() {
         css_inline()
             .arg("tests/example.html")

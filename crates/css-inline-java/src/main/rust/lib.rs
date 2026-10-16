@@ -114,6 +114,7 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
     let remove_inlined_selectors = env.get_bool_field(cfg, jni_str!("removeInlinedSelectors"))?;
     let apply_width_attributes = env.get_bool_field(cfg, jni_str!("applyWidthAttributes"))?;
     let apply_height_attributes = env.get_bool_field(cfg, jni_str!("applyHeightAttributes"))?;
+    let resolve_css_variables = env.get_bool_field(cfg, jni_str!("resolveCssVariables"))?;
 
     let extra_css = env.get_string_field_opt(cfg, jni_str!("extraCss"))?;
     let base_url = env.get_string_field_opt(cfg, jni_str!("baseUrl"))?;
@@ -128,7 +129,8 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
         .preallocate_node_capacity(preallocate_node_capacity as usize)
         .remove_inlined_selectors(remove_inlined_selectors)
         .apply_width_attributes(apply_width_attributes)
-        .apply_height_attributes(apply_height_attributes);
+        .apply_height_attributes(apply_height_attributes)
+        .resolve_css_variables(resolve_css_variables);
 
     if let Some(url) = base_url {
         match css_inline::Url::parse(&url) {

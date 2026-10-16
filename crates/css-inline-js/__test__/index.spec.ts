@@ -203,6 +203,26 @@ test("remove inlined selectors", (t) => {
   );
 });
 
+const cssVariablesHtml =
+  "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
+
+test("resolve css variables is off by default", (t) => {
+  t.is(
+    inline(cssVariablesHtml),
+    '<html style="--c: red;"><head></head><body><h1 style="color: var(--c);">Test</h1></body></html>',
+  );
+});
+
+test("resolve css variables", (t) => {
+  const result = inline(cssVariablesHtml, { resolveCssVariables: true });
+  t.is(
+    result,
+    '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>',
+  );
+  t.false(result.includes("var("));
+  t.false(result.includes("--c"));
+});
+
 const remoteHtml = `<html>
 <head>
 <link href="http://127.0.0.1:1234/external.css" rel="stylesheet">

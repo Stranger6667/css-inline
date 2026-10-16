@@ -305,6 +305,36 @@ class CssInlineTest extends TestCase
         $this->assertStringContainsString('height="50"', $result);
     }
 
+    public function testResolveCssVariablesDefault(): void
+    {
+        $inliner = new CssInliner();
+
+        $html = '<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertEquals(
+            '<html style="--c: red;"><head></head><body><h1 style="color: var(--c);">Test</h1></body></html>',
+            $result
+        );
+    }
+
+    public function testResolveCssVariables(): void
+    {
+        $inliner = new CssInliner(
+            resolveCssVariables: true,
+        );
+
+        $html = '<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertEquals(
+            '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>',
+            $result
+        );
+        $this->assertStringNotContainsString('var(', $result);
+        $this->assertStringNotContainsString('--c', $result);
+    }
+
     public function testRemoveInlinedSelectors(): void
     {
         $inliner = new CssInliner(

@@ -2,11 +2,12 @@ use super::{
     attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
+    variables::{contains_var, CustomProperties, NoVariables, VariableScope},
     DocumentStyleMap, InliningMode,
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, ns, tendril::StrTendril, LocalName, QualName};
-use memchr::{memchr3_iter, memchr_iter};
+use memchr::{memchr3_iter, memchr_iter, memmem};
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
@@ -161,6 +162,7 @@ pub(crate) fn serialize_to<W: Write>(
     mode: InliningMode,
     apply_width_attributes: bool,
     apply_height_attributes: bool,
+    resolve_css_variables: bool,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
         document,
@@ -173,8 +175,13 @@ pub(crate) fn serialize_to<W: Write>(
         apply_width_attributes,
         apply_height_attributes,
     );
-    let mut ser = HtmlSerializer::new(writer, styles);
-    sink.serialize(&mut ser)
+    if resolve_css_variables {
+        let mut ser = HtmlSerializer::new(writer, styles, CustomProperties::default());
+        sink.serialize(&mut ser)
+    } else {
+        let mut ser = HtmlSerializer::new(writer, styles, NoVariables);
+        sink.serialize(&mut ser)
+    }
 }
 
 /// Intermediary structure for serializing an HTML document.
@@ -249,9 +256,9 @@ impl<'a> Sink<'a> {
         }
     }
 
-    fn serialize_children<W: Write>(
+    fn serialize_children<W: Write, V: VariableScope>(
         &self,
-        serializer: &mut HtmlSerializer<'_, W>,
+        serializer: &mut HtmlSerializer<'_, W, V>,
     ) -> Result<(), InlineError> {
         for child in self.document.children(self.node) {
             self.for_node(child).serialize(serializer)?;
@@ -259,9 +266,9 @@ impl<'a> Sink<'a> {
         Ok(())
     }
 
-    fn serialize<W: Write>(
+    fn serialize<W: Write, V: VariableScope>(
         &self,
-        serializer: &mut HtmlSerializer<'_, W>,
+        serializer: &mut HtmlSerializer<'_, W, V>,
     ) -> Result<(), InlineError> {
         match self.data() {
             NodeData::Element {
@@ -318,15 +325,16 @@ struct ElemInfo {
 
 /// Inspired by HTML serializer from `html5ever`
 /// Source: <https://github.com/servo/html5ever/blob/98d3c0cd01471af997cd60849a38da45a9414dfd/html5ever/src/serialize/mod.rs#L77>
-struct HtmlSerializer<'a, Wr: Write> {
+struct HtmlSerializer<'a, Wr: Write, V: VariableScope> {
     writer: Wr,
     styles: DocumentStyleMap<'a>,
     stack: Vec<ElemInfo>,
     style_buffer: SmallVec<[Vec<u8>; 8]>,
+    variables: V,
 }
 
-impl<'a, W: Write> HtmlSerializer<'a, W> {
-    fn new(writer: W, styles: DocumentStyleMap<'a>) -> Self {
+impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
+    fn new(writer: W, styles: DocumentStyleMap<'a>, variables: V) -> Self {
         let mut stack = Vec::with_capacity(8);
         stack.push(ElemInfo {
             html_name: None,
@@ -337,6 +345,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             styles,
             stack,
             style_buffer: smallvec![],
+            variables,
         }
     }
 
@@ -415,6 +424,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             ns!(html) => Some(name.local.clone()),
             _ => None,
         };
+        self.variables.enter();
 
         if self.parent().ignore_children {
             self.stack.push(ElemInfo {
@@ -504,8 +514,38 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
                         new_styles,
                         &mut self.style_buffer,
                         minify_css,
+                        &mut self.variables,
                     )?;
                     styles = None;
+                } else if V::ENABLED
+                    && (contains_var(attr.value.as_bytes())
+                        || memmem::find(attr.value.as_bytes(), b"--").is_some())
+                {
+                    if style_node_id.is_some() {
+                        // No rule matched, but the attribute itself has variables to resolve.
+                        merge_styles(
+                            &mut self.writer,
+                            &attr.value,
+                            &ElementStyleMap::new(),
+                            &mut self.style_buffer,
+                            minify_css,
+                            &mut self.variables,
+                        )?;
+                    } else {
+                        // Inlining is ignored: the attribute stays as it is, but its
+                        // definitions apply to the descendants.
+                        self.write_attributes(&attr.value)?;
+                        let mut css_parser = cssparser::Parser::new(&attr.value);
+                        let mut declaration_parser = parser::CSSDeclarationListParser;
+                        let declarations = cssparser::RuleBodyParser::new(
+                            &mut css_parser,
+                            &mut declaration_parser,
+                        );
+                        for (name, value) in declarations.flatten() {
+                            self.variables.define(name.as_bytes(), value.as_bytes());
+                        }
+                        self.variables.finish_definitions();
+                    }
                 } else {
                     self.write_attributes(&attr.value)?;
                 }
@@ -515,22 +555,36 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
             self.writer.write_all(b"\"")?;
         }
         if let Some(styles) = styles {
-            self.writer.write_all(b" style=\"")?;
-            if minify_css {
-                let mut it = styles.iter().peekable();
-                while let Some((property, _, value)) = it.next() {
-                    write_declaration(&mut self.writer, property, value, minify_css)?;
-                    if !minify_css || it.peek().is_some() {
+            for (property, _, value) in &styles {
+                self.variables.define(property.as_bytes(), value.as_bytes());
+            }
+            self.variables.finish_definitions();
+            // The attribute opens with the first declaration that is written.
+            let mut opened = false;
+            for (property, _, value) in &styles {
+                let prefix: &[u8] = if !opened {
+                    b" style=\""
+                } else if minify_css {
+                    b";"
+                } else {
+                    b""
+                };
+                if self.variables.write_declaration(
+                    &mut self.writer,
+                    prefix,
+                    property,
+                    value,
+                    minify_css,
+                )? {
+                    opened = true;
+                    if !minify_css {
                         self.writer.write_all(b";")?;
                     }
                 }
-            } else {
-                for (property, _, value) in styles {
-                    write_declaration(&mut self.writer, property, value, minify_css)?;
-                    self.writer.write_all(b";")?;
-                }
             }
-            self.writer.write_all(b"\"")?;
+            if opened {
+                self.writer.write_all(b"\"")?;
+            }
         }
         self.writer.write_all(b">")?;
 
@@ -566,6 +620,7 @@ impl<'a, W: Write> HtmlSerializer<'a, W> {
     }
 
     fn end_elem(&mut self, name: &QualName) -> Result<(), InlineError> {
+        self.variables.exit();
         let Some(info) = self.stack.pop() else {
             panic!("no ElemInfo")
         };
@@ -641,7 +696,7 @@ const STYLE_SEPARATOR: &[u8] = b": ";
 const STYLE_SEPARATOR_MIN: &[u8] = b":";
 
 #[inline]
-fn write_declaration<Wr: Write>(
+pub(super) fn write_declaration<Wr: Write>(
     writer: &mut Wr,
     name: &str,
     value: &str,
@@ -657,11 +712,17 @@ fn write_declaration<Wr: Write>(
 }
 
 #[inline]
-#[allow(clippy::arithmetic_side_effects)]
 fn write_declaration_value<Wr: Write>(writer: &mut Wr, value: &str) -> Result<(), InlineError> {
-    let value = value.trim();
-    let bytes = value.as_bytes();
+    write_value_bytes(writer, value.trim().as_bytes())
+}
 
+/// Write a declaration value, replacing double quotes with single ones.
+#[inline]
+#[allow(clippy::arithmetic_side_effects)]
+pub(super) fn write_value_bytes<Wr: Write>(
+    writer: &mut Wr,
+    bytes: &[u8],
+) -> Result<(), InlineError> {
     let mut last_end = 0;
     for idx in memchr_iter(b'"', bytes) {
         writer.write_all(&bytes[last_end..idx])?;
@@ -695,12 +756,13 @@ macro_rules! push_or_update {
 /// Merge a new set of styles into an current one, considering the rules of CSS precedence.
 ///
 /// The merge process maintains the order of specificity and respects the `!important` rule in CSS.
-fn merge_styles<Wr: Write>(
+fn merge_styles<Wr: Write, V: VariableScope>(
     writer: &mut Wr,
     current_style: &StrTendril,
     new_styles: &ElementStyleMap<'_>,
     declarations_buffer: &mut SmallVec<[Vec<u8>; 8]>,
     minify_css: bool,
+    variables: &mut V,
 ) -> Result<(), InlineError> {
     // This function is designed with a focus on reusing existing allocations where possible
     // We start by parsing the current declarations in the "style" attribute
@@ -792,6 +854,10 @@ fn merge_styles<Wr: Write>(
         }
     }
 
+    for declaration in &declarations_buffer[..parsed_declarations_count] {
+        variables.define_merged(declaration, sep.len());
+    }
+    variables.finish_definitions();
     let mut first = true;
     for range in [
         // First, write the new rules
@@ -800,12 +866,10 @@ fn merge_styles<Wr: Write>(
         0..current_declarations_count,
     ] {
         for declaration in &declarations_buffer[range] {
-            if first {
+            let prefix: &[u8] = if first { b"" } else { b";" };
+            if variables.write_merged(writer, prefix, declaration, sep.len())? {
                 first = false;
-            } else {
-                writer.write_all(b";")?;
             }
-            writer.write_all(declaration)?;
         }
     }
     Ok(())
@@ -835,6 +899,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
@@ -856,6 +921,7 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
             false,
             false,
         )
@@ -881,6 +947,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head><title>&amp; &lt; &gt; &nbsp;</title></head><body></body></html>");
@@ -902,6 +969,7 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
             false,
             false,
         )
@@ -930,6 +998,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            false,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
@@ -951,6 +1020,7 @@ mod tests {
             false,
             None,
             InliningMode::Document,
+            false,
             false,
             false,
         )
@@ -976,6 +1046,7 @@ mod tests {
                 "@media (max-width: 600px) { h1 { font-size: 18px; } }",
             )),
             InliningMode::Document,
+            false,
             false,
             false,
         )

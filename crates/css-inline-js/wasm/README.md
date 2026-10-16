@@ -64,7 +64,7 @@ From a CDN, the script defines a global `cssInline`. Pin the version in both URL
 - `version()`
 
 Options match the [Node.js package](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js#configuration) except `cache`, which WASM lacks:
-`inlineStyleTags`, `keepStyleTags`, `keepLinkTags`, `keepAtRules`, `minifyCss`, `baseUrl`, `loadRemoteStylesheets`, `extraCss`, `preallocateNodeCapacity`, `removeInlinedSelectors`, `applyWidthAttributes`, `applyHeightAttributes`.
+`inlineStyleTags`, `keepStyleTags`, `keepLinkTags`, `keepAtRules`, `minifyCss`, `baseUrl`, `loadRemoteStylesheets`, `extraCss`, `preallocateNodeCapacity`, `removeInlinedSelectors`, `applyWidthAttributes`, `applyHeightAttributes`, `resolveCssVariables`.
 
 ## Playground
 

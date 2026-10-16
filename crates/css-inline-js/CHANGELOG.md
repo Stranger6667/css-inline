@@ -7,6 +7,7 @@
 - `inlineAsync` and `inlineFragmentAsync`, loading external stylesheets concurrently without blocking the event loop.
 - `inlineAsync` and `inlineFragmentAsync` in the WASM module, loading remote stylesheets with `fetch`. [#264](https://github.com/Stranger6667/css-inline/issues/264)
 - Support for CSS cascade layers (`@layer`). [#340](https://github.com/Stranger6667/css-inline/issues/340)
+- Resolving CSS variables (`var()`) to their values with the `resolveCssVariables` option. [#180](https://github.com/Stranger6667/css-inline/issues/180)
 
 ### Changed
 
