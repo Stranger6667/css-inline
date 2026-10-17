@@ -9,7 +9,7 @@ release COMPONENT VERSION:
   VERSION="{{VERSION}}"
   [ -z "$(git status --porcelain)" ] || { echo "working tree is not clean"; exit 1; }
   case "$C" in
-    rust)       CL=CHANGELOG.md;                     FILES=(crates/css-inline/Cargo.toml) ;;
+    rust)       CL=CHANGELOG.md;                     FILES=(crates/css-inline/Cargo.toml README.md) ;;
     c)          CL=crates/css-inline-c/CHANGELOG.md;          FILES=(crates/css-inline-c/Cargo.toml) ;;
     python)     CL=crates/css-inline-python/CHANGELOG.md;     FILES=(crates/css-inline-python/Cargo.toml) ;;
     java)       CL=crates/css-inline-java/CHANGELOG.md; FILES=(crates/css-inline-java/Cargo.toml crates/css-inline-java/build.gradle crates/css-inline-java/README.md) ;;
@@ -25,6 +25,11 @@ release COMPONENT VERSION:
   # dependency pins that happen to share the version (`jni = "0.21.1"`).
   for f in "${FILES[@]}"; do
     case "$f" in
+      # Install snippets pin `MAJOR.MINOR`; benchmark labels keep the measured version.
+      README.md)
+        PREV_MM_RE=${PREV_RE%\\.*}
+        grep -qE "css-inline = (\\{ version = )?\"${PREV_MM_RE}\"" "$f" || { echo "no install snippet matching '${PREV%.*}' in $f"; exit 1; }
+        sed -i -E "s/(css-inline = (\\{ version = )?\")${PREV_MM_RE}\"/\\1${VERSION%.*}\"/" "$f"; continue ;;
       *.md|*.js)     sed -i "s/${PREV_RE}/${VERSION}/g" "$f"; continue ;;
       *Gemfile.lock) ANCHOR="css_inline .${PREV_RE}." ;;
       *)             ANCHOR="version.*${PREV_RE}" ;;
