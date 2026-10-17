@@ -54,7 +54,7 @@ Add `css-inline` to the dependencies in your `Cargo.toml`:
 
 ```toml
 [dependencies]
-css-inline = "0.22"
+css-inline = "0.23"
 ```
 
 Minimum Supported Rust Version: 1.85.
@@ -73,7 +73,7 @@ For library-only use, list the features you need:
 
 ```toml
 [dependencies]
-css-inline = { version = "0.22", default-features = false, features = ["http", "file", "stylesheet-cache"] }
+css-inline = { version = "0.23", default-features = false, features = ["http", "file", "stylesheet-cache"] }
 ```
 
 Without `http` and `file`, `css-inline` returns an error for any `link` stylesheet it cannot load.
@@ -311,7 +311,7 @@ fn main() -> css_inline::Result<()> {
 Every inlining function has a non-blocking `*_async` counterpart behind the `async` feature:
 
 ```toml
-css-inline = { version = "0.22", features = ["async"] }
+css-inline = { version = "0.23", features = ["async"] }
 ```
 
 External stylesheets of a document are fetched concurrently, each URL once, and stylesheets already in the `cache` are not fetched again. The returned futures are `Send`. The default resolver reads local files on a separate thread and fetches remote ones with async `reqwest` (requires the `http` feature and a Tokio runtime):
