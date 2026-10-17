@@ -15,7 +15,7 @@ release COMPONENT VERSION:
     java)       CL=crates/css-inline-java/CHANGELOG.md; FILES=(crates/css-inline-java/Cargo.toml crates/css-inline-java/build.gradle crates/css-inline-java/README.md) ;;
     php)        CL=crates/css-inline-php/CHANGELOG.md;        FILES=(crates/css-inline-php/Cargo.toml crates/css-inline-php/stubs/css_inline.php) ;;
     ruby)       CL=crates/css-inline-ruby/CHANGELOG.md; FILES=(crates/css-inline-ruby/Cargo.toml crates/css-inline-ruby/css_inline.gemspec crates/css-inline-ruby/ext/css_inline/Cargo.toml crates/css-inline-ruby/Gemfile.lock) ;;
-    javascript) CL=crates/css-inline-js/CHANGELOG.md; FILES=(crates/css-inline-js/Cargo.toml crates/css-inline-js/package.json crates/css-inline-js/wasm/package.json crates/css-inline-js/npm/*/package.json crates/css-inline-js/README.md crates/css-inline-js/wasm/README.md) ;;
+    javascript) CL=crates/css-inline-js/CHANGELOG.md; FILES=(crates/css-inline-js/Cargo.toml crates/css-inline-js/package.json crates/css-inline-js/js-binding.js crates/css-inline-js/wasm/package.json crates/css-inline-js/npm/*/package.json crates/css-inline-js/README.md crates/css-inline-js/wasm/README.md) ;;
     *) echo "unknown component: $C"; exit 1 ;;
   esac
   PREV=$(grep -oP "compare/${C}-v\K[0-9]+\.[0-9]+\.[0-9]+(?=\.\.\.HEAD)" "$CL")
@@ -25,7 +25,7 @@ release COMPONENT VERSION:
   # dependency pins that happen to share the version (`jni = "0.21.1"`).
   for f in "${FILES[@]}"; do
     case "$f" in
-      *.md)          sed -i "s/${PREV_RE}/${VERSION}/g" "$f"; continue ;;
+      *.md|*.js)     sed -i "s/${PREV_RE}/${VERSION}/g" "$f"; continue ;;
       *Gemfile.lock) ANCHOR="css_inline .${PREV_RE}." ;;
       *)             ANCHOR="version.*${PREV_RE}" ;;
     esac

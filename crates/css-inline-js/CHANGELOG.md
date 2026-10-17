@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Native binding version check expecting `0.22.1` instead of the package version, failing when `NAPI_RS_ENFORCE_VERSION_CHECK` is set.
+
 ## [0.23.0] - 2026-10-16
 
 ### Added
