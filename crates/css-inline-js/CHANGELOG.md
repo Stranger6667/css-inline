@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-10-17
+
 ### Fixed
 
 - Native binding version check expecting `0.22.1` instead of the package version, failing when `NAPI_RS_ENFORCE_VERSION_CHECK` is set.
@@ -269,7 +271,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.1...HEAD
+[0.23.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.0...javascript-v0.23.1
 [0.23.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.1...javascript-v0.23.0
 [0.22.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.0...javascript-v0.22.1
 [0.22.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.21.2...javascript-v0.22.0

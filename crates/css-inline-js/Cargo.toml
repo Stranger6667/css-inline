@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-js"
-version = "0.23.0"
+version = "0.23.1"
 authors.workspace = true
 edition = "2024"
 readme = "README.md"

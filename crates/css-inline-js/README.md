@@ -224,7 +224,7 @@ Set `loadRemoteStylesheets: false` to skip all `link` tags.
 </script>
 ```
 
-**NOTE**: The WASM module loads remote stylesheets only through the async `inlineAsync` and `inlineFragmentAsync`, cannot read the filesystem, and has no `cache` option. See [its README](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-js/wasm/README.md) for npm install, Node.js setup and `link` tag handling. The unpkg URLs above load the latest release; pin a version (`@css-inline/css-inline-wasm@0.23.0`) to match your installed package.
+**NOTE**: The WASM module loads remote stylesheets only through the async `inlineAsync` and `inlineFragmentAsync`, cannot read the filesystem, and has no `cache` option. See [its README](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-js/wasm/README.md) for npm install, Node.js setup and `link` tag handling. The unpkg URLs above load the latest release; pin a version (`@css-inline/css-inline-wasm@0.23.1`) to match your installed package.
 
 ## Performance
 
@@ -242,7 +242,7 @@ Native `css-inline` runs 3.15x to 10.33x faster than `juice` and `inline-css` on
 Inputs come from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json): "Basic" is `simple`, "Realistic-1" and "Realistic-2" are `big_email_1` and `big_email_2`, "GitHub page" is `big_page`.
 Ratios are relative to `css-inline`.
 
-[`benches/bench.ts`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-js/benches/bench.ts) runs the suite with `benny` (mean time; `css-inline 0.23.0`, `juice 11.0.3`, `inline-css 4.0.3`), built with stable `rustc 1.99` on Node.js `v24.18.0`, Ryzen 9 9950X.
+[`benches/bench.ts`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-js/benches/bench.ts) runs the suite with `benny` (mean time; `css-inline 0.23.1`, `juice 11.0.3`, `inline-css 4.0.3`), built with stable `rustc 1.99` on Node.js `v24.18.0`, Ryzen 9 9950X.
 
 ## License
 
