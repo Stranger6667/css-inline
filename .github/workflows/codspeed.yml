@@ -26,7 +26,7 @@ jobs:
 
       - run: cargo codspeed build -p css-inline
 
-      - uses: CodSpeedHQ/action@v5.4.2
+      - uses: CodSpeedHQ/action@v5.5.0
         with:
           run: cargo codspeed run -p css-inline
           mode: "instrumentation"
