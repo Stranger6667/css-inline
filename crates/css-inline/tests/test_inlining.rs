@@ -1569,6 +1569,36 @@ fn indexed_compound_tag_class_large_document() {
 }
 
 #[test]
+fn indexed_attribute_selector_large_document() {
+    // Attribute selectors should use the attribute name index
+    let html = format!(
+        r#"<html><head><style>[data-role=button] {{ cursor: pointer; }} [title] {{ color: red; }}</style></head><body>
+<!--{PADDING}-->
+<a data-role="button">Button</a>
+<a data-role="link">Link - should NOT match</a>
+<p title="Hint">Titled</p>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<a data-role="button" style="cursor: pointer;">Button</a>"#));
+    assert!(inlined.contains(r#"<a data-role="link">Link - should NOT match</a>"#));
+    assert!(inlined.contains(r#"<p title="Hint" style="color: red;">Titled</p>"#));
+}
+
+#[test]
+fn indexed_mixed_case_attribute_selector_large_document() {
+    // Mixed-case attribute names are not looked up in the index
+    let html = format!(
+        r#"<html><head><style>[viewBox] {{ fill: red; }}</style></head><body>
+<!--{PADDING}-->
+<svg viewBox="0 0 10 10"></svg>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<svg viewBox="0 0 10 10" style="fill: red;"></svg>"#));
+}
+
+#[test]
 fn remove_inlined_selectors_basic() {
     let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
     let html =
@@ -1877,6 +1907,16 @@ fn remove_inlined_selectors_universal_and_attribute_selectors_with_indexes() {
     let result = inliner.inline(&html).unwrap();
     // :hover can't be inlined, check it doesn't panic
     assert!(result.contains(":hover"));
+}
+
+#[test]
+fn remove_inlined_selectors_nonexistent_attribute_with_indexes() {
+    // No element has the attribute, so the index has no candidates
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = make_large_html("[data-nonexistent] { color: blue; }");
+    let result = inliner.inline(&html).unwrap();
+    assert!(result.contains("[data-nonexistent] { color: blue; }"));
+    assert!(!result.contains(r#"style="color: blue;""#));
 }
 
 #[test]

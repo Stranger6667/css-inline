@@ -54,14 +54,18 @@ pub(crate) enum SelectorAnchor<'a> {
     Class(&'a LocalName),
     /// Tag selector - O(k) lookup where k = elements with this tag
     Tag(&'a LocalName),
+    /// Attribute selector - O(k) lookup where k = elements with this attribute
+    Attribute(&'a LocalName),
     /// No usable anchor - must scan all elements
     None,
 }
 
 /// Extract the best anchor from a single selector.
-/// Analyzes the rightmost compound selector (matched first) to find ID/class/tag.
+/// Analyzes the rightmost compound selector (matched first) to find ID/class/tag,
+/// falling back to an attribute name.
 #[inline]
 fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
+    let mut attribute = None;
     // Iterate in match order (rightmost first)
     for component in selector.iter_raw_match_order() {
         match component {
@@ -74,12 +78,23 @@ fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
             Component::LocalName(local_name) => {
                 return SelectorAnchor::Tag(&local_name.name);
             }
+            // Mixed-case names match differently on HTML and foreign elements, so only
+            // lowercase ones are used
+            Component::AttributeInNoNamespace { local_name, .. } => {
+                attribute.get_or_insert(local_name);
+            }
+            Component::AttributeInNoNamespaceExists {
+                local_name,
+                local_name_lower,
+            } if local_name == local_name_lower => {
+                attribute.get_or_insert(local_name);
+            }
             // Stop at combinators - we only analyze the rightmost compound
             Component::Combinator(_) => break,
             _ => {}
         }
     }
-    SelectorAnchor::None
+    attribute.map_or(SelectorAnchor::None, SelectorAnchor::Attribute)
 }
 
 impl Selectors {
@@ -144,6 +159,16 @@ mod tests {
                 ),
             }
         };
+        ($selector:expr, Attribute, $value:expr) => {
+            let compiled = Selectors::compile($selector).unwrap();
+            match compiled.anchor() {
+                SelectorAnchor::Attribute(name) => assert_eq!(name.as_inner(), $value),
+                other => panic!(
+                    "Expected Attribute({:?}) for {:?}, got {:?}",
+                    $value, $selector, other
+                ),
+            }
+        };
         ($selector:expr, None) => {
             let compiled = Selectors::compile($selector).unwrap();
             match compiled.anchor() {
@@ -201,11 +226,35 @@ mod tests {
         assert_anchor!(selector, Tag, expected);
     }
 
+    // Attribute selectors
+    #[test_case("[hidden]", "hidden"; "attribute_exists")]
+    #[test_case("[type=button]", "type"; "attribute_value")]
+    #[test_case("[data-role~=\"tab\"]", "data-role"; "attribute_includes")]
+    #[test_case("[data-a][data-b]", "data-a"; "multiple_attributes")]
+    #[test_case("[data-a]:hover", "data-a"; "attribute_with_pseudo")]
+    #[test_case(".nav [data-x]", "data-x"; "descendant_attribute")]
+    fn test_attribute_anchor(selector: &str, expected: &str) {
+        assert_anchor!(selector, Attribute, expected);
+    }
+
+    // ID, class and tag take precedence over attributes
+    #[test_case("[data-x]#myid", "myid"; "attribute_with_id")]
+    fn test_attribute_with_id_anchor(selector: &str, expected: &str) {
+        assert_anchor!(selector, Id, expected);
+    }
+
+    #[test_case("[data-x].item", "item"; "attribute_with_class")]
+    fn test_attribute_with_class_anchor(selector: &str, expected: &str) {
+        assert_anchor!(selector, Class, expected);
+    }
+
     // None (multiple selectors or universal)
     #[test_case("h1, h2, h3"; "multiple_tags")]
     #[test_case("div, .class, #id"; "multiple_mixed")]
     #[test_case("div, span"; "two_tags")]
     #[test_case("*"; "universal")]
+    #[test_case("[viewBox]"; "mixed_case_attribute")]
+    #[test_case("[data-x] *"; "attribute_in_ancestor")]
     fn test_none_anchor(selector: &str) {
         assert_anchor!(selector, None);
     }

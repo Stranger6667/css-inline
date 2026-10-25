@@ -5,6 +5,7 @@
 ### Performance
 
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
+- Use an index of attribute names for attribute selectors instead of checking every element.
 
 ## [0.23.0] - 2026-10-16
 
