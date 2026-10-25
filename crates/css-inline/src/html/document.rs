@@ -211,14 +211,16 @@ impl Document {
         self.by_attribute
             .get_or_init(|| {
                 let mut index: FxHashMap<LocalName, Vec<NodeId>> = FxHashMap::default();
-                for &node_id in &self.elements {
-                    if let Some(element) = self[node_id].as_element() {
-                        for attribute in &element.attributes.attributes {
-                            index
-                                .entry(attribute.name.local.clone())
-                                .or_default()
-                                .push(node_id);
-                        }
+                let elements = self
+                    .elements
+                    .iter()
+                    .filter_map(|&node_id| Some((node_id, self[node_id].as_element()?)));
+                for (node_id, element) in elements {
+                    for attribute in &element.attributes.attributes {
+                        index
+                            .entry(attribute.name.local.clone())
+                            .or_default()
+                            .push(node_id);
                     }
                 }
                 index
