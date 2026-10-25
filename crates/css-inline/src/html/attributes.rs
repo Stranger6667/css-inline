@@ -16,7 +16,7 @@ const WHITESPACE_MASK: u64 =
     (1 << b' ') | (1 << b'\t') | (1 << b'\n') | (1 << b'\r') | (1 << 0x0Cu8);
 
 #[inline]
-fn is_selector_whitespace(b: u8) -> bool {
+pub(crate) fn is_selector_whitespace(b: u8) -> bool {
     b <= 32 && (WHITESPACE_MASK >> b) & 1 != 0
 }
 

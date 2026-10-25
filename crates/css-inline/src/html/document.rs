@@ -1,4 +1,5 @@
 use super::{
+    attributes::is_selector_whitespace,
     element::Element,
     iter::{select, Select},
     node::{Node, NodeData, NodeId},
@@ -180,7 +181,11 @@ impl Document {
     /// Index an element by its class names (space-separated).
     pub(super) fn index_by_classes(&mut self, classes: &StrTendril, node_id: NodeId) {
         if self.use_indexes {
-            for class in classes.split_whitespace() {
+            // Same splitting as the class matcher: CSS whitespace only
+            for class in classes
+                .split(|c: char| c.is_ascii() && is_selector_whitespace(c as u8))
+                .filter(|class| !class.is_empty())
+            {
                 let class_atom = LocalName::from(class);
                 self.by_class.entry(class_atom).or_default().push(node_id);
             }
@@ -499,7 +504,8 @@ fn extract_identifier(bytes: &[u8]) -> Option<&str> {
         .position(|&b| !matches!(b, b'a'..=b'z' | b'A'..=b'Z' | b'0'..=b'9' | b'_' | b'-'))
         .unwrap_or(bytes.len());
 
-    if end == 0 {
+    // An escape or non-ASCII char continues the name, so the prefix is not the full name
+    if end == 0 || bytes.get(end).is_some_and(|&b| b == b'\\' || !b.is_ascii()) {
         return None;
     }
 

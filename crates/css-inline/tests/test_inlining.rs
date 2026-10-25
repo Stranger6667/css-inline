@@ -1537,6 +1537,26 @@ fn indexed_multiple_elements_same_class_large_document() {
     assert_eq!(count, 3);
 }
 
+// Only CSS whitespace separates classes; NBSP and VT are part of the class name
+#[test_case(r".a\a0 b", "a\u{a0}b", true; "nbsp")]
+#[test_case(r"p.a\a0 b", "a\u{a0}b", true; "nbsp compound")]
+#[test_case(r"p.a\b b", "a\u{b}b", true; "vt compound")]
+#[test_case(".a", "a\u{a0}b", false; "nbsp prefix")]
+#[test_case(r".a\62", "ab", true; "escaped anchor")]
+#[test_case(".aé", "aé", true; "non-ascii anchor")]
+fn class_names_same_in_small_and_large_documents(selector: &str, class: &str, matches: bool) {
+    let html = |padding: &str| {
+        format!(
+            r#"<html><head><style>{selector} {{ color: red; }}</style></head><body>{padding}<p class="{class}">x</p></body></html>"#
+        )
+    };
+    let small = inline(&html("")).unwrap();
+    let padding = format!("<!--{PADDING}-->");
+    let large = inline(&html(&padding)).unwrap();
+    assert_eq!(small.contains(r#"style="color: red;""#), matches);
+    assert_eq!(large.replace(&padding, ""), small);
+}
+
 #[test]
 fn indexed_pseudo_class_selector_large_document() {
     // Pseudo-class selectors should still work with indexing
