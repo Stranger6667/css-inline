@@ -1599,6 +1599,19 @@ fn indexed_mixed_case_attribute_selector_large_document() {
 }
 
 #[test]
+fn indexed_missing_names_large_document() {
+    // A class, ID or tag missing from the document anywhere in a selector means it can't match
+    let html = format!(
+        r#"<html><head><style>h1.missing {{ color: red; }} body .missing h1 {{ color: blue; }} h1#missing {{ color: green; }} h1:not(.missing) {{ font-weight: bold; }}</style></head><body>
+<!--{PADDING}-->
+<h1 class="exists">Title</h1>
+</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<h1 class="exists" style="font-weight: bold;">Title</h1>"#));
+}
+
+#[test]
 fn remove_inlined_selectors_basic() {
     let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
     let html =
@@ -1917,6 +1930,18 @@ fn remove_inlined_selectors_nonexistent_attribute_with_indexes() {
     let result = inliner.inline(&html).unwrap();
     assert!(result.contains("[data-nonexistent] { color: blue; }"));
     assert!(!result.contains(r#"style="color: blue;""#));
+}
+
+#[test]
+fn remove_inlined_selectors_nonexistent_inner_names_with_indexes() {
+    // The leftmost part exists, but a later one does not
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html =
+        make_large_html("h1.nonexistent { color: blue; } body .nonexistent h1 { color: red; }");
+    let result = inliner.inline(&html).unwrap();
+    assert!(result.contains("h1.nonexistent { color: blue; }"));
+    assert!(result.contains("body .nonexistent h1 { color: red; }"));
+    assert!(!result.contains("style="));
 }
 
 #[test]

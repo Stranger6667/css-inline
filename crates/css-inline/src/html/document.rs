@@ -3,14 +3,14 @@ use super::{
     iter::{select, Select},
     node::{Node, NodeData, NodeId},
     parser,
-    selectors::ParseError,
+    selectors::{ParseError, Selector},
     serializer::serialize_to,
     InliningMode,
 };
 use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::{local_name, tendril::StrTendril, LocalName};
 use rustc_hash::FxHashMap;
-use selectors::context::SelectorCaches;
+use selectors::{context::SelectorCaches, parser::Component};
 use std::{cell::OnceCell, fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// Minimum input size (bytes) to build element indexes.
@@ -227,6 +227,23 @@ impl Document {
             })
             .get(name)
             .map_or(&[], Vec::as_slice)
+    }
+
+    /// Whether every ID, class, and tag the selector names outside of nested selectors
+    /// (`:not()`, `:is()`, ...) exists in the document. A missing one means no element can match.
+    pub(crate) fn has_required_names(&self, selector: &Selector) -> bool {
+        selector
+            .iter_raw_match_order()
+            .all(|component| match component {
+                Component::ID(id) => self.by_id.contains_key(id.as_inner()),
+                Component::Class(class) => self.by_class.contains_key(class.as_inner()),
+                // HTML elements match `lower_name`, foreign ones (e.g. SVG) match `name`
+                Component::LocalName(local_name) => {
+                    self.by_tag.contains_key(local_name.name.as_inner())
+                        || self.by_tag.contains_key(local_name.lower_name.as_inner())
+                }
+                _ => true,
+            })
     }
 
     /// Quick check if a selector's anchor exists in the document.
@@ -492,7 +509,10 @@ fn extract_identifier(bytes: &[u8]) -> Option<&str> {
 
 #[cfg(test)]
 mod tests {
-    use super::{super::node::ElementData, *};
+    use super::{
+        super::{node::ElementData, selectors::Selectors},
+        *,
+    };
     use html5ever::{local_name, ns, QualName};
     use test_case::test_case;
 
@@ -520,6 +540,27 @@ mod tests {
         )
         .expect("Failed to serialize");
         buffer
+    }
+
+    #[test_case(".exists", true; "class")]
+    #[test_case("h1.exists#title", true; "compound")]
+    #[test_case("body > h1.exists", true; "child")]
+    #[test_case("h1.missing", false; "missing_class_in_compound")]
+    #[test_case("h1#missing", false; "missing_id_in_compound")]
+    #[test_case("body .missing h1", false; "missing_class_in_ancestor")]
+    #[test_case("article ~ h1", false; "missing_tag_in_sibling")]
+    #[test_case("h1:not(.missing)", true; "missing_class_in_negation")]
+    #[test_case(".exists:not(#missing)", true; "missing_id_in_negation")]
+    #[test_case("BODY H1", true; "uppercase_tags")]
+    #[test_case("svg foreignObject", true; "mixed_case_foreign_tag")]
+    fn test_has_required_names(selector: &str, expected: bool) {
+        let html = format!(
+            r#"<html><body><h1 class="exists" id="title">Test</h1><svg><foreignObject></foreignObject></svg><!-- {} --></body></html>"#,
+            "x".repeat(1024)
+        );
+        let doc = Document::parse_with_options(html.as_bytes(), 0, InliningMode::Document);
+        let selectors = Selectors::compile(selector).expect("Invalid selector");
+        assert_eq!(doc.has_required_names(&selectors.0[0]), expected);
     }
 
     #[test]
