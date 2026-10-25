@@ -8,6 +8,11 @@
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
 
+### Fixed
+
+- Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
+- Selectors starting with a class, ID, or tag that contains escapes or non-ASCII characters not matching in documents of 1 KB or more.
+
 ## [0.23.1] - 2026-10-17
 
 ### Fixed
