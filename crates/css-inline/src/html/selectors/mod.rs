@@ -75,11 +75,11 @@ fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
             Component::Class(class) => {
                 return SelectorAnchor::Class(class);
             }
-            Component::LocalName(local_name) => {
-                return SelectorAnchor::Tag(&local_name.name);
-            }
             // Mixed-case names match differently on HTML and foreign elements, so only
             // lowercase ones are used
+            Component::LocalName(local_name) if local_name.name == local_name.lower_name => {
+                return SelectorAnchor::Tag(&local_name.name);
+            }
             Component::AttributeInNoNamespace { local_name, .. } => {
                 attribute.get_or_insert(local_name);
             }
@@ -197,6 +197,7 @@ mod tests {
     #[test_case(".btn[disabled]", "btn"; "class_with_attr")]
     #[test_case("*.myclass", "myclass"; "universal_with_class")]
     #[test_case(".item:not(.disabled)", "item"; "class_with_not")]
+    #[test_case("DIV.item", "item"; "uppercase_tag_with_class")]
     fn test_class_anchor(selector: &str, expected: &str) {
         assert_anchor!(selector, Class, expected);
     }
@@ -254,6 +255,8 @@ mod tests {
     #[test_case("div, span"; "two_tags")]
     #[test_case("*"; "universal")]
     #[test_case("[viewBox]"; "mixed_case_attribute")]
+    #[test_case("H1"; "uppercase_tag")]
+    #[test_case("svg foreignObject"; "mixed_case_tag")]
     #[test_case("[data-x] *"; "attribute_in_ancestor")]
     fn test_none_anchor(selector: &str) {
         assert_anchor!(selector, None);

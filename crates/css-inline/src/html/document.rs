@@ -276,8 +276,13 @@ impl Document {
             Some(b'#') => extract_identifier(&bytes[1..])
                 .is_none_or(|name| self.by_id.contains_key(&LocalName::from(name))),
             // Tag selector: starts with ASCII letter
-            Some(b'a'..=b'z' | b'A'..=b'Z') => extract_identifier(bytes)
-                .is_none_or(|name| self.by_tag.contains_key(&LocalName::from(name))),
+            // HTML elements match the lowercase name, foreign ones (e.g. SVG) the exact one
+            Some(b'a'..=b'z' | b'A'..=b'Z') => extract_identifier(bytes).is_none_or(|name| {
+                self.by_tag.contains_key(&LocalName::from(name))
+                    || self
+                        .by_tag
+                        .contains_key(&LocalName::from(name.to_ascii_lowercase()))
+            }),
             // Universal (*), attribute ([), pseudo-class (:), empty, or unknown
             _ => true,
         }
