@@ -1408,6 +1408,23 @@ fn inline_fragment_to() {
 }
 
 #[test]
+fn inline_non_ascii() {
+    let html = r#"<html><head><style>p { color: red; }</style></head><body><p>Grüße, 日本語 🎉</p></body></html>"#;
+    let inlined = inline(html).unwrap();
+    let mut out = Vec::new();
+    css_inline::inline_to(html, &mut out).unwrap();
+    assert_eq!(inlined.as_bytes(), out);
+    assert!(inlined.contains(r#"<p style="color: red;">Grüße, 日本語 🎉</p>"#));
+}
+
+#[test]
+fn inline_fragment_non_ascii() {
+    let inlined =
+        css_inline::inline_fragment("<p>Grüße, 日本語 🎉</p>", "p { color: red; }").unwrap();
+    assert_eq!(inlined, r#"<p style="color: red;">Grüße, 日本語 🎉</p>"#);
+}
+
+#[test]
 fn inline_fragment_empty() {
     let inlined = css_inline::inline_fragment("", "").unwrap();
     assert_eq!(inlined, "");

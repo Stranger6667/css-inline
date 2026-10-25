@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Performance
+
+- Return the output buffer from `inline` and `inline_fragment` without copying it.
+
 ## [0.23.0] - 2026-10-16
 
 ### Added
