@@ -227,6 +227,10 @@ impl Document {
                             .or_default()
                             .push(node_id);
                     }
+                    // `class` is stored outside of `attributes`
+                    if element.attributes.class.is_some() {
+                        index.entry(local_name!("class")).or_default().push(node_id);
+                    }
                 }
                 index
             })

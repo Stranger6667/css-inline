@@ -1631,6 +1631,55 @@ fn indexed_missing_names_large_document() {
     assert!(inlined.contains(r#"<h1 class="exists" style="font-weight: bold;">Title</h1>"#));
 }
 
+#[test_case("[class]", "", false; "exists")]
+#[test_case("[class=\"col-6 big\"]", "", false; "equals")]
+#[test_case("[class=\"COL-6 BIG\" i]", "", false; "equals case-insensitive")]
+#[test_case("[class~=big]", "", false; "includes")]
+#[test_case("[class|=col]", "", false; "dash-match")]
+#[test_case("[class^=\"col-\"]", "", false; "prefix")]
+#[test_case("[class$=big]", "", false; "suffix")]
+#[test_case("[class*=\"l-6\"]", "", false; "substring")]
+#[test_case("[class]", PADDING, true; "exists large")]
+#[test_case("[class=\"col-6 big\"]", PADDING, true; "equals large")]
+#[test_case("[class=\"COL-6 BIG\" i]", PADDING, true; "equals case-insensitive large")]
+#[test_case("[class~=big]", PADDING, true; "includes large")]
+#[test_case("[class|=col]", PADDING, true; "dash-match large")]
+#[test_case("[class^=\"col-\"]", PADDING, true; "prefix large")]
+#[test_case("[class$=big]", PADDING, true; "suffix large")]
+#[test_case("[class*=\"l-6\"]", PADDING, true; "substring large")]
+fn class_attribute_selector(selector: &str, padding: &str, large: bool) {
+    let html = format!(
+        r#"<html><head><style>{selector} {{ color: red; }}</style></head><body>
+<!--{padding}-->
+<div class="col-6 big">Matched</div>
+<div class="other">Not matched</div>
+<div>No class</div>
+</body></html>"#
+    );
+    assert_eq!(html.len() >= 1024, large);
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(r#"<div class="col-6 big" style="color: red;">Matched</div>"#));
+    let other = if selector == "[class]" {
+        r#"<div class="other" style="color: red;">Not matched</div>"#
+    } else {
+        r#"<div class="other">Not matched</div>"#
+    };
+    assert!(inlined.contains(other));
+    assert!(inlined.contains(r#"<div>No class</div>"#));
+}
+
+#[test_case(""; "small")]
+#[test_case(PADDING; "large")]
+fn remove_inlined_selectors_class_attribute_substring(padding: &str) {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = format!(
+        r#"<html><head><style>[class*="col-"] {{ color: red; }}</style></head><body><!--{padding}--><div class="col-6">Test</div></body></html>"#
+    );
+    let result = inliner.inline(&html).unwrap();
+    assert!(!result.contains("[class*="));
+    assert!(result.contains(r#"<div class="col-6" style="color: red;">Test</div>"#));
+}
+
 #[test]
 fn remove_inlined_selectors_basic() {
     let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
@@ -1930,10 +1979,11 @@ fn remove_inlined_selectors_universal_and_attribute_selectors_with_indexes() {
     assert!(result.contains(r#"style="margin: 0;""#));
     assert!(!result.contains("* { margin: 0; }"));
 
-    // Attribute selector - can't be inlined, stays in style block
+    // Attribute selector - matches `class="exists"`, gets inlined and removed
     let html = make_large_html("[class] { font-weight: bold; }");
     let result = inliner.inline(&html).unwrap();
-    assert!(result.contains("[class]"));
+    assert!(result.contains(r#"<h1 class="exists" style="font-weight: bold;">"#));
+    assert!(!result.contains("[class]"));
 
     // Pure pseudo-class selector starting with colon
     let html = make_large_html(":hover { color: red; }");
