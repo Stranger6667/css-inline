@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Uppercase or mixed-case type selectors (e.g. `H1`) not matching HTML elements in documents of 1 KB or more.
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
 - Selectors starting with a class, ID, or tag that contains escapes or non-ASCII characters not matching in documents of 1 KB or more.
 - Attribute selectors on `class` (`[class]`, `[class*=...]`, etc.) never matching.

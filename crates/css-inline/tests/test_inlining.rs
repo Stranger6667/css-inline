@@ -1618,6 +1618,24 @@ fn indexed_mixed_case_attribute_selector_large_document() {
     assert!(inlined.contains(r#"<svg viewBox="0 0 10 10" style="fill: red;"></svg>"#));
 }
 
+#[test_case("H1", "<h1>A</h1>", r#"<h1 style="color: red;">A</h1>"#; "uppercase tag")]
+#[test_case("DIV.item", r#"<div class="item">A</div>"#, r#"<div class="item" style="color: red;">A</div>"#; "uppercase tag with class")]
+#[test_case("svg foreignObject", "<svg><foreignObject>A</foreignObject></svg>", r#"<foreignObject style="color: red;">A</foreignObject>"#; "svg exact case")]
+#[test_case("svg FOREIGNOBJECT", "<svg><foreignObject><foreignobject>A</foreignobject></foreignObject></svg>", r#"<foreignobject style="color: red;">A</foreignobject>"#; "html element under uppercase")]
+fn tag_selector_case(selector: &str, body: &str, expected: &str) {
+    for padding in ["", PADDING] {
+        let html = format!(
+            "<html><head><style>{selector} {{ color: red; }}</style></head><body><!--{padding}-->{body}</body></html>"
+        );
+        let inlined = inline(&html).unwrap();
+        assert!(
+            inlined.contains(expected),
+            "{} bytes: {inlined}",
+            html.len()
+        );
+    }
+}
+
 #[test]
 fn indexed_missing_names_large_document() {
     // A class, ID or tag missing from the document anywhere in a selector means it can't match
