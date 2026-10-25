@@ -2435,3 +2435,52 @@ fn remove_inlined_selectors_ignores_rejected_qualified_rules() {
         r#"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style="color: blue;">Test</h1></body></html>"#
     );
 }
+
+// Small documents use a linear scan, large ones use element indexes. Both must agree.
+fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
+    let padding = format!("<!--{PADDING}{PADDING}-->");
+    for remove_inlined_selectors in [false, true] {
+        let inliner = CSSInliner::options()
+            .remove_inlined_selectors(remove_inlined_selectors)
+            .build();
+        let run = |pad: &str| {
+            let output = if fragment {
+                inliner.inline_fragment(&format!("{body}{pad}"), css)
+            } else {
+                inliner.inline(&format!(
+                    "<html><head><style>{css}</style></head><body>{body}{pad}</body></html>"
+                ))
+            };
+            output.unwrap().replace(pad, "")
+        };
+        assert_eq!(
+            run(&padding),
+            run(""),
+            "remove_inlined_selectors={remove_inlined_selectors}"
+        );
+    }
+}
+
+#[test_case("h1.missing { color: red; } h1.present { color: blue; }", r#"<h1 class="present">A</h1><h1>B</h1>"#; "missing class after tag")]
+#[test_case("body .missing h1 { color: red; } body .present h1 { color: blue; }", r#"<div class="present"><h1>A</h1></div><h1>B</h1>"#; "missing class in descendant chain")]
+#[test_case("h1#missing { color: red; } h1#present { color: blue; }", r#"<h1 id="present">A</h1><h1>B</h1>"#; "missing id after tag")]
+#[test_case("p:not(.missing) { color: red; } p:not(.present) { color: blue; }", r#"<p class="present">A</p><p>B</p>"#; "not missing class")]
+#[test_case("svg foreignobject { color: red; }", r#"<svg><foreignObject>A<foreignobject>B</foreignobject></foreignObject></svg><foreignobject>C</foreignobject>"#; "svg lowercase tag")]
+#[test_case("svg foreignObject { color: red; }", r#"<svg><foreignObject>A</foreignObject></svg><foreignobject>B</foreignobject>"#; "svg exact case tag")]
+#[test_case("[viewbox] { color: red; }", r#"<svg viewBox="0 0 1 1"></svg><div viewbox="1">A</div><div>B</div>"#; "svg lowercase attribute")]
+#[test_case("[viewBox] { color: red; }", r#"<svg viewBox="0 0 1 1"></svg><div viewbox="1">A</div><div>B</div>"#; "svg mixed case attribute")]
+#[test_case("[hidden] { color: red; } [missing] { color: blue; }", "<p hidden>A</p><p>B</p>"; "boolean attribute")]
+#[test_case("[data-role=button] { color: red; }", r#"<a data-role="button">A</a><a data-role="link">B</a><a>C</a>"#; "attribute value")]
+#[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
+fn index_paths_agree(css: &str, body: &str) {
+    assert_index_paths_agree(css, body, false);
+}
+
+#[test_case("h1.missing { color: red; } h1.present { color: blue; }", r#"<h1 class="present">A</h1><h1>B</h1>"#; "missing class after tag")]
+#[test_case("p:not(.missing) { color: red; } p:not(.present) { color: blue; }", r#"<p class="present">A</p><p>B</p>"#; "not missing class")]
+#[test_case("svg foreignObject { color: red; }", r#"<svg><foreignObject>A</foreignObject></svg><foreignobject>B</foreignobject>"#; "svg exact case tag")]
+#[test_case("[viewBox] { color: red; }", r#"<svg viewBox="0 0 1 1"></svg><div viewbox="1">A</div><div>B</div>"#; "svg mixed case attribute")]
+#[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
+fn index_paths_agree_fragment(css: &str, body: &str) {
+    assert_index_paths_agree(css, body, true);
+}
