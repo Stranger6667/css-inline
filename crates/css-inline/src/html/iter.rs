@@ -35,7 +35,14 @@ pub(crate) fn select<'a, 'c>(
 ) -> Result<Select<'a, 'c>, ParseError> {
     Selectors::compile(selectors).map(|selectors| {
         // Only use indexes if they were built during parsing
-        let source = if document.has_indexes() {
+        let source = if !document.has_indexes() {
+            ElementSource::Slice(document.elements.iter())
+        } else if !selectors
+            .iter()
+            .any(|selector| document.has_required_names(selector))
+        {
+            ElementSource::Single(None)
+        } else {
             match selectors.anchor() {
                 SelectorAnchor::Id(id) => ElementSource::Single(document.get_by_id(id.as_inner())),
                 SelectorAnchor::Class(class) => {
@@ -49,8 +56,6 @@ pub(crate) fn select<'a, 'c>(
                 }
                 SelectorAnchor::None => ElementSource::Slice(document.elements.iter()),
             }
-        } else {
-            ElementSource::Slice(document.elements.iter())
         };
         Select {
             document,
