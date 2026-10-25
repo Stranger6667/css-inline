@@ -169,6 +169,16 @@ impl selectors::Element for Element<'_> {
         operation: &AttrSelectorOperation<&AttrValue>,
     ) -> bool {
         let attrs = self.attributes();
+        // `class` is stored outside of `attributes`
+        if *local_name.as_inner() == local_name!("class") {
+            return match *ns {
+                NamespaceConstraint::Specific(ns_url) if *ns_url != ns!() => false,
+                _ => attrs
+                    .class
+                    .as_ref()
+                    .is_some_and(|class| operation.eval_str(&class.value)),
+            };
+        }
         match *ns {
             NamespaceConstraint::Any => attrs
                 .attributes
