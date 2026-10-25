@@ -44,6 +44,9 @@ pub(crate) fn select<'a, 'c>(
                 SelectorAnchor::Tag(tag) => {
                     ElementSource::Slice(document.get_by_tag(tag.as_inner()).iter())
                 }
+                SelectorAnchor::Attribute(name) => {
+                    ElementSource::Slice(document.get_by_attribute(name.as_inner()).iter())
+                }
                 SelectorAnchor::None => ElementSource::Slice(document.elements.iter()),
             }
         } else {

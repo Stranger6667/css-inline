@@ -11,7 +11,7 @@ use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::{local_name, tendril::StrTendril, LocalName};
 use rustc_hash::FxHashMap;
 use selectors::context::SelectorCaches;
-use std::{fmt, fmt::Formatter, io::Write, iter::successors};
+use std::{cell::OnceCell, fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// Minimum input size (bytes) to build element indexes.
 /// For smaller inputs, linear scan is faster than hash map operations.
@@ -59,6 +59,9 @@ pub(crate) struct Document {
     by_class: FxHashMap<LocalName, Vec<NodeId>>,
     /// Index: tag name -> list of `NodeId`s with that tag.
     by_tag: FxHashMap<LocalName, Vec<NodeId>>,
+    /// Index: attribute name -> list of `NodeId`s with that attribute.
+    /// Built on first use, as attribute selectors are rare in emails.
+    by_attribute: OnceCell<FxHashMap<LocalName, Vec<NodeId>>>,
 }
 
 impl fmt::Debug for Document {
@@ -97,6 +100,7 @@ impl Document {
             by_id: FxHashMap::default(),
             by_class: FxHashMap::default(),
             by_tag: FxHashMap::default(),
+            by_attribute: OnceCell::new(),
         }
     }
 
@@ -199,6 +203,28 @@ impl Document {
     #[inline]
     pub(crate) fn get_by_tag(&self, tag: &LocalName) -> &[NodeId] {
         self.by_tag.get(tag).map_or(&[], Vec::as_slice)
+    }
+
+    /// Lookup elements by attribute name.
+    #[inline]
+    pub(crate) fn get_by_attribute(&self, name: &LocalName) -> &[NodeId] {
+        self.by_attribute
+            .get_or_init(|| {
+                let mut index: FxHashMap<LocalName, Vec<NodeId>> = FxHashMap::default();
+                for &node_id in &self.elements {
+                    if let Some(element) = self[node_id].as_element() {
+                        for attribute in &element.attributes.attributes {
+                            index
+                                .entry(attribute.name.local.clone())
+                                .or_default()
+                                .push(node_id);
+                        }
+                    }
+                }
+                index
+            })
+            .get(name)
+            .map_or(&[], Vec::as_slice)
     }
 
     /// Quick check if a selector's anchor exists in the document.
