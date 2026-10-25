@@ -687,6 +687,12 @@ fn allocate_output_buffer(html: &str) -> Vec<u8> {
     )
 }
 
+/// Reuse the output buffer instead of copying it into a new `String`.
+fn into_string(out: Vec<u8>) -> String {
+    String::from_utf8(out)
+        .unwrap_or_else(|error| String::from_utf8_lossy(error.as_bytes()).into_owned())
+}
+
 impl<'a> CSSInliner<'a> {
     /// Create a new `CSSInliner` instance with given options.
     #[must_use]
@@ -738,7 +744,7 @@ impl<'a> CSSInliner<'a> {
     pub fn inline(&self, html: &str) -> Result<String> {
         let mut out = allocate_output_buffer(html);
         self.inline_to(html, &mut out)?;
-        Ok(String::from_utf8_lossy(&out).to_string())
+        Ok(into_string(out))
     }
 
     /// Inline CSS & write the result to a generic writer. Use it if you want to write
@@ -788,7 +794,7 @@ impl<'a> CSSInliner<'a> {
     pub fn inline_fragment(&self, html: &str, css: &str) -> Result<String> {
         let mut out = allocate_output_buffer(html);
         self.inline_fragment_to(html, css, &mut out)?;
-        Ok(String::from_utf8_lossy(&out).to_string())
+        Ok(into_string(out))
     }
 
     /// Inline CSS into an HTML fragment and write the result to a generic writer.
@@ -832,7 +838,7 @@ impl<'a> CSSInliner<'a> {
     pub async fn inline_async(&self, html: &str) -> Result<String> {
         let mut out = allocate_output_buffer(html);
         self.inline_to_async(html, &mut out).await?;
-        Ok(String::from_utf8_lossy(&out).to_string())
+        Ok(into_string(out))
     }
 
     /// Non-blocking version of [`CSSInliner::inline_to`].
@@ -866,7 +872,7 @@ impl<'a> CSSInliner<'a> {
     pub async fn inline_fragment_async(&self, html: &str, css: &str) -> Result<String> {
         let mut out = allocate_output_buffer(html);
         self.inline_fragment_to_async(html, css, &mut out).await?;
-        Ok(String::from_utf8_lossy(&out).to_string())
+        Ok(into_string(out))
     }
 
     /// Non-blocking version of [`CSSInliner::inline_fragment_to`].
