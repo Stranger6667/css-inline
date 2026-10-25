@@ -11,6 +11,7 @@
 ### Fixed
 
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
+- Attributes from repeated `<html>` or `<body>` tags being dropped, and existing ones duplicated.
 - Selectors starting with a class, ID, or tag that contains escapes or non-ASCII characters not matching in documents of 1 KB or more.
 
 ## [0.23.0] - 2026-10-17

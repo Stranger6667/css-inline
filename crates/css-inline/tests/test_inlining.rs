@@ -2504,3 +2504,36 @@ fn index_paths_agree(css: &str, body: &str) {
 fn index_paths_agree_fragment(css: &str, body: &str) {
     assert_index_paths_agree(css, body, true);
 }
+
+#[test_case(""; "small")]
+#[test_case(PADDING; "large")]
+fn repeated_body_tag_adds_missing_attributes(padding: &str) {
+    let html = format!(
+        r#"<html><head><style>[data-x] {{ color: red; }} .late {{ margin: 0; }} #late {{ padding: 0; }}</style></head><body><p>x</p><!--{padding}--><body data-x="2" class="late" id="late">"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(
+        inlined.contains(&format!(
+            r#"<body class="late" data-x="2" id="late" style="color: red;margin: 0;padding: 0;"><p>x</p><!--{padding}--></body>"#
+        )),
+        "{inlined}"
+    );
+}
+
+#[test]
+fn repeated_body_tag_keeps_existing_attributes() {
+    let inlined = inline(r#"<body title="a"><body title="b">"#).unwrap();
+    assert_eq!(
+        inlined,
+        r#"<html><head></head><body title="a"></body></html>"#
+    );
+}
+
+#[test]
+fn repeated_html_tag_adds_missing_attributes() {
+    let inlined = inline(r#"<html lang="en"><html dir="rtl">"#).unwrap();
+    assert_eq!(
+        inlined,
+        r#"<html lang="en" dir="rtl"><head></head><body></body></html>"#
+    );
+}
