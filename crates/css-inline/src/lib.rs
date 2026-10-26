@@ -442,11 +442,11 @@ fn apply_selector_cleanup<'i>(
             continue;
         };
         // Remainders and `@`-rules, keyed by their offset so the block keeps source order.
-        let mut items: Vec<(usize, String)> = Vec::new();
+        let mut items: Vec<(usize, String)> = Vec::with_capacity(chunk_remainders[idx].len());
         for remainder in &chunk_remainders[idx] {
             let mut text = String::new();
             append_rule(&mut text, remainder, declarations);
-            items.push((remainder.offset, text.trim().to_string()));
+            items.push((remainder.offset, text));
         }
         let rules = kept.render(spans, &chunk.range, 0, items, "\n");
         if rules.is_empty() {
@@ -454,7 +454,7 @@ fn apply_selector_cleanup<'i>(
             continue;
         }
         keeps_content = true;
-        overwrite_style_node(document, node_id, &rules.join("\n"));
+        overwrite_style_node(document, node_id, &rules);
     }
     keeps_content
 }
@@ -466,7 +466,7 @@ fn handle_empty_remainder(
 ) {
     if let Some(node_id) = chunk.style_node {
         if requested_keep_style_tags {
-            overwrite_style_node(document, node_id, "");
+            overwrite_style_node(document, node_id, &[]);
         } else {
             document.detach_node(node_id);
         }
@@ -482,6 +482,19 @@ fn append_rule<'i>(
     if start >= end || end > declarations.len() {
         return;
     }
+    let declarations = &declarations[start..end];
+    // `selector, ` per selector, ` name: value;` per declaration and the braces.
+    let size = remainder
+        .selectors
+        .iter()
+        .map(|selector| selector.len().saturating_add(2))
+        .chain(
+            declarations
+                .iter()
+                .map(|(name, value)| name.len().saturating_add(value.len()).saturating_add(4)),
+        )
+        .fold(2, usize::saturating_add);
+    buffer.reserve(size);
     let mut selectors_iter = remainder.selectors.iter().peekable();
     while let Some(selector) = selectors_iter.next() {
         buffer.push_str(selector);
@@ -490,7 +503,7 @@ fn append_rule<'i>(
         }
     }
     buffer.push_str(" {");
-    for (name, value) in &declarations[start..end] {
+    for (name, value) in declarations {
         buffer.push(' ');
         buffer.push_str(name);
         buffer.push(':');
@@ -501,15 +514,22 @@ fn append_rule<'i>(
             buffer.push(';');
         }
     }
-    buffer.push_str(" }\n");
+    buffer.push_str(" }");
 }
 
-fn overwrite_style_node(document: &mut Document, node_id: NodeId, new_css: &str) {
-    let new_css = new_css.trim();
+/// Replace the text of a `<style>` node with `rules` joined by newlines.
+fn overwrite_style_node(document: &mut Document, node_id: NodeId, rules: &[String]) {
     if let Some(text_node_id) = document[node_id].first_child {
         if let NodeData::Text { text } = &mut document[text_node_id].data {
             text.clear();
-            text.push_slice(new_css);
+            for (idx, rule) in rules.iter().enumerate() {
+                // Every rendered rule is non-empty and trimmed, so the joined text needs no trim.
+                debug_assert!(!rule.is_empty() && rule.trim().len() == rule.len());
+                if idx != 0 {
+                    text.push_char('\n');
+                }
+                text.push_slice(rule);
+            }
         }
     }
 }
