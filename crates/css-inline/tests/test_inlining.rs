@@ -2836,6 +2836,24 @@ fn ancestor_selectors_fragment(css: &str, body: &str, expected: &str) {
     assert_ancestor_selector_fragment(css, body, expected, PADDING);
 }
 
+#[test_case(".a:not(.missing)", "", r#"<p class="a" style="color: red;">"#; "negation small")]
+#[test_case(".a:not(.missing)", PADDING, r#"<p class="a" style="color: red;">"#; "negation large")]
+#[test_case(".x [class~=missing]", "", r#"<p class="missing" style="color: red;">"#; "class attribute small")]
+#[test_case(".x [class~=missing]", PADDING, r#"<p class="missing" style="color: red;">"#; "class attribute large")]
+#[test_case(r".x .mi\73 sing", "", r#"<p class="missing" style="color: red;">"#; "escape small")]
+#[test_case(r".x .mi\73 sing", PADDING, r#"<p class="missing" style="color: red;">"#; "escape large")]
+#[test_case(".a, .absent", "", r#"<p class="a" style="color: red;">"#; "list small")]
+#[test_case(".a, .absent", PADDING, r#"<p class="a" style="color: red;">"#; "list large")]
+#[test_case("DIV.x P.a", "", r#"<p class="a" style="color: red;">"#; "uppercase tags small")]
+#[test_case("DIV.x P.a", PADDING, r#"<p class="a" style="color: red;">"#; "uppercase tags large")]
+fn selectors_with_names_outside_compounds(selector: &str, padding: &str, expected: &str) {
+    let html = format!(
+        r#"<html><head><style>{selector} {{ color: red; }}</style></head><body><!--{padding}--><div class="x"><p class="a">A</p><p class="missing">B</p></div></body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(inlined.contains(expected), "{inlined}");
+}
+
 // Small documents use a linear scan, large ones use element indexes. Both must agree.
 fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
     let padding = format!("<!--{PADDING}{PADDING}-->");
@@ -2873,6 +2891,10 @@ fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
 #[test_case("[data-role=button] { color: red; }", r#"<a data-role="button">A</a><a data-role="link">B</a><a>C</a>"#; "attribute value")]
 #[test_case(".a .x { color: red; } .missing .x { color: blue; } #i > .x { margin: 0; } .a.b > div .x { padding: 0; }", r#"<div class="a b" id="i"><p class="x">A</p><div><p class="x">B</p></div></div><p class="x">C</p><div class="b"><div><p class="x">D</p></div></div>"#; "ancestor classes and ids")]
 #[test_case("DIV P { color: red; } foreignObject .x { color: blue; } .a + .b .x { margin: 0; } .a ~ .b > .x { padding: 0; } :not(.a) > .x { border: 0; }", r#"<div class="a"></div><div class="b"><p class="x">A</p></div><svg><foreignObject><p class="x">B</p></foreignObject></svg><div class="b"><p>C</p></div>"#; "ancestor tags and siblings")]
+#[test_case(".a .missing { color: red; } .a .b { color: blue; }", r#"<div class="a"><p class="b">A</p><p>B</p></div>"#; "missing class after present class")]
+#[test_case(".a:not(.missing) { color: red; }", r#"<p class="a">A</p><p>B</p>"#; "missing class in negation after class")]
+#[test_case(".a [class~=missing] { color: red; }", r#"<div class="a"><p class="missing">A</p><p>B</p></div>"#; "class attribute after class")]
+#[test_case(r".a .pre\73 ent { color: red; }", r#"<div class="a"><p class="present">A</p><p>B</p></div>"#; "escaped class")]
 #[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
 #[test_case("#a { color: red; } #b { color: blue; }", r#"<p id="a" id="b">A</p><p id="b" id="a">B</p>"#; "duplicate id attribute")]
 #[test_case(".a { color: red; } .b { color: blue; }", r#"<p class="a" class="b">A</p><p class="b" class="a">B</p>"#; "duplicate class attribute")]

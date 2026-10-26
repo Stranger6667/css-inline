@@ -1105,9 +1105,9 @@ impl<'a> CSSInliner<'a> {
             let rank = ranks[rule.layer];
             for selector in parser::split_selector_list(rule.selectors) {
                 let mut matched_any = false;
-                // Quick check: skip selectors whose anchor doesn't exist in the document
-                // This avoids parsing selectors that can't possibly match anything
-                if !document.anchor_exists(selector) {
+                // Skip selectors naming a class, ID, or tag absent from the document
+                // without compiling them
+                if !document.may_match(selector) {
                     if let Some(state) = selector_cleanup_state.as_mut() {
                         if let Some(chunk_index) =
                             rule_chunk_indices.get(rule_id).copied().flatten()

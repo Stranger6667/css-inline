@@ -349,37 +349,53 @@ impl Document {
             })
     }
 
-    /// Quick check if a selector's anchor exists in the document.
-    /// Returns `false` if we can determine the selector won't match anything.
+    /// Whether the selector may match: its leftmost tag and every class and ID outside of
+    /// `()` and `[]` exist in the document. Runs before compiling the selector.
     ///
-    /// This is a fast heuristic, not a full CSS parser. It extracts the leftmost
-    /// identifier from the selector and checks if it exists in our indexes.
-    /// False positives (returning `true` for non-matching selectors) are acceptable;
-    /// the full selector matching will filter those out later.
+    /// `selector` is a single complex selector, as `parser::split_selector_list` yields. A string
+    /// scan, not a CSS parser: it accepts anything it does not understand (escapes, strings,
+    /// comments), so a `true` may still match nothing.
     #[inline]
-    pub(crate) fn anchor_exists(&self, selector: &str) -> bool {
-        // Only use this optimization when indexes are enabled.
-        // For small documents, indexes aren't built so we can't do this check.
+    pub(crate) fn may_match(&self, selector: &str) -> bool {
+        // Indexes are built only for large documents
         if !self.use_indexes {
             return true;
         }
-
         let bytes = selector.trim_ascii_start().as_bytes();
-
-        match bytes.first() {
-            // Class selector: .classname
-            Some(b'.') => extract_identifier(&bytes[1..])
-                .is_none_or(|name| self.by_class.contains_key(&name_key(name))),
-            // ID selector: #id
-            Some(b'#') => extract_identifier(&bytes[1..])
-                .is_none_or(|name| self.by_id.contains_key(&name_key(name))),
-            // Tag selector: starts with ASCII letter
-            Some(b'a'..=b'z' | b'A'..=b'Z') => {
-                extract_identifier(bytes).is_none_or(|name| self.has_tag(name))
+        if bytes.first().is_some_and(u8::is_ascii_alphabetic) {
+            if let Some(name) = extract_identifier(bytes) {
+                if !self.has_tag(name) {
+                    return false;
+                }
             }
-            // Universal (*), attribute ([), pseudo-class (:), empty, or unknown
-            _ => true,
         }
+        let mut depth = 0_u32;
+        let mut rest = bytes;
+        while let Some((&byte, tail)) = rest.split_first() {
+            rest = tail;
+            match byte {
+                b'\\' | b'"' | b'\'' | b'/' => return true,
+                b',' if depth == 0 => return true,
+                b'(' | b'[' => depth = depth.saturating_add(1),
+                b')' | b']' => depth = depth.saturating_sub(1),
+                b'.' | b'#' if depth == 0 => {
+                    if let Some(name) = extract_identifier(rest) {
+                        let key = name_key(name);
+                        let exists = if byte == b'.' {
+                            self.by_class.contains_key(&key)
+                        } else {
+                            self.by_id.contains_key(&key)
+                        };
+                        if !exists {
+                            return false;
+                        }
+                        rest = &rest[name.len()..];
+                    }
+                }
+                _ => {}
+            }
+        }
+        true
     }
 
     /// Whether an element with this tag name may exist.
@@ -824,6 +840,40 @@ mod tests {
                 .contains_all(&required),
             may_match
         );
+    }
+
+    #[test_case(".a", true; "class")]
+    #[test_case("p.a#x", true; "compound")]
+    #[test_case("P.a", true; "uppercase_tag")]
+    #[test_case(".a .missing", false; "missing_descendant_class")]
+    #[test_case("#x .missing", false; "missing_class_after_id")]
+    #[test_case(".a #missing", false; "missing_id_after_class")]
+    #[test_case(".missing > p", false; "missing_anchor_class")]
+    #[test_case("p.a.missing", false; "missing_class_in_compound")]
+    #[test_case("p#missing", false; "missing_id_in_compound")]
+    #[test_case("h1 .a", false; "missing_anchor_tag")]
+    #[test_case(".a:not(.missing)", true; "class_in_negation")]
+    #[test_case(".a:is(.missing, .a)", true; "class_in_is")]
+    #[test_case(".a:nth-child(2n of .missing)", true; "class_in_nth_child")]
+    #[test_case(".a [class~=missing]", true; "class_in_attribute")]
+    #[test_case(".a [title='.missing']", true; "class_in_quotes")]
+    #[test_case(".a .mis\\73 sing", true; "escape")]
+    #[test_case(".a, .missing", true; "list")]
+    #[test_case(".a /* .missing */", true; "comment")]
+    #[test_case(".a .missing\u{e9}", true; "non_ascii")]
+    fn test_may_match(selector: &str, expected: bool) {
+        let html = format!(
+            r#"<html><body><p class="a" id="x">A</p><!-- {} --></body></html>"#,
+            "x".repeat(1024)
+        );
+        let doc = Document::parse_with_options(&html, 0, InliningMode::Document);
+        assert_eq!(doc.may_match(selector), expected);
+    }
+
+    #[test]
+    fn test_may_match_without_indexes() {
+        let doc = Document::parse_with_options("<p>A</p>", 0, InliningMode::Document);
+        assert!(doc.may_match(".a .missing"));
     }
 
     #[test]
