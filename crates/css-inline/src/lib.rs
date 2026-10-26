@@ -914,11 +914,8 @@ impl<'a> CSSInliner<'a> {
         let mut missing = Vec::new();
         {
             // Dropped before any `.await`, as `Document` is not `Send`
-            let document = Document::parse_with_options(
-                html.as_bytes(),
-                self.options.preallocate_node_capacity,
-                mode,
-            );
+            let document =
+                Document::parse_with_options(html, self.options.preallocate_node_capacity, mode);
             let mut urls = document
                 .stylesheets()
                 .map(|href| self.get_full_url(href).into_owned())
@@ -957,11 +954,8 @@ impl<'a> CSSInliner<'a> {
         mode: InliningMode,
         retrieve: &dyn Fn(&str) -> Result<String>,
     ) -> Result<()> {
-        let mut document = Document::parse_with_options(
-            html.as_bytes(),
-            self.options.preallocate_node_capacity,
-            mode,
-        );
+        let mut document =
+            Document::parse_with_options(html, self.options.preallocate_node_capacity, mode);
         // CSS rules may overlap, and the final set of rules applied to an element depend on
         // selectors' specificity - selectors with higher specificity have more priority.
         // Inlining happens in two major steps:

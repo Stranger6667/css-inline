@@ -81,11 +81,11 @@ impl fmt::Debug for Document {
 
 impl Document {
     pub(crate) fn parse_with_options(
-        bytes: &[u8],
+        html: &str,
         preallocate_node_capacity: usize,
         mode: InliningMode,
     ) -> Document {
-        parser::parse_with_options(bytes, preallocate_node_capacity, mode)
+        parser::parse_with_options(html, preallocate_node_capacity, mode)
     }
 
     pub(super) fn with_capacity(capacity: usize, input_size: usize) -> Self {
@@ -580,9 +580,9 @@ mod tests {
         }
     }
 
-    fn roundtrip(bytes: &[u8]) -> Vec<u8> {
+    fn roundtrip(input: &str) -> Vec<u8> {
         let mut buffer = Vec::new();
-        let doc = Document::parse_with_options(bytes, 0, InliningMode::Document);
+        let doc = Document::parse_with_options(input, 0, InliningMode::Document);
         doc.serialize(
             &mut buffer,
             vec![None; doc.nodes.len()],
@@ -628,7 +628,7 @@ mod tests {
             r#"<html><body><h1 class="exists" id="title">Test</h1><svg><foreignObject></foreignObject></svg><!-- {} --></body></html>"#,
             "x".repeat(1024)
         );
-        let doc = Document::parse_with_options(html.as_bytes(), 0, InliningMode::Document);
+        let doc = Document::parse_with_options(&html, 0, InliningMode::Document);
         let selectors = Selectors::compile(selector).expect("Invalid selector");
         assert_eq!(doc.has_required_names(&selectors.0[0]), expected);
     }
@@ -641,8 +641,7 @@ mod tests {
   <style>h1 { color:blue; }</style>
   <style>h1 { color:red }</style>
   <style data-css-inline='ignore'>h1 { color:yellow; }</style>
-</head>"
-                .as_bytes(),
+</head>",
             0,
             InliningMode::Document,
         );
@@ -661,8 +660,7 @@ mod tests {
   <link href='styles2.css' rel='stylesheet' type='text/css'>
   <link href='' rel='stylesheet' type='text/css'>
   <link href='styles3.css' rel='stylesheet' type='text/css' data-css-inline='ignore'>
-</head>"
-                .as_bytes(),
+</head>",
             0,
             InliningMode::Document,
         );
@@ -706,40 +704,42 @@ mod tests {
         assert_eq!(doc[node2_id].previous_sibling, Some(node1_id));
     }
 
-    #[test_case(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body></body></html>")]
-    #[test_case(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr></body></html>")]
-    fn test_roundtrip(input: &[u8]) {
-        assert_eq!(roundtrip(input), input);
+    #[test_case("<!DOCTYPE html><html><head><title>Title of the document</title></head><body></body></html>")]
+    #[test_case("<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr></body></html>")]
+    fn test_roundtrip(input: &str) {
+        assert_eq!(roundtrip(input), input.as_bytes());
     }
 
     #[test]
     fn test_ignore_children() {
-        assert_eq!(roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></hr></hr></body></html>"), b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></body></html>");
+        assert_eq!(roundtrip("<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></hr></hr></body></html>"), b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><hr><hr></body></html>");
     }
 
     #[test]
     fn test_pseudo_class() {
-        let output = roundtrip(b"<!DOCTYPE html><html><head><title>Title of the document</title><style>h1:hover { color:blue; }</style></head><body><h1>Hello world!</h1></body></html>");
+        let output = roundtrip("<!DOCTYPE html><html><head><title>Title of the document</title><style>h1:hover { color:blue; }</style></head><body><h1>Hello world!</h1></body></html>");
         assert_eq!(output, b"<!DOCTYPE html><html><head><title>Title of the document</title></head><body><h1>Hello world!</h1></body></html>");
     }
 
     #[test]
     fn test_comment() {
-        let output = roundtrip(b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>");
+        let output = roundtrip(
+            "<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>",
+        );
         assert_eq!(output, b"<html><head><title>Title of the document</title></head><body><!--TTT--></body></html>");
     }
 
     #[test]
     fn test_debug() {
         let doc =
-            Document::parse_with_options(b"<html><body></body></html>", 0, InliningMode::Document);
+            Document::parse_with_options("<html><body></body></html>", 0, InliningMode::Document);
         assert_eq!(format!("{doc:?}"), "Document { nodes: [Node { parent: None, next_sibling: None, previous_sibling: None, first_child: None, last_child: None, data: Document }, Node { parent: None, next_sibling: None, previous_sibling: None, first_child: Some(NodeId(2)), last_child: Some(NodeId(2)), data: Document }, Node { parent: Some(NodeId(1)), next_sibling: None, previous_sibling: None, first_child: Some(NodeId(3)), last_child: Some(NodeId(4)), data: Element { element: ElementData { name: QualName { prefix: None, ns: Atom('http://www.w3.org/1999/xhtml' type=static), local: Atom('html' type=inline) }, attributes: Attributes { attributes: [], class: None } }, inlining_ignored: false } }, Node { parent: Some(NodeId(2)), next_sibling: Some(NodeId(4)), previous_sibling: None, first_child: None, last_child: None, data: Element { element: ElementData { name: QualName { prefix: None, ns: Atom('http://www.w3.org/1999/xhtml' type=static), local: Atom('head' type=inline) }, attributes: Attributes { attributes: [], class: None } }, inlining_ignored: false } }, Node { parent: Some(NodeId(2)), next_sibling: None, previous_sibling: Some(NodeId(3)), first_child: None, last_child: None, data: Element { element: ElementData { name: QualName { prefix: None, ns: Atom('http://www.w3.org/1999/xhtml' type=static), local: Atom('body' type=inline) }, attributes: Attributes { attributes: [], class: None } }, inlining_ignored: false } }], styles: [], linked_stylesheets: [], .. }");
     }
 
     #[test]
     fn test_edit_document() {
         let mut doc = Document::parse_with_options(
-            b"<html><body><a></a><b></b></body></html>",
+            "<html><body><a></a><b></b></body></html>",
             0,
             InliningMode::Document,
         );

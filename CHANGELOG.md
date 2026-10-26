@@ -7,6 +7,7 @@
 - Look up elements by a hash of their ID, class, or tag name instead of interning it.
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
 - Skip selectors with pseudo-classes that never match during inlining, such as `:hover`, before matching them.
+- Skip a redundant UTF-8 validation pass over the input HTML.
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
 - Buffer the CLI's standard output instead of writing each piece with a separate system call.
