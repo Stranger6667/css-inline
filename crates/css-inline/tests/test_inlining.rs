@@ -1762,7 +1762,137 @@ h1 { color: blue; }
     let result = inliner.inline(html).unwrap();
     assert_eq!(
         result,
-        "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } } </style><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+        "<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>"
+    );
+}
+
+#[test_case(
+    "<style>@media screen { .x { color: red } } p { color: blue }</style>",
+    false,
+    "<style>@media screen { .x { color: red } }</style>";
+    "media"
+)]
+#[test_case(
+    "<style>@media screen { .x { color: red } } p { color: blue }</style>",
+    true,
+    "<style>@media screen { .x { color: red } }</style>";
+    "media with keep_style_tags"
+)]
+#[test_case(
+    "<style>@font-face { font-family: X; src: url(x.woff) } p { color: blue } p:hover { color: red }</style>",
+    false,
+    "<style>@font-face { font-family: X; src: url(x.woff) }\np:hover { color: red; }</style>";
+    "font face"
+)]
+#[test_case(
+    "<style>p { color: blue }</style><style>@media print { p { color: red } }</style>",
+    false,
+    "<style>@media print { p { color: red } }</style>";
+    "all normal rules inlined"
+)]
+#[test_case(
+    "<style>p { color: blue }</style><style>@media print { p { color: red } }</style>",
+    true,
+    "<style></style><style>@media print { p { color: red } }</style>";
+    "all normal rules inlined with keep_style_tags"
+)]
+fn remove_inlined_selectors_with_keep_at_rules_writes_at_rules_once(
+    head: &str,
+    keep_style_tags: bool,
+    expected_head: &str,
+) {
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .remove_inlined_selectors(true)
+        .keep_style_tags(keep_style_tags)
+        .build();
+    let html = format!("<html><head>{head}</head><body><p>t</p></body></html>");
+    assert_eq!(
+        inliner.inline(&html).unwrap(),
+        format!(
+            "<html><head>{expected_head}</head><body><p style=\"color: blue;\">t</p></body></html>"
+        )
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_with_keep_at_rules_keeps_extra_css_at_rules() {
+    // `extra_css` has no `<style>` block, so its `@`-rules still go to a new one.
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .remove_inlined_selectors(true)
+        .extra_css(Some("@media print { p { color: red } }".into()))
+        .build();
+    let html = "<html><head><style>@media screen { .x { color: red } } p { color: blue }</style></head><body><p>t</p></body></html>";
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        "<html><head><style>@media print { p { color: red } } </style><style>@media screen { .x { color: red } }</style></head><body><p style=\"color: blue;\">t</p></body></html>"
+    );
+}
+
+#[test_case(
+    "@media screen { .x { color: red } } p { color: blue }",
+    true,
+    r#"<p style="color: blue;">t</p>"#;
+    "media"
+)]
+#[test_case(
+    "@font-face { font-family: X; src: url(x.woff) } p { color: blue }",
+    true,
+    r#"<p style="color: blue;">t</p>"#;
+    "font face"
+)]
+#[test_case(
+    "@media screen { .x { color: red } } p { color: blue }",
+    false,
+    "<p>t</p>";
+    "without inlining style tags"
+)]
+#[allow(deprecated)]
+fn keep_style_tags_with_keep_at_rules_writes_at_rules_once(
+    style: &str,
+    inline_style_tags: bool,
+    expected_body: &str,
+) {
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .inline_style_tags(inline_style_tags)
+        .build();
+    let html = format!("<html><head><style>{style}</style></head><body><p>t</p></body></html>");
+    assert_eq!(
+        inliner.inline(&html).unwrap(),
+        format!("<html><head><style>{style}</style></head><body>{expected_body}</body></html>")
+    );
+}
+
+#[test]
+fn keep_style_tags_with_keep_at_rules_keeps_extra_css_at_rules() {
+    // `extra_css` has no `<style>` block, so its `@`-rules still go to a new one.
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .extra_css(Some("@media print { p { color: red } }".into()))
+        .build();
+    let html = "<html><head><style>@media screen { .x { color: red } } p { color: blue }</style></head><body><p>t</p></body></html>";
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        "<html><head><style>@media print { p { color: red } } </style><style>@media screen { .x { color: red } } p { color: blue }</style></head><body><p style=\"color: blue;\">t</p></body></html>"
+    );
+}
+
+#[test]
+fn keep_style_tags_and_remove_inlined_selectors_with_keep_at_rules_keeps_extra_css_at_rules() {
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .remove_inlined_selectors(true)
+        .extra_css(Some("@media print { p { color: red } }".into()))
+        .build();
+    let html = "<html><head><style>@media screen { .x { color: red } } p { color: blue }</style></head><body><p>t</p></body></html>";
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        "<html><head><style>@media print { p { color: red } } </style><style>@media screen { .x { color: red } }</style></head><body><p style=\"color: blue;\">t</p></body></html>"
     );
 }
 
@@ -2467,12 +2597,7 @@ fn remove_inlined_selectors_without_inlining_style_tags_keeps_blocks() {
         .keep_style_tags(true)
         .build();
     let html = r#"<html><head><style>h1 { color: blue } @media (x) { h1 { color: red } }</style></head><body><h1>T</h1></body></html>"#;
-    let inlined = inliner.inline(html).unwrap();
-    assert!(
-        inlined.contains("<style>h1 { color: blue } @media (x) { h1 { color: red } }</style>"),
-        "{inlined}"
-    );
-    assert!(inlined.contains("<h1>T</h1>"), "{inlined}");
+    assert_eq!(inliner.inline(html).unwrap(), html);
 }
 
 #[test]
