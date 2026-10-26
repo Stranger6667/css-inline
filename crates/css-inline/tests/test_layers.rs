@@ -2,6 +2,7 @@
 mod utils;
 
 use css_inline::{inline, inline_fragment, CSSInliner};
+use test_case::test_case;
 
 fn body(html: &str) -> &str {
     let start = html.find("<body>").expect("no body") + "<body>".len();
@@ -336,7 +337,74 @@ fn remove_inlined_selectors_with_at_rules_inside_layers() {
     let inlined = inliner.inline(html).unwrap();
     assert_eq!(
         inlined,
-        "<html><head><style>@layer a, b; @layer b { @media print { h1 { color: red; } } } </style><style>@layer a, b;\n@layer b {\n@media print { h1 { color: red; } }\n.x { color: green; }\n}</style></head><body><h1 style=\"color: blue;\"></h1></body></html>"
+        "<html><head><style>@layer a, b;\n@layer b {\n@media print { h1 { color: red; } }\n.x { color: green; }\n}</style></head><body><h1 style=\"color: blue;\"></h1></body></html>"
+    );
+}
+
+#[test]
+fn remove_inlined_selectors_with_keep_at_rules_keeps_layer_order_for_extra_css() {
+    // The new `<style>` comes first, so it repeats the layer order before using `b`.
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_at_rules(true)
+        .extra_css(Some(
+            "@layer b { @media print { h1 { color: red; } } }".into(),
+        ))
+        .build();
+    let html = r#"<html><head><style>@layer a, b; @layer a { h1 { color: blue; } } h1:hover { color: green; }</style></head><body><h1></h1></body></html>"#;
+    let inlined = inliner.inline(html).unwrap();
+    assert_eq!(
+        inlined,
+        "<html><head><style>@layer a, b; @layer b { @media print { h1 { color: red; } } } </style><style>@layer a, b;\nh1:hover { color: green; }</style></head><body><h1 style=\"color: blue;\"></h1></body></html>"
+    );
+}
+
+#[test_case(
+    "@layer a { p { color: blue } }",
+    true,
+    false,
+    "<style>@layer a; @layer a, x; </style><style>@layer a { p { color: blue } }</style>";
+    "keep_style_tags"
+)]
+#[test_case(
+    "@layer a { p { color: blue } p:hover { color: red } }",
+    false,
+    true,
+    "<style>@layer a; @layer a, x; </style><style>@layer a {\np:hover { color: red; }\n}</style>";
+    "remove_inlined_selectors"
+)]
+fn keep_at_rules_keeps_extra_css_layer_statements(
+    style: &str,
+    keep_style_tags: bool,
+    remove_inlined_selectors: bool,
+    expected_head: &str,
+) {
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(keep_style_tags)
+        .remove_inlined_selectors(remove_inlined_selectors)
+        .extra_css(Some("@layer a, x;".into()))
+        .build();
+    let html = html!(style, "<p>t</p>");
+    assert_eq!(
+        inliner.inline(&html).unwrap(),
+        format!(
+            r#"<html><head>{expected_head}</head><body><p style="color: blue;">t</p></body></html>"#
+        )
+    );
+}
+
+#[test]
+fn keep_style_tags_with_keep_at_rules_adds_no_block_for_layer_statements() {
+    // The kept `<style>` already declares the layer order.
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .build();
+    let html = html!("@layer a, b; @layer a { p { color: blue } }", "<p>t</p>");
+    assert_eq!(
+        inliner.inline(&html).unwrap(),
+        html.replace("<p>t</p>", r#"<p style="color: blue;">t</p>"#)
     );
 }
 

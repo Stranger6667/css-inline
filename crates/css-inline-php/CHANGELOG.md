@@ -14,6 +14,7 @@
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
 - Attributes from repeated `<html>` or `<body>` tags being dropped, and existing ones duplicated.
 - Selectors starting with a class, ID, or tag that contains escapes or non-ASCII characters not matching in documents of 1 KB or more.
+- At-rules written twice when `keep_at_rules` is combined with `remove_inlined_selectors` or `keep_style_tags`.
 - Attribute selectors on `class` (`[class]`, `[class*=...]`, etc.) never matching.
 
 ## [0.23.0] - 2026-10-16

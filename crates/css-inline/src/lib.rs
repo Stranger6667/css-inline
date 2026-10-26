@@ -235,17 +235,20 @@ impl<'a, 'i> KeptCss<'a, 'i> {
     }
 
     /// Render the spans within `range` of the source together with `items` (offset, text),
-    /// `sep`-separated within `@layer` blocks.
+    /// `sep`-separated within `@layer` blocks. `@`-rules starting before `at_rules_from` are
+    /// skipped, while the layer structure around them stays.
     fn render(
         &self,
         spans: &[Span<'i>],
         range: &Range<usize>,
+        at_rules_from: usize,
         mut items: Vec<(usize, String)>,
         sep: &str,
     ) -> Vec<String> {
         let mut blocks = Vec::new();
         for span in spans.iter().filter(|span| range.contains(&span.start())) {
             match span {
+                Span::AtRule { range: at_rule, .. } if at_rule.start < at_rules_from => {}
                 // An unterminated `@`-rule runs into the following blocks; it ends with its own.
                 Span::AtRule { range: at_rule, .. } => items.push((
                     at_rule.start,
@@ -445,7 +448,7 @@ fn apply_selector_cleanup<'i>(
             append_rule(&mut text, remainder, declarations);
             items.push((remainder.offset, text.trim().to_string()));
         }
-        let rules = kept.render(spans, &chunk.range, items, "\n");
+        let rules = kept.render(spans, &chunk.range, 0, items, "\n");
         if rules.is_empty() {
             handle_empty_remainder(document, chunk, requested_keep_style_tags);
             continue;
@@ -994,6 +997,7 @@ impl<'a> CSSInliner<'a> {
                 css_buffer.push(style_node, style, true);
             }
         }
+        let styles_end = css_buffer.raw.len();
         if self.options.load_remote_stylesheets {
             let mut links = document.stylesheets().collect::<Vec<&str>>();
             links.sort_unstable();
@@ -1181,8 +1185,28 @@ impl<'a> CSSInliner<'a> {
                 self.options.keep_style_tags && !track_selector_cleanup,
             );
             if self.options.keep_at_rules {
-                let rules = kept.render(&spans, &(0..raw_styles.len()), Vec::new(), " ");
-                at_rules = (!rules.is_empty()).then(|| format!("{} ", rules.join(" ")));
+                // `<style>` `@`-rules stay in their blocks when the blocks are kept or rewritten;
+                // only the rest (remote stylesheets, `extra_css`) goes to the new `<style>`, with
+                // the layer order declared before it.
+                let at_rules_from = if self.options.keep_style_tags || track_selector_cleanup {
+                    styles_end
+                } else {
+                    0
+                };
+                let has_at_rules = at_rules_from == 0
+                    || spans.iter().any(|span| {
+                        !matches!(span, Span::LayerBlock { .. }) && span.start() >= at_rules_from
+                    });
+                if has_at_rules {
+                    let rules = kept.render(
+                        &spans,
+                        &(0..raw_styles.len()),
+                        at_rules_from,
+                        Vec::new(),
+                        " ",
+                    );
+                    at_rules = (!rules.is_empty()).then(|| format!("{} ", rules.join(" ")));
+                }
             }
             if let Some(state) = selector_cleanup_state.as_ref() {
                 keep_style_tags |= apply_selector_cleanup(
