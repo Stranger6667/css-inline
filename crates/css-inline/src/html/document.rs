@@ -12,6 +12,7 @@ use crate::{html::DocumentStyleMap, InlineError};
 use html5ever::{local_name, tendril::StrTendril, LocalName};
 use rustc_hash::FxHashMap;
 use selectors::{context::SelectorCaches, parser::Component};
+use smallvec::SmallVec;
 use std::{cell::OnceCell, fmt, fmt::Formatter, io::Write, iter::successors};
 
 /// Minimum input size (bytes) to build element indexes.
@@ -54,8 +55,9 @@ pub(crate) struct Document {
     linked_stylesheets: Vec<NodeId>,
     /// Whether element indexes are enabled for this document.
     use_indexes: bool,
-    /// Index: ID attribute value -> `NodeId` (IDs should be unique per document).
-    by_id: FxHashMap<LocalName, NodeId>,
+    /// Index: ID attribute value -> `NodeId`s with that ID.
+    /// IDs should be unique, but browsers style every duplicate; one is stored inline.
+    by_id: FxHashMap<LocalName, SmallVec<[NodeId; 1]>>,
     /// Index: class name -> list of `NodeId`s with that class.
     by_class: FxHashMap<LocalName, Vec<NodeId>>,
     /// Index: tag name -> list of `NodeId`s with that tag.
@@ -173,8 +175,7 @@ impl Document {
     pub(super) fn index_by_id(&mut self, id: &StrTendril, node_id: NodeId) {
         if self.use_indexes && !id.is_empty() {
             let id_atom = LocalName::from(&**id);
-            // IDs should be unique; later declarations override earlier ones
-            self.by_id.insert(id_atom, node_id);
+            self.by_id.entry(id_atom).or_default().push(node_id);
         }
     }
 
@@ -192,10 +193,10 @@ impl Document {
         }
     }
 
-    /// Lookup an element by its ID attribute value.
+    /// Lookup elements by ID attribute value.
     #[inline]
-    pub(crate) fn get_by_id(&self, id: &LocalName) -> Option<NodeId> {
-        self.by_id.get(id).copied()
+    pub(crate) fn get_by_id(&self, id: &LocalName) -> &[NodeId] {
+        self.by_id.get(id).map_or(&[], SmallVec::as_slice)
     }
 
     /// Lookup elements by class name.
