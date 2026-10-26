@@ -5,6 +5,7 @@
 ### Performance
 
 - Look up elements by a hash of their ID, class, or tag name instead of interning it.
+- Avoid a reallocation and two attribute copies per element while building the document tree.
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
 - Skip selectors with pseudo-classes that never match during inlining, such as `:hover`, before matching them.
 - Use an index of attribute names for attribute selectors instead of checking every element.
