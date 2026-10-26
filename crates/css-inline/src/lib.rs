@@ -1089,9 +1089,7 @@ impl<'a> CSSInliner<'a> {
         for (rule_id, rule) in rule_list.iter().enumerate() {
             let (start, end) = rule.declarations;
             let rank = ranks[rule.layer];
-            // Only CSS Syntax Level 3 is supported, therefore it is OK to split by `,`
-            // With `is` or `where` selectors (Level 4) this split should be done on the parser level
-            for selector in rule.selectors.split(',') {
+            for selector in parser::split_selector_list(rule.selectors) {
                 let mut matched_any = false;
                 // Quick check: skip selectors whose anchor doesn't exist in the document
                 // This avoids parsing selectors that can't possibly match anything

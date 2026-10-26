@@ -12,6 +12,7 @@
 
 - Uppercase or mixed-case type selectors (e.g. `H1`) not matching HTML elements in documents of 1 KB or more.
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
+- Selector lists being split on commas inside `:not()`, attribute values, or strings, so a part of a selector could match on its own.
 - Attributes from repeated `<html>` or `<body>` tags being dropped, and existing ones duplicated.
 - Selectors starting with a class, ID, or tag that contains escapes or non-ASCII characters not matching in documents of 1 KB or more.
 - At-rules written twice when `keep_at_rules` is combined with `remove_inlined_selectors` or `keep_style_tags`.
