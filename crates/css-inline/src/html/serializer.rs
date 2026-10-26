@@ -900,7 +900,7 @@ mod tests {
 
     fn serialize_body(body: &str) -> String {
         let html = format!("<html><head></head><body>{body}</body></html>");
-        let doc = Document::parse_with_options(html.as_bytes(), 0, InliningMode::Document);
+        let doc = Document::parse_with_options(&html, 0, InliningMode::Document);
         let mut buffer = Vec::new();
         doc.serialize(
             &mut buffer,
