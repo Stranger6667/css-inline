@@ -14,7 +14,9 @@
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Check only the root element for selectors ending in `:root`.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
+- Check all classes and IDs of a selector against the document before compiling it, not after.
 - Escape text by scanning bytes instead of decoding characters.
+- Skip candidates of selectors like `.a .b` or `#x > p` when no ancestor has the required names, on documents of 1 KB or more.
 
 ### Fixed
 
