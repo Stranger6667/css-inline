@@ -89,10 +89,11 @@ impl Document {
     }
 
     pub(super) fn with_capacity(capacity: usize, input_size: usize) -> Self {
+        // Usually there are a lot of nodes, hence, reserve space for them and the two below
+        let mut nodes = Vec::with_capacity(capacity.saturating_add(2));
         // Dummy node at index 0 so that other indices fit in NonZero
-        let mut nodes = vec![Node::new(NodeData::Document), Node::new(NodeData::Document)];
-        // Usually there are a lot of nodes, hence, reserve some space for them
-        nodes.reserve(capacity);
+        nodes.push(Node::new(NodeData::Document));
+        nodes.push(Node::new(NodeData::Document));
         // Only build indexes for larger documents where the lookup benefit outweighs overhead
         let use_indexes = input_size >= INDEX_SIZE_THRESHOLD;
         Document {

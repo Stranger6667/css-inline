@@ -2685,6 +2685,8 @@ fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
 #[test_case("[hidden] { color: red; } [missing] { color: blue; }", "<p hidden>A</p><p>B</p>"; "boolean attribute")]
 #[test_case("[data-role=button] { color: red; }", r#"<a data-role="button">A</a><a data-role="link">B</a><a>C</a>"#; "attribute value")]
 #[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
+#[test_case("#a { color: red; } #b { color: blue; }", r#"<p id="a" id="b">A</p><p id="b" id="a">B</p>"#; "duplicate id attribute")]
+#[test_case(".a { color: red; } .b { color: blue; }", r#"<p class="a" class="b">A</p><p class="b" class="a">B</p>"#; "duplicate class attribute")]
 fn index_paths_agree(css: &str, body: &str) {
     assert_index_paths_agree(css, body, false);
 }
