@@ -93,7 +93,6 @@ impl Sink {
                 class_value = Some(attr.value.clone());
             }
         }
-        let tag_name = name.local.clone();
         let node_id = self.push_node(NodeData::Element {
             element: ElementData::new(name, attributes),
             inlining_ignored,
@@ -101,7 +100,7 @@ impl Sink {
         let mut document = self.document.borrow_mut();
         document.push_element_id(node_id);
         // Index by tag name
-        document.index_by_tag(tag_name, node_id);
+        document.index_by_tag(node_id);
         // Index by ID and class attributes
         if let Some(id) = &id_value {
             document.index_by_id(id, node_id);
