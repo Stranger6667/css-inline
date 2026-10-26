@@ -2786,6 +2786,56 @@ fn remove_inlined_selectors_ignores_rejected_qualified_rules() {
     );
 }
 
+fn assert_ancestor_selector(css: &str, body: &str, expected: &str, padding: &str) {
+    let html = format!(
+        r#"<html><head><style>{css}</style></head><body><!--{padding}-->{body}</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(
+        inlined.contains(&format!("<!--{padding}-->{expected}</body>")),
+        "{inlined}"
+    );
+}
+
+fn assert_ancestor_selector_fragment(css: &str, body: &str, expected: &str, padding: &str) {
+    let inlined = css_inline::inline_fragment(&format!("<!--{padding}-->{body}"), css).unwrap();
+    assert_eq!(inlined, format!("<!--{padding}-->{expected}"));
+}
+
+#[test_case(".a .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div class=\"a\"><p class=\"x\" style=\"color: red;\">1</p></div><p class=\"x\">2</p>"; "class present and absent")]
+#[test_case(".missing .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>"; "missing class")]
+#[test_case("#i > .x { color: red; }", "<div id=\"i\"><p class=\"x\">1</p><div><p class=\"x\">2</p></div></div>", "<div id=\"i\"><p class=\"x\" style=\"color: red;\">1</p><div><p class=\"x\">2</p></div></div>"; "id child")]
+#[test_case("#missing .x { color: red; }", "<div id=\"i\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div id=\"i\"><p class=\"x\">1</p></div><p class=\"x\">2</p>"; "missing id")]
+#[test_case("section p { color: red; }", "<section><div><p>1</p></div></section><p>2</p>", "<section><div><p style=\"color: red;\">1</p></div></section><p>2</p>"; "tags")]
+#[test_case(".a.b .x { color: red; }", "<div class=\"b  a c\"><p class=\"x\">1</p></div><div class=\"a\"><p class=\"x\">2</p></div>", "<div class=\"b  a c\"><p class=\"x\" style=\"color: red;\">1</p></div><div class=\"a\"><p class=\"x\">2</p></div>"; "multi class ancestor")]
+#[test_case(".a .b .x { color: red; }", "<div class=\"a\"><div class=\"b\"><p class=\"x\">1</p></div></div><div class=\"b\"><p class=\"x\">2</p></div>", "<div class=\"a\"><div class=\"b\"><p class=\"x\" style=\"color: red;\">1</p></div></div><div class=\"b\"><p class=\"x\">2</p></div>"; "two ancestors")]
+#[test_case(".a .x { color: red; }", "<div class=\"a\u{A0}b\"><p class=\"x\">1</p></div><div class=\"b a\"><p class=\"x\">2</p></div>", "<div class=\"a&nbsp;b\"><p class=\"x\">1</p></div><div class=\"b a\"><p class=\"x\" style=\"color: red;\">2</p></div>"; "non css whitespace in class")]
+#[test_case(".a\\a0 b .x { color: red; }", "<div class=\"a\u{A0}b\"><p class=\"x\">1</p></div><div class=\"b a\"><p class=\"x\">2</p></div>", "<div class=\"a&nbsp;b\"><p class=\"x\" style=\"color: red;\">1</p></div><div class=\"b a\"><p class=\"x\">2</p></div>"; "escaped non css whitespace in class")]
+#[test_case(".b .x { color: red; }", "<div class=\"a\x0Cb\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div class=\"a\x0Cb\"><p class=\"x\" style=\"color: red;\">1</p></div><p class=\"x\">2</p>"; "form feed in class")]
+#[test_case(".a\\:b .x { color: red; }", "<div class=\"a:b\"><p class=\"x\">1</p></div><div class=\"a\"><p class=\"x\">2</p></div>", "<div class=\"a:b\"><p class=\"x\" style=\"color: red;\">1</p></div><div class=\"a\"><p class=\"x\">2</p></div>"; "escaped class")]
+#[test_case("DIV .x { color: red; }", "<div><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div><p class=\"x\" style=\"color: red;\">1</p></div><p class=\"x\">2</p>"; "uppercase tag")]
+#[test_case("DIV > P { color: red; }", "<div><p>1</p></div><p>2</p>", "<div><p style=\"color: red;\">1</p></div><p>2</p>"; "uppercase tags")]
+#[test_case("foreignObject .x { color: red; }", "<svg><foreignObject><p class=\"x\">1</p></foreignObject></svg><p class=\"x\">2</p>", "<svg><foreignObject><p class=\"x\" style=\"color: red;\">1</p></foreignObject></svg><p class=\"x\">2</p>"; "mixed case foreign tag")]
+#[test_case(":not(.a) > .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><div><p class=\"x\">2</p></div>", "<div class=\"a\"><p class=\"x\">1</p></div><div><p class=\"x\" style=\"color: red;\">2</p></div>"; "negation")]
+#[test_case(".a + .b .c { color: red; }", "<p class=\"a\"></p><div class=\"b\"><p class=\"c\">1</p></div><div class=\"b\"><p class=\"c\">2</p></div>", "<p class=\"a\"></p><div class=\"b\"><p class=\"c\" style=\"color: red;\">1</p></div><div class=\"b\"><p class=\"c\">2</p></div>"; "adjacent sibling then descendant")]
+#[test_case(".a ~ .b > .c { color: red; }", "<div class=\"b\"><p class=\"c\">1</p></div><p class=\"a\"></p><div class=\"b\"><p class=\"c\">2</p></div><div class=\"b\"><p class=\"c\">3</p></div>", "<div class=\"b\"><p class=\"c\">1</p></div><p class=\"a\"></p><div class=\"b\"><p class=\"c\" style=\"color: red;\">2</p></div><div class=\"b\"><p class=\"c\" style=\"color: red;\">3</p></div>"; "general sibling then child")]
+#[test_case(".x .a + .b { color: red; }", "<div class=\"x\"><p class=\"a\"></p><p class=\"b\">1</p></div><p class=\"a\"></p><p class=\"b\">2</p>", "<div class=\"x\"><p class=\"a\"></p><p class=\"b\" style=\"color: red;\">1</p></div><p class=\"a\"></p><p class=\"b\">2</p>"; "descendant then adjacent sibling")]
+#[test_case("body > .x { color: red; }", "<p class=\"x\">1</p><div><p class=\"x\">2</p></div>", "<p class=\"x\" style=\"color: red;\">1</p><div><p class=\"x\">2</p></div>"; "root chain")]
+fn ancestor_selectors(css: &str, body: &str, expected: &str) {
+    assert_ancestor_selector(css, body, expected, "");
+    assert_ancestor_selector(css, body, expected, PADDING);
+}
+
+#[test_case(".a .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div class=\"a\"><p class=\"x\" style=\"color: red;\">1</p></div><p class=\"x\">2</p>"; "class present and absent")]
+#[test_case(".missing .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>", "<div class=\"a\"><p class=\"x\">1</p></div><p class=\"x\">2</p>"; "missing class")]
+#[test_case("div p { color: red; }", "<p>1</p><div><p>2</p></div>", "<p>1</p><div><p style=\"color: red;\">2</p></div>"; "top level element")]
+#[test_case(":not(.a) > .x { color: red; }", "<div class=\"a\"><p class=\"x\">1</p></div><div><p class=\"x\">2</p></div>", "<div class=\"a\"><p class=\"x\">1</p></div><div><p class=\"x\" style=\"color: red;\">2</p></div>"; "negation")]
+#[test_case(".a + .b .c { color: red; }", "<p class=\"a\"></p><div class=\"b\"><p class=\"c\">1</p></div><div class=\"b\"><p class=\"c\">2</p></div>", "<p class=\"a\"></p><div class=\"b\"><p class=\"c\" style=\"color: red;\">1</p></div><div class=\"b\"><p class=\"c\">2</p></div>"; "adjacent sibling then descendant")]
+fn ancestor_selectors_fragment(css: &str, body: &str, expected: &str) {
+    assert_ancestor_selector_fragment(css, body, expected, "");
+    assert_ancestor_selector_fragment(css, body, expected, PADDING);
+}
+
 // Small documents use a linear scan, large ones use element indexes. Both must agree.
 fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
     let padding = format!("<!--{PADDING}{PADDING}-->");
@@ -2821,6 +2871,8 @@ fn assert_index_paths_agree(css: &str, body: &str, fragment: bool) {
 #[test_case("[viewBox] { color: red; }", r#"<svg viewBox="0 0 1 1"></svg><div viewbox="1">A</div><div>B</div>"#; "svg mixed case attribute")]
 #[test_case("[hidden] { color: red; } [missing] { color: blue; }", "<p hidden>A</p><p>B</p>"; "boolean attribute")]
 #[test_case("[data-role=button] { color: red; }", r#"<a data-role="button">A</a><a data-role="link">B</a><a>C</a>"#; "attribute value")]
+#[test_case(".a .x { color: red; } .missing .x { color: blue; } #i > .x { margin: 0; } .a.b > div .x { padding: 0; }", r#"<div class="a b" id="i"><p class="x">A</p><div><p class="x">B</p></div></div><p class="x">C</p><div class="b"><div><p class="x">D</p></div></div>"#; "ancestor classes and ids")]
+#[test_case("DIV P { color: red; } foreignObject .x { color: blue; } .a + .b .x { margin: 0; } .a ~ .b > .x { padding: 0; } :not(.a) > .x { border: 0; }", r#"<div class="a"></div><div class="b"><p class="x">A</p></div><svg><foreignObject><p class="x">B</p></foreignObject></svg><div class="b"><p>C</p></div>"#; "ancestor tags and siblings")]
 #[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
 #[test_case("#a { color: red; } #b { color: blue; }", r#"<p id="a" id="b">A</p><p id="b" id="a">B</p>"#; "duplicate id attribute")]
 #[test_case(".a { color: red; } .b { color: blue; }", r#"<p class="a" class="b">A</p><p class="b" class="a">B</p>"#; "duplicate class attribute")]
@@ -2832,6 +2884,8 @@ fn index_paths_agree(css: &str, body: &str) {
 #[test_case("p:not(.missing) { color: red; } p:not(.present) { color: blue; }", r#"<p class="present">A</p><p>B</p>"#; "not missing class")]
 #[test_case("svg foreignObject { color: red; }", r#"<svg><foreignObject>A</foreignObject></svg><foreignobject>B</foreignobject>"#; "svg exact case tag")]
 #[test_case("[viewBox] { color: red; }", r#"<svg viewBox="0 0 1 1"></svg><div viewbox="1">A</div><div>B</div>"#; "svg mixed case attribute")]
+#[test_case(".a .x { color: red; } .missing .x { color: blue; } #i > .x { margin: 0; } .a.b > div .x { padding: 0; }", r#"<div class="a b" id="i"><p class="x">A</p><div><p class="x">B</p></div></div><p class="x">C</p><div class="b"><div><p class="x">D</p></div></div>"#; "ancestor classes and ids")]
+#[test_case("DIV P { color: red; } foreignObject .x { color: blue; } .a + .b .x { margin: 0; } .a ~ .b > .x { padding: 0; } :not(.a) > .x { border: 0; }", r#"<div class="a"></div><div class="b"><p class="x">A</p></div><svg><foreignObject><p class="x">B</p></foreignObject></svg><div class="b"><p>C</p></div>"#; "ancestor tags and siblings")]
 #[test_case("[data-a][data-b] { color: red; } [data-a][data-missing] { color: blue; }", "<p data-a data-b>A</p><p data-a>B</p><p data-b>C</p>"; "compound attributes")]
 fn index_paths_agree_fragment(css: &str, body: &str) {
     assert_index_paths_agree(css, body, true);

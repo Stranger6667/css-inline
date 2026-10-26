@@ -2,7 +2,7 @@ use super::{
     attributes::{hash_class_name, is_selector_whitespace},
     element::Element,
     iter::{select, Select},
-    node::{Node, NodeData, NodeId},
+    node::{ElementData, Node, NodeData, NodeId},
     parser,
     selectors::{ParseError, Selector},
     serializer::serialize_to,
@@ -13,7 +13,13 @@ use html5ever::{local_name, tendril::StrTendril, LocalName};
 use rustc_hash::FxHashMap;
 use selectors::{context::SelectorCaches, parser::Component};
 use smallvec::SmallVec;
-use std::{cell::OnceCell, fmt, fmt::Formatter, io::Write, iter::successors};
+use std::{
+    cell::{Cell, OnceCell},
+    fmt,
+    fmt::Formatter,
+    io::Write,
+    iter::successors,
+};
 
 /// Minimum input size (bytes) to build element indexes.
 /// For smaller inputs, linear scan is faster than hash map operations.
@@ -66,6 +72,11 @@ pub(crate) struct Document {
     /// Index: attribute name -> list of `NodeId`s with that attribute.
     /// Built on first use, as attribute selectors are rare in emails.
     by_attribute: OnceCell<FxHashMap<LocalName, Vec<NodeId>>>,
+    /// Names on the ancestor elements of each node, indexed by `NodeId`.
+    /// Built on first use, once enough candidates asked for it to pay for a tree pass.
+    ancestor_names: OnceCell<Vec<NameSet>>,
+    /// Candidates checked before `ancestor_names` was built.
+    ancestor_demand: Cell<usize>,
 }
 
 impl fmt::Debug for Document {
@@ -106,6 +117,8 @@ impl Document {
             by_class: FxHashMap::default(),
             by_tag: FxHashMap::default(),
             by_attribute: OnceCell::new(),
+            ancestor_names: OnceCell::new(),
+            ancestor_demand: Cell::new(0),
         }
     }
 
@@ -252,6 +265,65 @@ impl Document {
             })
             .get(name)
             .map_or(&[], Vec::as_slice)
+    }
+
+    /// Names on the ancestor elements of the given element.
+    /// `None` until as many candidates as there are elements asked for them.
+    #[inline]
+    pub(crate) fn ancestor_names(&self, node_id: NodeId) -> Option<NameSet> {
+        let names = if let Some(names) = self.ancestor_names.get() {
+            names
+        } else {
+            let demand = self.ancestor_demand.get().saturating_add(1);
+            self.ancestor_demand.set(demand);
+            // Fewer candidates rarely skip enough full matches to pay for the tree pass
+            if demand < self.elements.len() {
+                return None;
+            }
+            self.ancestor_names
+                .get_or_init(|| self.collect_ancestor_names())
+        };
+        Some(self.names_above(names, node_id))
+    }
+
+    /// Names of the parent and its ancestor elements, from `collect_ancestor_names`.
+    #[inline]
+    fn names_above(&self, names: &[NameSet], node_id: NodeId) -> NameSet {
+        self[node_id]
+            .parent
+            .map_or(NameSet::default(), |parent| names[parent.get()])
+    }
+
+    /// Names of each parent node and its ancestor elements; a non-element node ends the chain.
+    fn collect_ancestor_names(&self) -> Vec<NameSet> {
+        // Nodes outside the tree keep every name, so their children are never skipped
+        let mut names = vec![NameSet::ALL; self.nodes.len()];
+        let root = NodeId::document_id();
+        names[root.get()] = NameSet::default();
+        // Pre-order walk, so a parent is done before its children
+        let mut next = self[root].first_child;
+        while let Some(node_id) = next {
+            let node = &self[node_id];
+            if node.first_child.is_some() {
+                names[node_id.get()] = node.as_element().map_or(NameSet::default(), |element| {
+                    element_names(element, self.names_above(&names, node_id))
+                });
+                next = node.first_child;
+                continue;
+            }
+            let mut current = node_id;
+            next = loop {
+                let node = &self[current];
+                if node.next_sibling.is_some() {
+                    break node.next_sibling;
+                }
+                match node.parent {
+                    Some(parent) if parent != root => current = parent,
+                    _ => break None,
+                }
+            };
+        }
+        names
     }
 
     /// Whether every ID, class, and tag the selector names outside of nested selectors
@@ -540,6 +612,82 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
+/// A 256-bit set of hashed tag, ID, and class names.
+/// A collision only adds candidates, which full selector matching filters out.
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct NameSet([u64; 4]);
+
+impl NameSet {
+    /// Contains every name, so it never excludes an element.
+    const ALL: NameSet = NameSet([u64::MAX; 4]);
+
+    /// Each name kind takes its bit from a different byte of the hash.
+    #[inline]
+    fn insert(&mut self, shift: u32, name: &[u8]) {
+        let bit = (name_key(name) >> shift) & 255;
+        self.0[(bit >> 6) as usize] |= 1 << (bit & 63);
+    }
+
+    #[inline]
+    pub(crate) fn insert_tag(&mut self, name: &[u8]) {
+        self.insert(40, name);
+    }
+
+    #[inline]
+    pub(crate) fn insert_id(&mut self, name: &[u8]) {
+        self.insert(48, name);
+    }
+
+    #[inline]
+    pub(crate) fn insert_class(&mut self, name: &[u8]) {
+        self.insert(56, name);
+    }
+
+    #[inline]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.0.iter().all(|&word| word == 0)
+    }
+
+    #[inline]
+    pub(crate) fn contains_all(&self, other: &NameSet) -> bool {
+        self.0
+            .iter()
+            .zip(other.0)
+            .all(|(&own, required)| required & !own == 0)
+    }
+}
+
+/// `names` extended with the tag, ID, and class names of an element.
+fn element_names(element: &ElementData, mut names: NameSet) -> NameSet {
+    let tag = element.name.local.as_bytes();
+    if tag.iter().any(u8::is_ascii_uppercase) {
+        names.insert_tag(&tag.to_ascii_lowercase());
+    } else {
+        names.insert_tag(tag);
+    }
+    // Any namespace, as an extra name only adds candidates
+    for id in element
+        .attributes
+        .attributes
+        .iter()
+        .filter(|attribute| attribute.name.local == local_name!("id"))
+    {
+        names.insert_id(id.value.as_bytes());
+    }
+    if let Some(class) = &element.attributes.class {
+        // Same splitting as the class matcher: CSS whitespace only
+        for name in class
+            .value
+            .as_bytes()
+            .split(|&b| is_selector_whitespace(b))
+            .filter(|name| !name.is_empty())
+        {
+            names.insert_class(name);
+        }
+    }
+    names
+}
+
 /// Index key of an ID, class, or tag name.
 /// A collision only adds candidates, which full selector matching filters out.
 #[inline]
@@ -632,6 +780,50 @@ mod tests {
         let doc = Document::parse_with_options(&html, 0, InliningMode::Document);
         let selectors = Selectors::compile(selector).expect("Invalid selector");
         assert_eq!(doc.has_required_names(&selectors.0[0]), expected);
+    }
+
+    #[test_case(".x", true; "subject only")]
+    #[test_case(".a .x", true; "class")]
+    #[test_case(".b.a .x", true; "classes")]
+    #[test_case(".missing .x", false; "missing class")]
+    #[test_case(".a.missing .x", false; "missing class in compound")]
+    #[test_case("#i .x", true; "id")]
+    #[test_case("#missing > .x", false; "missing id")]
+    #[test_case("div section .x", true; "tags")]
+    #[test_case("article .x", false; "missing tag")]
+    #[test_case("DIV .x", true; "uppercase tag")]
+    #[test_case("ARTICLE .x", false; "missing uppercase tag")]
+    #[test_case("foreignObject .x", true; "mixed case foreign tag")]
+    #[test_case("foreignobject .x", true; "lowercase foreign tag")]
+    #[test_case(".n .x", false; "non css whitespace in class")]
+    #[test_case(".m\\a0 n .x", true; "escaped non css whitespace in class")]
+    #[test_case(".c .x", true; "form feed in class")]
+    #[test_case(":not(.missing) .x", true; "negation")]
+    #[test_case(".missing + svg .x", true; "adjacent sibling")]
+    #[test_case(".missing ~ svg > foreignObject > .x", true; "general sibling")]
+    #[test_case("article .missing + svg .x", false; "ancestor of sibling")]
+    fn test_ancestor_names(selector: &str, may_match: bool) {
+        let html = "<div class=\"a b\" id=\"i\"><section class=\"m\u{A0}n c\x0Cd\"><span></span><svg><foreignObject><p class=\"x\">T</p></foreignObject></svg></section></div>";
+        let doc = Document::parse_with_options(html, 0, InliningMode::Document);
+        let subject = *doc
+            .elements
+            .iter()
+            .find(|&&id| {
+                doc[id].as_element().is_some_and(|e| {
+                    e.attributes
+                        .class
+                        .as_ref()
+                        .is_some_and(|c| &*c.value == "x")
+                })
+            })
+            .expect("Missing subject");
+        let selectors = Selectors::compile(selector).expect("Invalid selector");
+        let required = super::super::selectors::ancestor_names(&selectors.0[0]);
+        assert_eq!(
+            doc.names_above(&doc.collect_ancestor_names(), subject)
+                .contains_all(&required),
+            may_match
+        );
     }
 
     #[test]

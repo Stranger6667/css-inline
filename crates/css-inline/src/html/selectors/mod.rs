@@ -11,8 +11,11 @@ pub(super) use pseudo_classes::PseudoClass;
 pub(super) use pseudo_elements::PseudoElement;
 pub(super) use selector_impl::InlinerSelectors;
 
+use super::document::NameSet;
 use selectors::{
-    parser::{Component, ParseRelative, Selector as GenericSelector, SelectorParseErrorKind},
+    parser::{
+        Combinator, Component, ParseRelative, Selector as GenericSelector, SelectorParseErrorKind,
+    },
     SelectorList,
 };
 use smallvec::SmallVec;
@@ -100,6 +103,37 @@ fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
         }
     }
     anchor.unwrap_or_else(|| attribute.map_or(SelectorAnchor::None, SelectorAnchor::Attribute))
+}
+
+/// Names that some ancestor element of every element matching the selector has.
+/// Only names outside of nested selectors (`:not()`, ...) count.
+pub(crate) fn ancestor_names(selector: &Selector) -> NameSet {
+    let mut names = NameSet::default();
+    // A compound left of ` ` or `>` matches an ancestor. One left of `+` or `~` matches a
+    // sibling and is skipped; siblings share the parent, so compounds further left of
+    // ` ` or `>` still match ancestors.
+    let mut on_ancestor = false;
+    for component in selector.iter_raw_match_order() {
+        match component {
+            Component::Combinator(Combinator::Descendant | Combinator::Child) => {
+                on_ancestor = true;
+            }
+            Component::Combinator(Combinator::NextSibling | Combinator::LaterSibling) => {
+                on_ancestor = false;
+            }
+            Component::Combinator(_) => return NameSet::default(),
+            // Matching runs in no-quirks mode, where IDs and classes are case-sensitive
+            Component::ID(id) if on_ancestor => names.insert_id(id.as_bytes()),
+            Component::Class(class) if on_ancestor => names.insert_class(class.as_bytes()),
+            // HTML elements match `lower_name`, foreign ones match `name`; both lowercase to
+            // `lower_name`, and ancestor tags are stored lowercased
+            Component::LocalName(local_name) if on_ancestor => {
+                names.insert_tag(local_name.lower_name.as_bytes());
+            }
+            _ => {}
+        }
+    }
+    names
 }
 
 impl Selectors {

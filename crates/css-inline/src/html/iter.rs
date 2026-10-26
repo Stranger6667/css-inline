@@ -1,8 +1,8 @@
 use super::{
-    document::Document,
+    document::{Document, NameSet},
     element::Element,
     node::{NodeData, NodeId},
-    selectors::{ParseError, SelectorAnchor, Selectors},
+    selectors::{ancestor_names, ParseError, SelectorAnchor, Selectors},
     Specificity,
 };
 use selectors::context::SelectorCaches;
@@ -43,11 +43,19 @@ pub(crate) fn select<'a, 'c>(
                 SelectorAnchor::None => ElementSource::Slice(document.elements.iter()),
             }
         };
+        // Only large documents, as building the ancestor names costs a tree pass
+        let ancestors = match selectors.0.as_slice() {
+            [single] if document.has_indexes() => {
+                Some(ancestor_names(single)).filter(|names| !names.is_empty())
+            }
+            _ => None,
+        };
         Select {
             document,
             caches,
             source,
             selectors,
+            ancestors,
         }
     })
 }
@@ -67,21 +75,20 @@ pub(crate) struct Select<'a, 'c> {
     source: ElementSource<'a>,
     /// The selectors to be matched.
     selectors: Selectors,
+    /// Names that some ancestor of every matching element has, if any.
+    ancestors: Option<NameSet>,
 }
 
-impl Select<'_, '_> {
+impl<'a> Select<'a, '_> {
     /// Specificity of the first selector in the list of selectors.
     #[inline]
     pub(crate) fn specificity(&self) -> Specificity {
         Specificity::new(self.selectors.0[0].specificity())
     }
-}
 
-impl<'a> Iterator for Select<'a, '_> {
-    type Item = Element<'a>;
-
+    /// The next candidate that passes `may_match` and matches the selectors.
     #[inline]
-    fn next(&mut self) -> Option<Element<'a>> {
+    fn find_match(&mut self, may_match: impl Fn(&Document, NodeId) -> bool) -> Option<Element<'a>> {
         loop {
             let element_id = match &mut self.source {
                 ElementSource::Slice(iter) => *iter.next()?,
@@ -98,12 +105,32 @@ impl<'a> Iterator for Select<'a, '_> {
             let NodeData::Element { element, .. } = &self.document[element_id].data else {
                 unreachable!("Element ids always point to element nodes")
             };
+            if !may_match(self.document, element_id) {
+                continue;
+            }
             let element = Element::new(self.document, element_id, element);
             for selector in self.selectors.iter() {
                 if element.matches(selector, self.caches) {
                     return Some(element);
                 }
             }
+        }
+    }
+}
+
+impl<'a> Iterator for Select<'a, '_> {
+    type Item = Element<'a>;
+
+    #[inline]
+    fn next(&mut self) -> Option<Element<'a>> {
+        // Separate loops keep the unfiltered one as lean as without the filter
+        match self.ancestors {
+            None => self.find_match(|_, _| true),
+            Some(required) => self.find_match(|document, element_id| {
+                document
+                    .ancestor_names(element_id)
+                    .is_none_or(|names| names.contains_all(&required))
+            }),
         }
     }
 }
