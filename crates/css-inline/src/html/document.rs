@@ -1,5 +1,5 @@
 use super::{
-    attributes::is_selector_whitespace,
+    attributes::{hash_class_name, is_selector_whitespace},
     element::Element,
     iter::{select, Select},
     node::{Node, NodeData, NodeId},
@@ -57,11 +57,12 @@ pub(crate) struct Document {
     use_indexes: bool,
     /// Index: ID attribute value -> `NodeId`s with that ID.
     /// IDs should be unique, but browsers style every duplicate; one is stored inline.
-    by_id: FxHashMap<LocalName, SmallVec<[NodeId; 1]>>,
+    /// ID, class, and tag indexes are keyed by `name_key`, so names are not interned.
+    by_id: FxHashMap<u64, SmallVec<[NodeId; 1]>>,
     /// Index: class name -> list of `NodeId`s with that class.
-    by_class: FxHashMap<LocalName, Vec<NodeId>>,
+    by_class: FxHashMap<u64, Vec<NodeId>>,
     /// Index: tag name -> list of `NodeId`s with that tag.
-    by_tag: FxHashMap<LocalName, Vec<NodeId>>,
+    by_tag: FxHashMap<u64, Vec<NodeId>>,
     /// Index: attribute name -> list of `NodeId`s with that attribute.
     /// Built on first use, as attribute selectors are rare in emails.
     by_attribute: OnceCell<FxHashMap<LocalName, Vec<NodeId>>>,
@@ -164,9 +165,12 @@ impl Document {
 
     /// Index an element by its tag name.
     #[inline]
-    pub(super) fn index_by_tag(&mut self, tag: LocalName, node_id: NodeId) {
+    pub(super) fn index_by_tag(&mut self, node_id: NodeId) {
         if self.use_indexes {
-            self.by_tag.entry(tag).or_default().push(node_id);
+            if let Some(element) = self[node_id].as_element() {
+                let key = name_key(element.name.local.as_bytes());
+                self.by_tag.entry(key).or_default().push(node_id);
+            }
         }
     }
 
@@ -174,8 +178,10 @@ impl Document {
     #[inline]
     pub(super) fn index_by_id(&mut self, id: &StrTendril, node_id: NodeId) {
         if self.use_indexes && !id.is_empty() {
-            let id_atom = LocalName::from(&**id);
-            self.by_id.entry(id_atom).or_default().push(node_id);
+            self.by_id
+                .entry(name_key(id.as_bytes()))
+                .or_default()
+                .push(node_id);
         }
     }
 
@@ -187,28 +193,36 @@ impl Document {
                 .split(|c: char| c.is_ascii() && is_selector_whitespace(c as u8))
                 .filter(|class| !class.is_empty())
             {
-                let class_atom = LocalName::from(class);
-                self.by_class.entry(class_atom).or_default().push(node_id);
+                self.by_class
+                    .entry(name_key(class.as_bytes()))
+                    .or_default()
+                    .push(node_id);
             }
         }
     }
 
     /// Lookup elements by ID attribute value.
     #[inline]
-    pub(crate) fn get_by_id(&self, id: &LocalName) -> &[NodeId] {
-        self.by_id.get(id).map_or(&[], SmallVec::as_slice)
+    pub(crate) fn get_by_id(&self, id: &str) -> &[NodeId] {
+        self.by_id
+            .get(&name_key(id.as_bytes()))
+            .map_or(&[], SmallVec::as_slice)
     }
 
     /// Lookup elements by class name.
     #[inline]
-    pub(crate) fn get_by_class(&self, class: &LocalName) -> &[NodeId] {
-        self.by_class.get(class).map_or(&[], Vec::as_slice)
+    pub(crate) fn get_by_class(&self, class: &str) -> &[NodeId] {
+        self.by_class
+            .get(&name_key(class.as_bytes()))
+            .map_or(&[], Vec::as_slice)
     }
 
     /// Lookup elements by tag name.
     #[inline]
-    pub(crate) fn get_by_tag(&self, tag: &LocalName) -> &[NodeId] {
-        self.by_tag.get(tag).map_or(&[], Vec::as_slice)
+    pub(crate) fn get_by_tag(&self, tag: &str) -> &[NodeId] {
+        self.by_tag
+            .get(&name_key(tag.as_bytes()))
+            .map_or(&[], Vec::as_slice)
     }
 
     /// Lookup elements by attribute name.
@@ -245,12 +259,16 @@ impl Document {
         selector
             .iter_raw_match_order()
             .all(|component| match component {
-                Component::ID(id) => self.by_id.contains_key(id.as_inner()),
-                Component::Class(class) => self.by_class.contains_key(class.as_inner()),
+                Component::ID(id) => self.by_id.contains_key(&name_key(id.as_bytes())),
+                Component::Class(class) => self.by_class.contains_key(&name_key(class.as_bytes())),
                 // HTML elements match `lower_name`, foreign ones (e.g. SVG) match `name`
                 Component::LocalName(local_name) => {
-                    self.by_tag.contains_key(local_name.name.as_inner())
-                        || self.by_tag.contains_key(local_name.lower_name.as_inner())
+                    self.by_tag
+                        .contains_key(&name_key(local_name.name.as_bytes()))
+                        || (local_name.name != local_name.lower_name
+                            && self
+                                .by_tag
+                                .contains_key(&name_key(local_name.lower_name.as_bytes())))
                 }
                 _ => true,
             })
@@ -276,21 +294,36 @@ impl Document {
         match bytes.first() {
             // Class selector: .classname
             Some(b'.') => extract_identifier(&bytes[1..])
-                .is_none_or(|name| self.by_class.contains_key(&LocalName::from(name))),
+                .is_none_or(|name| self.by_class.contains_key(&name_key(name))),
             // ID selector: #id
             Some(b'#') => extract_identifier(&bytes[1..])
-                .is_none_or(|name| self.by_id.contains_key(&LocalName::from(name))),
+                .is_none_or(|name| self.by_id.contains_key(&name_key(name))),
             // Tag selector: starts with ASCII letter
-            // HTML elements match the lowercase name, foreign ones (e.g. SVG) the exact one
-            Some(b'a'..=b'z' | b'A'..=b'Z') => extract_identifier(bytes).is_none_or(|name| {
-                self.by_tag.contains_key(&LocalName::from(name))
-                    || self
-                        .by_tag
-                        .contains_key(&LocalName::from(name.to_ascii_lowercase()))
-            }),
+            Some(b'a'..=b'z' | b'A'..=b'Z') => {
+                extract_identifier(bytes).is_none_or(|name| self.has_tag(name))
+            }
             // Universal (*), attribute ([), pseudo-class (:), empty, or unknown
             _ => true,
         }
+    }
+
+    /// Whether an element with this tag name may exist.
+    /// HTML elements match the lowercase name, foreign ones (e.g. SVG) the exact one.
+    fn has_tag(&self, name: &[u8]) -> bool {
+        if self.by_tag.contains_key(&name_key(name)) {
+            return true;
+        }
+        if !name.iter().any(u8::is_ascii_uppercase) {
+            return false;
+        }
+        let mut buffer = [0u8; 64];
+        // Longer names are rare enough to skip the check
+        let Some(lower) = buffer.get_mut(..name.len()) else {
+            return true;
+        };
+        lower.copy_from_slice(name);
+        lower.make_ascii_lowercase();
+        self.by_tag.contains_key(&name_key(lower))
     }
 
     pub(crate) fn detach_node(&mut self, node: NodeId) {
@@ -504,10 +537,17 @@ impl std::ops::IndexMut<NodeId> for Document {
     }
 }
 
-/// Extract a CSS identifier (class/id/tag name) from a byte slice.
-/// Returns the identifier as a `&str` if valid, `None` otherwise.
+/// Index key of an ID, class, or tag name.
+/// A collision only adds candidates, which full selector matching filters out.
 #[inline]
-fn extract_identifier(bytes: &[u8]) -> Option<&str> {
+fn name_key(name: &[u8]) -> u64 {
+    hash_class_name(name)
+}
+
+/// Extract a CSS identifier (class/id/tag name) from a byte slice.
+/// Returns the identifier as a byte slice if valid, `None` otherwise.
+#[inline]
+fn extract_identifier(bytes: &[u8]) -> Option<&[u8]> {
     // Find the end of the identifier (ASCII letters, digits, underscore, hyphen)
     let end = bytes
         .iter()
@@ -519,8 +559,7 @@ fn extract_identifier(bytes: &[u8]) -> Option<&str> {
         return None;
     }
 
-    // SAFETY: All matched bytes are ASCII (0x00-0x7F), which is valid UTF-8
-    Some(unsafe { std::str::from_utf8_unchecked(&bytes[..end]) })
+    Some(&bytes[..end])
 }
 
 #[cfg(test)]
