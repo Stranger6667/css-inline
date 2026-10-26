@@ -303,6 +303,33 @@ fn important_inline_wins_over_stylesheet_important() {
     );
 }
 
+#[test_case("p{color:red !IMPORTANT} p{color:blue}", "<p>x</p>", r#"<p style="color: red !IMPORTANT;">x</p>"#; "uppercase")]
+#[test_case("p{color:red !Important} p{color:blue}", "<p>x</p>", r#"<p style="color: red !Important;">x</p>"#; "mixed case")]
+#[test_case("p{color:red ! important} p{color:blue}", "<p>x</p>", r#"<p style="color: red ! important;">x</p>"#; "space after bang")]
+#[test_case("p{color:red !/**/important} p{color:blue}", "<p>x</p>", r#"<p style="color: red !/**/important;">x</p>"#; "comment after bang")]
+#[test_case("p{color:red !important /* c */} p{color:blue}", "<p>x</p>", r#"<p style="color: red !important /* c */;">x</p>"#; "trailing comment")]
+#[test_case("p{color:red !important} p{color:blue}", "<p>x</p>", r#"<p style="color: red !important;">x</p>"#; "lowercase")]
+#[test_case("p{color:blue !important} p{color:red !IMPORTANT}", "<p>x</p>", r#"<p style="color: red !IMPORTANT;">x</p>"#; "both important later wins")]
+#[test_case("p{font-family:important} p{font-family:serif}", "<p>x</p>", r#"<p style="font-family: serif;">x</p>"#; "ident without bang")]
+#[test_case("p{color:red !important blue} p{color:blue}", "<p>x</p>", r#"<p style="color: blue;">x</p>"#; "bang not last")]
+#[test_case("p{color:blue !important}", r#"<p style="color:red !IMPORTANT">x</p>"#, r#"<p style="color: red !IMPORTANT">x</p>"#; "inline uppercase beats stylesheet important")]
+#[test_case("p{color:blue ! Important}", r#"<p style="color:red !important">x</p>"#, r#"<p style="color: red !important">x</p>"#; "inline beats stylesheet spaced important")]
+#[test_case("p{color:blue !IMPORTANT}", r#"<p style="color:red">x</p>"#, r#"<p style="color: blue !important">x</p>"#; "stylesheet uppercase beats inline")]
+#[test_case("p{color:blue !/**/important /**/}", r#"<p style="color:red">x</p>"#, r#"<p style="color: blue !important">x</p>"#; "stylesheet comments beats inline")]
+#[test_case("p{color:blue}", r#"<p style="color:red !Important">x</p>"#, r#"<p style="color: red !Important">x</p>"#; "inline mixed case beats stylesheet")]
+#[test_case("p{font-family:important}", r#"<p style="font-family:serif">x</p>"#, r#"<p style="font-family: serif">x</p>"#; "stylesheet ident without bang loses to inline")]
+fn important_spelling(style: &str, body: &str, expected: &str) {
+    assert_inlined!(style = style, body = body, expected = expected);
+}
+
+#[test_case("img{width:100px !IMPORTANT}", r#"<img width="100" style="width: 100px !IMPORTANT;">"#; "uppercase")]
+#[test_case("img{width:100px ! important}", r#"<img width="100" style="width: 100px ! important;">"#; "space after bang")]
+fn apply_width_important_spelling(style: &str, expected: &str) {
+    let inliner = CSSInliner::options().apply_width_attributes(true).build();
+    let inlined = inliner.inline(&html!(style, "<img>")).unwrap();
+    assert_eq!(inlined, html!(expected));
+}
+
 #[test]
 fn important_override_with_minify_css() {
     // With minify_css enabled, `!important` should still be preserved when overriding inline styles.

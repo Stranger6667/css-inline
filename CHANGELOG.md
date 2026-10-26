@@ -18,6 +18,7 @@
 
 ### Fixed
 
+- `!important` not recognised when written in uppercase or with whitespace or comments after `!`.
 - Only the last element with a duplicated `id` being styled in documents of 1 KB or more.
 - Uppercase or mixed-case type selectors (e.g. `H1`) not matching HTML elements in documents of 1 KB or more.
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.

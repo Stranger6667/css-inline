@@ -299,6 +299,55 @@ pub(crate) fn collect_rules<'i>(
     }
 }
 
+/// The declaration value without its `!important` flag, or `None` if it has no such flag.
+///
+/// The flag is `!` and `important` (any ASCII case) as the last tokens, with optional
+/// whitespace and comments around and between them.
+pub(crate) fn strip_important(value: &str) -> Option<&str> {
+    // Common spelling, with the flag at the top level
+    if let Some(rest) = value.trim_ascii_end().strip_suffix("!important") {
+        if is_closed_plain(rest) {
+            return Some(rest.trim_ascii_end());
+        }
+    }
+    // Most values have no `!`, skip tokenizing them
+    if !value.as_bytes().contains(&b'!') {
+        return None;
+    }
+    let mut parser = cssparser::Parser::new(value);
+    loop {
+        if let Token::Delim('!') = parser.next().ok()? {
+            // `!` is one byte, so it starts right before the current position
+            let bang = parser.position().byte_index().saturating_sub(1);
+            let state = parser.state();
+            if parser.expect_ident_matching("important").is_ok() && parser.is_exhausted() {
+                return Some(value[..bang].trim_ascii_end());
+            }
+            parser.reset(&state);
+        }
+    }
+}
+
+/// Whether `value` has no strings, comments, escapes or brackets other than balanced
+/// parentheses, so what follows it is at the top level.
+fn is_closed_plain(value: &str) -> bool {
+    let mut depth = 0usize;
+    for byte in value.bytes() {
+        match byte {
+            b'"' | b'\'' | b'\\' | b'/' | b'[' | b']' | b'{' | b'}' => return false,
+            b'(' => depth = depth.saturating_add(1),
+            b')' => {
+                let Some(outer) = depth.checked_sub(1) else {
+                    return false;
+                };
+                depth = outer;
+            }
+            _ => {}
+        }
+    }
+    depth == 0
+}
+
 fn exhaust<'i>(input: &mut cssparser::Parser<'i>) -> &'i str {
     let start = input.position();
     while input.next().is_ok() {}
@@ -568,5 +617,27 @@ mod tests {
     #[test_case("h1, /* a, b", &["h1", " /* a, b"]; "unterminated comment")]
     fn split(list: &str, expected: &[&str]) {
         assert_eq!(split_selector_list(list).collect::<Vec<_>>(), expected);
+    }
+
+    #[test_case("red !important", Some("red"); "plain")]
+    #[test_case("red!important  ", Some("red"); "no spaces")]
+    #[test_case("!important", Some(""); "flag only")]
+    #[test_case("red !IMPORTANT", Some("red"); "uppercase")]
+    #[test_case("red ! /* c */ Important /* d */", Some("red"); "comments")]
+    #[test_case("rgb(0, 0, 0) !important", Some("rgb(0, 0, 0)"); "after function")]
+    #[test_case(r#""a" !important"#, Some(r#""a""#); "after string")]
+    #[test_case("red", None; "no flag")]
+    #[test_case("important", None; "no bang")]
+    #[test_case("red !important blue", None; "not last")]
+    #[test_case(r"red \!important", None; "escaped bang")]
+    #[test_case(r#""a !important""#, None; "inside string")]
+    #[test_case("red /* !important */", None; "inside comment")]
+    #[test_case("rgb(0 !important", None; "inside unclosed function")]
+    #[test_case("var(--a, rgb(0 0 0)) !important", Some("var(--a, rgb(0 0 0))"); "after nested functions")]
+    #[test_case("a) (b !important", None; "inside block after stray parenthesis")]
+    #[test_case("[a !important", None; "inside unclosed bracket")]
+    #[test_case("red !importantx", None; "longer ident")]
+    fn strip_important(value: &str, expected: Option<&str>) {
+        assert_eq!(super::strip_important(value), expected);
     }
 }

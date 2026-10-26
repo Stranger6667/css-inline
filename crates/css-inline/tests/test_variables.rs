@@ -2,6 +2,7 @@
 mod utils;
 
 use css_inline::CSSInliner;
+use test_case::test_case;
 
 fn resolve(html: &str) -> String {
     CSSInliner::options()
@@ -169,6 +170,16 @@ fn important_inline_definition_beats_later_duplicate() {
         body = r#"<p style="--c: var(--c, green); --c: blue">x</p>"#,
         expected = r#"<p style="color: red">x</p>"#
     )
+}
+
+#[test_case(r#"<p style="--c: red !IMPORTANT; --c: blue">x</p>"#; "uppercase")]
+#[test_case(r#"<p style="--c: red ! important; --c: blue">x</p>"#; "space after bang")]
+fn important_inline_definition_spelling(body: &str) {
+    assert_resolved!(
+        style = "p{color:var(--c)}",
+        body = body,
+        expected = r#"<p style="color: red">x</p>"#
+    );
 }
 
 #[test]
