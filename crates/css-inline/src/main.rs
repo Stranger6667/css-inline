@@ -329,7 +329,11 @@ OPTIONS:
         if args.files.is_empty() {
             let mut buffer = String::new();
             io::stdin().read_to_string(&mut buffer)?;
-            if let Err(error) = inliner.inline_to(&buffer, &mut io::stdout()) {
+            let mut out = io::BufWriter::with_capacity(1 << 16, io::stdout().lock());
+            if let Err(error) = inliner
+                .inline_to(&buffer, &mut out)
+                .and_then(|()| out.flush().map_err(Into::into))
+            {
                 format_error(None, error);
                 exit_code.store(1, Ordering::SeqCst);
             }
