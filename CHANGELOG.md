@@ -9,6 +9,7 @@
 - Skip selectors with pseudo-classes that never match during inlining, such as `:hover`, before matching them.
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
+- Check only the root element for selectors ending in `:root`.
 - Buffer the CLI's standard output instead of writing each piece with a separate system call.
 
 ### Fixed

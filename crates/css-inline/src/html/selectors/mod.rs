@@ -56,29 +56,34 @@ pub(crate) enum SelectorAnchor<'a> {
     Tag(&'a LocalName),
     /// Attribute selector - O(k) lookup where k = elements with this attribute
     Attribute(&'a LocalName),
+    /// `:root` - only the top-level elements
+    Root,
     /// No usable anchor - must scan all elements
     None,
 }
 
 /// Extract the best anchor from a single selector.
-/// Analyzes the rightmost compound selector (matched first) to find ID/class/tag,
+/// Analyzes the rightmost compound selector (matched first) to find `:root` or ID/class/tag,
 /// falling back to an attribute name.
 #[inline]
 fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
+    let mut anchor = None;
     let mut attribute = None;
     // Iterate in match order (rightmost first)
     for component in selector.iter_raw_match_order() {
         match component {
+            // The most selective anchor, wherever it is in the compound
+            Component::Root => return SelectorAnchor::Root,
             Component::ID(id) => {
-                return SelectorAnchor::Id(id);
+                anchor.get_or_insert(SelectorAnchor::Id(id));
             }
             Component::Class(class) => {
-                return SelectorAnchor::Class(class);
+                anchor.get_or_insert(SelectorAnchor::Class(class));
             }
             // Mixed-case names match differently on HTML and foreign elements, so only
             // lowercase ones are used
             Component::LocalName(local_name) if local_name.name == local_name.lower_name => {
-                return SelectorAnchor::Tag(&local_name.name);
+                anchor.get_or_insert(SelectorAnchor::Tag(&local_name.name));
             }
             Component::AttributeInNoNamespace { local_name, .. } => {
                 attribute.get_or_insert(local_name);
@@ -94,7 +99,7 @@ fn selector_anchor(selector: &Selector) -> SelectorAnchor<'_> {
             _ => {}
         }
     }
-    attribute.map_or(SelectorAnchor::None, SelectorAnchor::Attribute)
+    anchor.unwrap_or_else(|| attribute.map_or(SelectorAnchor::None, SelectorAnchor::Attribute))
 }
 
 impl Selectors {
@@ -167,6 +172,13 @@ mod tests {
                     "Expected Attribute({:?}) for {:?}, got {:?}",
                     $value, $selector, other
                 ),
+            }
+        };
+        ($selector:expr, Root) => {
+            let compiled = Selectors::compile($selector).unwrap();
+            match compiled.anchor() {
+                SelectorAnchor::Root => {}
+                other => panic!("Expected Root for {:?}, got {:?}", $selector, other),
             }
         };
         ($selector:expr, None) => {
@@ -249,6 +261,22 @@ mod tests {
         assert_anchor!(selector, Class, expected);
     }
 
+    #[test_case(":root"; "root")]
+    #[test_case("html:root"; "tag_root")]
+    #[test_case(":root.dark"; "root_class")]
+    #[test_case("#x:root"; "id_root")]
+    #[test_case("[data-x]:root"; "attribute_root")]
+    #[test_case("body :root"; "descendant_root")]
+    fn test_root_anchor(selector: &str) {
+        assert_anchor!(selector, Root);
+    }
+
+    #[test_case(":root > body", "body"; "root_child")]
+    #[test_case(":root p", "p"; "root_descendant")]
+    fn test_root_not_rightmost_anchor(selector: &str, expected: &str) {
+        assert_anchor!(selector, Tag, expected);
+    }
+
     // None (multiple selectors or universal)
     #[test_case("h1, h2, h3"; "multiple_tags")]
     #[test_case("div, .class, #id"; "multiple_mixed")]
@@ -258,6 +286,8 @@ mod tests {
     #[test_case("H1"; "uppercase_tag")]
     #[test_case("svg foreignObject"; "mixed_case_tag")]
     #[test_case("[data-x] *"; "attribute_in_ancestor")]
+    #[test_case(":not(:root)"; "not_root")]
+    #[test_case(":root, p"; "root_in_list")]
     fn test_none_anchor(selector: &str) {
         assert_anchor!(selector, None);
     }
