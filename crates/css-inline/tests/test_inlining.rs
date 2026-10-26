@@ -2605,3 +2605,65 @@ fn repeated_html_tag_adds_missing_attributes() {
         r#"<html lang="en" dir="rtl"><head></head><body></body></html>"#
     );
 }
+
+const NOT_LIST: &str = ".x:not([type=checkbox], [type=radio])";
+const NOT_LIST_BODY: &str = r#"<input class="x" type="radio"><input class="x" type="text">"#;
+const NOT_LIST_EXPECTED: &str =
+    r#"<input class="x" type="radio"><input class="x" type="text" style="color: red;">"#;
+const NOT_CLASSES: &str = ".y:not(.a, .b)";
+const NOT_CLASSES_BODY: &str = r#"<p class="y b">B</p><p class="y">Y</p>"#;
+const NOT_CLASSES_EXPECTED: &str = r#"<p class="y b">B</p><p class="y" style="color: red;">Y</p>"#;
+const ATTRIBUTE_VALUE: &str = r#"[title="a,b"]"#;
+const ATTRIBUTE_VALUE_BODY: &str = r#"<p title="a,b">AB</p><p title="a">A</p>"#;
+const ATTRIBUTE_VALUE_EXPECTED: &str =
+    r#"<p title="a,b" style="color: red;">AB</p><p title="a">A</p>"#;
+const STRING_PAREN: &str = r#"[title="("], h3"#;
+const STRING_PAREN_BODY: &str = r#"<p title="(">P</p><h3>H</h3>"#;
+const STRING_PAREN_EXPECTED: &str =
+    r#"<p title="(" style="color: red;">P</p><h3 style="color: red;">H</h3>"#;
+const ESCAPED_COMMA: &str = r".a\,b";
+const ESCAPED_COMMA_BODY: &str = r#"<p class="a,b">P</p><b>B</b>"#;
+const ESCAPED_COMMA_EXPECTED: &str = r#"<p class="a,b" style="color: red;">P</p><b>B</b>"#;
+const PLAIN_LIST: &str = "h1, h2";
+const PLAIN_LIST_BODY: &str = "<h1>1</h1><h2>2</h2><h3>3</h3>";
+const PLAIN_LIST_EXPECTED: &str =
+    r#"<h1 style="color: red;">1</h1><h2 style="color: red;">2</h2><h3>3</h3>"#;
+
+#[test_case(NOT_LIST, NOT_LIST_BODY, NOT_LIST_EXPECTED, ""; "not attributes small")]
+#[test_case(NOT_LIST, NOT_LIST_BODY, NOT_LIST_EXPECTED, PADDING; "not attributes large")]
+#[test_case(NOT_CLASSES, NOT_CLASSES_BODY, NOT_CLASSES_EXPECTED, ""; "not classes small")]
+#[test_case(NOT_CLASSES, NOT_CLASSES_BODY, NOT_CLASSES_EXPECTED, PADDING; "not classes large")]
+#[test_case(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE_BODY, ATTRIBUTE_VALUE_EXPECTED, ""; "attribute value small")]
+#[test_case(ATTRIBUTE_VALUE, ATTRIBUTE_VALUE_BODY, ATTRIBUTE_VALUE_EXPECTED, PADDING; "attribute value large")]
+#[test_case(STRING_PAREN, STRING_PAREN_BODY, STRING_PAREN_EXPECTED, ""; "parenthesis in string small")]
+#[test_case(STRING_PAREN, STRING_PAREN_BODY, STRING_PAREN_EXPECTED, PADDING; "parenthesis in string large")]
+#[test_case(ESCAPED_COMMA, ESCAPED_COMMA_BODY, ESCAPED_COMMA_EXPECTED, ""; "escaped comma small")]
+#[test_case(ESCAPED_COMMA, ESCAPED_COMMA_BODY, ESCAPED_COMMA_EXPECTED, PADDING; "escaped comma large")]
+#[test_case(PLAIN_LIST, PLAIN_LIST_BODY, PLAIN_LIST_EXPECTED, ""; "plain list small")]
+#[test_case(PLAIN_LIST, PLAIN_LIST_BODY, PLAIN_LIST_EXPECTED, PADDING; "plain list large")]
+fn selector_list_top_level_commas(selectors: &str, body: &str, expected: &str, padding: &str) {
+    let html = format!(
+        r#"<html><head><style>{selectors} {{ color: red; }}</style></head><body><!--{padding}-->{body}</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert_eq!(
+        inlined,
+        format!(r#"<html><head></head><body><!--{padding}-->{expected}</body></html>"#)
+    );
+}
+
+#[test_case(""; "small")]
+#[test_case(PADDING; "large")]
+fn remove_inlined_selectors_keeps_unmatched_not_list(padding: &str) {
+    let inliner = CSSInliner::options().remove_inlined_selectors(true).build();
+    let html = format!(
+        r#"<html><head><style>h1, .y:not(.a, .b) {{ color: red; }}</style></head><body><!--{padding}--><h1>T</h1><p class="y b">P</p></body></html>"#
+    );
+    let result = inliner.inline(&html).unwrap();
+    assert_eq!(
+        result,
+        format!(
+            r#"<html><head><style>.y:not(.a, .b) {{ color: red; }}</style></head><body><!--{padding}--><h1 style="color: red;">T</h1><p class="y b">P</p></body></html>"#
+        )
+    );
+}

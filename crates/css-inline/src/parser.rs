@@ -14,6 +14,76 @@ pub(crate) struct Rule<'i> {
     pub(crate) layer: LayerId,
 }
 
+/// Split a selector list on its top-level commas, leaving commas inside `()`, `[]`, strings,
+/// comments and escapes intact.
+pub(crate) fn split_selector_list(list: &str) -> impl Iterator<Item = &str> {
+    let mut rest = Some(list);
+    std::iter::from_fn(move || {
+        let current = rest?;
+        if let Some(comma) = top_level_comma(current) {
+            let (selector, tail) = current.split_at(comma);
+            rest = tail.strip_prefix(',');
+            Some(selector)
+        } else {
+            rest = None;
+            Some(current)
+        }
+    })
+}
+
+#[derive(Clone, Copy)]
+enum Scan {
+    Code,
+    String(u8),
+    Comment,
+}
+
+fn top_level_comma(list: &str) -> Option<usize> {
+    let mut scan = Scan::Code;
+    let mut depth = 0usize;
+    let mut escaped = false;
+    let mut previous = 0u8;
+    for (idx, &byte) in list.as_bytes().iter().enumerate() {
+        // Every special byte is ASCII, so an escape never hides one inside a multibyte char
+        if escaped {
+            escaped = false;
+            previous = 0;
+            continue;
+        }
+        match scan {
+            Scan::Comment => {
+                if previous == b'*' && byte == b'/' {
+                    scan = Scan::Code;
+                    previous = 0;
+                    continue;
+                }
+            }
+            Scan::String(quote) => {
+                if byte == b'\\' {
+                    escaped = true;
+                } else if byte == quote {
+                    scan = Scan::Code;
+                }
+            }
+            Scan::Code => match byte {
+                b'\\' => escaped = true,
+                b'"' | b'\'' => scan = Scan::String(byte),
+                b'*' if previous == b'/' => {
+                    scan = Scan::Comment;
+                    previous = 0;
+                    continue;
+                }
+                b'(' | b'[' => depth = depth.saturating_add(1),
+                b')' | b']' => depth = depth.saturating_sub(1),
+                b',' if depth == 0 => return Some(idx),
+                _ => {}
+            },
+        }
+        previous = byte;
+    }
+    None
+}
+
 /// Index into [`Layers`]; `0` is the implicit layer of unlayered rules.
 pub(crate) type LayerId = usize;
 
@@ -437,4 +507,30 @@ fn parse_declarations_into<'i>(
         declarations.push(item);
     }
     (start, declarations.len())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::split_selector_list;
+    use test_case::test_case;
+
+    #[test_case("h1, h2", &["h1", " h2"]; "plain list")]
+    #[test_case("h1", &["h1"]; "single")]
+    #[test_case("", &[""]; "empty")]
+    #[test_case("h1,", &["h1", ""]; "trailing comma")]
+    #[test_case(".x:not(.a, .b), p", &[".x:not(.a, .b)", " p"]; "inside parentheses")]
+    #[test_case(":is(a, :not(b, c)), d", &[":is(a, :not(b, c))", " d"]; "nested parentheses")]
+    #[test_case(r#"[title="a,b"], p"#, &[r#"[title="a,b"]"#, " p"]; "double-quoted string")]
+    #[test_case("[title='a,b'], p", &["[title='a,b']", " p"]; "single-quoted string")]
+    #[test_case(r#"[title="a'b,c"], p"#, &[r#"[title="a'b,c"]"#, " p"]; "other quote in string")]
+    #[test_case(r#"[title="("], p"#, &[r#"[title="("]"#, " p"]; "parenthesis in string")]
+    #[test_case(r#"[title="a\",b"], p"#, &[r#"[title="a\",b"]"#, " p"]; "escaped quote")]
+    #[test_case(r".a\,b, p", &[r".a\,b", " p"]; "escaped comma")]
+    #[test_case(r".a\(, p", &[r".a\(", " p"]; "escaped parenthesis")]
+    #[test_case(".é\\é, p", &[".é\\é", " p"]; "escaped non-ASCII")]
+    #[test_case("h1 /* a, b */, h2", &["h1 /* a, b */", " h2"]; "comment")]
+    #[test_case("h1, /* a, b", &["h1", " /* a, b"]; "unterminated comment")]
+    fn split(list: &str, expected: &[&str]) {
+        assert_eq!(split_selector_list(list).collect::<Vec<_>>(), expected);
+    }
 }
