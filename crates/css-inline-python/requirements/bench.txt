@@ -4,7 +4,7 @@ beautifulsoup4==4.14.3
     # via pynliner
 cachetools==6.2.4
     # via premailer
-certifi==2025.11.12
+certifi==2026.10.18
     # via requests
 charset-normalizer==3.4.4
     # via requests
