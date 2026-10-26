@@ -254,7 +254,8 @@ impl Document {
     }
 
     /// Whether every ID, class, and tag the selector names outside of nested selectors
-    /// (`:not()`, `:is()`, ...) exists in the document. A missing one means no element can match.
+    /// (`:not()`, `:is()`, ...) exists in the document, and no pseudo-class there needs a
+    /// user action or browser state (`:hover`, `:checked`, ...). Otherwise no element can match.
     pub(crate) fn has_required_names(&self, selector: &Selector) -> bool {
         selector
             .iter_raw_match_order()
@@ -270,6 +271,7 @@ impl Document {
                                 .by_tag
                                 .contains_key(&name_key(local_name.lower_name.as_bytes())))
                 }
+                Component::NonTSPseudoClass(pseudo) => pseudo.can_match(),
                 _ => true,
             })
     }
@@ -608,6 +610,19 @@ mod tests {
     #[test_case(".exists:not(#missing)", true; "missing_id_in_negation")]
     #[test_case("BODY H1", true; "uppercase_tags")]
     #[test_case("svg foreignObject", true; "mixed_case_foreign_tag")]
+    #[test_case("h1:hover", false; "hover")]
+    #[test_case("h1:focus", false; "focus")]
+    #[test_case("h1:active", false; "active")]
+    #[test_case("h1:visited", false; "visited")]
+    #[test_case("h1:enabled", false; "enabled")]
+    #[test_case("h1:disabled", false; "disabled")]
+    #[test_case("h1:checked", false; "checked")]
+    #[test_case("h1:indeterminate", false; "indeterminate")]
+    #[test_case(".exists:hover h1", false; "hover_in_ancestor")]
+    #[test_case(":not(.missing):hover", false; "hover_after_negation")]
+    #[test_case("h1:not(:hover)", true; "hover_in_negation")]
+    #[test_case("h1:link", true; "link")]
+    #[test_case("h1:any-link", true; "any_link")]
     fn test_has_required_names(selector: &str, expected: bool) {
         let html = format!(
             r#"<html><body><h1 class="exists" id="title">Test</h1><svg><foreignObject></foreignObject></svg><!-- {} --></body></html>"#,

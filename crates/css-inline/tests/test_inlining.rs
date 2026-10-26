@@ -2811,3 +2811,30 @@ fn remove_inlined_selectors_keeps_unmatched_not_list(padding: &str) {
         )
     );
 }
+
+#[test_case("a:hover { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u">x</a>"#, ""; "hover small")]
+#[test_case("a:hover { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u">x</a>"#, PADDING; "hover large")]
+#[test_case("p:focus { color: red; }", "<p>x</p>", r#"<p>x</p>"#, ""; "focus small")]
+#[test_case("p:focus { color: red; }", "<p>x</p>", r#"<p>x</p>"#, PADDING; "focus large")]
+#[test_case(".x:hover .y { color: red; }", "<div class=\"x\"><p class=\"y\">x</p></div>", r#"<div class="x"><p class="y">x</p></div>"#, ""; "hover in ancestor small")]
+#[test_case(".x:hover .y { color: red; }", "<div class=\"x\"><p class=\"y\">x</p></div>", r#"<div class="x"><p class="y">x</p></div>"#, PADDING; "hover in ancestor large")]
+#[test_case("a:not(:hover) { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u" style="color: red;">x</a>"#, ""; "hover in negation small")]
+#[test_case("a:not(:hover) { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u" style="color: red;">x</a>"#, PADDING; "hover in negation large")]
+#[test_case(":not(.x):hover { color: red; }", "<p>x</p>", r#"<p>x</p>"#, ""; "hover after negation small")]
+#[test_case(":not(.x):hover { color: red; }", "<p>x</p>", r#"<p>x</p>"#, PADDING; "hover after negation large")]
+#[test_case("a:hover, p { color: red; }", "<a href=\"/u\">x</a><p>y</p>", r#"<a href="/u">x</a><p style="color: red;">y</p>"#, ""; "hover in list small")]
+#[test_case("a:hover, p { color: red; }", "<a href=\"/u\">x</a><p>y</p>", r#"<a href="/u">x</a><p style="color: red;">y</p>"#, PADDING; "hover in list large")]
+#[test_case("input:checked { color: red; }", "<input checked=\"\">", r#"<input checked="">"#, ""; "checked small")]
+#[test_case("input:checked { color: red; }", "<input checked=\"\">", r#"<input checked="">"#, PADDING; "checked large")]
+#[test_case("a:link { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u" style="color: red;">x</a>"#, ""; "link small")]
+#[test_case("a:link { color: red; }", "<a href=\"/u\">x</a>", r#"<a href="/u" style="color: red;">x</a>"#, PADDING; "link large")]
+fn never_matching_pseudo_classes(css: &str, body: &str, expected: &str, padding: &str) {
+    let html = format!(
+        r#"<html><head><style>{css}</style></head><body><!--{padding}-->{body}</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(
+        inlined.contains(&format!("<!--{padding}-->{expected}</body>")),
+        "{inlined}"
+    );
+}

@@ -16,6 +16,24 @@ pub(crate) enum PseudoClass {
     Indeterminate,
 }
 
+impl PseudoClass {
+    /// Whether any element can match it, see `Element::match_non_ts_pseudo_class`.
+    /// Only links can: the rest need a user action or browser state.
+    pub(crate) fn can_match(&self) -> bool {
+        match self {
+            PseudoClass::AnyLink | PseudoClass::Link => true,
+            PseudoClass::Visited
+            | PseudoClass::Active
+            | PseudoClass::Focus
+            | PseudoClass::Hover
+            | PseudoClass::Enabled
+            | PseudoClass::Disabled
+            | PseudoClass::Checked
+            | PseudoClass::Indeterminate => false,
+        }
+    }
+}
+
 impl NonTSPseudoClass for PseudoClass {
     fn is_active_or_hover(&self) -> bool {
         matches!(*self, PseudoClass::Active | PseudoClass::Hover)
