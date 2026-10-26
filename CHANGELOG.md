@@ -8,6 +8,7 @@
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
 - Buffer the CLI's standard output instead of writing each piece with a separate system call.
+- Escape text by scanning bytes instead of decoding characters.
 
 ### Fixed
 

@@ -7,6 +7,7 @@
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
+- Escape text by scanning bytes instead of decoding characters.
 
 ### Fixed
 

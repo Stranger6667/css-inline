@@ -7,7 +7,7 @@ use super::{
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
 use html5ever::{local_name, ns, tendril::StrTendril, LocalName, QualName};
-use memchr::{memchr3_iter, memchr_iter, memmem};
+use memchr::{memchr, memchr3_iter, memchr_iter, memmem};
 use smallvec::{smallvec, SmallVec};
 use std::io::Write;
 
@@ -353,30 +353,43 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
         self.stack.last_mut().expect("no parent ElemInfo")
     }
 
+    #[allow(clippy::arithmetic_side_effects)]
     fn write_escaped(&mut self, text: &str) -> Result<(), InlineError> {
+        let bytes = text.as_bytes();
         let mut last_end = 0;
-        for (start, part) in text.match_indices(['&', '\u{00A0}', '<', '>']) {
-            self.writer.write_all(
-                text.get(last_end..start)
-                    .expect("Invalid substring")
-                    .as_bytes(),
-            )?;
-            // This is slightly faster than matching on `char`
-            // Notably, this approach does not work in `write_attributes` below
-            match (part.as_bytes()[0] & 0b0000_1110) >> 1 {
-                1 => self.writer.write_all(b"&nbsp;")?,
-                3 => self.writer.write_all(b"&amp;")?,
-                6 => self.writer.write_all(b"&lt;")?,
-                7 => self.writer.write_all(b"&gt;")?,
-                _ => unreachable!(),
+        // U+00A0 is the only escaped non-ASCII character, and `0xC2` starts its UTF-8 form.
+        // Without that byte, a SIMD scan for the three ASCII characters is enough.
+        if memchr(0xC2, bytes).is_none() {
+            for idx in memchr3_iter(b'&', b'<', b'>', bytes) {
+                let escaped: &[u8] = match bytes[idx] {
+                    b'&' => b"&amp;",
+                    b'<' => b"&lt;",
+                    _ => b"&gt;",
+                };
+                self.writer.write_all(&bytes[last_end..idx])?;
+                self.writer.write_all(escaped)?;
+                last_end = idx + 1;
             }
-            last_end = start.checked_add(part.len()).expect("Size overflow");
+        } else {
+            let mut idx = 0;
+            while idx < bytes.len() {
+                let (escaped, width): (&[u8], usize) = match bytes[idx] {
+                    b'&' => (b"&amp;", 1),
+                    b'<' => (b"&lt;", 1),
+                    b'>' => (b"&gt;", 1),
+                    0xC2 if bytes.get(idx + 1) == Some(&0xA0) => (b"&nbsp;", 2),
+                    _ => {
+                        idx += 1;
+                        continue;
+                    }
+                };
+                self.writer.write_all(&bytes[last_end..idx])?;
+                self.writer.write_all(escaped)?;
+                idx += width;
+                last_end = idx;
+            }
         }
-        self.writer.write_all(
-            text.get(last_end..text.len())
-                .expect("Invalid substring")
-                .as_bytes(),
-        )?;
+        self.writer.write_all(&bytes[last_end..])?;
         Ok(())
     }
 
@@ -878,8 +891,87 @@ fn merge_styles<Wr: Write, V: VariableScope>(
 #[cfg(test)]
 mod tests {
     use crate::html::InliningMode;
+    use test_case::test_case;
 
     use super::Document;
+
+    fn serialize_body(body: &str) -> String {
+        let html = format!("<html><head></head><body>{body}</body></html>");
+        let doc = Document::parse_with_options(html.as_bytes(), 0, InliningMode::Document);
+        let mut buffer = Vec::new();
+        doc.serialize(
+            &mut buffer,
+            vec![None; doc.nodes.len()],
+            true,
+            false,
+            false,
+            None,
+            InliningMode::Document,
+            false,
+            false,
+            false,
+        )
+        .expect("Should not fail");
+        let output = String::from_utf8(buffer).expect("Valid UTF-8");
+        output
+            .strip_prefix("<html><head></head><body>")
+            .and_then(|rest| rest.strip_suffix("</body></html>"))
+            .expect("Unexpected document shape")
+            .to_string()
+    }
+
+    #[test_case("", ""; "empty")]
+    #[test_case("plain text", "plain text"; "nothing to escape")]
+    #[test_case("&amp;", "&amp;"; "ampersand")]
+    #[test_case("&lt;", "&lt;"; "less than")]
+    #[test_case("&gt;", "&gt;"; "greater than")]
+    #[test_case("&nbsp;", "&nbsp;"; "non-breaking space")]
+    #[test_case("\"'", "\"'"; "quotes untouched")]
+    #[test_case("&amp;abc", "&amp;abc"; "escape at start")]
+    #[test_case("abc&gt;", "abc&gt;"; "escape at end")]
+    #[test_case("&amp;&lt;&gt;&nbsp;&nbsp;&amp;", "&amp;&lt;&gt;&nbsp;&nbsp;&amp;"; "consecutive")]
+    #[test_case("é&amp;ü", "é&amp;ü"; "multibyte neighbours")]
+    #[test_case("¡&nbsp;¡", "¡&nbsp;¡"; "other 0xC2 lead bytes")]
+    #[test_case("à", "à"; "0xA0 continuation byte")]
+    #[test_case("Âà", "Âà"; "0xC3 0x82 then 0xC3 0xA0")]
+    #[test_case(
+        "Lorem ipsum dolor sit amet, consectetur &amp; adipiscing elit &lt;sed&gt; do eiusmod tempor&nbsp;€",
+        "Lorem ipsum dolor sit amet, consectetur &amp; adipiscing elit &lt;sed&gt; do eiusmod tempor&nbsp;€";
+        "long mixed"
+    )]
+    fn test_escape_text(input: &str, expected: &str) {
+        assert_eq!(
+            serialize_body(&format!("<p>{input}</p>")),
+            format!("<p>{expected}</p>")
+        );
+    }
+
+    #[test_case("", ""; "empty")]
+    #[test_case("plain", "plain"; "nothing to escape")]
+    #[test_case("&amp;", "&amp;"; "ampersand")]
+    #[test_case("&quot;", "&quot;"; "double quote")]
+    #[test_case("&nbsp;", "&nbsp;"; "non-breaking space")]
+    #[test_case("&lt;&gt;'", "<>'"; "angle brackets and single quote untouched")]
+    #[test_case("&amp;abc", "&amp;abc"; "escape at start")]
+    #[test_case("abc&quot;", "abc&quot;"; "escape at end")]
+    #[test_case("&amp;&quot;&nbsp;&nbsp;&amp;", "&amp;&quot;&nbsp;&nbsp;&amp;"; "consecutive")]
+    #[test_case("é&amp;ü", "é&amp;ü"; "multibyte neighbours")]
+    #[test_case("¡&nbsp;¡", "¡&nbsp;¡"; "other 0xC2 lead bytes")]
+    #[test_case("à", "à"; "0xA0 continuation byte")]
+    fn test_escape_attribute(input: &str, expected: &str) {
+        assert_eq!(
+            serialize_body(&format!("<p data-foo=\"{input}\"></p>")),
+            format!("<p data-foo=\"{expected}\"></p>")
+        );
+    }
+
+    #[test_case("script"; "script")]
+    #[test_case("style"; "style")]
+    #[test_case("xmp"; "xmp")]
+    fn test_raw_text_untouched(tag: &str) {
+        let body = format!("<{tag}>a & b < c > d \" \u{00A0} é</{tag}>");
+        assert_eq!(serialize_body(&body), body);
+    }
 
     #[test]
     fn test_serialize() {
