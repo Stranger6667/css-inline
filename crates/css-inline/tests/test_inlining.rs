@@ -2588,6 +2588,25 @@ fn repeated_body_tag_adds_missing_attributes(padding: &str) {
     );
 }
 
+#[test_case("#a { color: red; }", "<p id=\"a\">1</p><p id=\"a\">2</p>", r#"<p id="a" style="color: red;">1</p><p id="a" style="color: red;">2</p>"#, ""; "small")]
+#[test_case("#a { color: red; }", "<p id=\"a\">1</p><p id=\"a\">2</p>", r#"<p id="a" style="color: red;">1</p><p id="a" style="color: red;">2</p>"#, PADDING; "large")]
+#[test_case("p#a { color: red; }", "<p id=\"a\">1</p><p id=\"a\">2</p><span id=\"a\">3</span>", r#"<p id="a" style="color: red;">1</p><p id="a" style="color: red;">2</p><span id="a">3</span>"#, ""; "compound small")]
+#[test_case("p#a { color: red; }", "<p id=\"a\">1</p><p id=\"a\">2</p><span id=\"a\">3</span>", r#"<p id="a" style="color: red;">1</p><p id="a" style="color: red;">2</p><span id="a">3</span>"#, PADDING; "compound large")]
+#[test_case("#a.b { color: red; }", "<p id=\"a\" class=\"b\">1</p><p id=\"a\" class=\"b\">2</p><p id=\"a\">3</p>", r#"<p class="b" id="a" style="color: red;">1</p><p class="b" id="a" style="color: red;">2</p><p id="a">3</p>"#, ""; "id class small")]
+#[test_case("#a.b { color: red; }", "<p id=\"a\" class=\"b\">1</p><p id=\"a\" class=\"b\">2</p><p id=\"a\">3</p>", r#"<p class="b" id="a" style="color: red;">1</p><p class="b" id="a" style="color: red;">2</p><p id="a">3</p>"#, PADDING; "id class large")]
+#[test_case("div #a { color: red; }", "<div><p id=\"a\">1</p></div><div><p id=\"a\">2</p></div><p id=\"a\">3</p>", r#"<div><p id="a" style="color: red;">1</p></div><div><p id="a" style="color: red;">2</p></div><p id="a">3</p>"#, ""; "descendant small")]
+#[test_case("div #a { color: red; }", "<div><p id=\"a\">1</p></div><div><p id=\"a\">2</p></div><p id=\"a\">3</p>", r#"<div><p id="a" style="color: red;">1</p></div><div><p id="a" style="color: red;">2</p></div><p id="a">3</p>"#, PADDING; "descendant large")]
+fn duplicate_ids_are_all_styled(css: &str, body: &str, expected: &str, padding: &str) {
+    let html = format!(
+        r#"<html><head><style>{css}</style></head><body><!--{padding}-->{body}</body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert!(
+        inlined.contains(&format!("<!--{padding}-->{expected}</body>")),
+        "{inlined}"
+    );
+}
+
 #[test]
 fn repeated_body_tag_keeps_existing_attributes() {
     let inlined = inline(r#"<body title="a"><body title="b">"#).unwrap();

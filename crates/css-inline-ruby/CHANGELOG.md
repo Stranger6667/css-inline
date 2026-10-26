@@ -10,6 +10,7 @@
 
 ### Fixed
 
+- Only the last element with a duplicated `id` being styled in documents of 1 KB or more.
 - Uppercase or mixed-case type selectors (e.g. `H1`) not matching HTML elements in documents of 1 KB or more.
 - Class selectors with non-breaking spaces or other non-CSS whitespace in `class` not matching in documents of 1 KB or more.
 - Attributes from repeated `<html>` or `<body>` tags being dropped, and existing ones duplicated.
