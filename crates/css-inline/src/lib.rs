@@ -1124,8 +1124,8 @@ impl<'a> CSSInliner<'a> {
                                 element_styles.iter().position(|(n, _, _)| *n == prop_name)
                             {
                                 let entry = &mut element_styles[idx];
-                                let new_important = value.trim_end().ends_with("!important");
-                                let old_important = entry.2.trim_end().ends_with("!important");
+                                let new_important = parser::strip_important(value).is_some();
+                                let old_important = parser::strip_important(entry.2).is_some();
                                 match (new_important, old_important) {
                                     // Both normal; the later layer, then the higher specificity wins.
                                     (false, false) => {

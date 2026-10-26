@@ -96,9 +96,7 @@ fn extract_dimension_value(value: &str, allow_percent: bool) -> Option<Dimension
     // Trim whitespace between number and unit (e.g., "100 px") for lenient parsing
     let unit_part = value[end..].trim();
     // Strip `!important` suffix if present
-    let unit_part = unit_part
-        .strip_suffix("!important")
-        .map_or(unit_part, str::trim);
+    let unit_part = parser::strip_important(unit_part).unwrap_or(unit_part);
 
     match unit_part {
         // Pixel values - strip the 'px' suffix
@@ -140,7 +138,7 @@ fn effective_dimension<'a>(
     inline: Option<&'a str>,
     stylesheet: Option<&'a str>,
 ) -> Option<&'a str> {
-    let important = |v: &str| v.trim_end().ends_with("!important");
+    let important = |v: &str| parser::strip_important(v).is_some();
     if inline.is_some_and(important) {
         inline
     } else if stylesheet.is_some_and(important) {
@@ -802,7 +800,7 @@ fn merge_styles<Wr: Write, V: VariableScope>(
     };
     for (property, _, value) in new_styles {
         match (
-            value.trim_end().strip_suffix("!important"),
+            parser::strip_important(value),
             declarations_buffer
                 .iter_mut()
                 .take(parsed_declarations_count)
@@ -816,7 +814,12 @@ fn merge_styles<Wr: Write, V: VariableScope>(
             // Only override if the existing inline rule is NOT `!important`.
             // Per CSS spec: inline `!important` takes precedence over stylesheet `!important`
             (Some(value), Some(buffer)) => {
-                if !buffer.ends_with(b"!important") {
+                // Written from `&str` values, so it is UTF-8
+                let inline_important = std::str::from_utf8(buffer)
+                    .ok()
+                    .and_then(parser::strip_important)
+                    .is_some();
+                if !inline_important {
                     buffer.truncate(property.len().saturating_add(sep.len()));
                     write_declaration_value(buffer, value)?;
                     buffer.extend_from_slice(b" !important");

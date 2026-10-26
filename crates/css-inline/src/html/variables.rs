@@ -1,6 +1,6 @@
 //! Custom property (`--*`) resolution: `var()` substitution following CSS Variables Level 1.
 use super::serializer::{write_declaration, write_value_bytes};
-use crate::InlineError;
+use crate::{parser, InlineError};
 use hashbrown::HashTable;
 use memchr::{memchr, memchr3, memchr_iter};
 use rustc_hash::FxHasher;
@@ -208,9 +208,14 @@ fn is_plain(value: &[u8]) -> bool {
 /// Split off the `!important` flag; it is not part of a custom property's value.
 fn strip_important(value: &[u8]) -> (&[u8], bool) {
     let value = value.trim_ascii();
-    value
-        .strip_suffix(b"!important")
-        .map_or((value, false), |value| (value.trim_ascii_end(), true))
+    if memchr(b'!', value).is_none() {
+        return (value, false);
+    }
+    // The value comes from a `&str` or from a buffer of written declarations, so it is UTF-8
+    std::str::from_utf8(value)
+        .ok()
+        .and_then(parser::strip_important)
+        .map_or((value, false), |value| (value.as_bytes(), true))
 }
 
 #[allow(clippy::arithmetic_side_effects)]
