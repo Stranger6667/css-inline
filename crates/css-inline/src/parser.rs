@@ -39,6 +39,19 @@ enum Scan {
 }
 
 fn top_level_comma(list: &str) -> Option<usize> {
+    let bytes = list.as_bytes();
+    let comma = memchr::memchr(b',', bytes)?;
+    // Without these bytes nothing before the comma can nest, quote, comment or escape it
+    let prefix = &bytes[..comma];
+    if memchr::memchr3(b'(', b'[', b'\\', prefix).is_none()
+        && memchr::memchr3(b'"', b'\'', b'/', prefix).is_none()
+    {
+        return Some(comma);
+    }
+    top_level_comma_scan(list)
+}
+
+fn top_level_comma_scan(list: &str) -> Option<usize> {
     let mut scan = Scan::Code;
     let mut depth = 0usize;
     let mut escaped = false;
@@ -511,8 +524,31 @@ fn parse_declarations_into<'i>(
 
 #[cfg(test)]
 mod tests {
-    use super::split_selector_list;
+    use super::{split_selector_list, top_level_comma, top_level_comma_scan};
     use test_case::test_case;
+
+    #[test_case("a, b", Some(1); "plain")]
+    #[test_case("a/b, c", Some(3); "slash without comment")]
+    #[test_case("a/, b", Some(2); "slash before comma")]
+    #[test_case("a*/, b", Some(3); "comment end without start")]
+    #[test_case(r"a\,b, c", Some(4); "escaped comma")]
+    #[test_case(r#"[x=","], p"#, Some(7); "comma in attribute")]
+    #[test_case(":not(a, b), c", Some(10); "comma in parentheses")]
+    #[test_case("a), b", Some(2); "unbalanced closing")]
+    #[test_case(r#""a,b", c"#, Some(5); "comma in string")]
+    #[test_case("'a,b', c", Some(5); "comma in single-quoted string")]
+    #[test_case("/* , */ a, b", Some(9); "comma in comment")]
+    #[test_case("a,", Some(1); "trailing")]
+    #[test_case(",a", Some(0); "leading")]
+    #[test_case("", None; "empty")]
+    #[test_case("a b", None; "no comma")]
+    #[test_case("(a, b", None; "unclosed parenthesis")]
+    #[test_case("é, b", Some(2); "unicode before comma")]
+    #[test_case("é(, b", None; "unicode before parenthesis")]
+    fn comma(list: &str, expected: Option<usize>) {
+        assert_eq!(top_level_comma_scan(list), expected);
+        assert_eq!(top_level_comma(list), expected);
+    }
 
     #[test_case("h1, h2", &["h1", " h2"]; "plain list")]
     #[test_case("h1", &["h1"]; "single")]

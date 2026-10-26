@@ -4,6 +4,7 @@
 
 ### Performance
 
+- Find top-level commas in selector lists with a fast scan for the common case.
 - Look up elements by a hash of their ID, class, or tag name instead of interning it.
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
 - Use an index of attribute names for attribute selectors instead of checking every element.
