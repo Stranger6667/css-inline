@@ -10,6 +10,7 @@
 - Return the output buffer from `inline` and `inline_fragment` without copying it.
 - Build the remaining `<style>` content for `remove_inlined_selectors` without intermediate copies.
 - Skip selectors with pseudo-classes that never match during inlining, such as `:hover`, before matching them.
+- Skip a redundant UTF-8 validation pass over the input HTML.
 - Use an index of attribute names for attribute selectors instead of checking every element.
 - Skip selectors whose classes, IDs, or tags are missing from the document anywhere in the selector, not only in its leftmost part.
 - Check only the root element for selectors ending in `:root`.

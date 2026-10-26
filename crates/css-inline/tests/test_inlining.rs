@@ -1451,6 +1451,27 @@ fn inline_fragment_non_ascii() {
     assert_eq!(inlined, r#"<p style="color: red;">Grüße, 日本語 🎉</p>"#);
 }
 
+#[test_case(
+    r#"<html><head><style>.café { font-family: "日本語 🎉"; }</style></head><body><p class="café" title="é 中文 🎉">Grüße</p></body></html>"#,
+    "",
+    r#"<html><head></head><body><p class="café" title="é 中文 🎉" style="font-family: '日本語 🎉';">Grüße</p></body></html>"#;
+    "document"
+)]
+#[test_case(
+    r#"<style>.café { font-family: "日本語 🎉"; }</style><p class="café" title="é 中文 🎉">Grüße</p>"#,
+    "p[title^='é'] { color: red; }",
+    r#"<p class="café" title="é 中文 🎉" style="font-family: '日本語 🎉';color: red;">Grüße</p>"#;
+    "fragment"
+)]
+fn non_ascii_attributes_and_styles(html: &str, css: &str, expected: &str) {
+    let inlined = if css.is_empty() {
+        inline(html).unwrap()
+    } else {
+        css_inline::inline_fragment(html, css).unwrap()
+    };
+    assert_eq!(inlined, expected);
+}
+
 #[test]
 fn inline_fragment_empty() {
     let inlined = css_inline::inline_fragment("", "").unwrap();

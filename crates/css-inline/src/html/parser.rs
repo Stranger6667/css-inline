@@ -22,23 +22,24 @@ pub(crate) enum InliningMode {
     Fragment,
 }
 
-/// Parse input bytes into an HTML document.
+/// Parse input HTML into a document.
 pub(crate) fn parse_with_options(
-    bytes: &[u8],
+    html: &str,
     preallocate_node_capacity: usize,
     mode: InliningMode,
 ) -> Document {
     let sink = Sink {
         document: RefCell::new(Document::with_capacity(
             preallocate_node_capacity,
-            bytes.len(),
+            html.len(),
         )),
     };
     let options = html5ever::ParseOpts::default();
+    // The input is already a `str`, so it skips html5ever's UTF-8 decoder
     match mode {
-        InliningMode::Document => html5ever::parse_document(sink, options)
-            .from_utf8()
-            .one(bytes),
+        InliningMode::Document => {
+            html5ever::parse_document(sink, options).one(StrTendril::from_slice(html))
+        }
         InliningMode::Fragment => {
             let mut document = html5ever::parse_fragment(
                 sink,
@@ -47,8 +48,7 @@ pub(crate) fn parse_with_options(
                 vec![],
                 false,
             )
-            .from_utf8()
-            .one(bytes);
+            .one(StrTendril::from_slice(html));
             let document_id = NodeId::document_id();
             let context_element_id = NodeId::new(
                 document_id

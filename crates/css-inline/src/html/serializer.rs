@@ -979,7 +979,7 @@ mod tests {
     #[test]
     fn test_serialize() {
         let doc = Document::parse_with_options(
-            b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
+            "<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
             0,
             InliningMode::Document,
         );
@@ -1003,7 +1003,7 @@ mod tests {
     #[test]
     fn test_skip_style_tags() {
         let doc = Document::parse_with_options(
-            b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
+            "<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head>",
             0,
             InliningMode::Document,
         );
@@ -1027,7 +1027,7 @@ mod tests {
     #[test]
     fn test_escaped() {
         let doc = Document::parse_with_options(
-            b"<!DOCTYPE html><html><head><title>& < > \xC2\xA0</title></head><body></body></html>",
+            "<!DOCTYPE html><html><head><title>& < > \u{a0}</title></head><body></body></html>",
             0,
             InliningMode::Document,
         );
@@ -1051,7 +1051,7 @@ mod tests {
     #[test]
     fn test_untouched_style() {
         let doc = Document::parse_with_options(
-            b"<html><body><p style=\"color:blue;\"></p></body></html>",
+            "<html><body><p style=\"color:blue;\"></p></body></html>",
             0,
             InliningMode::Document,
         );
@@ -1078,7 +1078,7 @@ mod tests {
     #[test]
     fn test_attributes() {
         let doc = Document::parse_with_options(
-            b"<!DOCTYPE html><html><head></head><body data-foo='& \xC2\xA0 \"'></body></html>",
+            "<!DOCTYPE html><html><head></head><body data-foo='& \u{a0} \"'></body></html>",
             0,
             InliningMode::Document,
         );
@@ -1102,7 +1102,7 @@ mod tests {
     #[test]
     fn test_class_attribute_escaped() {
         let doc = Document::parse_with_options(
-            b"<!DOCTYPE html><html><head></head><body class='\"><img src=x onerror=alert(1)> &amp; \xC2\xA0'></body></html>",
+            "<!DOCTYPE html><html><head></head><body class='\"><img src=x onerror=alert(1)> &amp; \u{a0}'></body></html>",
             0,
             InliningMode::Document,
         );
@@ -1126,7 +1126,7 @@ mod tests {
     #[test]
     fn test_keep_at_rules_tags() {
         let doc = Document::parse_with_options(
-            b"<html><head><style>h1 { color:red }</style></head>",
+            "<html><head><style>h1 { color:red }</style></head>",
             0,
             InliningMode::Document,
         );
