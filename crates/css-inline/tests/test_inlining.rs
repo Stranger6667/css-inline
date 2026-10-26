@@ -2035,6 +2035,95 @@ fn remove_inlined_selectors_keep_style_tags_partial() {
     );
 }
 
+#[test_case(
+    "<style>@media print { p { color: red } } h1 { color: blue } .x { color: red }</style>",
+    true, false, false,
+    "<html><head><style>@media print { p { color: red } }\n.x { color: red; }</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "at-rule first and rule last"
+)]
+#[test_case(
+    "<style>@media print { p { color: red } } h1 { color: blue } .x { color: red }</style>",
+    false, false, false,
+    "<html><head><style>@media print { p { color: red } }\n.x { color: red; }</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "at-rule first and rule last without keep_at_rules"
+)]
+#[test_case(
+    "<style>.y { color: red }\n@font-face { font-family: X }\n</style>",
+    true, false, false,
+    "<html><head><style>.y { color: red; }\n@font-face { font-family: X }</style></head><body><h1>t</h1></body></html>";
+    "rule first and at-rule last"
+)]
+#[test_case(
+    "<style>@layer base { h1 { color: blue } .x { color: red } } .y { margin: 0 }</style>",
+    true, false, false,
+    "<html><head><style>@layer base {\n.x { color: red; }\n}\n.y { margin: 0; }</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "layer block with remaining rules"
+)]
+#[test_case(
+    "<style>@layer a, b; @layer a { h1 { color: blue } } @layer b { .x { color: red } }</style>",
+    true, false, false,
+    "<html><head><style>@layer a, b;\n@layer b {\n.x { color: red; }\n}</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "layer statement and emptied layer block"
+)]
+#[test_case(
+    "<style>@layer { .x { color: red } h1 { color: blue } }</style>",
+    true, false, false,
+    "<html><head><style>@layer {\n.x { color: red; }\n}</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "anonymous layer block"
+)]
+#[test_case(
+    "<style>h1 { color: blue }</style>",
+    true, false, false,
+    "<html><head></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "all rules removed"
+)]
+#[test_case(
+    "<style>h1 { color: blue }</style>",
+    true, true, false,
+    "<html><head><style></style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "all rules removed with keep_style_tags"
+)]
+#[test_case(
+    "<style>\n  h1 { color: blue }\n  \n</style>",
+    true, true, false,
+    "<html><head><style></style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "whitespace-only remainder"
+)]
+#[test_case(
+    "<style>\n  .x { color: red }\n  h1 { color: blue }\n</style>",
+    true, false, false,
+    "<html><head><style>.x { color: red; }</style></head><body><h1 style=\"color: blue;\">t</h1></body></html>";
+    "surrounding whitespace"
+)]
+#[test_case(
+    "<style>.x, .z { color: red; margin: 0 } h1 { color: blue }</style><style>h1 { padding: 0 }</style><style>.y { color: green }</style>",
+    true, false, false,
+    "<html><head><style>.x, .z { color: red; margin: 0; }</style><style>.y { color: green; }</style></head><body><h1 style=\"color: blue;padding: 0;\">t</h1></body></html>";
+    "multiple style tags"
+)]
+#[test_case(
+    "<style>.x { color: red } h1 { color: blue; margin: 0 }</style>",
+    true, false, true,
+    "<html><head><style>.x { color: red; }</style></head><body><h1 style=\"color:blue;margin:0\">t</h1></body></html>";
+    "minify_css"
+)]
+fn remove_inlined_selectors_rebuilds_style_content(
+    head: &str,
+    keep_at_rules: bool,
+    keep_style_tags: bool,
+    minify_css: bool,
+    expected: &str,
+) {
+    let inliner = CSSInliner::options()
+        .remove_inlined_selectors(true)
+        .keep_at_rules(keep_at_rules)
+        .keep_style_tags(keep_style_tags)
+        .minify_css(minify_css)
+        .build();
+    let html = format!("<html><head>{head}</head><body><h1>t</h1></body></html>");
+    assert_eq!(inliner.inline(&html).unwrap(), expected);
+}
+
 #[test]
 fn remove_inlined_selectors_empty_style_tag() {
     let inliner = CSSInliner::options()
