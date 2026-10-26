@@ -17,21 +17,30 @@ pub(crate) fn select<'a, 'c>(
     Selectors::compile(selectors).map(|selectors| {
         // Only use indexes if they were built during parsing
         let source = if !document.has_indexes() {
-            document.elements.iter()
+            ElementSource::Slice(document.elements.iter())
         } else if !selectors
             .iter()
             .any(|selector| document.has_required_names(selector))
         {
-            [].iter()
+            ElementSource::Slice([].iter())
         } else {
             match selectors.anchor() {
-                SelectorAnchor::Id(id) => document.get_by_id(id.as_inner()).iter(),
-                SelectorAnchor::Class(class) => document.get_by_class(class.as_inner()).iter(),
-                SelectorAnchor::Tag(tag) => document.get_by_tag(tag.as_inner()).iter(),
-                SelectorAnchor::Attribute(name) => {
-                    document.get_by_attribute(name.as_inner()).iter()
+                SelectorAnchor::Id(id) => {
+                    ElementSource::Slice(document.get_by_id(id.as_inner()).iter())
                 }
-                SelectorAnchor::None => document.elements.iter(),
+                SelectorAnchor::Class(class) => {
+                    ElementSource::Slice(document.get_by_class(class.as_inner()).iter())
+                }
+                SelectorAnchor::Tag(tag) => {
+                    ElementSource::Slice(document.get_by_tag(tag.as_inner()).iter())
+                }
+                SelectorAnchor::Attribute(name) => {
+                    ElementSource::Slice(document.get_by_attribute(name.as_inner()).iter())
+                }
+                SelectorAnchor::Root => {
+                    ElementSource::Roots(document[NodeId::document_id()].first_child)
+                }
+                SelectorAnchor::None => ElementSource::Slice(document.elements.iter()),
             }
         };
         Select {
@@ -43,12 +52,19 @@ pub(crate) fn select<'a, 'c>(
     })
 }
 
+/// Candidate elements for selector matching.
+enum ElementSource<'a> {
+    /// All elements, or an indexed subset.
+    Slice(std::slice::Iter<'a, NodeId>),
+    /// Children of the document node, starting from this one.
+    Roots(Option<NodeId>),
+}
+
 /// An element iterator adaptor that yields elements matching given selectors.
 pub(crate) struct Select<'a, 'c> {
     document: &'a Document,
     caches: &'c mut SelectorCaches,
-    /// Candidate elements: all of them, or an indexed subset.
-    source: std::slice::Iter<'a, NodeId>,
+    source: ElementSource<'a>,
     /// The selectors to be matched.
     selectors: Selectors,
 }
@@ -66,7 +82,19 @@ impl<'a> Iterator for Select<'a, '_> {
 
     #[inline]
     fn next(&mut self) -> Option<Element<'a>> {
-        for &element_id in self.source.by_ref() {
+        loop {
+            let element_id = match &mut self.source {
+                ElementSource::Slice(iter) => *iter.next()?,
+                // Skip non-element children of the document node, e.g. comments or doctype
+                ElementSource::Roots(next) => loop {
+                    let node_id = (*next)?;
+                    let node = &self.document[node_id];
+                    *next = node.next_sibling;
+                    if matches!(node.data, NodeData::Element { .. }) {
+                        break node_id;
+                    }
+                },
+            };
             let NodeData::Element { element, .. } = &self.document[element_id].data else {
                 unreachable!("Element ids always point to element nodes")
             };
@@ -77,6 +105,5 @@ impl<'a> Iterator for Select<'a, '_> {
                 }
             }
         }
-        None
     }
 }

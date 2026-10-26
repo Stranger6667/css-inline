@@ -2838,3 +2838,41 @@ fn never_matching_pseudo_classes(css: &str, body: &str, expected: &str, padding:
         "{inlined}"
     );
 }
+
+#[test_case(":root", "", r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root small")]
+#[test_case(":root", PADDING, r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root large")]
+#[test_case("html:root", "", r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "tag root small")]
+#[test_case("html:root", PADDING, r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "tag root large")]
+#[test_case(":root.x", "", r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root class small")]
+#[test_case(":root.x", PADDING, r#"<html class="x" style="color: red;"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root class large")]
+#[test_case(":root.y", "", r#"<html class="x"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root missing class small")]
+#[test_case(":root.y", PADDING, r#"<html class="x"><head></head><body><!--{padding}--><p>A</p></body></html>"#; "root missing class large")]
+#[test_case(":root > body", "", r#"<html class="x"><head></head><body style="color: red;"><!--{padding}--><p>A</p></body></html>"#; "root child small")]
+#[test_case(":root > body", PADDING, r#"<html class="x"><head></head><body style="color: red;"><!--{padding}--><p>A</p></body></html>"#; "root child large")]
+#[test_case(":root p", "", r#"<html class="x"><head></head><body><!--{padding}--><p style="color: red;">A</p></body></html>"#; "root descendant small")]
+#[test_case(":root p", PADDING, r#"<html class="x"><head></head><body><!--{padding}--><p style="color: red;">A</p></body></html>"#; "root descendant large")]
+#[test_case(":not(:root)", "", r#"<html class="x"><head style="color: red;"></head><body style="color: red;"><!--{padding}--><p style="color: red;">A</p></body></html>"#; "not root small")]
+#[test_case(":not(:root)", PADDING, r#"<html class="x"><head style="color: red;"></head><body style="color: red;"><!--{padding}--><p style="color: red;">A</p></body></html>"#; "not root large")]
+fn root_selector(selector: &str, padding: &str, expected: &str) {
+    let html = format!(
+        r#"<html class="x"><head><style>{selector} {{ color: red; }}</style></head><body><!--{padding}--><p>A</p></body></html>"#
+    );
+    let inlined = inline(&html).unwrap();
+    assert_eq!(inlined, expected.replace("{padding}", padding));
+}
+
+#[test_case(""; "small")]
+#[test_case(PADDING; "large")]
+fn root_selector_fragment(padding: &str) {
+    let inlined = css_inline::inline_fragment(
+        &format!("<p>A</p><!--{padding}--><div><p>B</p></div>"),
+        ":root { color: red; } :root p { margin: 0; }",
+    )
+    .unwrap();
+    assert_eq!(
+        inlined,
+        format!(
+            r#"<p style="color: red;">A</p><!--{padding}--><div style="color: red;"><p style="margin: 0;">B</p></div>"#
+        )
+    );
+}
