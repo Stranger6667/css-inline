@@ -4,7 +4,6 @@
 [<img alt="crates.io" src="https://img.shields.io/crates/v/css-inline.svg?style=flat-square&color=fc8d62&logo=rust" height="20">](https://crates.io/crates/css-inline)
 [<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-css_inline-66c2a5?style=flat-square&labelColor=555555&logo=docs.rs" height="20">](https://docs.rs/css-inline)
 [<img alt="codecov.io" src="https://img.shields.io/codecov/c/gh/Stranger6667/css-inline?logo=codecov&style=flat-square&token=tOzvV4kDY0" height="20">](https://app.codecov.io/github/Stranger6667/css-inline)
-[<img alt="gitter" src="https://img.shields.io/gitter/room/Stranger6667/css-inline?style=flat-square" height="20">](https://gitter.im/Stranger6667/css-inline)
 
 `css_inline` inlines CSS into HTML `style` attributes. Use it to prepare HTML emails or to embed HTML into third-party web pages.
 
@@ -439,7 +438,7 @@ Articles on how this library was built and how it works:
 
 ## Support
 
-Ask questions in the [gitter](https://gitter.im/Stranger6667/css-inline) chat.
+Ask questions or report bugs in [GitHub issues](https://github.com/Stranger6667/css-inline/issues).
 
 ## License
 
