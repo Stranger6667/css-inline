@@ -1,6 +1,6 @@
 [package]
 name = "css-inline-ruby"
-version = "0.23.0"
+version = "0.23.1"
 authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2024"
 readme = "README.rdoc"
@@ -21,7 +21,7 @@ magnus = "0.9"
 rayon = "1"
 
 [dependencies.css-inline]
-version = "0.23.0"
+version = "0.23.1"
 default-features = false
 features = ["http", "file", "stylesheet-cache"]
 
