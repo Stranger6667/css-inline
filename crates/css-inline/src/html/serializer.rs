@@ -445,17 +445,18 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
             return Ok(());
         }
 
-        let mut styles = if let Some(node_id) = style_node_id {
-            self.styles.get_mut(node_id.get()).and_then(|slot| {
-                slot.take().map(|mut styles| {
-                    // Sort by specificity for consistent output order
-                    styles.sort_unstable_by_key(|a| a.1);
-                    styles
-                })
-            })
-        } else {
-            None
-        };
+        // Borrow the element's styles in place: moving the inline `SmallVec` out copies it.
+        // The map is detached from `self` while borrowed. An error aborts serialization, so only
+        // the success path puts it back.
+        let mut all_styles = std::mem::take(&mut self.styles);
+        let mut styles = style_node_id
+            .and_then(|node_id| all_styles.get_mut(node_id.get()))
+            .and_then(Option::as_mut)
+            .map(|styles| {
+                // Sort by specificity for consistent output order
+                styles.sort_unstable_by_key(|a| a.1);
+                &*styles
+            });
 
         self.writer.write_all(b"<")?;
         self.writer.write_all(name.local.as_bytes())?;
@@ -518,7 +519,7 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
             self.writer.write_all(attr.name.local.as_bytes())?;
             self.writer.write_all(b"=\"")?;
             if attr.name.local == local_name!("style") {
-                if let Some(new_styles) = &styles {
+                if let Some(new_styles) = styles {
                     merge_styles(
                         &mut self.writer,
                         &attr.value,
@@ -566,13 +567,13 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
             self.writer.write_all(b"\"")?;
         }
         if let Some(styles) = styles {
-            for (property, _, value) in &styles {
+            for (property, _, value) in styles {
                 self.variables.define(property.as_bytes(), value.as_bytes());
             }
             self.variables.finish_definitions();
             // The attribute opens with the first declaration that is written.
             let mut opened = false;
-            for (property, _, value) in &styles {
+            for (property, _, value) in styles {
                 let prefix: &[u8] = if !opened {
                     b" style=\""
                 } else if minify_css {
@@ -597,6 +598,7 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
                 self.writer.write_all(b"\"")?;
             }
         }
+        self.styles = all_styles;
         self.writer.write_all(b">")?;
 
         let ignore_children = name.ns == ns!(html)
