@@ -37,7 +37,7 @@ into:
 ```
 
 - Uses components from Mozilla's Servo project
-- 14x to 680x faster than `premailer`, the fastest Python alternative (see [Performance](#performance))
+- 18x to 1115x faster than `premailer`, the fastest Python alternative (see [Performance](#performance))
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -292,14 +292,14 @@ inlined = etree.tostring(tree).decode(encoding="utf-8")
 
 ## Performance
 
-`css-inline` is 14x to 680x faster than the next fastest Python inliner, `premailer`, on the inputs below:
+`css-inline` is 18x to 1115x faster than the next fastest Python inliner, `premailer`, on the inputs below:
 
-|             | Size    | `css_inline 0.22.0` | `premailer 3.10.0`     | `toronado 0.1.0`        | `pynliner 0.8.0`        |
+|             | Size    | `css_inline 0.23.1` | `premailer 3.10.0`     | `toronado 0.1.0`        | `pynliner 0.8.0`        |
 |-------------|---------|---------------------|------------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 4.19 µs             | 90.77 µs (**21.66x**)  | 538.65 µs (**128.56x**) | 951.89 µs (**227.18x**) |
-| Realistic-1 | 8.58 KB | 78.15 µs            | 1.12 ms (**14.32x**)   | 12.25 ms (**156.77x**)  | 12.92 ms (**165.31x**)  |
-| Realistic-2 | 4.30 KB | 42.70 µs            | 1.47 ms (**34.38x**)   | ERROR                   | ERROR                   |
-| GitHub page | 1.81 MB | 16.79 ms            | 11.42 s (**680.16x**)  | ERROR                   | ERROR                   |
+| Basic       | 230 B   | 4.10 µs             | 111.34 µs (**27.15x**) | 633.87 µs (**154.58x**) | 1.08 ms (**263.88x**)   |
+| Realistic-1 | 8.58 KB | 71.52 µs            | 1.31 ms (**18.26x**)   | 14.30 ms (**200.02x**)  | 15.21 ms (**212.69x**)  |
+| Realistic-2 | 4.30 KB | 40.38 µs            | 1.67 ms (**41.33x**)   | ERROR                   | ERROR                   |
+| GitHub page | 1.81 MB | 11.22 ms            | 12.51 s (**1114.78x**) | ERROR                   | ERROR                   |
 
 `toronado` and `pynliner` fail on Realistic-2 and the GitHub page because those inputs contain CSS they do not support: `toronado` raises `ExpressionError: Pseudo-elements are not supported.`, `pynliner` raises `Exception: No match was found. We're done or something is broken`.
 `inlinestyler` 0.2.5 is not in the table: it crashes with current `lxml` (`'CSSSelector' object has no attribute 'evaluate'`).

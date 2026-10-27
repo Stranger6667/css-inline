@@ -228,14 +228,14 @@ Set `loadRemoteStylesheets: false` to skip all `link` tags.
 
 ## Performance
 
-Native `css-inline` runs 3.15x to 10.33x faster than `juice` and `inline-css` on the cases below. The WASM build runs 1.37x to 1.68x slower than native.
+Native `css-inline` runs 3.09x to 15.19x faster than `juice` and `inline-css` on the cases below. The WASM build runs 1.50x to 1.65x slower than native.
 
 |             | Size    | `css-inline`| `css-inline-wasm`    | `juice`                 | `inline-css`            |
 |-------------|---------|-------------|----------------------|-------------------------|-------------------------|
-| Basic       | 230 B   | 8.42 µs     | 12.96 µs (**1.54x**) | 41.05 µs (**4.88x**)    | 78.16 µs (**9.28x**)    |
-| Realistic-1 | 8.58 KB | 161.13 µs   | 270.56 µs (**1.68x**)| 508.13 µs (**3.15x**)   | 1.07 ms (**6.62x**)     |
-| Realistic-2 | 4.30 KB | 85.15 µs    | 133.48 µs (**1.57x**)| 605.33 µs (**7.11x**)   | 839.63 µs (**9.86x**)   |
-| GitHub page | 1.81 MB | 31.04 ms    | 42.61 ms (**1.37x**) | 320.68 ms (**10.33x**)  | ERROR                   |
+| Basic       | 230 B   | 8.14 µs     | 12.23 µs (**1.50x**) | 40.89 µs (**5.02x**)    | 76.10 µs (**9.35x**)    |
+| Realistic-1 | 8.58 KB | 154.56 µs   | 255.62 µs (**1.65x**)| 478.24 µs (**3.09x**)   | 1.00 ms (**6.50x**)     |
+| Realistic-2 | 4.30 KB | 77.86 µs    | 120.31 µs (**1.55x**)| 571.43 µs (**7.34x**)   | 805.15 µs (**10.34x**)  |
+| GitHub page | 1.81 MB | 20.37 ms    | 30.79 ms (**1.51x**) | 309.51 ms (**15.19x**)  | ERROR                   |
 
 `inline-css` fails on the GitHub page because it cannot parse its CSS: `Error: Unexpected } (line 193, char 13771)`.
 

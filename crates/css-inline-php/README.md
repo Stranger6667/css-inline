@@ -31,7 +31,7 @@ into:
 ```
 
 - Uses HTML and CSS parsing components from Mozilla's Servo project
-- 3-473x faster than `css-to-inline-styles` and `emogrifier` ([benchmarks](#performance))
+- 4-748x faster than `css-to-inline-styles` and `emogrifier` ([benchmarks](#performance))
 - Inlines CSS from `style` and `link` tags
 - Removes `style` and `link` tags
 - Resolves external stylesheets (including local files)
@@ -306,17 +306,16 @@ Caching is disabled by default.
 
 ## Performance
 
-`css_inline` is 3-473x faster than `css-to-inline-styles` and `emogrifier` on the inputs below:
+`css_inline` is 4-748x faster than `css-to-inline-styles` and `emogrifier` on the inputs below:
 
-|                   | Size    | `css_inline 0.22.0` | `css-to-inline-styles 2.4.0` | `emogrifier 8.2.0`     |
+|                   | Size    | `css_inline 0.23.1` | `css-to-inline-styles 2.4.0` | `emogrifier 8.3.0`     |
 |-------------------|---------|---------------------|------------------------------|------------------------|
-| Simple            | 230 B   | 5.27 µs             | 27.81 µs (**5.28x**)         | 155.93 µs (**29.59x**) |
-| Realistic email 1 | 8.58 KB | 88.10 µs            | 287.67 µs (**3.27x**)        | 638.54 µs (**7.25x**)  |
-| Realistic email 2 | 4.30 KB | 52.90 µs            | 613.71 µs (**11.60x**)       | 2.44 ms (**46.06x**)   |
-| GitHub Page       | 1.81 MB | 17.91 ms            | skipped†                     | 8.47 s (**472.92x**)‡  |
+| Simple            | 230 B   | 5.50 µs             | 26.13 µs (**4.75x**)         | 157.20 µs (**28.58x**) |
+| Realistic email 1 | 8.58 KB | 76.14 µs            | 278.62 µs (**3.66x**)        | 673.20 µs (**8.84x**)  |
+| Realistic email 2 | 4.30 KB | 42.52 µs            | 597.70 µs (**14.06x**)       | 2.42 ms (**57.00x**)   |
+| GitHub Page       | 1.81 MB | 11.18 ms            | 6.17 s (**552.15x**)†        | 8.36 s (**747.51x**)†  |
 
-† `css-to-inline-styles` returns the GitHub page without inlining any styles.
-‡ Timed outside phpbench: median of 5 runs. At 10 iterations of 100 revolutions, `composer bench` would spend about 2.4 hours on this cell, so it skips it.
+† Timed outside phpbench: median of 5 runs. At 10 iterations of 100 revolutions, `composer bench` would spend hours on these cells, so it skips them.
 
 The benchmark code lives in [`crates/css-inline-php/benchmarks/InlineBench.php`](https://github.com/Stranger6667/css-inline/blob/master/crates/css-inline-php/benchmarks/InlineBench.php). It reads the `simple`, `big_email_1`, `big_email_2` and `big_page` inputs from [`benchmarks/benchmarks.json`](https://github.com/Stranger6667/css-inline/blob/master/benchmarks/benchmarks.json).
 To reproduce, build the extension, then run `composer install` and `composer bench` in `crates/css-inline-php` (phpbench, 10 iterations of 100 revolutions each; the table shows the median iteration).

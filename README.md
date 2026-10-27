@@ -385,14 +385,14 @@ The `cache` option defaults to `None`, so `css-inline` fetches stylesheets on ev
 
 The table shows absolute timings of the Rust crate. The [Python](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-python#performance), [Ruby](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-ruby#performance) and [JavaScript](https://github.com/Stranger6667/css-inline/tree/master/crates/css-inline-js#performance) READMEs compare `css-inline` with other inliners.
 
-Benchmarks for `css-inline==0.22.0`:
+Benchmarks for `css-inline==0.23.1`:
 
 | Case | Bench ID | Time | Size |
 |------|----------|------|------|
-| Basic | `simple` | **4.10 µs** | 230 bytes |
-| Realistic-1 | `big_email_1` | **74.41 µs** | 8.58 KB |
-| Realistic-2 | `big_email_2` | **42.13 µs** | 4.30 KB |
-| GitHub page | `big_page` | **16.51 ms** | 1.81 MB |
+| Basic | `simple` | **3.86 µs** | 230 bytes |
+| Realistic-1 | `big_email_1` | **71.12 µs** | 8.58 KB |
+| Realistic-2 | `big_email_2` | **40.26 µs** | 4.30 KB |
+| GitHub page | `big_page` | **11.31 ms** | 1.81 MB |
 
 Criterion mean time, measured with `rustc 1.99` on a Ryzen 9 9950X.
 

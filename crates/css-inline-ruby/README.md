@@ -271,14 +271,14 @@ end
 
 ## Performance
 
-`css_inline` runs 8.1x to 354x faster than `roadie` and 57x to 123x faster than `premailer` on these documents:
+`css_inline` runs 9.6x to 583x faster than `roadie` and 64x to 191x faster than `premailer` on these documents:
 
-|                   | Size    | `css_inline 0.22.0` | `roadie 5.2.1`          | `premailer 1.27.0`      |
+|                   | Size    | `css_inline 0.23.1` | `roadie 5.2.1`          | `premailer 1.27.0`      |
 |-------------------|---------|---------------------|-------------------------|-------------------------|
-| Basic usage       | 230 B   | 5.84 µs             | 168.88 µs (**28.92x**)  | 331.07 µs (**56.69x**)  |
-| Realistic email 1 | 8.58 KB | 87.66 µs            | 713.78 µs (**8.14x**)   | 6.95 ms (**79.28x**)    |
-| Realistic email 2 | 4.30 KB | 50.45 µs            | 1.98 ms (**39.25x**)    | ERROR                   |
-| GitHub Page       | 1.81 MB | 19.01 ms            | 6.73 s (**354.02x**)    | 2.34 s (**123.09x**)    |
+| Basic usage       | 230 B   | 5.21 µs             | 169.05 µs (**32.44x**)  | 333.58 µs (**64.01x**)  |
+| Realistic email 1 | 8.58 KB | 74.13 µs            | 711.24 µs (**9.59x**)   | 7.00 ms (**94.44x**)    |
+| Realistic email 2 | 4.30 KB | 42.57 µs            | 1.90 ms (**44.70x**)    | ERROR                   |
+| GitHub Page       | 1.81 MB | 12.01 ms            | 7.00 s (**582.78x**)    | 2.30 s (**191.36x**)    |
 
 `premailer` fails on "Realistic email 2" with `ArgumentError: Cannot parse 0 calc((100% - 500px) / 2)`.
 

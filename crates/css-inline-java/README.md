@@ -290,12 +290,12 @@ The `style` tags that hold these at-rules stay even with `setKeepStyleTags(false
 
 `css-inline` against [CSSBox](https://github.com/radkovo/CSSBox), average time per call (lower is better). Bold numbers show how many times slower CSSBox is:
 
-|             | Size    | `css-inline 0.23.0` | `CSSBox 5.0.0`          |
+|             | Size    | `css-inline 0.23.1` | `CSSBox 5.0.0`          |
 |-------------|---------|---------------------|-------------------------|
-| Basic       | 230 B   | 6.95 µs             | 54.13 µs (**7.79x**)    |
-| Realistic-1 | 8.58 KB | 100.76 µs           | 1.65 ms (**16.33x**)    |
-| Realistic-2 | 4.30 KB | 54.39 µs            | 404.81 µs (**7.44x**)   |
-| GitHub page | 1.81 MB | 20.42 ms            | 313.56 ms (**15.35x**)  |
+| Basic       | 230 B   | 6.17 µs             | 49.64 µs (**8.05x**)    |
+| Realistic-1 | 8.58 KB | 88.60 µs            | 1.56 ms (**17.59x**)    |
+| Realistic-2 | 4.30 KB | 45.67 µs            | 370.37 µs (**8.11x**)   |
+| GitHub page | 1.81 MB | 13.38 ms            | 293.14 ms (**21.90x**)  |
 
 Setup: JMH average-time mode, 1 fork, one 10 s warmup and three 10 s measurement iterations, stable `rustc 1.99`, `OpenJDK 26.0.1`, Ryzen 9 9950X. Inputs come from [`benchmarks/benchmarks.json`](../../benchmarks/benchmarks.json); the code is in [`CSSInlineBench.java`](src/jmh/java/org/cssinline/CSSInlineBench.java).
 
