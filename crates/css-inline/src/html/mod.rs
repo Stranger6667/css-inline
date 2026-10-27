@@ -13,6 +13,7 @@ pub(crate) use document::Document;
 pub(crate) use node::{NodeData, NodeId};
 pub(crate) use parser::InliningMode;
 use smallvec::SmallVec;
+pub(crate) use variables::{contains_var, CssVariables};
 
 /// Cascade precedence of a declaration: layer rank, then selector specificity.
 /// When equal, a rule later in source order takes precedence.

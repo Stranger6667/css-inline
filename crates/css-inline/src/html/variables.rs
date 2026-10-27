@@ -44,6 +44,17 @@ pub(crate) trait VariableScope {
     ) -> Result<bool, InlineError>;
 }
 
+/// How the serializer treats custom properties.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum CssVariables {
+    /// Leave definitions and `var()` as they are.
+    Keep,
+    /// Drop definitions; nothing refers to them.
+    Drop,
+    /// Drop definitions and substitute `var()` references.
+    Resolve,
+}
+
 pub(crate) struct NoVariables;
 
 impl VariableScope for NoVariables {
@@ -86,6 +97,50 @@ impl VariableScope for NoVariables {
         }
         writer.write_all(declaration)?;
         Ok(true)
+    }
+}
+
+/// No `var()` to substitute: definitions are only dropped.
+pub(crate) struct DropDefinitions;
+
+impl VariableScope for DropDefinitions {
+    const ENABLED: bool = true;
+    #[inline]
+    fn enter(&mut self) {}
+    #[inline]
+    fn exit(&mut self) {}
+    #[inline]
+    fn define(&mut self, _: &[u8], _: &[u8]) {}
+    #[inline]
+    fn define_merged(&mut self, _: &[u8], _: usize) {}
+    #[inline]
+    fn finish_definitions(&mut self) {}
+    #[inline]
+    fn write_declaration<W: Write>(
+        &mut self,
+        writer: &mut W,
+        prefix: &[u8],
+        name: &str,
+        value: &str,
+        minify_css: bool,
+    ) -> Result<bool, InlineError> {
+        if name.starts_with("--") {
+            return Ok(false);
+        }
+        NoVariables.write_declaration(writer, prefix, name, value, minify_css)
+    }
+    #[inline]
+    fn write_merged<W: Write>(
+        &mut self,
+        writer: &mut W,
+        prefix: &[u8],
+        declaration: &[u8],
+        separator_length: usize,
+    ) -> Result<bool, InlineError> {
+        if declaration.starts_with(b"--") {
+            return Ok(false);
+        }
+        NoVariables.write_merged(writer, prefix, declaration, separator_length)
     }
 }
 
@@ -138,12 +193,40 @@ pub(crate) struct CustomProperties {
     data: Vec<u8>,
     /// The innermost entry of each defined name, found by name hash and compared by name.
     index: HashTable<usize>,
-    /// `(entries.len(), data.len())` when each open element started.
-    frames: Vec<(usize, usize)>,
+    /// `(entries.len(), data.len(), generation)` when each open element started.
+    frames: Vec<(usize, usize, usize)>,
     /// Entries being resolved, outermost first.
     stack: Vec<usize>,
     /// Unescaped form of the name being looked up.
     scratch: Vec<u8>,
+    /// Identifies the visible definitions: `0` is none, `n` is `transitions[n - 1]`. Equal
+    /// generations come from equal definition sequences, so substituted values are reusable.
+    generation: usize,
+    /// Interned definition steps; siblings with the same definitions share generations.
+    transitions: Vec<Transition>,
+    transition_index: HashTable<usize>,
+    /// Substituted values by exact `(generation, value)`.
+    cache: HashTable<CacheEntry>,
+    /// Bytes of `transitions` and `cache`.
+    cache_data: Vec<u8>,
+}
+
+/// A definition `name: value` on top of the generation `parent`.
+struct Transition {
+    parent: usize,
+    /// First definition of its element: it shadows instead of replacing.
+    opens_frame: bool,
+    name: Range<usize>,
+    value: Range<usize>,
+    hash: u64,
+}
+
+struct CacheEntry {
+    generation: usize,
+    value: Range<usize>,
+    /// `None` when the declaration is dropped.
+    result: Option<Range<usize>>,
+    hash: u64,
 }
 
 /// Bytes that may appear in a custom property name after `--`: ASCII alphanumerics, `_`, `-`
@@ -220,10 +303,51 @@ fn strip_important(value: &[u8]) -> (&[u8], bool) {
 
 #[allow(clippy::arithmetic_side_effects)]
 impl CustomProperties {
+    /// Move to the generation of the current one followed by `name: value`.
+    fn advance_generation(&mut self, name: &[u8], value: &[u8], opens_frame: bool) {
+        let parent = self.generation;
+        let mut hasher = FxHasher::default();
+        (parent, opens_frame, name, value).hash(&mut hasher);
+        let hash = hasher.finish();
+        let Self {
+            transitions,
+            transition_index,
+            cache_data,
+            ..
+        } = self;
+        let found = transition_index.find(hash, |&idx| {
+            let transition = &transitions[idx];
+            transition.parent == parent
+                && transition.opens_frame == opens_frame
+                && cache_data[transition.name.clone()] == *name
+                && cache_data[transition.value.clone()] == *value
+        });
+        let idx = if let Some(&idx) = found {
+            idx
+        } else {
+            let name_start = cache_data.len();
+            cache_data.extend_from_slice(name);
+            let value_start = cache_data.len();
+            cache_data.extend_from_slice(value);
+            let idx = transitions.len();
+            transitions.push(Transition {
+                parent,
+                opens_frame,
+                name: name_start..value_start,
+                value: value_start..cache_data.len(),
+                hash,
+            });
+            transition_index.insert_unique(hash, idx, |&idx| transitions[idx].hash);
+            idx
+        };
+        self.generation = idx + 1;
+    }
+
     fn push(&mut self, name: &[u8], value: &[u8]) {
+        let frame_start = self.frames.last().map_or(0, |frame| frame.0);
+        self.advance_generation(name, value, self.entries.len() == frame_start);
         let (value, important) = strip_important(value);
         let hash = hash_name(name);
-        let frame_start = self.frames.last().map_or(0, |frame| frame.0);
         let Self {
             entries,
             data,
@@ -514,6 +638,25 @@ impl CustomProperties {
         value: &[u8],
         first: usize,
     ) -> Result<bool, InlineError> {
+        let generation = self.generation;
+        let mut hasher = FxHasher::default();
+        (generation, value).hash(&mut hasher);
+        let hash = hasher.finish();
+        let Self {
+            cache, cache_data, ..
+        } = self;
+        if let Some(entry) = cache.find(hash, |entry| {
+            entry.generation == generation && cache_data[entry.value.clone()] == *value
+        }) {
+            let Some(result) = entry.result.clone() else {
+                return Ok(false);
+            };
+            for part in head {
+                writer.write_all(part)?;
+            }
+            write_value_bytes(writer, &cache_data[result])?;
+            return Ok(true);
+        }
         let trimmed = value.trim_ascii();
         let first = first - (value.len() - value.trim_ascii_start().len());
         let plain = is_plain(trimmed);
@@ -529,6 +672,23 @@ impl CustomProperties {
             }
             write_value_bytes(writer, &self.data[output..])?;
         }
+        let value_start = self.cache_data.len();
+        self.cache_data.extend_from_slice(value);
+        let value_end = self.cache_data.len();
+        let result = valid.then(|| {
+            self.cache_data.extend_from_slice(&self.data[output..]);
+            value_end..self.cache_data.len()
+        });
+        self.cache.insert_unique(
+            hash,
+            CacheEntry {
+                generation,
+                value: value_start..value_end,
+                result,
+                hash,
+            },
+            |entry| entry.hash,
+        );
         self.data.truncate(start);
         Ok(valid)
     }
@@ -637,11 +797,13 @@ impl VariableScope for CustomProperties {
     const ENABLED: bool = true;
 
     fn enter(&mut self) {
-        self.frames.push((self.entries.len(), self.data.len()));
+        self.frames
+            .push((self.entries.len(), self.data.len(), self.generation));
     }
 
     fn exit(&mut self) {
-        let (entries, data) = self.frames.pop().expect("exit without enter");
+        let (entries, data, generation) = self.frames.pop().expect("exit without enter");
+        self.generation = generation;
         for (offset, entry) in self.entries.drain(entries..).enumerate().rev() {
             let idx = entries.saturating_add(offset);
             match entry.shadowed {

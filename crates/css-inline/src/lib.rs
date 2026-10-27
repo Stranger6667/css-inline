@@ -41,7 +41,7 @@ use std::{borrow::Cow, fmt::Formatter, io::Write, iter::Peekable, ops::Range, sy
 
 #[cfg(feature = "async")]
 pub use async_trait::async_trait;
-use html::{Document, InliningMode, NodeData, NodeId, Precedence};
+use html::{contains_var, CssVariables, Document, InliningMode, NodeData, NodeId, Precedence};
 use parser::{LayerId, Layers, Rule, Span};
 pub use resolver::{DefaultStylesheetResolver, StylesheetResolver};
 use rustc_hash::FxHashMap;
@@ -1241,7 +1241,15 @@ impl<'a> CSSInliner<'a> {
             mode,
             self.options.apply_width_attributes,
             self.options.apply_height_attributes,
-            self.options.resolve_css_variables,
+            // Inlined values are slices of `raw_styles`; attributes are checked once decoded.
+            if !self.options.resolve_css_variables {
+                CssVariables::Keep
+            } else if contains_var(raw_styles.as_bytes()) || document.has_var_in_style_attributes()
+            {
+                CssVariables::Resolve
+            } else {
+                CssVariables::Drop
+            },
         )?;
         Ok(())
     }

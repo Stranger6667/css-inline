@@ -2,7 +2,9 @@ use super::{
     attributes::Attributes,
     document::Document,
     node::{ElementData, NodeData, NodeId},
-    variables::{contains_var, CustomProperties, NoVariables, VariableScope},
+    variables::{
+        contains_var, CssVariables, CustomProperties, DropDefinitions, NoVariables, VariableScope,
+    },
     DocumentStyleMap, InliningMode,
 };
 use crate::{html::ElementStyleMap, parser, InlineError};
@@ -160,7 +162,7 @@ pub(crate) fn serialize_to<W: Write>(
     mode: InliningMode,
     apply_width_attributes: bool,
     apply_height_attributes: bool,
-    resolve_css_variables: bool,
+    variables: CssVariables,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
         document,
@@ -173,12 +175,19 @@ pub(crate) fn serialize_to<W: Write>(
         apply_width_attributes,
         apply_height_attributes,
     );
-    if resolve_css_variables {
-        let mut ser = HtmlSerializer::new(writer, styles, CustomProperties::default());
-        sink.serialize(&mut ser)
-    } else {
-        let mut ser = HtmlSerializer::new(writer, styles, NoVariables);
-        sink.serialize(&mut ser)
+    match variables {
+        CssVariables::Keep => {
+            let mut ser = HtmlSerializer::new(writer, styles, NoVariables);
+            sink.serialize(&mut ser)
+        }
+        CssVariables::Drop => {
+            let mut ser = HtmlSerializer::new(writer, styles, DropDefinitions);
+            sink.serialize(&mut ser)
+        }
+        CssVariables::Resolve => {
+            let mut ser = HtmlSerializer::new(writer, styles, CustomProperties::default());
+            sink.serialize(&mut ser)
+        }
     }
 }
 
@@ -895,7 +904,7 @@ fn merge_styles<Wr: Write, V: VariableScope>(
 
 #[cfg(test)]
 mod tests {
-    use crate::html::InliningMode;
+    use crate::html::{CssVariables, InliningMode};
     use test_case::test_case;
 
     use super::Document;
@@ -914,7 +923,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         let output = String::from_utf8(buffer).expect("Valid UTF-8");
@@ -996,7 +1005,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>h1 { color:blue; }</style><style>h1 { color:red }</style></head><body></body></html>");
@@ -1020,7 +1029,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head></head><body></body></html>");
@@ -1044,7 +1053,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head><title>&amp; &lt; &gt; &nbsp;</title></head><body></body></html>");
@@ -1068,7 +1077,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(
@@ -1095,7 +1104,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body data-foo=\"&amp; &nbsp; &quot;\"></body></html>");
@@ -1119,7 +1128,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<!DOCTYPE html><html><head></head><body class=\"&quot;><img src=x onerror=alert(1)> &amp; &nbsp;\"></body></html>");
@@ -1145,7 +1154,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Should not fail");
         assert_eq!(buffer, b"<html><head><style>@media (max-width: 600px) { h1 { font-size: 18px; } }</style></head><body></body></html>");

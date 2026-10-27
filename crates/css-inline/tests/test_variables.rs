@@ -925,3 +925,65 @@ fn tailwind_v4_output() {
       'Courier New', monospace;font-feature-settings: normal;font-variation-settings: normal;font-size: 1em;">npm i</code> to install. <a href="https://example.com" style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;color: inherit;-webkit-text-decoration: inherit;text-decoration: inherit;">Docs</a> <strong style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;font-weight: bolder;">now</strong></p><hr style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;height: 0;color: inherit;border-top-width: 1px;"><table style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;text-indent: 0;border-color: inherit;border-collapse: collapse;"><tbody style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;"><tr style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;"><td style="box-sizing: border-box;margin: 0;padding: 0;border: 0 solid;">Cell</td></tr></tbody></table></div></body></html>"#
     );
 }
+
+// One value repeated under different definitions must resolve per scope.
+#[test_case(
+    "p{color:var(--c)}",
+    r#"<div style="--c: red"><p>x</p></div><div style="--c: blue"><p>y</p></div>"#,
+    r#"<div style=""><p style="color: red;">x</p></div><div style=""><p style="color: blue;">y</p></div>"#;
+    "sibling scopes"
+)]
+#[test_case(
+    "p{color:var(--c)}",
+    r#"<div style="--c: red"><p>x</p><div style="--c: blue"><p>y</p></div><p>z</p></div>"#,
+    r#"<div style=""><p style="color: red;">x</p><div style=""><p style="color: blue;">y</p></div><p style="color: red;">z</p></div>"#;
+    "redefined deeper"
+)]
+#[test_case(
+    "p{color:var(--c)}",
+    r#"<div style="--c: red !important; --c: blue"><p>x</p></div><div style="--c: red !important"><p style="--c: blue">y</p></div>"#,
+    r#"<div style=""><p style="color: red;">x</p></div><div style=""><p style="color: blue">y</p></div>"#;
+    "same definitions split across elements"
+)]
+#[test_case(
+    "p{color:var(--c, green)}",
+    r#"<p>x</p><div style="--c: blue"><p>y</p></div><p>z</p>"#,
+    r#"<p style="color: green;">x</p><div style=""><p style="color: blue;">y</p></div><p style="color: green;">z</p>"#;
+    "fallback"
+)]
+#[test_case(
+    "p{color:var(--c)}",
+    r#"<p>x</p><div style="--c: blue"><p>y</p></div><p>z</p>"#,
+    r#"<p>x</p><div style=""><p style="color: blue;">y</p></div><p>z</p>"#;
+    "invalid then valid"
+)]
+#[test_case(
+    ".x{--b:var(--a)} p{color:var(--b)}",
+    r#"<div class="x" style="--a: red"><p>x</p></div><div class="x" style="--a: blue"><p>y</p></div>"#,
+    r#"<div class="x" style=""><p style="color: red;">x</p></div><div class="x" style=""><p style="color: blue;">y</p></div>"#;
+    "nested reference"
+)]
+#[test_case(
+    "",
+    r#"<div style="--c: red"><p style="color: var(--c)">x</p></div><div style="--c: blue"><p style="color: var(--c)">y</p></div>"#,
+    r#"<div style=""><p style="color: red">x</p></div><div style=""><p style="color: blue">y</p></div>"#;
+    "inline style"
+)]
+fn same_value_in_different_scopes(style: &str, body: &str, expected: &str) {
+    assert_resolved!(style = style, body = body, expected = expected)
+}
+
+#[test_case(r#"<p style="color: v&#97;r(--c)">x</p>"#, r#"<p style="color: red">x</p>"#; "escaped function name")]
+#[test_case(r#"<p style="color: var&#40;--c)">x</p>"#, r#"<p style="color: red">x</p>"#; "escaped parenthesis")]
+fn var_from_character_reference(body: &str, expected: &str) {
+    assert_resolved!(style = ":root{--c:red}", body = body, expected = expected)
+}
+
+// Without any `var()` in the input, definitions are still dropped from the output.
+#[test_case("p{--a:1;color:red}", "<p>x</p>", r#"<p style="color: red;">x</p>"#; "stylesheet definition")]
+#[test_case("p{--a:1}", "<p>x</p>", "<p>x</p>"; "only definitions")]
+#[test_case("p{color:red}", r#"<p style="--a: 1; margin: 0">x</p>"#, r#"<p style="color: red;margin: 0">x</p>"#; "inline definition")]
+#[test_case("", r#"<p style="--a: 1; margin: 0">x</p>"#, r#"<p style="margin: 0">x</p>"#; "inline definition without rules")]
+fn definitions_without_var(style: &str, body: &str, expected: &str) {
+    assert_resolved!(style = style, body = body, expected = expected)
+}
