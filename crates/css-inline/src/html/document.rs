@@ -6,6 +6,7 @@ use super::{
     parser,
     selectors::{ParseError, Selector},
     serializer::serialize_to,
+    variables::{contains_var, CssVariables},
     InliningMode,
 };
 use crate::{html::DocumentStyleMap, InlineError};
@@ -572,6 +573,16 @@ impl Document {
         successors(self[node].first_child, |&node| self[node].next_sibling)
     }
 
+    /// Whether a `style` attribute contains `var(`, after character references are decoded.
+    pub(crate) fn has_var_in_style_attributes(&self) -> bool {
+        self.elements.iter().any(|&id| {
+            self[id]
+                .as_element()
+                .and_then(|element| element.attributes.get(local_name!("style")))
+                .is_some_and(|style| contains_var(style.as_bytes()))
+        })
+    }
+
     /// Serialize the document to HTML string.
     #[allow(clippy::too_many_arguments, clippy::fn_params_excessive_bools)]
     pub(crate) fn serialize<W: Write>(
@@ -585,7 +596,7 @@ impl Document {
         mode: InliningMode,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
-        resolve_css_variables: bool,
+        variables: CssVariables,
     ) -> Result<(), InlineError> {
         serialize_to(
             self,
@@ -598,7 +609,7 @@ impl Document {
             mode,
             apply_width_attributes,
             apply_height_attributes,
-            resolve_css_variables,
+            variables,
         )
     }
 
@@ -758,7 +769,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
-            false,
+            CssVariables::Keep,
         )
         .expect("Failed to serialize");
         buffer
