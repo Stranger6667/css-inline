@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.23.1] - 2026-10-27
+
 ### Performance
 
 - Find top-level commas in selector lists with a fast scan for the common case.
@@ -664,7 +666,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.23.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/python-v0.23.1...HEAD
+[0.23.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.23.0...python-v0.23.1
 [0.23.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.1...python-v0.23.0
 [0.22.1]: https://github.com/Stranger6667/css-inline/compare/python-v0.22.0...python-v0.22.1
 [0.22.0]: https://github.com/Stranger6667/css-inline/compare/python-v0.21.3...python-v0.22.0
