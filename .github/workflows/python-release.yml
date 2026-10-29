@@ -312,7 +312,7 @@ jobs:
           cargo generate-lockfile
           cargo update -p yoke-derive --precise 0.8.4
         working-directory: ./crates/css-inline-python
-      - uses: pypa/cibuildwheel@v4.3.1
+      - uses: pypa/cibuildwheel@v4.3.4
         with:
           package-dir: ./crates/css-inline-python
           output-dir: ./crates/css-inline-python/dist
