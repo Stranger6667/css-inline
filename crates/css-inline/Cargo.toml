@@ -42,7 +42,7 @@ memchr = "2.7"
 precomputed-hash = "0.1.1"
 reqwest = { version = "0.13.5", optional = true, default-features = false, features = ["rustls-no-provider"] }
 rustc-hash = "2.0.0"
-selectors = "0.41.0"
+selectors = "0.42.0"
 smallvec = "1"
 url = "2"
 
