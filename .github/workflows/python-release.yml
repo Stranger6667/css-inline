@@ -89,16 +89,23 @@ jobs:
           path: dist
 
   windows:
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        target: [x64, x86]
+        include:
+          - os: windows-2022
+            target: x64
+          - os: windows-2022
+            target: x86
+            architecture: x86
+          - os: windows-11-arm
+            target: aarch64
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          architecture: ${{ matrix.target }}
+          architecture: ${{ matrix.architecture }}
       - uses: dtolnay/rust-toolchain@stable
       - name: Build wheels
         uses: messense/maturin-action@v1

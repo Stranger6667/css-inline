@@ -64,7 +64,7 @@ PyPI ships pre-compiled wheels for:
 
 - Linux (glibc and musl): x86_64, aarch64, armv7; glibc also i686
 - macOS: x86_64, arm64
-- Windows: x64, x86
+- Windows: x64, x86, arm64
 - PyPy 3.11: Linux x86_64 and aarch64, macOS x86_64
 
 On other platforms, `pip` builds the package from source, which requires Rust 1.88 or newer.
