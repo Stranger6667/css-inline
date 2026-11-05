@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- Windows ARM64 wheels.
+
 ### Changed
 
 - Bump MSRV to `1.88`.
