@@ -9,7 +9,7 @@ authors = ["Dmitry Dygalo <dmitry@dygalo.dev>"]
 edition = "2021"
 license = "MIT"
 repository = "https://github.com/Stranger6667/css-inline"
-rust-version = "1.85"
+rust-version = "1.88"
 
 [profile.release]
 lto = "fat"

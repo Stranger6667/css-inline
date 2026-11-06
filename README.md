@@ -56,7 +56,7 @@ Add `css-inline` to the dependencies in your `Cargo.toml`:
 css-inline = "0.23"
 ```
 
-Minimum Supported Rust Version: 1.85.
+Minimum Supported Rust Version: 1.88.
 
 Cargo features:
 

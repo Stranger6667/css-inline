@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Update `selectors` to `0.42`.
+
 ## [0.23.1] - 2026-10-27
 
 ### Performance

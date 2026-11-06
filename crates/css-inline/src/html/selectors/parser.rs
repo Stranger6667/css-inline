@@ -1,16 +1,15 @@
 use super::{pseudo_classes::PseudoClass, selector_impl::InlinerSelectors, ParseError};
-use cssparser::CowRcStr;
 use selectors::{parser::SelectorParseErrorKind, Parser};
 
 /// CSS selector parser.
 pub(crate) struct SelectorParser;
 
-impl<'i> Parser<'i> for SelectorParser {
+impl Parser<'_> for SelectorParser {
     type Impl = InlinerSelectors;
     type Error = SelectorParseErrorKind;
 
     #[allow(clippy::enum_glob_use)]
-    fn parse_non_ts_pseudo_class(&self, name: CowRcStr<'i>) -> Result<PseudoClass, ParseError> {
+    fn parse_non_ts_pseudo_class(&self, name: &str) -> Result<PseudoClass, ParseError> {
         use self::PseudoClass::*;
         if name.eq_ignore_ascii_case("any-link") {
             Ok(AnyLink)
