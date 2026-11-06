@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Changed
+
+- Bump MSRV to `1.88`.
+- Update `selectors` to `0.42`.
+
 ## [0.23.1] - 2026-10-27
 
 ### Performance

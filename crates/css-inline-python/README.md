@@ -67,7 +67,7 @@ PyPI ships pre-compiled wheels for:
 - Windows: x64, x86
 - PyPy 3.11: Linux x86_64 and aarch64, macOS x86_64
 
-On other platforms, `pip` builds the package from source, which requires Rust 1.85 or newer.
+On other platforms, `pip` builds the package from source, which requires Rust 1.88 or newer.
 
 ## Usage
 

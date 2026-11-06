@@ -15,7 +15,7 @@ use std::cmp::Ordering;
 
 /// A reference to an element node in a document.
 /// This structure is necessary for accessing and iterating over other nodes in the tree.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub(crate) struct Element<'a> {
     /// Reference to the original document.
     pub(crate) document: &'a Document,
@@ -99,7 +99,7 @@ impl<'a> Element<'a> {
             matching::NeedsSelectorFlags::No,
             matching::MatchingForInvalidation::No,
         );
-        matching::matches_selector(selector, 0, None, self, &mut context)
+        matching::matches_selector(selector, 0, None, *self, &mut context)
     }
 }
 
