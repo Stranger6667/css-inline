@@ -3091,3 +3091,14 @@ fn root_selector_fragment(padding: &str) {
         )
     );
 }
+
+#[test_case("h1 { color: red", "color: red;"; "unclosed")]
+#[test_case("h1 { color: f(}", "color: f(};"; "unclosed with brace in function")]
+#[test_case(r"h1 { col\6f r: red }", "color: red;"; "escaped name")]
+#[test_case(r#"p { content: "}" } h1 { color: red }"#, "color: red;"; "brace in string of unmatched rule")]
+#[test_case("p { x: {a} } h1 { color: red }", "color: red;"; "nested block in unmatched rule")]
+#[test_case("p { color: blue } h1 { color: red } p { margin: 0 }", "color: red;"; "unmatched rules around")]
+fn declaration_blocks(style: &str, expected: &str) {
+    let inlined = inline(&html!(style, "<h1>A</h1>")).unwrap();
+    assert_eq!(inlined, html!(format!(r#"<h1 style="{expected}">A</h1>"#)));
+}

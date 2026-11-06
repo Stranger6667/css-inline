@@ -6,11 +6,12 @@ pub(crate) struct CSSDeclarationListParser;
 pub(crate) type Name<'i> = cssparser::CowRcStr<'i>;
 pub(crate) type Declaration<'i> = (Name<'i>, &'i str);
 
-/// A style rule: its selector list, the range of its declarations and the layer it belongs to.
+/// A style rule: its selector list, its declaration block and the layer it belongs to.
 #[derive(Debug)]
 pub(crate) struct Rule<'i> {
     pub(crate) selectors: &'i str,
-    pub(crate) declarations: (usize, usize),
+    /// The source from the block's `{` to the end; parsed only when the rule is used.
+    pub(crate) block: &'i str,
     pub(crate) layer: LayerId,
 }
 
@@ -209,7 +210,6 @@ impl Span<'_> {
 /// are parsed recursively, and every other `@`-rule is rejected so the caller sees its span.
 pub(crate) struct RuleParser<'d, 'i> {
     source: &'i str,
-    declarations: &'d mut Vec<Declaration<'i>>,
     rules: &'d mut Vec<Rule<'i>>,
     spans: Option<&'d mut Vec<Span<'i>>>,
     layers: Layers<'i>,
@@ -227,13 +227,11 @@ impl<'d, 'i> RuleParser<'d, 'i> {
     #[inline]
     pub(crate) fn new(
         source: &'i str,
-        declarations: &'d mut Vec<Declaration<'i>>,
         rules: &'d mut Vec<Rule<'i>>,
         spans: Option<&'d mut Vec<Span<'i>>>,
     ) -> RuleParser<'d, 'i> {
         RuleParser {
             source,
-            declarations,
             rules,
             spans,
             layers: Layers::new(),
@@ -376,16 +374,16 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for RuleParser<'_, 'i> {
         _: &ParserState,
         input: &mut cssparser::Parser<'i>,
     ) -> Result<Self::QualifiedRule, cssparser::ParseError<Self::Error>> {
-        if self.skipped > 0 {
-            exhaust(input);
-            return Ok(());
+        // The unconsumed block is skipped by `cssparser` without building tokens
+        if self.skipped == 0 {
+            // The block starts right after its one-byte `{`
+            let open = input.position().byte_index().saturating_sub(1);
+            self.rules.push(Rule {
+                selectors: prelude,
+                block: &self.source[open..],
+                layer: self.layer,
+            });
         }
-        let declarations = parse_declarations_into(input, self.declarations);
-        self.rules.push(Rule {
-            selectors: prelude,
-            declarations,
-            layer: self.layer,
-        });
         Ok(())
     }
 }
@@ -558,15 +556,20 @@ impl<'i> cssparser::QualifiedRuleParser<'i> for CSSDeclarationListParser {
     type Error = ();
 }
 
-fn parse_declarations_into<'i>(
-    input: &mut cssparser::Parser<'i>,
+/// Parse the declarations of `block`, a source slice starting at the block's `{`, into
+/// `declarations`, returning their range.
+pub(crate) fn parse_declarations<'i>(
+    block: &'i str,
     declarations: &mut Vec<Declaration<'i>>,
 ) -> (usize, usize) {
-    let mut parser = CSSDeclarationListParser;
-    let parser = cssparser::RuleBodyParser::new(input, &mut parser);
     let start = declarations.len();
-    for item in parser.flatten() {
-        declarations.push(item);
+    let mut input = cssparser::Parser::new(block);
+    if input.expect_curly_bracket_block().is_ok() {
+        let _ = input.parse_nested_block(|input| {
+            let mut parser = CSSDeclarationListParser;
+            declarations.extend(cssparser::RuleBodyParser::new(input, &mut parser).flatten());
+            Ok::<_, cssparser::ParseError<()>>(())
+        });
     }
     (start, declarations.len())
 }

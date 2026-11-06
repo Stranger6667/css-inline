@@ -1068,12 +1068,7 @@ impl<'a> CSSInliner<'a> {
         // `@`-rules are not inlined. `keep_at_rules` moves them to a new `<style>` and selector
         // cleanup keeps them in the rewritten ones, so both need their spans.
         let mut spans = (self.options.keep_at_rules || track_selector_cleanup).then(Vec::new);
-        let mut rule_parser = parser::RuleParser::new(
-            &raw_styles,
-            &mut declarations,
-            &mut rule_list,
-            spans.as_mut(),
-        );
+        let mut rule_parser = parser::RuleParser::new(&raw_styles, &mut rule_list, spans.as_mut());
         if !raw_styles.is_empty() {
             let mut parser = cssparser::Parser::new(&raw_styles);
             let mut items = cssparser::StyleSheetParser::new(&mut parser, &mut rule_parser);
@@ -1101,7 +1096,8 @@ impl<'a> CSSInliner<'a> {
         // This cache is unused but required in the `selectors` API
         let mut caches = SelectorCaches::default();
         for (rule_id, rule) in rule_list.iter().enumerate() {
-            let (start, end) = rule.declarations;
+            // Most rules match nothing, so their declarations are parsed on first use
+            let mut parsed = None;
             let rank = ranks[rule.layer];
             for selector in parser::split_selector_list(rule.selectors) {
                 let mut matched_any = false;
@@ -1114,7 +1110,9 @@ impl<'a> CSSInliner<'a> {
                         {
                             state.record_usage(SelectorUsage {
                                 selector,
-                                declarations: (start, end),
+                                declarations: *parsed.get_or_insert_with(|| {
+                                    parser::parse_declarations(rule.block, &mut declarations)
+                                }),
                                 rule_id,
                                 chunk_index,
                                 matched: false,
@@ -1127,6 +1125,9 @@ impl<'a> CSSInliner<'a> {
                     let precedence = Precedence(rank, matching_elements.specificity());
                     for matching_element in matching_elements {
                         matched_any = true;
+                        let (start, end) = *parsed.get_or_insert_with(|| {
+                            parser::parse_declarations(rule.block, &mut declarations)
+                        });
                         let element_styles = styles[matching_element.node_id.get()]
                             .get_or_insert_with(SmallVec::new);
                         // Iterate over pairs of property name & value
@@ -1134,8 +1135,9 @@ impl<'a> CSSInliner<'a> {
                         for (name, value) in &declarations[start..end] {
                             let prop_name = name.as_ref();
                             // Linear search for existing property
-                            if let Some(idx) =
-                                element_styles.iter().position(|(n, _, _)| *n == prop_name)
+                            if let Some(idx) = element_styles
+                                .iter()
+                                .position(|(n, _, _)| **n == *prop_name)
                             {
                                 let entry = &mut element_styles[idx];
                                 let new_important = parser::strip_important(value).is_some();
@@ -1165,7 +1167,7 @@ impl<'a> CSSInliner<'a> {
                                     (false, true) => {}
                                 }
                             } else {
-                                element_styles.push((prop_name, precedence, *value));
+                                element_styles.push((name.clone(), precedence, *value));
                             }
                         }
                     }
@@ -1174,7 +1176,9 @@ impl<'a> CSSInliner<'a> {
                     if let Some(chunk_index) = rule_chunk_indices.get(rule_id).copied().flatten() {
                         state.record_usage(SelectorUsage {
                             selector,
-                            declarations: (start, end),
+                            declarations: *parsed.get_or_insert_with(|| {
+                                parser::parse_declarations(rule.block, &mut declarations)
+                            }),
                             rule_id,
                             chunk_index,
                             matched: matched_any,

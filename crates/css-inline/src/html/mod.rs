@@ -21,7 +21,7 @@ pub(crate) use variables::{contains_var, CssVariables};
 pub(crate) struct Precedence(pub(crate) u32, pub(crate) Specificity);
 
 /// Styles for a single element: (property name, precedence, value)
-pub(crate) type ElementStyleMap<'i> = SmallVec<[(&'i str, Precedence, &'i str); 4]>;
+pub(crate) type ElementStyleMap<'i> = SmallVec<[(crate::parser::Name<'i>, Precedence, &'i str); 4]>;
 
 /// Maps node IDs to their accumulated styles.
 pub(crate) type DocumentStyleMap<'i> = Vec<Option<ElementStyleMap<'i>>>;
