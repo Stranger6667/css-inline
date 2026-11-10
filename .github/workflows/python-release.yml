@@ -82,7 +82,7 @@ jobs:
           args: --release -m crates/css-inline-python/Cargo.toml --target universal2-apple-darwin --out dist
       - name: Install built wheel - universal2
         run: |
-          pip install dist/${{ env.PACKAGE_NAME }}-*universal2.whl --force-reinstall
+          pip install dist/${{ env.PACKAGE_NAME }}-*universal2*.whl --force-reinstall
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
@@ -303,8 +303,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Pyodide 0.29 defaults to nightly-2025-02-01 (rustc 1.86), below the MSRV.
+          # It also ships an emcc 4.0.9 sysroot built with this one.
           - build: "cp313-*"
-            toolchain: nightly-2025-02-01
+            toolchain: nightly-2025-06-27
             artifact: cp313
           - build: "cp314-*"
             toolchain: 1.93.0
@@ -329,6 +331,8 @@ jobs:
           CIBW_PLATFORM: pyodide
           CIBW_BUILD: ${{ matrix.build }}
           CIBW_ENABLE: pyodide-eol
+          # Overrides Pyodide's default, so its config matches the installed toolchain.
+          RUST_TOOLCHAIN: ${{ matrix.toolchain }}
       - name: Upload wheels
         uses: actions/upload-artifact@v7
         with:
