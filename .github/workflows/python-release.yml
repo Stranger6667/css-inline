@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - python-v*
+  # Builds every wheel without publishing: `release` runs only for tags.
+  workflow_dispatch:
 
 defaults:
   run:
