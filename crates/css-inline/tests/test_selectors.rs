@@ -386,3 +386,81 @@ fn overwrite_comma() {
         expected = r#"<h1 style="color: #fff">Foo</h1><h3 style="color: #fff">Foo</h3>"#
     )
 }
+
+/// Checks a small document and one large enough to use the document indexes.
+macro_rules! assert_inlined_any_size {
+    (style = $style: expr, body = $body: expr, expected = $expected: expr) => {{
+        assert_inlined!(style = $style, body = $body, expected = $expected);
+        let padding = format!("<!--{}-->", "x".repeat(1024));
+        assert_inlined!(
+            style = $style,
+            body = format!("{}{}", $body, padding),
+            expected = format!("{}{}", $expected, padding)
+        );
+    }};
+}
+
+#[test]
+fn has_descendant() {
+    assert_inlined_any_size!(
+        style = ".card:has(img) { color: red; }",
+        body = r#"<div class="card"><p><img src="a.png"></p></div><div class="card"><p>No image</p></div>"#,
+        expected = r#"<div class="card" style="color: red;"><p><img src="a.png"></p></div><div class="card"><p>No image</p></div>"#
+    )
+}
+
+#[test]
+fn has_child() {
+    assert_inlined_any_size!(
+        style = "div:has(> p) { color: red; }",
+        body = r#"<div id="a"><p>Child</p></div><div id="b"><span><p>Grandchild</p></span></div>"#,
+        expected = r#"<div id="a" style="color: red;"><p>Child</p></div><div id="b"><span><p>Grandchild</p></span></div>"#
+    )
+}
+
+#[test]
+fn has_next_sibling() {
+    assert_inlined_any_size!(
+        style = "h1:has(+ p) { color: red; }",
+        body = r#"<h1>A</h1><p>Text</p><h1>B</h1><div>Text</div>"#,
+        expected = r#"<h1 style="color: red;">A</h1><p>Text</p><h1>B</h1><div>Text</div>"#
+    )
+}
+
+#[test]
+fn has_nested_tables() {
+    // HTML parsing inserts `tbody` between `table` and `tr`
+    assert_inlined_any_size!(
+        style = "td:has(> table > tbody > tr > td p:first-child) { color: red; }",
+        body = r#"<table><tr><td id="a"><table><tr><td><p>First</p></td></tr></table></td></tr></table><table><tr><td id="b"><table><tr><td><span>x</span><p>Not first</p></td></tr></table></td></tr></table>"#,
+        expected = r#"<table><tbody><tr><td id="a" style="color: red;"><table><tbody><tr><td><p>First</p></td></tr></tbody></table></td></tr></tbody></table><table><tbody><tr><td id="b"><table><tbody><tr><td><span>x</span><p>Not first</p></td></tr></tbody></table></td></tr></tbody></table>"#
+    )
+}
+
+#[test]
+fn has_missing_class() {
+    assert_inlined_any_size!(
+        style = ".card:has(.missing) { color: red; } .card:not(:has(.missing)) { margin: 0; }",
+        body = r#"<div class="card">Text</div>"#,
+        expected = r#"<div class="card" style="margin: 0;">Text</div>"#
+    )
+}
+
+#[test]
+fn has_specificity() {
+    assert_inlined_any_size!(
+        style = "td:has(img) { color: red; } td { color: blue; }",
+        body = r#"<table><tr><td><img src="a.png"></td><td>Text</td></tr></table>"#,
+        expected = r#"<table><tbody><tr><td style="color: red;"><img src="a.png"></td><td style="color: blue;">Text</td></tr></tbody></table>"#
+    )
+}
+
+#[test]
+fn has_nested_is_ignored() {
+    // `:has()` inside `:has()` is invalid CSS, so only that rule is skipped
+    assert_inlined_any_size!(
+        style = "div:has(p:has(span)) { color: red; } div { margin: 0; }",
+        body = r#"<div><p><span>Text</span></p></div>"#,
+        expected = r#"<div style="margin: 0;"><p><span>Text</span></p></div>"#
+    )
+}
