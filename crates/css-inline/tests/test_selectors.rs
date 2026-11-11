@@ -464,3 +464,13 @@ fn has_nested_is_ignored() {
         expected = r#"<div style="margin: 0;"><p><span>Text</span></p></div>"#
     )
 }
+
+#[test]
+fn has_with_text_nodes() {
+    // Whitespace, text, and comments before the first child element
+    assert_inlined_any_size!(
+        style = "table:has(td) { color: red; } div:has(> p) { margin: 0; }",
+        body = "<table>\n  <tr>\n    <td>Cell</td>\n  </tr>\n</table>\n<div>\n  Text <!-- note -->\n  <p>Child</p>\n</div>",
+        expected = "<table style=\"color: red;\">\n  <tbody><tr>\n    <td>Cell</td>\n  </tr>\n</tbody></table>\n<div style=\"margin: 0;\">\n  Text <!-- note -->\n  <p>Child</p>\n</div>"
+    )
+}

@@ -294,9 +294,15 @@ impl selectors::Element for Element<'_> {
     }
 
     fn first_element_child(&self) -> Option<Self> {
-        self.document[self.node_id]
-            .first_child
-            .and_then(|node_id| self.document.as_element(node_id))
+        // Skip leading text and comment nodes, e.g. whitespace between tags
+        let mut next = self.document[self.node_id].first_child;
+        while let Some(node_id) = next {
+            if let Some(element) = self.document.as_element(node_id) {
+                return Some(element);
+            }
+            next = self.document[node_id].next_sibling;
+        }
+        None
     }
 
     fn apply_selector_flags(&self, _: matching::ElementSelectorFlags) {}
