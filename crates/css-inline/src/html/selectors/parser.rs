@@ -8,6 +8,10 @@ impl Parser<'_> for SelectorParser {
     type Impl = InlinerSelectors;
     type Error = SelectorParseErrorKind;
 
+    fn parse_has(&self) -> bool {
+        true
+    }
+
     #[allow(clippy::enum_glob_use)]
     fn parse_non_ts_pseudo_class(&self, name: &str) -> Result<PseudoClass, ParseError> {
         use self::PseudoClass::*;
