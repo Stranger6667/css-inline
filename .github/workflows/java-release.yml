@@ -26,11 +26,11 @@ jobs:
             lib: libcss_inline.so
             platform: linux-x86_64
 
-          - os: macos-15
+          - os: macos-15-intel
             target: x86_64-apple-darwin
             lib: libcss_inline.dylib
             platform: darwin-x86_64
-          - os: macos-14
+          - os: macos-15
             target: aarch64-apple-darwin
             lib: libcss_inline.dylib
             platform: darwin-aarch64
@@ -106,9 +106,9 @@ jobs:
         include:
           - os: ubuntu-22.04
             platform: linux-x86_64
-          - os: macos-15
+          - os: macos-15-intel
             platform: darwin-x86_64
-          - os: macos-14
+          - os: macos-15
             platform: darwin-aarch64
           - os: windows-2022
             platform: win32-x86_64
