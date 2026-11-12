@@ -4,6 +4,7 @@
 
 ### Added
 
+- Support for the `:has()` pseudo-class. [#889](https://github.com/Stranger6667/css-inline/pull/889)
 - Windows ARM64 wheels.
 
 ### Changed
