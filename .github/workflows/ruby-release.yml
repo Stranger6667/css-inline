@@ -155,3 +155,51 @@ jobs:
           name: gems
           path: ./crates/css-inline-ruby/pkg/*.gem
           if-no-files-found: error
+
+  # `css_inline-rails` requires this exact `css_inline` minor, so it ships only
+  # once that gem is out. Plain Ruby, so a dry run has nothing to build.
+  rails-release:
+    needs: ruby-release
+    if: github.ref_type == 'tag' && !inputs.dry_run
+    runs-on: ubuntu-24.04
+    permissions:
+      # Trusted publishing: RubyGems exchanges the OIDC token for a short-lived key.
+      id-token: write
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+
+      - name: Check the tag matches the gem version
+        working-directory: ./crates/css-inline-ruby/rails
+        run: |
+          tag_version=${GITHUB_REF_NAME#ruby-v}
+          gem_version=$(ruby -r ./lib/css_inline/rails/version -e "print CSSInline::Rails::VERSION")
+          if [ "$gem_version" != "$tag_version" ]; then
+            echo "::error::Tag says ${tag_version}, version.rb says ${gem_version}"
+            exit 1
+          fi
+
+      - name: Build gem
+        working-directory: ./crates/css-inline-ruby/rails
+        run: gem build css_inline-rails.gemspec
+
+      # Adds the gem to the Ruby job's draft. A `name` would rename that draft.
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          make_latest: false
+          draft: true
+          files: ./crates/css-inline-ruby/rails/*.gem
+
+      - name: Configure RubyGems credentials
+        uses: rubygems/configure-rubygems-credentials@v2.1.0
+
+      - name: Publish to RubyGems
+        working-directory: ./crates/css-inline-ruby/rails
+        run: gem push css_inline-rails-*.gem

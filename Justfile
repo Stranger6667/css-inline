@@ -14,7 +14,7 @@ release COMPONENT VERSION:
     python)     CL=crates/css-inline-python/CHANGELOG.md;     FILES=(crates/css-inline-python/Cargo.toml) ;;
     java)       CL=crates/css-inline-java/CHANGELOG.md; FILES=(crates/css-inline-java/Cargo.toml crates/css-inline-java/build.gradle crates/css-inline-java/README.md) ;;
     php)        CL=crates/css-inline-php/CHANGELOG.md;        FILES=(crates/css-inline-php/Cargo.toml crates/css-inline-php/stubs/css_inline.php) ;;
-    ruby)       CL=crates/css-inline-ruby/CHANGELOG.md; FILES=(crates/css-inline-ruby/Cargo.toml crates/css-inline-ruby/css_inline.gemspec crates/css-inline-ruby/ext/css_inline/Cargo.toml crates/css-inline-ruby/Gemfile.lock) ;;
+    ruby)       CL=crates/css-inline-ruby/CHANGELOG.md; FILES=(crates/css-inline-ruby/Cargo.toml crates/css-inline-ruby/css_inline.gemspec crates/css-inline-ruby/ext/css_inline/Cargo.toml crates/css-inline-ruby/Gemfile.lock crates/css-inline-ruby/rails/lib/css_inline/rails/version.rb) ;;
     javascript) CL=crates/css-inline-js/CHANGELOG.md; FILES=(crates/css-inline-js/Cargo.toml crates/css-inline-js/package.json crates/css-inline-js/js-binding.js crates/css-inline-js/wasm/package.json crates/css-inline-js/npm/*/package.json crates/css-inline-js/README.md crates/css-inline-js/wasm/README.md) ;;
     *) echo "unknown component: $C"; exit 1 ;;
   esac
@@ -37,10 +37,15 @@ release COMPONENT VERSION:
     grep -qiE "$ANCHOR" "$f" || { echo "no version line matching '${PREV}' in $f"; exit 1; }
     sed -i "0,/${ANCHOR}/Is/${PREV_RE}/${VERSION}/" "$f"
   done
-  sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" "$CL"
-  sed -i "s#compare/${C}-v${PREV_RE}\.\.\.HEAD#compare/${C}-v${VERSION}...HEAD#" "$CL"
-  sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$CL"
+  bump_changelog() {
+    sed -i "0,/^## \[Unreleased\]$/s//## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" "$1"
+    sed -i "s#compare/${C}-v${PREV_RE}\.\.\.HEAD#compare/${C}-v${VERSION}...HEAD#" "$1"
+    sed -i "/^\[Unreleased\]: /a [${VERSION}]: https://github.com/Stranger6667/css-inline/compare/${C}-v${PREV}...${C}-v${VERSION}" "$1"
+  }
+  bump_changelog "$CL"
   if [ "$C" = ruby ]; then
+    # The Rails wrapper ships from the same tag, right after `css_inline`.
+    bump_changelog crates/css-inline-ruby/rails/CHANGELOG.md
     # The gem builds the core from crates.io; pin it to the core's current version.
     CORE=$(grep -m1 -oP '^version = "\K[^"]+' crates/css-inline/Cargo.toml)
     sed -i "/^\[dependencies.css-inline\]$/,/^version/s/^version = .*/version = \"${CORE}\"/" crates/css-inline-ruby/ext/css_inline/Cargo.toml
