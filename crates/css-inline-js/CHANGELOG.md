@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.24.0] - 2026-11-12
+
 ### Added
 
 - Support for the `:has()` pseudo-class. [#889](https://github.com/Stranger6667/css-inline/pull/889)
@@ -309,7 +311,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.2...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.24.0...HEAD
+[0.24.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.2...javascript-v0.24.0
 [0.23.2]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.1...javascript-v0.23.2
 [0.23.1]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.23.0...javascript-v0.23.1
 [0.23.0]: https://github.com/Stranger6667/css-inline/compare/javascript-v0.22.1...javascript-v0.23.0
