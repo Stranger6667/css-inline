@@ -1,0 +1,6 @@
+/.bundle/
+/vendor/
+/pkg/
+Gemfile.lock
+/spec/integration/fixtures/tmp/
+/spec/integration/fixtures/log/
