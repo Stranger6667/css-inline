@@ -225,6 +225,16 @@ test("remove classes", (t) => {
 const cssVariablesHtml =
   "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
 
+test("remove unused at-rules", (t) => {
+  t.is(
+    inline(
+      "<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>",
+      { keepAtRules: true, removeUnusedAtRules: true },
+    ),
+    "<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>",
+  );
+});
+
 test("resolve css variables is off by default", (t) => {
   t.is(
     inline(cssVariablesHtml),

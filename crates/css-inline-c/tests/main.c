@@ -182,6 +182,16 @@ static void test_media_type(void) {
   assert(strcmp(output, "<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>") == 0);
 }
 
+static void test_remove_unused_at_rules(void) {
+  char html[] = "<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>";
+  CssInlinerOptions options = css_inliner_default_options();
+  options.keep_at_rules = true;
+  options.remove_unused_at_rules = true;
+  char output[MAX_SIZE];
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>") == 0);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
@@ -196,5 +206,6 @@ int main(void) {
   test_keep_classes();
   test_resolve_css_variables();
   test_media_type();
+  test_remove_unused_at_rules();
   return 0;
 }

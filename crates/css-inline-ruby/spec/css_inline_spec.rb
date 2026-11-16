@@ -210,6 +210,13 @@ h2 { color: red; }
     expect(result).to eq('<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>')
   end
 
+  it 'Removes unused rules from kept at-rules' do
+    html = '<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>'
+    inliner = CSSInline::CSSInliner.new(keep_at_rules: true, remove_unused_at_rules: true)
+    result = inliner.inline(html)
+    expect(result).to eq('<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>')
+  end
+
   it 'Keeps CSS variables by default' do
     html = '<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>'
     result = CSSInline::inline(html)

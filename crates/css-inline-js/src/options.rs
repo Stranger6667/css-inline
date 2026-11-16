@@ -79,6 +79,8 @@ pub struct Options {
     pub media_type: Option<String>,
     /// Keep `class` attributes in the output.
     pub keep_classes: Option<bool>,
+    /// Remove rules that match no element from the conditional at-rules (`@media`, `@supports`, ...) kept in the output.
+    pub remove_unused_at_rules: Option<bool>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -171,6 +173,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             resolve_css_variables: value.resolve_css_variables.unwrap_or(false),
             media_type: value.media_type,
             keep_classes: value.keep_classes.unwrap_or(true),
+            remove_unused_at_rules: value.remove_unused_at_rules.unwrap_or(false),
         })
     }
 }

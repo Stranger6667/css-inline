@@ -80,6 +80,8 @@ struct Options {
     media_type: Option<String>,
     /// Keep `class` attributes in the output.
     keep_classes: Option<bool>,
+    /// Remove rules that match no element from the conditional at-rules (`@media`, `@supports`, ...) kept in the output.
+    remove_unused_at_rules: Option<bool>,
 }
 
 impl TryConvert for Options {
@@ -109,6 +111,8 @@ impl TryConvert for Options {
                 .aref::<_, Option<bool>>(ruby.to_symbol("resolve_css_variables"))?,
             media_type: h.aref::<_, Option<String>>(ruby.to_symbol("media_type"))?,
             keep_classes: h.aref::<_, Option<bool>>(ruby.to_symbol("keep_classes"))?,
+            remove_unused_at_rules: h
+                .aref::<_, Option<bool>>(ruby.to_symbol("remove_unused_at_rules"))?,
         })
     }
 }
@@ -137,6 +141,7 @@ fn parse_options<Req>(
         resolve_css_variables: kwargs.resolve_css_variables.unwrap_or(false),
         media_type: kwargs.media_type,
         keep_classes: kwargs.keep_classes.unwrap_or(true),
+        remove_unused_at_rules: kwargs.remove_unused_at_rules.unwrap_or(false),
     })
 }
 

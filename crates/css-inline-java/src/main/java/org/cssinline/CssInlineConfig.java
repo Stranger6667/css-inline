@@ -48,12 +48,14 @@ public class CssInlineConfig {
 	public final String mediaType;
 	/** Keep class attributes in the output. */
 	public final boolean keepClasses;
+	/** Remove rules that match no element from the conditional at-rules (@media, @supports, ...) kept in the output. */
+	public final boolean removeUnusedAtRules;
 
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
 			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors,
 			boolean applyWidthAttributes, boolean applyHeightAttributes, boolean resolveCssVariables,
-			String mediaType, boolean keepClasses) {
+			String mediaType, boolean keepClasses, boolean removeUnusedAtRules) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -70,6 +72,7 @@ public class CssInlineConfig {
 		this.resolveCssVariables = resolveCssVariables;
 		this.mediaType = mediaType;
 		this.keepClasses = keepClasses;
+		this.removeUnusedAtRules = removeUnusedAtRules;
 	}
 
 	/**
@@ -92,6 +95,7 @@ public class CssInlineConfig {
 		private boolean resolveCssVariables = false;
 		private String mediaType = null;
 		private boolean keepClasses = true;
+		private boolean removeUnusedAtRules = false;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -299,6 +303,17 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Remove rules that match no element from the conditional at-rules (@media, @supports, ...) kept in the output.
+		 *
+		 * @param b true to remove unused rules, false to keep the at-rules as is
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setRemoveUnusedAtRules(boolean b) {
+			this.removeUnusedAtRules = b;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
@@ -306,7 +321,7 @@ public class CssInlineConfig {
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
 					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes,
-					resolveCssVariables, mediaType, keepClasses);
+					resolveCssVariables, mediaType, keepClasses, removeUnusedAtRules);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 use cssparser::{ParserState, Token};
-use std::ops::Range;
+use std::{borrow::Cow, ops::Range};
 
 pub(crate) struct CSSDeclarationListParser;
 
@@ -621,10 +621,293 @@ fn parse_declarations_into<'i>(
     (start, declarations.len())
 }
 
+/// `selector` without the pseudo-classes and pseudo-elements that depend on what the document
+/// does not tell (`:hover`, `::before`, ...), so the rest matches every element `selector` can
+/// match in any state. `None` if that cannot be decided from the text.
+pub(crate) fn without_dynamic_pseudos(selector: &str) -> Option<Cow<'_, str>> {
+    let bytes = selector.as_bytes();
+    if bytes.contains(&b'&') {
+        return None;
+    }
+    if !bytes.contains(&b':') {
+        return Some(Cow::Borrowed(selector));
+    }
+    // Escapes, strings and comments may hide a `:`
+    if bytes
+        .iter()
+        .any(|byte| matches!(byte, b'\\' | b'"' | b'\'' | b'/'))
+    {
+        return None;
+    }
+    let mut stripped = String::new();
+    let mut copied = 0;
+    let mut depth = 0usize;
+    let mut idx = 0;
+    while let Some(&byte) = bytes.get(idx) {
+        idx = idx.saturating_add(1);
+        match byte {
+            b'(' | b'[' => depth = depth.saturating_add(1),
+            b')' | b']' => depth = depth.saturating_sub(1),
+            b':' => {
+                let start = idx.saturating_sub(1);
+                let is_element = bytes.get(idx) == Some(&b':');
+                idx = idx.saturating_add(usize::from(is_element));
+                let name = &bytes[idx..];
+                let len = name
+                    .iter()
+                    .position(|&byte| {
+                        !(byte.is_ascii_alphanumeric()
+                            || matches!(byte, b'-' | b'_' | 0x80..=u8::MAX))
+                    })
+                    .unwrap_or(name.len());
+                let name = &name[..len];
+                idx = idx.saturating_add(len);
+                // Functional pseudo-classes are left to the selector parser
+                if bytes.get(idx) == Some(&b'(') {
+                    continue;
+                }
+                if !is_element
+                    && STATIC_PSEUDO_CLASSES
+                        .iter()
+                        .any(|known| name.eq_ignore_ascii_case(known))
+                {
+                    continue;
+                }
+                // Removing a nested one could narrow the match, e.g. inside `:not()`
+                if depth > 0 || name.is_empty() {
+                    return None;
+                }
+                stripped.push_str(&selector[copied..start]);
+                copied = idx;
+            }
+            _ => {}
+        }
+    }
+    if copied == 0 {
+        return Some(Cow::Borrowed(selector));
+    }
+    stripped.push_str(&selector[copied..]);
+    Some(Cow::Owned(stripped))
+}
+
+/// Pseudo-classes that depend only on the document.
+const STATIC_PSEUDO_CLASSES: [&[u8]; 10] = [
+    b"root",
+    b"empty",
+    b"first-child",
+    b"last-child",
+    b"only-child",
+    b"first-of-type",
+    b"last-of-type",
+    b"only-of-type",
+    b"link",
+    b"any-link",
+];
+
+/// The kept `@`-rule `rule` without the style rules nested in its conditional group rules and
+/// `@layer` blocks whose selectors are all `unused`, without the unused selectors of the other
+/// rules, and without the blocks left empty. `None` if `rule` stays as it is.
+pub(crate) fn remove_unused_rules(
+    rule: &str,
+    unused: &mut dyn FnMut(&str) -> bool,
+) -> Option<String> {
+    let mut remover = UnusedRuleRemover {
+        source: rule,
+        output: String::new(),
+        copied: 0,
+        unused,
+        unterminated: false,
+    };
+    let kept = remover.walk(&mut cssparser::Parser::new(rule));
+    if remover.unterminated || remover.copied == 0 {
+        return None;
+    }
+    if !kept {
+        return Some(String::new());
+    }
+    remover.output.push_str(&rule[remover.copied..]);
+    Some(remover.output.trim().to_string())
+}
+
+struct UnusedRuleRemover<'i, 'u> {
+    source: &'i str,
+    output: String,
+    /// End of the source text that is already written or removed.
+    copied: usize,
+    unused: &'u mut dyn FnMut(&str) -> bool,
+    /// A group rule block has no closing brace.
+    unterminated: bool,
+}
+
+impl<'i> UnusedRuleRemover<'i, '_> {
+    /// Write `text` in place of `range` of the source.
+    fn replace(&mut self, range: Range<usize>, text: &str) {
+        self.output.push_str(&self.source[self.copied..range.start]);
+        self.output.push_str(text);
+        self.copied = range.end;
+    }
+
+    /// Walk a rule list; whether any of its rules is kept.
+    fn walk(&mut self, input: &mut cssparser::Parser<'i>) -> bool {
+        let mut kept = false;
+        loop {
+            // A removed rule goes with the whitespace and comments before it
+            let item_start = input.position().byte_index();
+            input.skip_whitespace();
+            let start = input.position().byte_index();
+            let mut at_rule = None;
+            let mut has_block = false;
+            match input.next() {
+                Err(_) => break,
+                Ok(Token::AtKeyword(name)) => at_rule = Some(name.clone()),
+                Ok(Token::CurlyBracketBlock) => has_block = true,
+                Ok(_) => {}
+            }
+            let prelude_start = input.position().byte_index();
+            while !has_block {
+                match input.next() {
+                    Ok(Token::CurlyBracketBlock) => has_block = true,
+                    Ok(Token::Semicolon) if at_rule.is_some() => break,
+                    Ok(_) => {}
+                    Err(_) => break,
+                }
+            }
+            if !has_block {
+                kept = true;
+                continue;
+            }
+            // The position is right after `{`
+            let prelude_end = input.position().byte_index().saturating_sub(1);
+            let is_layer = at_rule
+                .as_ref()
+                .is_some_and(|name| name.eq_ignore_ascii_case("layer"));
+            let is_group = is_layer
+                || at_rule.as_ref().is_some_and(|name| {
+                    cssparser::match_ignore_ascii_case! { name,
+                        "media" | "supports" | "container" | "document" | "-moz-document" => true,
+                        _ => false,
+                    }
+                });
+            if is_group {
+                // Changes inside the block are undone if no rule is left in it
+                let (output_len, copied) = (self.output.len(), self.copied);
+                let has_rules = input
+                    .parse_nested_block(|block| {
+                        let has_rules = self.walk(block);
+                        let end = block.position().byte_index();
+                        if self.source.as_bytes().get(end) != Some(&b'}') {
+                            self.unterminated = true;
+                        }
+                        Ok::<_, cssparser::ParseError<()>>(has_rules)
+                    })
+                    .unwrap_or(true);
+                if has_rules {
+                    kept = true;
+                    continue;
+                }
+                self.output.truncate(output_len);
+                self.copied = copied;
+                let end = input.position().byte_index();
+                let name = self.source[prelude_start..prelude_end].trim();
+                if is_layer && !name.is_empty() {
+                    // The block may be the first to name the layer, which sets the layer order
+                    self.replace(start..end, &format!("@layer {name};"));
+                    kept = true;
+                } else {
+                    self.replace(item_start..end, "");
+                }
+                continue;
+            }
+            let _ = input.parse_nested_block(|block| {
+                exhaust(block);
+                Ok::<_, cssparser::ParseError<()>>(())
+            });
+            if at_rule.is_some() {
+                kept = true;
+                continue;
+            }
+            let selectors = &self.source[start..prelude_end];
+            let mut used = Vec::new();
+            let mut total = 0usize;
+            for selector in split_selector_list(selectors) {
+                total = total.saturating_add(1);
+                if !(self.unused)(selector) {
+                    used.push(selector.trim());
+                }
+            }
+            if used.is_empty() {
+                let end = input.position().byte_index();
+                self.replace(item_start..end, "");
+                continue;
+            }
+            kept = true;
+            if used.len() < total {
+                let end = start.saturating_add(selectors.trim_end().len());
+                self.replace(start..end, &used.join(", "));
+            }
+        }
+        kept
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{split_selector_list, top_level_comma, top_level_comma_scan};
     use test_case::test_case;
+
+    #[test_case(".a", Some(".a"); "no pseudo")]
+    #[test_case(".a:hover", Some(".a"); "state")]
+    #[test_case(".a:HOVER.b:focus-visible > c", Some(".a.b > c"); "several")]
+    #[test_case(".a::before", Some(".a"); "element")]
+    #[test_case(".a:after", Some(".a"); "legacy element")]
+    #[test_case(".a::first-child", Some(".a"); "static name as element")]
+    #[test_case(".a:first-child:Link", Some(".a:first-child:Link"); "static")]
+    #[test_case(".a:not(.b):hover", Some(".a:not(.b)"); "after functional")]
+    #[test_case(".a:nth-child(2n+1)", Some(".a:nth-child(2n+1)"); "functional")]
+    #[test_case(".a:not(:first-child)", Some(".a:not(:first-child)"); "nested static")]
+    #[test_case(":hover", Some(""); "only state")]
+    #[test_case(".a:hové", Some(".a"); "non-ASCII name")]
+    #[test_case(".a:not(:hover)", None; "nested state")]
+    #[test_case("[xlink:href]", None; "in attribute")]
+    #[test_case(".a:", None; "no name")]
+    #[test_case(r".a\:b:hover", None; "escape")]
+    #[test_case(r#"[a=":"]"#, None; "string")]
+    #[test_case(".a/**/:hover", None; "comment")]
+    #[test_case("& .a", None; "nesting selector")]
+    fn without_dynamic_pseudos(selector: &str, expected: Option<&str>) {
+        assert_eq!(
+            super::without_dynamic_pseudos(selector).as_deref(),
+            expected
+        );
+    }
+
+    fn remove_unused(rule: &str) -> Option<String> {
+        super::remove_unused_rules(rule, &mut |selector| selector.contains("unused"))
+    }
+
+    #[test_case("@media print { a { b: c } }"; "nothing unused")]
+    #[test_case("@font-face { unused: c }"; "not a group rule")]
+    #[test_case("@unknown { unused { b: c } }"; "unknown rule")]
+    #[test_case("@media print { a { unused { b: c } } }"; "rule nested in a style rule")]
+    #[test_case("@media print { unused { b: c }"; "unterminated block")]
+    #[test_case("@media print { @supports (a: b) { unused { b: c } }"; "unterminated outer block")]
+    #[test_case("@media print { unused { b: c"; "unterminated rule")]
+    #[test_case("@media print { unused"; "no block")]
+    #[test_case("@media print"; "no group block")]
+    fn remove_unused_rules_unchanged(rule: &str) {
+        assert_eq!(remove_unused(rule), None);
+    }
+
+    #[test_case("@media print { unused { b: c } }", ""; "single rule")]
+    #[test_case("@media (a:not(b)) { unused:not(a, b) { b: c } d:is(e, f) { b: c } }", "@media (a:not(b)) { d:is(e, f) { b: c } }"; "blocks in preludes")]
+    #[test_case("@media print { unused { b: c } @import 'a'; }", "@media print { @import 'a'; }"; "statement")]
+    #[test_case("@media print { unused { b: c } ; a { b: c } }", "@media print { ; a { b: c } }"; "stray semicolon")]
+    #[test_case("@media print{unused{b:c}a{b:c}}", "@media print{a{b:c}}"; "no whitespace")]
+    #[test_case("@media print { a,unused,\n b { b: c } }", "@media print { a, b { b: c } }"; "selector list")]
+    #[test_case(r"@l\61yer x { unused { b: c } }", "@layer x;"; "escaped name")]
+    fn remove_unused_rules(rule: &str, expected: &str) {
+        assert_eq!(remove_unused(rule).as_deref(), Some(expected));
+    }
 
     #[test_case("a, b", Some(1); "plain")]
     #[test_case("a/b, c", Some(3); "slash without comment")]
