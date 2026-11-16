@@ -1414,7 +1414,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, media_type: None, .. } }");
 }
 
 #[test]
@@ -3138,5 +3138,139 @@ fn root_selector_fragment(padding: &str) {
         format!(
             r#"<p style="color: red;">A</p><!--{padding}--><div style="color: red;"><p style="margin: 0;">B</p></div>"#
         )
+    );
+}
+
+#[test_case("print", "@media print { p { color: red } }", r#"<p style="color: red;">x</p>"#; "matching type")]
+#[test_case("screen", "@media print { p { color: red } }", "<p>x</p>"; "other type")]
+#[test_case("print", "@media all { p { color: red } }", r#"<p style="color: red;">x</p>"#; "all")]
+#[test_case("print", "@media only print { p { color: red } }", r#"<p style="color: red;">x</p>"#; "only")]
+#[test_case("print", "@media not screen { p { color: red } }", r#"<p style="color: red;">x</p>"#; "not other type")]
+#[test_case("print", "@media not print { p { color: red } }", "<p>x</p>"; "not matching type")]
+#[test_case("print", "@media not all { p { color: red } }", "<p>x</p>"; "not all")]
+#[test_case("print", "@media screen, print { p { color: red } }", r#"<p style="color: red;">x</p>"#; "comma list")]
+#[test_case("print", "@media (min-width: 1px), print { p { color: red } }", r#"<p style="color: red;">x</p>"#; "comma list with features")]
+#[test_case("print", "@media screen, tv { p { color: red } }", "<p>x</p>"; "comma list without match")]
+#[test_case("Print", "@MEDIA PRINT { p { color: red } }", r#"<p style="color: red;">x</p>"#; "case insensitive")]
+#[test_case("print", "@media/* a */print/* b */{ p { color: red } }", r#"<p style="color: red;">x</p>"#; "comments")]
+#[test_case("print", "@media print and (min-width: 1px) { p { color: red } }", "<p>x</p>"; "type with feature")]
+#[test_case("print", "@media (min-width: 1px) { p { color: red } }", "<p>x</p>"; "feature only")]
+#[test_case("print", "@media not (min-width: 1px) { p { color: red } }", "<p>x</p>"; "negated feature")]
+#[test_case("print", "@media { p { color: red } }", "<p>x</p>"; "empty query")]
+#[test_case("print", "p { color: blue } @media print { p { color: red } }", r#"<p style="color: red;">x</p>"#; "overrides earlier rule")]
+#[test_case("print", "@media print { p { color: red } } p { color: blue }", r#"<p style="color: blue;">x</p>"#; "overridden by later rule")]
+#[test_case("print", "@media print { p { color: red } } body p { color: blue }", r#"<p style="color: blue;">x</p>"#; "loses to higher specificity")]
+#[test_case("print", "@media print { p { color: red !important } } body p { color: blue }", r#"<p style="color: red !important;">x</p>"#; "important")]
+#[test_case("print", "@media print { @media all { p { color: red } } }", r#"<p style="color: red;">x</p>"#; "nested matching")]
+#[test_case("print", "@media print { p { color: red } @media screen { p { color: blue } } }", r#"<p style="color: red;">x</p>"#; "nested other type")]
+#[test_case("print", "@media screen { @media print { p { color: red } } }", "<p>x</p>"; "inside other type")]
+#[test_case("print", "@supports (display: grid) { @media print { p { color: red } } }", "<p>x</p>"; "inside supports")]
+#[test_case("print", "@layer a { p { color: blue } } @media print { @layer a { p { color: red } } }", r#"<p style="color: red;">x</p>"#; "layer inside media")]
+#[test_case("print", "@layer a, b; @layer b { p { color: blue } } @layer a { @media print { p { color: red } } }", r#"<p style="color: blue;">x</p>"#; "media inside earlier layer")]
+#[test_case("print", "@layer a { @media print { p { color: red } } } @layer b { @media screen { p { color: blue } } }", r#"<p style="color: red;">x</p>"#; "media inside layers")]
+fn media_type(media_type: &str, style: &str, expected: &str) {
+    let inliner = CSSInliner::options().media_type(media_type).build();
+    assert_eq!(
+        inliner.inline(&html!(style, "<p>x</p>")).unwrap(),
+        html!(expected)
+    );
+}
+
+#[test_case(
+    "@media print { p { color: red } } @media screen { p { color: blue } }",
+    r#"<html><head><style>@media screen { p { color: blue } } </style></head><body><p style="color: red;">x</p></body></html>"#;
+    "matching block is not kept"
+)]
+#[test_case(
+    "@media print { p { color: red } @media screen { p { color: blue } } @media (min-width: 1px) { p { margin: 0 } } }",
+    r#"<html><head><style>@media screen { p { color: blue } } @media (min-width: 1px) { p { margin: 0 } } </style></head><body><p style="color: red;">x</p></body></html>"#;
+    "nested blocks that do not apply are kept"
+)]
+#[test_case(
+    "@layer a { @media print { p { color: red } @media screen { p { color: blue } } } }",
+    r#"<html><head><style>@layer a { @media screen { p { color: blue } } } </style></head><body><p style="color: red;">x</p></body></html>"#;
+    "nested block stays in its layer"
+)]
+#[test_case(
+    "@supports (display: grid) { @media print { p { color: red } } }",
+    r#"<html><head><style>@supports (display: grid) { @media print { p { color: red } } } </style></head><body><p>x</p></body></html>"#;
+    "inside supports"
+)]
+fn media_type_with_keep_at_rules(style: &str, expected: &str) {
+    let inliner = CSSInliner::options()
+        .media_type("print")
+        .keep_at_rules(true)
+        .build();
+    assert_eq!(inliner.inline(&html!(style, "<p>x</p>")).unwrap(), expected);
+}
+
+#[test]
+fn media_type_with_remove_inlined_selectors() {
+    let inliner = CSSInliner::options()
+        .media_type("print")
+        .remove_inlined_selectors(true)
+        .build();
+    let html = html!(
+        "@media print { p { color: red } .unused { color: blue } } @media screen { p { margin: 0 } }",
+        "<p>x</p>"
+    );
+    assert_eq!(
+        inliner.inline(&html).unwrap(),
+        "<html><head><style>.unused { color: blue; }\n@media screen { p { margin: 0 } }</style></head><body><p style=\"color: red;\">x</p></body></html>"
+    );
+}
+
+#[test_case(false, "<html><head></head><body><p>x</p></body></html>"; "at-rules dropped")]
+#[test_case(
+    true,
+    "<html><head><style>@media print { p { color: red } } @media all { p { margin: 0 } } </style></head><body><p>x</p></body></html>";
+    "at-rules kept"
+)]
+fn media_type_unset(keep_at_rules: bool, expected: &str) {
+    let html = html!(
+        "@media print { p { color: red } } @media all { p { margin: 0 } }",
+        "<p>x</p>"
+    );
+    let options = InlineOptions {
+        keep_at_rules,
+        ..Default::default()
+    };
+    assert!(options.media_type.is_none());
+    assert_eq!(CSSInliner::new(options).inline(&html).unwrap(), expected);
+}
+
+#[test]
+fn media_type_keeps_at_rules_of_ignored_style_tags() {
+    let options = InlineOptions {
+        inline_style_tags: false,
+        keep_at_rules: true,
+        media_type: Some("print".into()),
+        ..Default::default()
+    };
+    let html = html!(
+        "@media print { p { color: red } } @media screen { p { margin: 0 } }",
+        "<p>x</p>"
+    );
+    assert_eq!(
+        CSSInliner::new(options).inline(&html).unwrap(),
+        "<html><head><style>@media print { p { color: red } } @media screen { p { margin: 0 } } </style></head><body><p>x</p></body></html>"
+    );
+}
+
+#[test]
+fn media_type_in_extra_css_and_fragments() {
+    let inliner = CSSInliner::options()
+        .media_type("print")
+        .extra_css(Some("@media print { p { color: red } }".into()))
+        .build();
+    assert_eq!(
+        inliner.inline(&html!("<p>x</p>")).unwrap(),
+        html!(r#"<p style="color: red;">x</p>"#)
+    );
+    assert_eq!(
+        inliner
+            .inline_fragment("<p>x</p>", "@media print { p { margin: 0 } }")
+            .unwrap(),
+        r#"<p style="color: red;margin: 0;">x</p>"#
     );
 }

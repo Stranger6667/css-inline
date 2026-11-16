@@ -161,6 +161,7 @@ The module functions accept the same keyword arguments, for example `CSSInline.i
 - `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
+- `media_type`. Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule. Default: `nil`
 
 To skip CSS inlining for an HTML tag, add the `data-css-inline="ignore"` attribute to it:
 

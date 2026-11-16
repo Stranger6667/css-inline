@@ -76,6 +76,8 @@ struct Options {
     /// Substitute `var()` references with the values of the custom properties they refer to
     /// and drop the `--*` declarations from the inlined styles.
     resolve_css_variables: Option<bool>,
+    /// Inline rules from `@media` blocks that apply to this media type.
+    media_type: Option<String>,
 }
 
 impl TryConvert for Options {
@@ -103,6 +105,7 @@ impl TryConvert for Options {
                 .aref::<_, Option<bool>>(ruby.to_symbol("apply_height_attributes"))?,
             resolve_css_variables: h
                 .aref::<_, Option<bool>>(ruby.to_symbol("resolve_css_variables"))?,
+            media_type: h.aref::<_, Option<String>>(ruby.to_symbol("media_type"))?,
         })
     }
 }
@@ -129,6 +132,7 @@ fn parse_options<Req>(
         apply_width_attributes: kwargs.apply_width_attributes.unwrap_or(false),
         apply_height_attributes: kwargs.apply_height_attributes.unwrap_or(false),
         resolve_css_variables: kwargs.resolve_css_variables.unwrap_or(false),
+        media_type: kwargs.media_type,
     })
 }
 

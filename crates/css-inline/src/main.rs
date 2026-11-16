@@ -66,6 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         apply_width_attributes: bool,
         apply_height_attributes: bool,
         resolve_css_variables: bool,
+        media_type: Option<String>,
     }
 
     impl Default for ParsedArgs {
@@ -90,6 +91,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 apply_width_attributes: false,
                 apply_height_attributes: false,
                 resolve_css_variables: false,
+                media_type: None,
             }
         }
     }
@@ -141,6 +143,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
                 Long("base-url") => parsed.base_url = Some(parser.value()?.string()?),
                 Long("extra-css") => parsed.extra_css = Some(parser.value()?.string()?),
+                Long("media-type") => parsed.media_type = Some(parser.value()?.string()?),
                 Long("extra-css-file") => parsed.extra_css_files.push(parser.value()?.into()),
                 Long("output-filename-prefix") => {
                     parsed.output_filename_prefix = Some(parser.value()?);
@@ -264,6 +267,10 @@ OPTIONS:
         Load additional CSS from a file to inline. Can be used multiple times to load
         from several files. The CSS will be processed alongside any existing styles.
 
+    --media-type
+        Inline rules from "@media" blocks that apply to the given media type, e.g. `print`.
+        Queries with media features, such as `(min-width: 600px)`, never apply.
+
     --output-filename-prefix
         Custom prefix for output files. Defaults to `inlined.`.
 "#
@@ -324,6 +331,7 @@ OPTIONS:
             apply_width_attributes: args.apply_width_attributes,
             apply_height_attributes: args.apply_height_attributes,
             resolve_css_variables: args.resolve_css_variables,
+            media_type: args.media_type,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

@@ -138,6 +138,7 @@ const INLINE: &'static str = r#"export interface InlineOptions {
     applyWidthAttributes?: boolean,
     applyHeightAttributes?: boolean,
     resolveCssVariables?: boolean,
+    mediaType?: string,
 }
 
 export function inline(html: string, options?: InlineOptions): string;

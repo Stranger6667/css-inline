@@ -64,6 +64,12 @@ export interface Options {
    * Email clients do not support custom properties; this makes the output work without them.
    */
   resolveCssVariables?: boolean
+  /**
+   * Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
+   *
+   * Queries with media features, such as `(min-width: 600px)`, never apply.
+   */
+  mediaType?: string
 }
 
 export interface StylesheetCache {

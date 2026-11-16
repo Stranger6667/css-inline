@@ -200,6 +200,7 @@ Both functions return a `CssResult`. `CSS_RESULT_OK` is `0`; any other value is 
 | `CSS_RESULT_INVALID_EXTRA_CSS` | `extra_css` is not UTF-8 |
 | `CSS_RESULT_INVALID_INPUT_STRING` | The HTML or CSS input is not UTF-8 |
 | `CSS_RESULT_INVALID_CACHE_SIZE` | The stylesheet cache size is `0` |
+| `CSS_RESULT_INVALID_MEDIA_TYPE` | `media_type` is not UTF-8 |
 
 ### Configuration
 
@@ -237,10 +238,11 @@ Fields:
 - `apply_width_attributes`. Add `width` HTML attributes from CSS `width` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
+- `media_type` (`const char *`). Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule. Default: `NULL`
 
 With the defaults, the library loads every stylesheet that a `link` tag references, over the network or from local files. Set `load_remote_stylesheets` to `false` to block both network and file access for `link` tags.
 
-The library reads `base_url`, `extra_css` and `cache` during each call and keeps no reference afterwards. Keep them valid until the call returns.
+The library reads `base_url`, `extra_css`, `media_type` and `cache` during each call and keeps no reference afterwards. Keep them valid until the call returns.
 
 To skip inlining for an HTML tag, add the `data-css-inline="ignore"` attribute:
 

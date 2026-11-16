@@ -16,6 +16,7 @@ export interface InlineOptions {
 	applyWidthAttributes?: boolean;
 	applyHeightAttributes?: boolean;
 	resolveCssVariables?: boolean;
+	mediaType?: string;
 }
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 /**

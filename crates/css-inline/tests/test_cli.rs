@@ -286,6 +286,17 @@ pub mod tests {
     }
 
     #[test]
+    fn media_type() {
+        css_inline()
+            .arg("--media-type")
+            .arg("print")
+            .write_stdin("<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>x</h1></body></html>")
+            .assert()
+            .success()
+            .stdout("<html><head></head><body><h1 style=\"color: red;\">x</h1></body></html>");
+    }
+
+    #[test]
     fn not_found() {
         css_inline()
             .arg("unknown.html")

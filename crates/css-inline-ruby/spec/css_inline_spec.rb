@@ -212,4 +212,10 @@ h2 { color: red; }
     expect(result).not_to include('--c')
   end
 
+  it 'Inlines rules from media blocks that apply to the media type' do
+    html = '<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>'
+    inliner = CSSInline::CSSInliner.new(media_type: 'print')
+    expect(inliner.inline(html)).to eq('<html><head></head><body><h1 style="color: red;">Test</h1></body></html>')
+  end
+
 end

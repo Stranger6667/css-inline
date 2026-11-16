@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Added
+
+- `setMediaType` option to inline rules from `@media` blocks that apply to the given media type. [#410](https://github.com/Stranger6667/css-inline/issues/410)
+
 ### Fixed
 
 - `setExtraCss`, fragment CSS and linked stylesheets not inlined when `setKeepAtRules` is enabled and `setInlineStyleTags` is disabled.

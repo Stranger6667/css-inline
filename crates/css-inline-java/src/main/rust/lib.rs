@@ -118,6 +118,7 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
 
     let extra_css = env.get_string_field_opt(cfg, jni_str!("extraCss"))?;
     let base_url = env.get_string_field_opt(cfg, jni_str!("baseUrl"))?;
+    let media_type = env.get_string_field_opt(cfg, jni_str!("mediaType"))?;
     let mut builder = CSSInliner::options()
         .inline_style_tags(inline_style_tags)
         .keep_style_tags(keep_style_tags)
@@ -139,6 +140,10 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
             }
             Err(error) => return Err(Error::Other(error.to_string())),
         }
+    }
+
+    if let Some(media_type) = media_type {
+        builder = builder.media_type(media_type);
     }
 
     if cache_size > 0 {

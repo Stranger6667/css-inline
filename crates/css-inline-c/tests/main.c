@@ -156,6 +156,15 @@ static void test_resolve_css_variables(void) {
   assert(strstr(output, "--c") == NULL);
 }
 
+static void test_media_type(void) {
+  char html[] = "<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>";
+  CssInlinerOptions options = css_inliner_default_options();
+  options.media_type = "print";
+  char output[MAX_SIZE];
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>") == 0);
+}
+
 int main(void) {
   test_default_options();
   test_output_size_too_small();
@@ -167,5 +176,6 @@ int main(void) {
   test_inline_fragment();
   test_remove_inlined_selectors();
   test_resolve_css_variables();
+  test_media_type();
   return 0;
 }

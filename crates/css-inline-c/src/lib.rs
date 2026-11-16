@@ -34,6 +34,8 @@ pub enum CssResult {
     InvalidInputString,
     /// Invalid cache size.
     InvalidCacheSize,
+    /// Invalid media_type parameter.
+    InvalidMediaType,
 }
 
 impl From<InlineError> for CssResult {
@@ -57,6 +59,8 @@ pub enum InlineOptionsError {
     InvalidExtraCss,
     /// Invalid cache size.
     InvalidCacheSize,
+    /// Invalid media_type parameter.
+    InvalidMediaType,
 }
 
 /// An LRU Cache for external stylesheets.
@@ -106,6 +110,9 @@ pub struct CssInlinerOptions {
     /// Substitute `var()` references with the values of the custom properties they refer to
     /// and drop the `--*` declarations from the inlined styles.
     pub resolve_css_variables: bool,
+    /// Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
+    /// Queries with media features, such as `(min-width: 600px)`, never apply.
+    pub media_type: *const c_char,
 }
 
 macro_rules! inliner {
@@ -211,6 +218,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         apply_width_attributes: false,
         apply_height_attributes: false,
         resolve_css_variables: false,
+        media_type: ptr::null(),
     }
 }
 
@@ -244,6 +252,15 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
                 None => None,
             }
         };
+        let media_type = unsafe {
+            match value.media_type.as_ref() {
+                Some(val) => Some(match CStr::from_ptr(val).to_str() {
+                    Ok(val) => val.to_owned(),
+                    Err(_) => return Err(InlineOptionsError::InvalidMediaType),
+                }),
+                None => None,
+            }
+        };
         Ok(Self {
             inline_style_tags: value.inline_style_tags,
             keep_style_tags: value.keep_style_tags,
@@ -271,6 +288,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             apply_width_attributes: value.apply_width_attributes,
             apply_height_attributes: value.apply_height_attributes,
             resolve_css_variables: value.resolve_css_variables,
+            media_type,
         })
     }
 }
@@ -281,6 +299,7 @@ impl From<InlineOptionsError> for CssResult {
             InlineOptionsError::InvalidUrl => CssResult::InvalidUrl,
             InlineOptionsError::InvalidExtraCss => CssResult::InvalidExtraCss,
             InlineOptionsError::InvalidCacheSize => CssResult::InvalidCacheSize,
+            InlineOptionsError::InvalidMediaType => CssResult::InvalidMediaType,
         }
     }
 }

@@ -180,6 +180,7 @@ public class ConfigExample {
 - **`setApplyWidthAttributes(boolean)`** - Add `width` HTML attributes from CSS `width` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
 - **`setApplyHeightAttributes(boolean)`** - Add `height` HTML attributes from CSS `height` properties on supported elements (`table`, `td`, `th`, `img`) (default: `false`)
 - **`setResolveCssVariables(boolean)`** - Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations (default: `false`)
+- **`setMediaType(String)`** - Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule (default: `null`)
 
 `inline` and `inlineFragment` throw `org.cssinline.CssInlineException` (a `RuntimeException`) when inlining fails. A malformed `setBaseUrl` value passes `build()` and fails here, as does a stylesheet that cannot be loaded.
 

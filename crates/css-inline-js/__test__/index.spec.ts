@@ -213,6 +213,16 @@ test("resolve css variables is off by default", (t) => {
   );
 });
 
+test("media type", (t) => {
+  t.is(
+    inline(
+      "<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>",
+      { mediaType: "print" },
+    ),
+    '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>',
+  );
+});
+
 test("resolve css variables", (t) => {
   const result = inline(cssVariablesHtml, { resolveCssVariables: true });
   t.is(

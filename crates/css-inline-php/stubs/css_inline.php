@@ -71,6 +71,7 @@ class CssInliner
      * @param bool $applyWidthAttributes Add width HTML attributes from CSS width properties on supported elements
      * @param bool $applyHeightAttributes Add height HTML attributes from CSS height properties on supported elements
      * @param bool $resolveCssVariables Replace var() references with the values of the custom properties they refer to and drop the --* declarations
+     * @param string|null $mediaType Inline rules from @media blocks that apply to this media type
      */
     public function __construct(
         bool $inlineStyleTags = true,
@@ -87,6 +88,7 @@ class CssInliner
         bool $applyWidthAttributes = false,
         bool $applyHeightAttributes = false,
         bool $resolveCssVariables = false,
+        ?string $mediaType = null,
     ) {}
 
     /**

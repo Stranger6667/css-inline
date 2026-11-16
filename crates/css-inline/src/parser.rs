@@ -221,6 +221,8 @@ pub(crate) struct RuleParser<'d, 'i> {
     skipped: usize,
     /// Whether the source may contain `@layer`; otherwise conditional rules are not walked.
     has_layers: bool,
+    /// `@media` blocks that apply to this media type are parsed as if their rules were outside.
+    media_type: Option<&'d str>,
 }
 
 impl<'d, 'i> RuleParser<'d, 'i> {
@@ -230,6 +232,7 @@ impl<'d, 'i> RuleParser<'d, 'i> {
         declarations: &'d mut Vec<Declaration<'i>>,
         rules: &'d mut Vec<Rule<'i>>,
         spans: Option<&'d mut Vec<Span<'i>>>,
+        media_type: Option<&'d str>,
     ) -> RuleParser<'d, 'i> {
         RuleParser {
             source,
@@ -245,6 +248,7 @@ impl<'d, 'i> RuleParser<'d, 'i> {
                     .get(idx.saturating_add(1)..idx.saturating_add(6))
                     .is_some_and(|name| name.eq_ignore_ascii_case(b"layer"))
             }),
+            media_type,
         }
     }
 
@@ -400,6 +404,39 @@ pub(crate) enum AtRulePrelude<'i> {
     Layer(LayerPrelude<'i>),
     /// A conditional group rule, whose block is a rule list.
     Conditional,
+    /// `@media` that applies to the target media type.
+    MatchingMedia,
+}
+
+/// Whether any query of a media query list applies to `media_type`.
+fn media_applies(input: &mut cssparser::Parser<'_>, media_type: &str) -> bool {
+    let mut applies = false;
+    loop {
+        applies |= input
+            .parse_until_before(cssparser::Delimiter::Comma, |query| {
+                media_query_applies(query, media_type)
+            })
+            .unwrap_or(false);
+        if input.next().is_err() {
+            return applies;
+        }
+    }
+}
+
+/// `[ not | only ]? <media-type>`; a query with media features is an error, as there is no
+/// viewport to evaluate it against.
+fn media_query_applies(
+    input: &mut cssparser::Parser<'_>,
+    media_type: &str,
+) -> Result<bool, cssparser::ParseError<()>> {
+    let mut ident = input.expect_ident_cloned()?;
+    let negated = ident.eq_ignore_ascii_case("not");
+    if negated || ident.eq_ignore_ascii_case("only") {
+        ident = input.expect_ident_cloned()?;
+    }
+    input.expect_exhausted()?;
+    let matches = ident.eq_ignore_ascii_case(media_type) || ident.eq_ignore_ascii_case("all");
+    Ok(matches != negated)
 }
 
 /// `<layer-name> = <ident> [ '.' <ident> ]*`, without whitespace.
@@ -440,6 +477,15 @@ impl<'i> cssparser::AtRuleParser<'i> for RuleParser<'_, 'i> {
             "media" | "supports" | "container" | "document" | "-moz-document" => true,
             _ => false,
         } {
+            if let Some(media_type) = self.media_type {
+                // `@media` nested in a kept at-rule stays inside it.
+                if self.skipped == 0
+                    && name.eq_ignore_ascii_case("media")
+                    && media_applies(input, media_type)
+                {
+                    return Ok(AtRulePrelude::MatchingMedia);
+                }
+            }
             exhaust(input);
             return Ok(AtRulePrelude::Conditional);
         }
@@ -490,6 +536,10 @@ impl<'i> cssparser::AtRuleParser<'i> for RuleParser<'_, 'i> {
     ) -> Result<Self::AtRule, cssparser::ParseError<Self::Error>> {
         let prelude = match prelude {
             AtRulePrelude::Layer(prelude) => prelude,
+            AtRulePrelude::MatchingMedia => {
+                collect_rules(&mut cssparser::StyleSheetParser::new(input, self));
+                return Ok(());
+            }
             AtRulePrelude::Conditional if !self.has_layers => {
                 return Err(cssparser::ParseError::custom(()));
             }

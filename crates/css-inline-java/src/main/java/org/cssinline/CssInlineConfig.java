@@ -44,10 +44,14 @@ public class CssInlineConfig {
 	/** Substitute var() references with the values of the custom properties they refer to and drop the --* declarations. */
 	public final boolean resolveCssVariables;
 
+	/** Inline rules from @media blocks that apply to this media type. */
+	public final String mediaType;
+
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
 			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors,
-			boolean applyWidthAttributes, boolean applyHeightAttributes, boolean resolveCssVariables) {
+			boolean applyWidthAttributes, boolean applyHeightAttributes, boolean resolveCssVariables,
+			String mediaType) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -62,6 +66,7 @@ public class CssInlineConfig {
 		this.applyWidthAttributes = applyWidthAttributes;
 		this.applyHeightAttributes = applyHeightAttributes;
 		this.resolveCssVariables = resolveCssVariables;
+		this.mediaType = mediaType;
 	}
 
 	/**
@@ -82,6 +87,7 @@ public class CssInlineConfig {
 		private boolean applyWidthAttributes = false;
 		private boolean applyHeightAttributes = false;
 		private boolean resolveCssVariables = false;
+		private String mediaType = null;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -266,6 +272,18 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Inline rules from @media blocks that apply to the given media type, e.g. "print".
+		 * Queries with media features, such as (min-width: 600px), never apply.
+		 *
+		 * @param mediaType media type, or null to leave @media rules out of inlining
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setMediaType(String mediaType) {
+			this.mediaType = mediaType;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
@@ -273,7 +291,7 @@ public class CssInlineConfig {
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
 					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes,
-					resolveCssVariables);
+					resolveCssVariables, mediaType);
 		}
 	}
 }
