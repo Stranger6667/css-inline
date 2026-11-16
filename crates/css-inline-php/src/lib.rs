@@ -60,6 +60,7 @@ impl CssInliner {
         applyHeightAttributes = false,
         resolveCssVariables = false,
         mediaType = None,
+        keepClasses = true,
     ))]
     #[php(optional = inlineStyleTags)]
     #[allow(clippy::too_many_arguments)]
@@ -79,6 +80,7 @@ impl CssInliner {
         applyHeightAttributes: bool,
         resolveCssVariables: bool,
         mediaType: Option<String>,
+        keepClasses: bool,
     ) -> PhpResult<CssInliner> {
         if preallocateNodeCapacity < 0 {
             return Err(PhpException::from_message(
@@ -112,6 +114,7 @@ impl CssInliner {
             apply_height_attributes: applyHeightAttributes,
             resolve_css_variables: resolveCssVariables,
             media_type: mediaType,
+            keep_classes: keepClasses,
             ..Default::default()
         };
 

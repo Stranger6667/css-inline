@@ -106,6 +106,10 @@ pub struct InlineOptions<'a> {
     /// Queries with media features, such as `(min-width: 600px)`, never apply.
     /// Ignored when `keep_at_rules` is enabled and `inline_style_tags` is disabled.
     pub media_type: Option<String>,
+    /// Keep `class` attributes in the output.
+    ///
+    /// When disabled, class selectors in kept `<style>` blocks and at-rules match nothing.
+    pub keep_classes: bool,
 }
 
 impl std::fmt::Debug for InlineOptions<'_> {
@@ -129,6 +133,7 @@ impl std::fmt::Debug for InlineOptions<'_> {
             .field("apply_height_attributes", &self.apply_height_attributes)
             .field("resolve_css_variables", &self.resolve_css_variables)
             .field("media_type", &self.media_type)
+            .field("keep_classes", &self.keep_classes)
             .finish_non_exhaustive()
     }
 }
@@ -668,6 +673,13 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Keep `class` attributes in the output.
+    #[must_use]
+    pub fn keep_classes(mut self, enabled: bool) -> Self {
+        self.keep_classes = enabled;
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -696,6 +708,7 @@ impl Default for InlineOptions<'_> {
             apply_height_attributes: false,
             resolve_css_variables: false,
             media_type: None,
+            keep_classes: true,
         }
     }
 }
@@ -1277,6 +1290,7 @@ impl<'a> CSSInliner<'a> {
             mode,
             self.options.apply_width_attributes,
             self.options.apply_height_attributes,
+            self.options.keep_classes,
             // Inlined values are slices of `raw_styles`; attributes are checked once decoded.
             if !self.options.resolve_css_variables {
                 CssVariables::Keep

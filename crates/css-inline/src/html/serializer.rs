@@ -162,6 +162,7 @@ pub(crate) fn serialize_to<W: Write>(
     mode: InliningMode,
     apply_width_attributes: bool,
     apply_height_attributes: bool,
+    keep_classes: bool,
     variables: CssVariables,
 ) -> Result<(), InlineError> {
     let sink = Sink::new(
@@ -174,6 +175,7 @@ pub(crate) fn serialize_to<W: Write>(
         mode,
         apply_width_attributes,
         apply_height_attributes,
+        keep_classes,
     );
     match variables {
         CssVariables::Keep => {
@@ -203,6 +205,7 @@ struct Sink<'a> {
     inlining_mode: InliningMode,
     apply_width_attributes: bool,
     apply_height_attributes: bool,
+    keep_classes: bool,
 }
 
 impl<'a> Sink<'a> {
@@ -217,6 +220,7 @@ impl<'a> Sink<'a> {
         inlining_mode: InliningMode,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
+        keep_classes: bool,
     ) -> Sink<'a> {
         Sink {
             document,
@@ -228,6 +232,7 @@ impl<'a> Sink<'a> {
             inlining_mode,
             apply_width_attributes,
             apply_height_attributes,
+            keep_classes,
         }
     }
     #[inline]
@@ -242,6 +247,7 @@ impl<'a> Sink<'a> {
             self.inlining_mode,
             self.apply_width_attributes,
             self.apply_height_attributes,
+            self.keep_classes,
         )
     }
     #[inline]
@@ -299,6 +305,7 @@ impl<'a> Sink<'a> {
                     self.minify_css,
                     self.apply_width_attributes,
                     self.apply_height_attributes,
+                    self.keep_classes,
                 )?;
 
                 if element.name.local == local_name!("head") {
@@ -430,7 +437,11 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
         Ok(())
     }
 
-    #[allow(clippy::too_many_lines)]
+    #[allow(
+        clippy::too_many_lines,
+        clippy::too_many_arguments,
+        clippy::fn_params_excessive_bools
+    )]
     fn start_elem(
         &mut self,
         name: &QualName,
@@ -439,6 +450,7 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
         minify_css: bool,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
+        keep_classes: bool,
     ) -> Result<(), InlineError> {
         let html_name = match name.ns {
             ns!(html) => Some(name.local.clone()),
@@ -469,7 +481,7 @@ impl<'a, W: Write, V: VariableScope> HtmlSerializer<'a, W, V> {
 
         self.writer.write_all(b"<")?;
         self.writer.write_all(name.local.as_bytes())?;
-        if let Some(class) = &attrs.class {
+        if let Some(class) = attrs.class.as_ref().filter(|_| keep_classes) {
             self.writer.write_all(b" class=\"")?;
             self.write_attributes(&class.value)?;
             self.writer.write_all(b"\"")?;
@@ -923,6 +935,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1005,6 +1018,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1029,6 +1043,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1053,6 +1068,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1077,6 +1093,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1104,6 +1121,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1128,6 +1146,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");
@@ -1154,6 +1173,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Should not fail");

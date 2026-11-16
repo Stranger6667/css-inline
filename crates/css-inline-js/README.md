@@ -94,6 +94,7 @@ Pass options as the second argument to `inline` or the third to `inlineFragment`
 - `applyHeightAttributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `resolveCssVariables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 - `mediaType`. Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule. Ignored when `keepAtRules` is enabled and `inlineStyleTags` is disabled. Default: `null`
+- `keepClasses`. Keep `class` attributes in the output. When disabled, class selectors in kept `<style>` blocks and at-rules match nothing. Default: `true`
 
 To skip inlining for a tag, add the `data-css-inline="ignore"` attribute:
 

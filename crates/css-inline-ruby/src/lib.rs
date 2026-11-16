@@ -78,6 +78,8 @@ struct Options {
     resolve_css_variables: Option<bool>,
     /// Inline rules from `@media` blocks that apply to this media type.
     media_type: Option<String>,
+    /// Keep `class` attributes in the output.
+    keep_classes: Option<bool>,
 }
 
 impl TryConvert for Options {
@@ -106,6 +108,7 @@ impl TryConvert for Options {
             resolve_css_variables: h
                 .aref::<_, Option<bool>>(ruby.to_symbol("resolve_css_variables"))?,
             media_type: h.aref::<_, Option<String>>(ruby.to_symbol("media_type"))?,
+            keep_classes: h.aref::<_, Option<bool>>(ruby.to_symbol("keep_classes"))?,
         })
     }
 }
@@ -133,6 +136,7 @@ fn parse_options<Req>(
         apply_height_attributes: kwargs.apply_height_attributes.unwrap_or(false),
         resolve_css_variables: kwargs.resolve_css_variables.unwrap_or(false),
         media_type: kwargs.media_type,
+        keep_classes: kwargs.keep_classes.unwrap_or(true),
     })
 }
 

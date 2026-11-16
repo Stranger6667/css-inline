@@ -358,6 +358,21 @@ class CssInlineTest extends TestCase
         $this->assertStringNotContainsString('--c', $result);
     }
 
+    public function testRemoveClasses(): void
+    {
+        $inliner = new CssInliner(
+            keepClasses: false,
+        );
+
+        $html = '<html><head><style>.a { color: blue; }</style></head><body><h1 class="a">Test</h1></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertEquals(
+            '<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>',
+            $result
+        );
+    }
+
     public function testRemoveInlinedSelectors(): void
     {
         $inliner = new CssInliner(

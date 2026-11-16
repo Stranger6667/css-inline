@@ -116,6 +116,8 @@ pub struct CssInlinerOptions {
     /// Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
     /// Queries with media features, such as `(min-width: 600px)`, never apply.
     pub media_type: *const c_char,
+    /// Keep `class` attributes in the output.
+    pub keep_classes: bool,
 }
 
 macro_rules! inliner {
@@ -222,6 +224,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         apply_height_attributes: false,
         resolve_css_variables: false,
         media_type: ptr::null(),
+        keep_classes: true,
     }
 }
 
@@ -292,6 +295,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             apply_height_attributes: value.apply_height_attributes,
             resolve_css_variables: value.resolve_css_variables,
             media_type,
+            keep_classes: value.keep_classes,
         })
     }
 }

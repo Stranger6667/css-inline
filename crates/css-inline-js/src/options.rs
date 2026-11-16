@@ -77,6 +77,8 @@ pub struct Options {
     ///
     /// Queries with media features, such as `(min-width: 600px)`, never apply.
     pub media_type: Option<String>,
+    /// Keep `class` attributes in the output.
+    pub keep_classes: Option<bool>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -168,6 +170,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             apply_height_attributes: value.apply_height_attributes.unwrap_or(false),
             resolve_css_variables: value.resolve_css_variables.unwrap_or(false),
             media_type: value.media_type,
+            keep_classes: value.keep_classes.unwrap_or(true),
         })
     }
 }
