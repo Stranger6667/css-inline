@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `setExtraCss`, fragment CSS and linked stylesheets not inlined when `setKeepAtRules` is enabled and `setInlineStyleTags` is disabled.
+
 ## [0.24.0] - 2026-11-12
 
 ### Added

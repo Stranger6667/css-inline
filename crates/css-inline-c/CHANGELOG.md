@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- `extra_css`, fragment CSS and linked stylesheets not inlined when `keep_at_rules` is enabled and `inline_style_tags` is disabled.
+
 ## [0.24.0] - 2026-11-12
 
 ### Added

@@ -1082,8 +1082,9 @@ impl<'a> CSSInliner<'a> {
         let layers = rule_parser.into_layers();
         let spans = spans.unwrap_or_default();
         if self.options.keep_at_rules && !self.options.inline_style_tags {
-            // The styles were collected only for their `@`-rules.
-            rule_list.clear();
+            // The `<style>` tags were collected only for their `@`-rules.
+            let rest = raw_styles[styles_end..].as_ptr();
+            rule_list.retain(|rule| rule.selectors.as_ptr() >= rest);
         }
         let ranks = layers.ranks();
         // Important declarations cascade in reverse layer order.
