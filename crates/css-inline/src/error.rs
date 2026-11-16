@@ -29,6 +29,8 @@ pub enum InlineError {
     },
     /// Syntax errors or unsupported selectors.
     ParseError(Cow<'static, str>),
+    /// Option that is not supported for fragment inlining.
+    UnsupportedFragmentOption,
 }
 
 impl From<io::Error> for InlineError {
@@ -43,7 +45,9 @@ impl Error for InlineError {
             InlineError::IO(error) => Some(error),
             #[cfg(feature = "http")]
             InlineError::Network { error, .. } => Some(error),
-            InlineError::MissingStyleSheet { .. } | InlineError::ParseError(_) => None,
+            InlineError::MissingStyleSheet { .. }
+            | InlineError::ParseError(_)
+            | InlineError::UnsupportedFragmentOption => None,
         }
     }
 }
@@ -57,6 +61,9 @@ impl Display for InlineError {
             Self::ParseError(error) => f.write_str(error),
             Self::MissingStyleSheet { path } => {
                 f.write_fmt(format_args!("Missing stylesheet file: {path}"))
+            }
+            Self::UnsupportedFragmentOption => {
+                f.write_str("`keep_at_rules` is not supported for fragment inlining")
             }
         }
     }

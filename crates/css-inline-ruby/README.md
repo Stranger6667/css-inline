@@ -150,7 +150,7 @@ The module functions accept the same keyword arguments, for example `CSSInline.i
 - `inline_style_tags`. Inline CSS from `style` tags. Default: `true`
 - `keep_style_tags`. Keep `style` tags after inlining. Default: `false`
 - `keep_link_tags`. Keep `link` tags after inlining. Default: `false`
-- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `false`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Errors in fragment inlining. Default: `false`
 - `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `false`
 - `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `nil`
 - `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`

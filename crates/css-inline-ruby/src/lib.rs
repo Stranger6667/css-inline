@@ -180,7 +180,8 @@ impl From<InlineErrorWrapper> for magnus::Error {
             rust_inline::InlineError::ParseError(message) => {
                 magnus::Error::new(ruby.exception_arg_error(), message.to_string())
             }
-            rust_inline::InlineError::MissingStyleSheet { .. } => {
+            rust_inline::InlineError::MissingStyleSheet { .. }
+            | rust_inline::InlineError::UnsupportedFragmentOption => {
                 magnus::Error::new(ruby.exception_arg_error(), error.0.to_string())
             }
         }

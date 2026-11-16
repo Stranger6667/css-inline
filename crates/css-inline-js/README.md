@@ -82,7 +82,7 @@ Pass options as the second argument to `inline` or the third to `inlineFragment`
 - `inlineStyleTags`. Inline CSS from `style` tags. Default: `true`
 - `keepStyleTags`. Keep `style` tags after inlining. Default: `false`
 - `keepLinkTags`. Keep `link` tags after inlining. Default: `false`
-- `keepAtRules`. Keep at-rules (`@media`, `@font-face`, ...) after inlining. Default: `false`
+- `keepAtRules`. Keep at-rules (`@media`, `@font-face`, ...) after inlining. Errors in fragment inlining. Default: `false`
 - `minifyCss`. Remove trailing semicolons and spaces between properties and values. Default: `false`
 - `baseUrl`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem; end directory URLs with `/` (`file:///path/to/styles/`), or `css-inline` resolves relative to the parent directory. Default: `null`
 - `loadRemoteStylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. `false` skips every `link` tag. Default: `true`

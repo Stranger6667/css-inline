@@ -91,6 +91,12 @@ RSpec.describe 'CssInline' do
     expect(inlined).to eq(EXPECTED_INLINED_FRAGMENT)
   end
 
+  it 'Raises an error on HTML fragments with keep_at_rules' do
+    expect {
+      CSSInline::inline_fragment(FRAGMENT, CSS, keep_at_rules: true)
+    }.to raise_error('`keep_at_rules` is not supported for fragment inlining')
+  end
+
   it 'Inlines CSS into multiple HTML fragments in parallel' do
     inlined = CSSInline::inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS])
     expect(inlined[0]).to eq(EXPECTED_INLINED_FRAGMENT)

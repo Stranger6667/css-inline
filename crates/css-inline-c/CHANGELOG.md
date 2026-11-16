@@ -6,6 +6,10 @@
 
 - `media_type` option to inline rules from `@media` blocks that apply to the given media type. [#410](https://github.com/Stranger6667/css-inline/issues/410)
 
+### Changed
+
+- **BREAKING**: `CSS_RESULT_UNSUPPORTED_FRAGMENT_OPTION` error on `keep_at_rules` in `css_inline_fragment_to`. [#514](https://github.com/Stranger6667/css-inline/issues/514)
+
 ### Fixed
 
 - `extra_css`, fragment CSS and linked stylesheets not inlined when `keep_at_rules` is enabled and `inline_style_tags` is disabled.

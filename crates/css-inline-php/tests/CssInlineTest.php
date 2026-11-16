@@ -105,6 +105,15 @@ class CssInlineTest extends TestCase
         $this->assertStringContainsString('style="color: purple;"', $result);
     }
 
+    public function testInlineFragmentKeepAtRules(): void
+    {
+        $inliner = new CssInliner(keepAtRules: true);
+
+        $this->expectExceptionMessage('`keep_at_rules` is not supported for fragment inlining');
+
+        $inliner->inlineFragment('<h1>Hello</h1>', 'h1 { color: purple; }');
+    }
+
     public function testCssInlinerInlineMany(): void
     {
         $inliner = new CssInliner();

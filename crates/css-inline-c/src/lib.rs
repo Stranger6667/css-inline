@@ -36,6 +36,8 @@ pub enum CssResult {
     InvalidCacheSize,
     /// Invalid media_type parameter.
     InvalidMediaType,
+    /// Option that is not supported for fragment inlining.
+    UnsupportedFragmentOption,
 }
 
 impl From<InlineError> for CssResult {
@@ -45,6 +47,7 @@ impl From<InlineError> for CssResult {
             InlineError::Network { .. } => CssResult::RemoteStylesheetNotAvailable,
             InlineError::ParseError(_) => CssResult::InternalSelectorParseError,
             InlineError::MissingStyleSheet { .. } => CssResult::MissingStylesheet,
+            InlineError::UnsupportedFragmentOption => CssResult::UnsupportedFragmentOption,
         }
     }
 }

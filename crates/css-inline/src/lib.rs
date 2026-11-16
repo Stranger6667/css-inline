@@ -563,6 +563,7 @@ impl<'a> InlineOptions<'a> {
     }
 
     /// Override whether "at-rules" should be kept after processing.
+    /// Errors in fragment inlining.
     #[must_use]
     pub fn keep_at_rules(mut self, keep_at_rules: bool) -> Self {
         self.keep_at_rules = keep_at_rules;
@@ -825,6 +826,7 @@ impl<'a> CSSInliner<'a> {
     ///   - Remote stylesheet is not available;
     ///   - IO errors;
     ///   - Internal CSS selector parsing error;
+    ///   - `keep_at_rules` is enabled;
     ///
     /// # Panics
     ///
@@ -847,6 +849,7 @@ impl<'a> CSSInliner<'a> {
     ///   - Remote stylesheet is not available;
     ///   - IO errors;
     ///   - Internal CSS selector parsing error;
+    ///   - `keep_at_rules` is enabled;
     ///
     /// # Panics
     ///
@@ -858,9 +861,18 @@ impl<'a> CSSInliner<'a> {
         css: &str,
         target: &mut W,
     ) -> Result<()> {
+        self.check_fragment_options()?;
         self.inline_to_impl(html, Some(css), target, InliningMode::Fragment, &|url| {
             self.options.resolver.retrieve(url)
         })
+    }
+
+    /// Kept `@`-rules go to `<head>`, which fragments do not have.
+    fn check_fragment_options(&self) -> Result<()> {
+        if self.options.keep_at_rules {
+            return Err(InlineError::UnsupportedFragmentOption);
+        }
+        Ok(())
     }
 
     /// Non-blocking version of [`CSSInliner::inline`]. External stylesheets are fetched concurrently
@@ -930,6 +942,7 @@ impl<'a> CSSInliner<'a> {
         css: &str,
         target: &mut W,
     ) -> Result<()> {
+        self.check_fragment_options()?;
         let stylesheets = self.fetch_stylesheets(html, InliningMode::Fragment).await?;
         self.inline_to_impl(html, Some(css), target, InliningMode::Fragment, &|url| {
             // `fetch_stylesheets` collects the same URLs from the same HTML
