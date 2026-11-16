@@ -677,6 +677,55 @@ fn do_not_process_and_remove_style_tag_but_keep_at_rules() {
     )
 }
 
+#[test_case(false, "<html><head></head><body><h1 style=\"color: red;\">Hello world!</h1></body></html>"; "without keep_at_rules")]
+#[test_case(true, "<html><head><style>@media (max-width: 767px) { h1 { padding: 0; } } @media print { h1 { margin: 0; } } </style></head><body><h1 style=\"color: red;\">Hello world!</h1></body></html>"; "with keep_at_rules")]
+fn do_not_process_style_tag_but_inline_extra_css(keep_at_rules: bool, expected: &str) {
+    let html = html!(
+        "@media (max-width: 767px) { h1 { padding: 0; } } h1 { background-color: blue; }",
+        "<h1>Hello world!</h1>"
+    );
+    let inliner = CSSInliner::options()
+        .inline_style_tags(false)
+        .keep_at_rules(keep_at_rules)
+        .extra_css(Some(
+            "h1 { color: red; } @media print { h1 { margin: 0; } }".into(),
+        ))
+        .build();
+    assert_eq!(inliner.inline(&html).unwrap(), expected);
+}
+
+#[test_case(false; "without keep_at_rules")]
+#[test_case(true; "with keep_at_rules")]
+fn do_not_process_style_tag_but_inline_linked_stylesheet(keep_at_rules: bool) {
+    let html = r#"<html><head><link href="tests/external.css" rel="stylesheet"><style>h1 { background-color: blue; }</style></head><body><h1>Hello world!</h1></body></html>"#;
+    let inliner = CSSInliner::options()
+        .inline_style_tags(false)
+        .keep_at_rules(keep_at_rules)
+        .build();
+    assert_file(
+        inliner.inline(html),
+        r#"<body><h1 style="color: blue;">Hello world!</h1></body></html>"#,
+    );
+}
+
+#[test_case(false; "without keep_at_rules")]
+#[test_case(true; "with keep_at_rules")]
+fn do_not_process_style_tag_but_inline_fragment_css(keep_at_rules: bool) {
+    let inliner = CSSInliner::options()
+        .inline_style_tags(false)
+        .keep_at_rules(keep_at_rules)
+        .build();
+    assert_eq!(
+        inliner
+            .inline_fragment(
+                "<style>p { color: blue; }</style><p>Hi</p>",
+                "p { margin: 0 }"
+            )
+            .unwrap(),
+        r#"<p style="margin: 0;">Hi</p>"#
+    );
+}
+
 #[test]
 fn empty_style() {
     // When the style tag is empty
