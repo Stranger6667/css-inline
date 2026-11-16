@@ -104,6 +104,7 @@ pub struct InlineOptions<'a> {
     /// Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
     ///
     /// Queries with media features, such as `(min-width: 600px)`, never apply.
+    /// Ignored when `keep_at_rules` is enabled and `inline_style_tags` is disabled.
     pub media_type: Option<String>,
 }
 
