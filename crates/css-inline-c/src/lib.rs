@@ -118,6 +118,8 @@ pub struct CssInlinerOptions {
     pub media_type: *const c_char,
     /// Keep `class` attributes in the output.
     pub keep_classes: bool,
+    /// Remove rules that match no element from the conditional at-rules (`@media`, `@supports`, ...) kept in the output.
+    pub remove_unused_at_rules: bool,
 }
 
 macro_rules! inliner {
@@ -225,6 +227,7 @@ pub extern "C" fn css_inliner_default_options() -> CssInlinerOptions {
         resolve_css_variables: false,
         media_type: ptr::null(),
         keep_classes: true,
+        remove_unused_at_rules: false,
     }
 }
 
@@ -296,6 +299,7 @@ impl TryFrom<&CssInlinerOptions> for InlineOptions<'_> {
             resolve_css_variables: value.resolve_css_variables,
             media_type,
             keep_classes: value.keep_classes,
+            remove_unused_at_rules: value.remove_unused_at_rules,
         })
     }
 }

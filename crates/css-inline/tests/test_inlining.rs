@@ -1410,7 +1410,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, media_type: None, keep_classes: true, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, remove_unused_at_rules: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, media_type: None, keep_classes: true, .. } }");
 }
 
 #[test]
@@ -3319,5 +3319,277 @@ fn media_type_in_extra_css_and_fragments() {
             .inline_fragment("<p>x</p>", "@media print { p { margin: 0 } }")
             .unwrap(),
         r#"<p style="color: red;margin: 0;">x</p>"#
+    );
+}
+
+#[test_case(
+    "@media print { .h { color: red } .zzz { color: blue } }",
+    "@media print { .h { color: red } }";
+    "unused rule"
+)]
+#[test_case(
+    "@media print { h1 { color: red } h2 { color: blue } }",
+    "@media print { h1 { color: red } }";
+    "unused tag"
+)]
+#[test_case(
+    "@media print { .zzz { color: blue } .h { color: red } }",
+    "@media print { .h { color: red } }";
+    "unused rule first"
+)]
+#[test_case(
+    "@supports (display: grid) { @media print { .zzz { color: blue } .h { color: red } } }",
+    "@supports (display: grid) { @media print { .h { color: red } } }";
+    "nested conditional"
+)]
+#[test_case(
+    "@supports (display: grid) { @media print { .zzz { color: blue } } .h { color: red } }",
+    "@supports (display: grid) { .h { color: red } }";
+    "nested conditional left empty"
+)]
+#[test_case("@media print { .zzz { color: blue } }", ""; "block left empty")]
+#[test_case(
+    "@supports (display: grid) { @media print { .zzz { color: blue } } }",
+    "";
+    "nested blocks left empty"
+)]
+#[test_case("@media print { }", ""; "empty block")]
+#[test_case("@container (min-width: 1px) { .zzz { color: blue } }", ""; "container")]
+#[test_case("@-moz-document url-prefix() { .zzz { color: blue } }", ""; "moz document")]
+#[test_case("@MEDIA print { .zzz { color: blue } }", ""; "uppercase name")]
+#[test_case(
+    "@media print { .h:hover { color: red } .h:focus-within { color: red } }",
+    "@media print { .h:hover { color: red } .h:focus-within { color: red } }";
+    "state pseudo-class"
+)]
+#[test_case(
+    "@media print { .zzz:hover { color: red } .zzz:HOVER:target { color: red } .h:checked { color: red } }",
+    "@media print { .h:checked { color: red } }";
+    "state pseudo-class on a missing class"
+)]
+#[test_case(
+    "@media print { .h::after { content: 'x' } .h:before { content: 'x' } }",
+    "@media print { .h::after { content: 'x' } .h:before { content: 'x' } }";
+    "pseudo-element"
+)]
+#[test_case(
+    "@media print { .zzz::after { content: 'x' } .zzz:before { content: 'x' } .h::selection { color: red } }",
+    "@media print { .h::selection { color: red } }";
+    "pseudo-element on a missing class"
+)]
+#[test_case(
+    "@media print { :hover { color: red } ::selection { color: red } h2 > :hover { color: red } }",
+    "@media print { :hover { color: red } ::selection { color: red } h2 > :hover { color: red } }";
+    "pseudo without a compound"
+)]
+#[test_case(
+    "@media print { .zzz:not(:hover) { color: red } .zzz:is(.a:focus) { color: red } }",
+    "@media print { .zzz:not(:hover) { color: red } .zzz:is(.a:focus) { color: red } }";
+    "nested state pseudo-class"
+)]
+#[test_case(
+    "@media print { .h:not(.zzz) { color: red } .h:not(.h) { color: red } .h:first-child { color: red } .h:empty { color: red } a:link { color: red } }",
+    "@media print { .h:not(.zzz) { color: red } .h:first-child { color: red } }";
+    "static pseudo-class"
+)]
+#[test_case(
+    "@media print { .zzz..x { color: red } .zzz:lang(en) { color: red } { color: red } }",
+    "@media print { .zzz..x { color: red } .zzz:lang(en) { color: red } { color: red } }";
+    "unparsable selector"
+)]
+#[test_case(
+    r#"@media print { .zzz\:hover:hover { color: red } [title=":hover"].zzz:hover { color: red } .zzz/**/:hover { color: red } & .zzz { color: red } }"#,
+    r#"@media print { .zzz\:hover:hover { color: red } [title=":hover"].zzz:hover { color: red } .zzz/**/:hover { color: red } & .zzz { color: red } }"#;
+    "undecided selector syntax"
+)]
+#[test_case(
+    "@media print { .zzz, .h , .yyy:hover { color: red } }",
+    "@media print { .h { color: red } }";
+    "selector list"
+)]
+#[test_case(
+    "@media print { .zzz, .yyy { color: red } }",
+    "";
+    "selector list without matches"
+)]
+#[test_case(
+    "@media print { .zzz, .h:hover, ..x { color: red } }",
+    "@media print { .h:hover, ..x { color: red } }";
+    "selector list with undecided selectors"
+)]
+#[test_case(
+    "@media print {\n  /* c */\n  .zzz { color: blue }\n  /* d */\n  .h { color: red }\n}",
+    "@media print {\n  /* d */\n  .h { color: red }\n}";
+    "comments and whitespace"
+)]
+#[test_case(
+    "@font-face { font-family: X; src: url(x.woff) } @keyframes spin { from { color: red } to { color: blue } } @page { margin: 0 }",
+    "@font-face { font-family: X; src: url(x.woff) } @keyframes spin { from { color: red } to { color: blue } } @page { margin: 0 }";
+    "other at-rules"
+)]
+#[test_case(
+    "@media print { @font-face { font-family: X } @keyframes spin { from { color: red } to { color: blue } } .zzz { color: blue } }",
+    "@media print { @font-face { font-family: X } @keyframes spin { from { color: red } to { color: blue } } }";
+    "other at-rules in a conditional"
+)]
+#[test_case(
+    "@media print { @layer a { .zzz { color: blue } } @layer { .zzz { color: blue } } @layer b.c { .h { color: red } .zzz { color: blue } } }",
+    "@media print { @layer a; @layer b.c { .h { color: red } } }";
+    "layers in a conditional"
+)]
+#[test_case(
+    "@layer a { @media print { .zzz { color: blue } .h { color: red } } }",
+    "@layer a { @media print { .h { color: red } } }";
+    "conditional in a layer"
+)]
+#[test_case(
+    "@layer a { @media print { .zzz { color: blue } } }",
+    "";
+    "conditional in a layer left empty"
+)]
+#[test_case(
+    "@layer a, b; @layer a { @media print { .zzz { color: blue } } } @layer b { @media print { .h { color: red } } }",
+    "@layer a, b; @layer b { @media print { .h { color: red } } }";
+    "layer statement"
+)]
+#[test_case(
+    "@media print { .zzz { color: blue }",
+    "@media print { .zzz { color: blue }";
+    "unterminated"
+)]
+#[test_case(
+    "@media print { .zzz { color: blue } } /* c */",
+    "";
+    "trailing comment"
+)]
+fn remove_unused_at_rules(css: &str, expected: &str) {
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .remove_unused_at_rules(true)
+        .build();
+    // Small documents have no element indexes
+    for padding in ["", PADDING] {
+        let html = format!(
+            r#"<html><head><style>{css}</style></head><body><!--{padding}--><h1 class="h">t</h1></body></html>"#
+        );
+        let style = if expected.is_empty() {
+            String::new()
+        } else {
+            format!("<style>{expected} </style>")
+        };
+        assert_eq!(
+            inliner.inline(&html).unwrap(),
+            format!(
+                r#"<html><head>{style}</head><body><!--{padding}--><h1 class="h">t</h1></body></html>"#
+            )
+        );
+    }
+}
+
+#[test]
+fn remove_unused_at_rules_is_off_by_default() {
+    let html = r#"<html><head><style>@media print { .h { color: red } .zzz { color: blue } }</style></head><body><h1 class="h">t</h1></body></html>"#;
+    assert_eq!(
+        CSSInliner::options()
+            .keep_at_rules(true)
+            .build()
+            .inline(html)
+            .unwrap(),
+        r#"<html><head><style>@media print { .h { color: red } .zzz { color: blue } } </style></head><body><h1 class="h">t</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_unused_at_rules_without_kept_at_rules() {
+    let html = r#"<html><head><style>@media print { .h { color: red } .zzz { color: blue } }</style></head><body><h1 class="h">t</h1></body></html>"#;
+    assert_eq!(
+        CSSInliner::options()
+            .remove_unused_at_rules(true)
+            .build()
+            .inline(html)
+            .unwrap(),
+        r#"<html><head></head><body><h1 class="h">t</h1></body></html>"#
+    );
+}
+
+#[test_case(
+    "@media print { .h { margin: 0 } .zzz { margin: 1px } } .h { color: red } .q { color: blue }",
+    false,
+    "<style>@media print { .h { margin: 0 } }\n.q { color: blue; }</style>";
+    "at-rule and leftover"
+)]
+#[test_case(
+    "@media print { .zzz { margin: 1px } } .h { color: red } .q { color: blue }",
+    false,
+    "<style>.q { color: blue; }</style>";
+    "leftover only"
+)]
+#[test_case("@media print { .zzz { margin: 1px } } .h { color: red }", false, ""; "nothing left")]
+#[test_case(
+    "@media print { .zzz { margin: 1px } } .h { color: red }",
+    true,
+    "<style></style>";
+    "nothing left with keep_style_tags"
+)]
+#[test_case(
+    "@layer a { @media print { .zzz { margin: 1px } } .h { color: red } } @layer b { .q { color: blue } }",
+    false,
+    "<style>@layer b {\n.q { color: blue; }\n}</style>";
+    "emptied layer"
+)]
+fn remove_unused_at_rules_with_remove_inlined_selectors(
+    css: &str,
+    keep_style_tags: bool,
+    expected_head: &str,
+) {
+    // With and without `keep_at_rules` the `<style>` at-rules stay in their rewritten block
+    for keep_at_rules in [false, true] {
+        let inliner = CSSInliner::options()
+            .remove_inlined_selectors(true)
+            .remove_unused_at_rules(true)
+            .keep_at_rules(keep_at_rules)
+            .keep_style_tags(keep_style_tags)
+            .build();
+        let html = format!(
+            r#"<html><head><style>{css}</style></head><body><h1 class="h">t</h1></body></html>"#
+        );
+        assert_eq!(
+            inliner.inline(&html).unwrap(),
+            format!(
+                r#"<html><head>{expected_head}</head><body><h1 class="h" style="color: red;">t</h1></body></html>"#
+            )
+        );
+    }
+}
+
+#[test]
+fn remove_unused_at_rules_with_keep_style_tags() {
+    // Kept `<style>` tags stay as written; `extra_css` at-rules go to a new one without unused rules
+    let inliner = CSSInliner::options()
+        .keep_at_rules(true)
+        .keep_style_tags(true)
+        .remove_unused_at_rules(true)
+        .extra_css(Some(
+            "@media print { .h { margin: 0 } .zzz { margin: 1px } }".into(),
+        ))
+        .build();
+    let html = r#"<html><head><style>@media screen { .zzz { color: red } }</style></head><body><h1 class="h">t</h1></body></html>"#;
+    assert_eq!(
+        inliner.inline(html).unwrap(),
+        r#"<html><head><style>@media print { .h { margin: 0 } } </style><style>@media screen { .zzz { color: red } }</style></head><body><h1 class="h">t</h1></body></html>"#
+    );
+}
+
+#[test]
+fn remove_unused_at_rules_keeps_at_rule_split_across_style_tags() {
+    let html = r#"<html><head><style>@media print { .zzz { color: red }</style><style>.yyy { color: red } }</style></head><body><h1 class="h">t</h1></body></html>"#;
+    let options = || CSSInliner::options().remove_inlined_selectors(true);
+    assert_eq!(
+        options()
+            .remove_unused_at_rules(true)
+            .build()
+            .inline(html)
+            .unwrap(),
+        options().build().inline(html).unwrap()
     );
 }

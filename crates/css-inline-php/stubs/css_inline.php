@@ -73,6 +73,7 @@ class CssInliner
      * @param bool $resolveCssVariables Replace var() references with the values of the custom properties they refer to and drop the --* declarations
      * @param string|null $mediaType Inline rules from @media blocks that apply to this media type
      * @param bool $keepClasses Keep class attributes in the output
+     * @param bool $removeUnusedAtRules Remove rules that match no element from the conditional at-rules (@media, @supports, ...) kept in the output
      */
     public function __construct(
         bool $inlineStyleTags = true,
@@ -91,6 +92,7 @@ class CssInliner
         bool $resolveCssVariables = false,
         ?string $mediaType = null,
         bool $keepClasses = true,
+        bool $removeUnusedAtRules = false,
     ) {}
 
     /**

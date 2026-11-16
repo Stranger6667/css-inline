@@ -441,6 +441,17 @@ pub mod tests {
     }
 
     #[test]
+    fn remove_unused_at_rules() {
+        css_inline()
+            .write_stdin(r#"<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>"#)
+            .arg("--keep-at-rules")
+            .arg("--remove-unused-at-rules")
+            .assert()
+            .success()
+            .stdout("<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>");
+    }
+
+    #[test]
     fn unknown_short_flag() {
         css_inline()
             .arg("-b")

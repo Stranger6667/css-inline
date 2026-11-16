@@ -251,6 +251,22 @@ def test_remove_inlined_selectors_inliner():
     )
 
 
+UNUSED_AT_RULES_HTML = "<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>"
+UNUSED_AT_RULES_EXPECTED = (
+    "<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>"
+)
+
+
+def test_remove_unused_at_rules():
+    result = css_inline.inline(UNUSED_AT_RULES_HTML, keep_at_rules=True, remove_unused_at_rules=True)
+    assert result == UNUSED_AT_RULES_EXPECTED
+
+
+def test_remove_unused_at_rules_inliner():
+    inliner = css_inline.CSSInliner(keep_at_rules=True, remove_unused_at_rules=True)
+    assert inliner.inline(UNUSED_AT_RULES_HTML) == UNUSED_AT_RULES_EXPECTED
+
+
 CSS_VARIABLES_HTML = (
     "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>"
 )

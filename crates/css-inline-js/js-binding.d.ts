@@ -72,6 +72,8 @@ export interface Options {
   mediaType?: string
   /** Keep `class` attributes in the output. */
   keepClasses?: boolean
+  /** Remove rules that match no element from the conditional at-rules (`@media`, `@supports`, ...) kept in the output. */
+  removeUnusedAtRules?: boolean
 }
 
 export interface StylesheetCache {

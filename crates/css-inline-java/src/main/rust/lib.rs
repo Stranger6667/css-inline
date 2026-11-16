@@ -116,6 +116,7 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
     let apply_height_attributes = env.get_bool_field(cfg, jni_str!("applyHeightAttributes"))?;
     let resolve_css_variables = env.get_bool_field(cfg, jni_str!("resolveCssVariables"))?;
     let keep_classes = env.get_bool_field(cfg, jni_str!("keepClasses"))?;
+    let remove_unused_at_rules = env.get_bool_field(cfg, jni_str!("removeUnusedAtRules"))?;
 
     let extra_css = env.get_string_field_opt(cfg, jni_str!("extraCss"))?;
     let base_url = env.get_string_field_opt(cfg, jni_str!("baseUrl"))?;
@@ -133,7 +134,8 @@ fn build_inliner(env: &mut Env, cfg: &JObject) -> Result<CSSInliner<'static>, Er
         .apply_width_attributes(apply_width_attributes)
         .apply_height_attributes(apply_height_attributes)
         .resolve_css_variables(resolve_css_variables)
-        .keep_classes(keep_classes);
+        .keep_classes(keep_classes)
+        .remove_unused_at_rules(remove_unused_at_rules);
 
     if let Some(url) = base_url {
         match css_inline::Url::parse(&url) {

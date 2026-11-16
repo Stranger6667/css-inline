@@ -175,6 +175,17 @@ class CssInlineTest {
   }
 
   @Test
+  void removeUnusedAtRules() {
+      String html = "<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>";
+
+      CssInlineConfig cfg = new CssInlineConfig.Builder().setKeepAtRules(true).setRemoveUnusedAtRules(true).build();
+
+      String out = CssInline.inline(html, cfg);
+
+      assertEquals("<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>", out);
+  }
+
+  @Test
   void keepsCssVariablesByDefault() {
       String html = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
 

@@ -61,6 +61,7 @@ impl CssInliner {
         resolveCssVariables = false,
         mediaType = None,
         keepClasses = true,
+        removeUnusedAtRules = false,
     ))]
     #[php(optional = inlineStyleTags)]
     #[allow(clippy::too_many_arguments)]
@@ -81,6 +82,7 @@ impl CssInliner {
         resolveCssVariables: bool,
         mediaType: Option<String>,
         keepClasses: bool,
+        removeUnusedAtRules: bool,
     ) -> PhpResult<CssInliner> {
         if preallocateNodeCapacity < 0 {
             return Err(PhpException::from_message(
@@ -115,6 +117,7 @@ impl CssInliner {
             resolve_css_variables: resolveCssVariables,
             media_type: mediaType,
             keep_classes: keepClasses,
+            remove_unused_at_rules: removeUnusedAtRules,
             ..Default::default()
         };
 

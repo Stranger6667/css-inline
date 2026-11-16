@@ -18,6 +18,7 @@ export interface InlineOptions {
 	resolveCssVariables?: boolean;
 	mediaType?: string;
 	keepClasses?: boolean;
+	removeUnusedAtRules?: boolean;
 }
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 /**

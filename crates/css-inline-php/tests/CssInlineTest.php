@@ -373,6 +373,22 @@ class CssInlineTest extends TestCase
         );
     }
 
+    public function testRemoveUnusedAtRules(): void
+    {
+        $inliner = new CssInliner(
+            keepAtRules: true,
+            removeUnusedAtRules: true,
+        );
+
+        $html = '<html><head><style>@media print { h1 { color: blue; } h2 { color: red; } }</style></head><body><h1>Test</h1></body></html>';
+        $result = $inliner->inline($html);
+
+        $this->assertEquals(
+            '<html><head><style>@media print { h1 { color: blue; } } </style></head><body><h1>Test</h1></body></html>',
+            $result
+        );
+    }
+
     public function testRemoveInlinedSelectors(): void
     {
         $inliner = new CssInliner(

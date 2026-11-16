@@ -241,6 +241,7 @@ Fields:
 - `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 - `media_type` (`const char *`). Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule. Ignored when `keep_at_rules` is enabled and `inline_style_tags` is disabled. Default: `NULL`
 - `keep_classes`. Keep `class` attributes in the output. When disabled, class selectors in kept `<style>` blocks and at-rules match nothing. Default: `true`
+- `remove_unused_at_rules`. Remove rules that match no element from kept at-rules (`@media`, `@supports`, ...), along with blocks left empty. Needs `keep_at_rules` or `remove_inlined_selectors`. Matching ignores `:hover`, `::before` and similar. This also removes rules that target markup injected by an email client (e.g. Gmail's `u ~ div .x`). Default: `false`
 
 With the defaults, the library loads every stylesheet that a `link` tag references, over the network or from local files. Set `load_remote_stylesheets` to `false` to block both network and file access for `link` tags.
 

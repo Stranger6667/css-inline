@@ -86,6 +86,9 @@ pub struct InlineOptions<'a> {
     pub resolver: Arc<dyn StylesheetResolver>,
     /// Remove selectors that were successfully inlined from inline `<style>` blocks.
     pub remove_inlined_selectors: bool,
+    /// Remove rules that match no element from the conditional at-rules (`@media`, `@supports`,
+    /// ...) kept in the output.
+    pub remove_unused_at_rules: bool,
     /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
     ///
     /// This is useful for email compatibility with clients like Outlook that ignore CSS width.
@@ -129,6 +132,7 @@ impl std::fmt::Debug for InlineOptions<'_> {
             .field("extra_css", &self.extra_css)
             .field("preallocate_node_capacity", &self.preallocate_node_capacity)
             .field("remove_inlined_selectors", &self.remove_inlined_selectors)
+            .field("remove_unused_at_rules", &self.remove_unused_at_rules)
             .field("apply_width_attributes", &self.apply_width_attributes)
             .field("apply_height_attributes", &self.apply_height_attributes)
             .field("resolve_css_variables", &self.resolve_css_variables)
@@ -192,6 +196,8 @@ struct KeptCss<'a, 'i> {
     layers: &'a Layers<'i>,
     /// Layers whose rules stay in the output, with their ancestors.
     kept: Vec<bool>,
+    /// `@`-rules rewritten by `remove_unused_at_rules`, by their start offset.
+    rewritten: FxHashMap<usize, String>,
 }
 
 impl<'a, 'i> KeptCss<'a, 'i> {
@@ -204,6 +210,7 @@ impl<'a, 'i> KeptCss<'a, 'i> {
         rules: &[Rule<'i>],
         cleanup: Option<&SelectorCleanupState<'i>>,
         verbatim_styles: bool,
+        rewritten: FxHashMap<usize, String>,
     ) -> Self {
         let mut kept = vec![false; layers.len()];
         let mut mark = |mut id: LayerId| {
@@ -213,8 +220,13 @@ impl<'a, 'i> KeptCss<'a, 'i> {
             }
         };
         for span in spans {
-            if let Span::AtRule { layer, .. } = span {
-                mark(*layer);
+            if let Span::AtRule { range, layer } = span {
+                if rewritten
+                    .get(&range.start)
+                    .is_none_or(|text| !text.is_empty())
+                {
+                    mark(*layer);
+                }
             }
         }
         if let Some(state) = cleanup {
@@ -231,6 +243,7 @@ impl<'a, 'i> KeptCss<'a, 'i> {
             source,
             layers,
             kept,
+            rewritten,
         }
     }
 
@@ -263,9 +276,12 @@ impl<'a, 'i> KeptCss<'a, 'i> {
                 // An unterminated `@`-rule runs into the following blocks; it ends with its own.
                 Span::AtRule { range: at_rule, .. } => items.push((
                     at_rule.start,
-                    self.source[at_rule.start..at_rule.end.min(range.end)]
-                        .trim()
-                        .to_string(),
+                    match self.rewritten.get(&at_rule.start) {
+                        Some(text) if at_rule.end <= range.end => text.clone(),
+                        _ => self.source[at_rule.start..at_rule.end.min(range.end)]
+                            .trim()
+                            .to_string(),
+                    },
                 )),
                 Span::LayerStatement {
                     start,
@@ -636,6 +652,14 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Remove rules that match no element from the conditional at-rules (`@media`, `@supports`,
+    /// ...) kept in the output.
+    #[must_use]
+    pub fn remove_unused_at_rules(mut self, enabled: bool) -> Self {
+        self.remove_unused_at_rules = enabled;
+        self
+    }
+
     /// Apply `width` HTML attributes from CSS `width` properties on supported elements.
     ///
     /// This is useful for email compatibility with clients like Outlook that ignore CSS width.
@@ -704,6 +728,7 @@ impl Default for InlineOptions<'_> {
             preallocate_node_capacity: 32,
             resolver: Arc::new(DefaultStylesheetResolver),
             remove_inlined_selectors: false,
+            remove_unused_at_rules: false,
             apply_width_attributes: false,
             apply_height_attributes: false,
             resolve_css_variables: false,
@@ -1237,6 +1262,34 @@ impl<'a> CSSInliner<'a> {
         let mut keep_style_tags = self.options.keep_style_tags;
         let mut at_rules = None;
         if self.options.keep_at_rules || selector_cleanup_state.is_some() {
+            let mut rewritten = FxHashMap::default();
+            if self.options.remove_unused_at_rules {
+                let mut unused = |selector: &str| {
+                    parser::without_dynamic_pseudos(selector).is_some_and(|selector| {
+                        document
+                            .select(&selector, &mut caches)
+                            .is_ok_and(|mut matching| matching.next().is_none())
+                    })
+                };
+                // `<style>` tags kept as written keep their `@`-rules as written too.
+                let from = if self.options.keep_style_tags && !track_selector_cleanup {
+                    styles_end
+                } else {
+                    0
+                };
+                for span in &spans {
+                    if let Span::AtRule { range, .. } = span {
+                        if range.start < from {
+                            continue;
+                        }
+                        if let Some(text) =
+                            parser::remove_unused_rules(&raw_styles[range.clone()], &mut unused)
+                        {
+                            rewritten.insert(range.start, text);
+                        }
+                    }
+                }
+            }
             let kept = KeptCss::new(
                 &raw_styles,
                 &layers,
@@ -1244,6 +1297,7 @@ impl<'a> CSSInliner<'a> {
                 &rule_list,
                 selector_cleanup_state.as_ref(),
                 self.options.keep_style_tags && !track_selector_cleanup,
+                rewritten,
             );
             if self.options.keep_at_rules {
                 // `<style>` `@`-rules stay in their blocks when the blocks are kept or rewritten;
