@@ -193,7 +193,7 @@ $inliner->inline($html);
 - `inlineStyleTags`. Inline CSS from `style` tags. Default: `true`
 - `keepStyleTags`. Keep `style` tags after inlining. Default: `false`
 - `keepLinkTags`. Keep `link` tags after inlining. Default: `false`
-- `keepAtRules`. Keep at-rules (rules starting with `@`) after inlining. Default: `false`
+- `keepAtRules`. Keep at-rules (rules starting with `@`) after inlining. Errors in fragment inlining. Default: `false`
 - `minifyCss`. Remove trailing semicolons and spaces between properties and values. Default: `false`
 - `baseUrl`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `null`
 - `loadRemoteStylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`

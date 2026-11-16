@@ -155,7 +155,7 @@ inliner.inline("...")
 - `inline_style_tags`. Inline CSS from `style` tags. Default: `True`
 - `keep_style_tags`. Keep `style` tags after inlining. Default: `False`
 - `keep_link_tags`. Keep `link` tags after inlining. Default: `False`
-- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `False`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Errors in fragment inlining. Default: `False`
 - `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `False`
 - `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `None`
 - `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `True`

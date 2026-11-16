@@ -207,6 +207,11 @@ def test_inline_fragment_method():
     assert css_inline.CSSInliner().inline_fragment(FRAGMENT, CSS) == EXPECTED_INLINED_FRAGMENT
 
 
+def test_inline_fragment_keep_at_rules():
+    with pytest.raises(css_inline.InlineError, match="`keep_at_rules` is not supported for fragment inlining"):
+        css_inline.inline_fragment(FRAGMENT, CSS, keep_at_rules=True)
+
+
 def test_inline_many_fragments():
     assert css_inline.inline_many_fragments([FRAGMENT, FRAGMENT], [CSS, CSS]) == [
         EXPECTED_INLINED_FRAGMENT,

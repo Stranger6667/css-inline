@@ -201,6 +201,7 @@ Both functions return a `CssResult`. `CSS_RESULT_OK` is `0`; any other value is 
 | `CSS_RESULT_INVALID_INPUT_STRING` | The HTML or CSS input is not UTF-8 |
 | `CSS_RESULT_INVALID_CACHE_SIZE` | The stylesheet cache size is `0` |
 | `CSS_RESULT_INVALID_MEDIA_TYPE` | `media_type` is not UTF-8 |
+| `CSS_RESULT_UNSUPPORTED_FRAGMENT_OPTION` | `keep_at_rules` is set in `css_inline_fragment_to()` |
 
 ### Configuration
 
@@ -227,7 +228,7 @@ Fields:
 - `inline_style_tags`. Inline CSS from `style` tags. Default: `true`
 - `keep_style_tags`. Keep `style` tags after inlining. Default: `false`
 - `keep_link_tags`. Keep `link` tags after inlining. Default: `false`
-- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Default: `false`
+- `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Errors in fragment inlining. Default: `false`
 - `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `false`
 - `base_url` (`const char *`). Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from your filesystem. Default: `NULL`
 - `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`

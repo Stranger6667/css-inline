@@ -137,6 +137,15 @@ class CssInlineTest {
   }
 
   @Test
+  void inlineFragmentKeepAtRulesThrows() {
+      CssInlineConfig config = new CssInlineConfig.Builder().setKeepAtRules(true).build();
+
+      CssInlineException ex = assertThrows(CssInlineException.class,
+          () -> CssInline.inlineFragment("<h1>Test</h1>", "h1 { color: blue; }", config));
+      assertEquals("`keep_at_rules` is not supported for fragment inlining", ex.getMessage());
+  }
+
+  @Test
   void inlineFragmentEmpty() {
       String result = CssInline.inlineFragment("", "");
 

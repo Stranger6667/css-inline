@@ -708,13 +708,9 @@ fn do_not_process_style_tag_but_inline_linked_stylesheet(keep_at_rules: bool) {
     );
 }
 
-#[test_case(false; "without keep_at_rules")]
-#[test_case(true; "with keep_at_rules")]
-fn do_not_process_style_tag_but_inline_fragment_css(keep_at_rules: bool) {
-    let inliner = CSSInliner::options()
-        .inline_style_tags(false)
-        .keep_at_rules(keep_at_rules)
-        .build();
+#[test]
+fn do_not_process_style_tag_but_inline_fragment_css() {
+    let inliner = CSSInliner::options().inline_style_tags(false).build();
     assert_eq!(
         inliner
             .inline_fragment(
@@ -1527,6 +1523,35 @@ fn inline_fragment_empty() {
     assert_eq!(inlined, "");
 }
 
+#[test]
+fn inline_fragment_keep_at_rules() {
+    let inliner = CSSInliner::options().keep_at_rules(true).build();
+    let error = inliner.inline_fragment(FRAGMENT, CSS).unwrap_err();
+    assert_eq!(
+        error.to_string(),
+        "`keep_at_rules` is not supported for fragment inlining"
+    );
+}
+
+#[test]
+fn inline_fragment_keep_style_and_link_tags() {
+    let inliner = CSSInliner::options()
+        .keep_style_tags(true)
+        .keep_link_tags(true)
+        .load_remote_stylesheets(false)
+        .build();
+    let inlined = inliner
+        .inline_fragment(
+            r#"<link rel="stylesheet" href="a.css"><style>p { color: red; }</style><p>Hi</p>"#,
+            "",
+        )
+        .unwrap();
+    assert_eq!(
+        inlined,
+        r#"<link rel="stylesheet" href="a.css"><style>p { color: red; }</style><p style="color: red;">Hi</p>"#
+    );
+}
+
 // Padding to ensure documents exceed the 1024-byte threshold for indexed lookups
 const PADDING: &str = "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ";
 
@@ -1997,7 +2022,6 @@ fn keep_style_tags_and_remove_inlined_selectors_with_keep_at_rules_keeps_extra_c
 fn remove_inlined_selectors_with_at_rules_in_fragment() {
     let inliner = CSSInliner::options()
         .remove_inlined_selectors(true)
-        .keep_at_rules(true)
         .keep_style_tags(true)
         .build();
     let html = r#"<style>

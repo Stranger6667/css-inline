@@ -46,7 +46,8 @@ impl From<InlineErrorWrapper> for PyErr {
             rust_inline::InlineError::ParseError(message) => {
                 InlineError::new_err(message.to_string())
             }
-            rust_inline::InlineError::MissingStyleSheet { .. } => {
+            rust_inline::InlineError::MissingStyleSheet { .. }
+            | rust_inline::InlineError::UnsupportedFragmentOption => {
                 InlineError::new_err(error.0.to_string())
             }
         }

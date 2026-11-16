@@ -169,7 +169,7 @@ public class ConfigExample {
 - **`setInlineStyleTags(boolean)`** - Inline CSS from `<style>` tags (default: `true`)
 - **`setKeepStyleTags(boolean)`** - Keep `<style>` tags after inlining (default: `false`)
 - **`setKeepLinkTags(boolean)`** - Keep `<link>` tags after inlining (default: `false`)
-- **`setKeepAtRules(boolean)`** - Keep `at-rules` (starting with `@`) after inlining (default: `false`)
+- **`setKeepAtRules(boolean)`** - Keep `at-rules` (starting with `@`) after inlining; errors in fragment inlining (default: `false`)
 - **`setMinifyCss(boolean)`** - Remove trailing semicolons and spaces between properties and values (default: `false`)
 - **`setBaseUrl(String)`** - Base URL for resolving relative URLs (default: `null`)
 - **`setLoadRemoteStylesheets(boolean)`** - Load stylesheets from `link` tags, over the network or from `file://` paths (default: `true`)

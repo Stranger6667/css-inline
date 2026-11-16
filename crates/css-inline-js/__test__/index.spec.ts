@@ -193,6 +193,15 @@ h1 {
   );
 });
 
+test("inline fragment with keepAtRules", (t) => {
+  const error = t.throws(() => {
+    inlineFragment("<h1>Hello</h1>", "h1 { color: blue; }", {
+      keepAtRules: true,
+    });
+  });
+  t.is(error.message, "`keep_at_rules` is not supported for fragment inlining");
+});
+
 test("remove inlined selectors", (t) => {
   t.is(
     inline(
