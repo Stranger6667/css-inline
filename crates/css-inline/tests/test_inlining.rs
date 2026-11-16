@@ -1410,7 +1410,7 @@ fn test_disable_cache() {
         .cache(None)
         .build();
     let debug = format!("{inliner:?}");
-    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, media_type: None, .. } }");
+    assert_eq!(debug, "CSSInliner { options: InlineOptions { inline_style_tags: true, keep_style_tags: false, keep_link_tags: false, base_url: None, load_remote_stylesheets: true, cache: None, extra_css: None, preallocate_node_capacity: 32, remove_inlined_selectors: false, apply_width_attributes: false, apply_height_attributes: false, resolve_css_variables: false, media_type: None, keep_classes: true, .. } }");
 }
 
 #[test]
@@ -1818,6 +1818,29 @@ fn remove_inlined_selectors_class_attribute_substring(padding: &str) {
     let result = inliner.inline(&html).unwrap();
     assert!(!result.contains("[class*="));
     assert!(result.contains(r#"<div class="col-6" style="color: red;">Test</div>"#));
+}
+
+#[test]
+fn keep_classes_document() {
+    let inliner = CSSInliner::options().keep_classes(false).build();
+    let html = r#"<html><head><style>.a { color: blue; }</style></head><body><h1 class="a b">Test</h1><p class="c">Text</p></body></html>"#;
+    let result = inliner.inline(html).unwrap();
+    assert_eq!(
+        result,
+        r#"<html><head></head><body><h1 style="color: blue;">Test</h1><p>Text</p></body></html>"#
+    );
+}
+
+#[test]
+fn keep_classes_fragment() {
+    let inliner = CSSInliner::options().keep_classes(false).build();
+    let result = inliner
+        .inline_fragment(
+            r#"<main class="m"><h1 class="a">Test</h1></main>"#,
+            ".m .a { color: blue; }",
+        )
+        .unwrap();
+    assert_eq!(result, r#"<main><h1 style="color: blue;">Test</h1></main>"#);
 }
 
 #[test]

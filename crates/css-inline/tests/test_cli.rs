@@ -431,6 +431,16 @@ pub mod tests {
     }
 
     #[test]
+    fn keep_classes() {
+        css_inline()
+            .write_stdin(r#"<html><head><style>.a { color: blue; }</style></head><body><h1 class="a">Test</h1></body></html>"#)
+            .arg("--keep-classes=false")
+            .assert()
+            .success()
+            .stdout("<html><head></head><body><h1 style=\"color: blue;\">Test</h1></body></html>");
+    }
+
+    #[test]
     fn unknown_short_flag() {
         css_inline()
             .arg("-b")

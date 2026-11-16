@@ -46,12 +46,14 @@ public class CssInlineConfig {
 
 	/** Inline rules from @media blocks that apply to this media type. */
 	public final String mediaType;
+	/** Keep class attributes in the output. */
+	public final boolean keepClasses;
 
 	private CssInlineConfig(boolean inlineStyleTags, boolean keepStyleTags, boolean keepLinkTags,
 			boolean keepAtRules, boolean minifyCss, boolean loadRemoteStylesheets, String baseUrl, String extraCss,
 			int cacheSize, int preallocateNodeCapacity, boolean removeInlinedSelectors,
 			boolean applyWidthAttributes, boolean applyHeightAttributes, boolean resolveCssVariables,
-			String mediaType) {
+			String mediaType, boolean keepClasses) {
 		this.inlineStyleTags = inlineStyleTags;
 		this.keepStyleTags = keepStyleTags;
 		this.keepLinkTags = keepLinkTags;
@@ -67,6 +69,7 @@ public class CssInlineConfig {
 		this.applyHeightAttributes = applyHeightAttributes;
 		this.resolveCssVariables = resolveCssVariables;
 		this.mediaType = mediaType;
+		this.keepClasses = keepClasses;
 	}
 
 	/**
@@ -88,6 +91,7 @@ public class CssInlineConfig {
 		private boolean applyHeightAttributes = false;
 		private boolean resolveCssVariables = false;
 		private String mediaType = null;
+		private boolean keepClasses = true;
 
 		/**
 		 * Creates a new builder with default configuration values.
@@ -284,6 +288,17 @@ public class CssInlineConfig {
 		}
 
 		/**
+		 * Keep class attributes in the output.
+		 *
+		 * @param b true to keep class attributes, false to remove them
+		 * @return this builder instance for method chaining
+		 */
+		public Builder setKeepClasses(boolean b) {
+			this.keepClasses = b;
+			return this;
+		}
+
+		/**
 		 * Creates a new {@link CssInlineConfig} instance with the current builder settings.
 		 *
 		 * @return a new immutable configuration instance
@@ -291,7 +306,7 @@ public class CssInlineConfig {
 		public CssInlineConfig build() {
 			return new CssInlineConfig(inlineStyleTags, keepStyleTags, keepLinkTags, keepAtRules, minifyCss, loadRemoteStylesheets, baseUrl,
 					extraCss, cacheSize, preallocateNodeCapacity, removeInlinedSelectors, applyWidthAttributes, applyHeightAttributes,
-					resolveCssVariables, mediaType);
+					resolveCssVariables, mediaType, keepClasses);
 		}
 	}
 }

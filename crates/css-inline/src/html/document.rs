@@ -596,6 +596,7 @@ impl Document {
         mode: InliningMode,
         apply_width_attributes: bool,
         apply_height_attributes: bool,
+        keep_classes: bool,
         variables: CssVariables,
     ) -> Result<(), InlineError> {
         serialize_to(
@@ -609,6 +610,7 @@ impl Document {
             mode,
             apply_width_attributes,
             apply_height_attributes,
+            keep_classes,
             variables,
         )
     }
@@ -769,6 +771,7 @@ mod tests {
             InliningMode::Document,
             false,
             false,
+            true,
             CssVariables::Keep,
         )
         .expect("Failed to serialize");

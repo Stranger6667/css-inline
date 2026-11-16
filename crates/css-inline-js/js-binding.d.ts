@@ -70,6 +70,8 @@ export interface Options {
    * Queries with media features, such as `(min-width: 600px)`, never apply.
    */
   mediaType?: string
+  /** Keep `class` attributes in the output. */
+  keepClasses?: boolean
 }
 
 export interface StylesheetCache {

@@ -164,6 +164,17 @@ class CssInlineTest {
   }
 
   @Test
+  void removeClasses() {
+      String html = "<html><head><style>.a { color: blue; }</style></head><body><h1 class=\"a\">Test</h1></body></html>";
+
+      CssInlineConfig cfg = new CssInlineConfig.Builder().setKeepClasses(false).build();
+
+      String out = CssInline.inline(html, cfg);
+
+      assertEquals("<html><head></head><body><h1 style=\"color: blue;\">Test</h1></body></html>", out);
+  }
+
+  @Test
   void keepsCssVariablesByDefault() {
       String html = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
 

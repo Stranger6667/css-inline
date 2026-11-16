@@ -240,6 +240,7 @@ Fields:
 - `apply_height_attributes`. Add `height` HTML attributes from CSS `height` properties on `table`, `td`, `th` and `img`. Default: `false`
 - `resolve_css_variables`. Replace `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. Default: `false`
 - `media_type` (`const char *`). Inline rules from `@media` blocks whose query lists this media type or `all`, e.g. `@media print` or `@media screen, print` for `print`. Queries with media features, such as `print and (min-width: 600px)`, never apply. An inlined block is not kept as an at-rule. Ignored when `keep_at_rules` is enabled and `inline_style_tags` is disabled. Default: `NULL`
+- `keep_classes`. Keep `class` attributes in the output. When disabled, class selectors in kept `<style>` blocks and at-rules match nothing. Default: `true`
 
 With the defaults, the library loads every stylesheet that a `link` tag references, over the network or from local files. Set `load_remote_stylesheets` to `false` to block both network and file access for `link` tags.
 

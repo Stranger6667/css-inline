@@ -51,6 +51,8 @@ export interface Options {
   resolveCssVariables?: boolean
   /** Inline rules from `@media` blocks that apply to this media type, e.g. `print`. Queries with media features never apply. */
   mediaType?: string
+  /** Keep `class` attributes in the output. */
+  keepClasses?: boolean
 }
 
 export interface StylesheetCache {

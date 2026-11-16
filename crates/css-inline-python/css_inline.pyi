@@ -19,6 +19,7 @@ class CSSInliner:
         apply_height_attributes: bool = False,
         resolve_css_variables: bool = False,
         media_type: str | None = None,
+        keep_classes: bool = True,
     ) -> None: ...
     def inline(self, html: str) -> str: ...
     def inline_fragment(self, html: str, css: str) -> str: ...
@@ -42,6 +43,7 @@ def inline(
     apply_height_attributes: bool = False,
     resolve_css_variables: bool = False,
     media_type: str | None = None,
+    keep_classes: bool = True,
 ) -> str: ...
 def inline_fragment(
     html: str,
@@ -61,6 +63,7 @@ def inline_fragment(
     apply_height_attributes: bool = False,
     resolve_css_variables: bool = False,
     media_type: str | None = None,
+    keep_classes: bool = True,
 ) -> str: ...
 def inline_many(
     html: list[str],
@@ -79,6 +82,7 @@ def inline_many(
     apply_height_attributes: bool = False,
     resolve_css_variables: bool = False,
     media_type: str | None = None,
+    keep_classes: bool = True,
 ) -> list[str]: ...
 def inline_many_fragments(
     html: list[str],
@@ -98,6 +102,7 @@ def inline_many_fragments(
     apply_height_attributes: bool = False,
     resolve_css_variables: bool = False,
     media_type: str | None = None,
+    keep_classes: bool = True,
 ) -> list[str]: ...
 
 class InlineError(ValueError): ...

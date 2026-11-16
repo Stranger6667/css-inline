@@ -256,6 +256,19 @@ CSS_VARIABLES_HTML = (
 )
 
 
+def test_remove_classes():
+    html = '<html><head><style>.a { color: blue; }</style></head><body><h1 class="a">Test</h1></body></html>'
+    result = css_inline.inline(html, keep_classes=False)
+    assert result == '<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>'
+
+
+def test_remove_classes_inliner():
+    inliner = css_inline.CSSInliner(keep_classes=False)
+    html = '<html><head><style>.a { color: blue; }</style></head><body><h1 class="a">Test</h1></body></html>'
+    result = inliner.inline(html)
+    assert result == '<html><head></head><body><h1 style="color: blue;">Test</h1></body></html>'
+
+
 def test_resolve_css_variables_default():
     result = css_inline.inline(CSS_VARIABLES_HTML)
     assert result == '<html style="--c: red;"><head></head><body><h1 style="color: var(--c);">Test</h1></body></html>'

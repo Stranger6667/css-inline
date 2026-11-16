@@ -67,6 +67,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         apply_height_attributes: bool,
         resolve_css_variables: bool,
         media_type: Option<String>,
+        keep_classes: bool,
     }
 
     impl Default for ParsedArgs {
@@ -92,6 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 apply_height_attributes: false,
                 resolve_css_variables: false,
                 media_type: None,
+                keep_classes: true,
             }
         }
     }
@@ -132,6 +134,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 Long("apply-width-attributes") => parsed.apply_width_attributes = true,
                 Long("apply-height-attributes") => parsed.apply_height_attributes = true,
                 Long("resolve-css-variables") => parsed.resolve_css_variables = true,
+                Long("keep-classes") => {
+                    parsed.keep_classes = parse_value(parser.value()?, "keep-classes")?;
+                }
                 Long("inline-style-tags") => {
                     parsed.inline_style_tags = parse_value(parser.value()?, "inline-style-tags")?;
                 }
@@ -251,6 +256,10 @@ OPTIONS:
         Substitute var() references with the values of the custom properties they refer to
         and drop the --* declarations from the inlined styles.
 
+    --keep-classes
+        Whether to keep "class" attributes in the output. The default value is `true`. To remove
+        them use `--keep-classes=false`.
+
     --base-url
         Used for loading external stylesheets via relative URLs.
 
@@ -332,6 +341,7 @@ OPTIONS:
             apply_height_attributes: args.apply_height_attributes,
             resolve_css_variables: args.resolve_css_variables,
             media_type: args.media_type,
+            keep_classes: args.keep_classes,
         };
         let inliner = CSSInliner::new(options);
         if args.files.is_empty() {

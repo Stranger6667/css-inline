@@ -150,6 +150,15 @@ static void test_remove_inlined_selectors(void) {
   assert(strcmp(output, "<html><head><style>h2 { color: red; }</style></head><body><h1 style=\"color: blue;\">Test</h1></body></html>") == 0);
 }
 
+static void test_keep_classes(void) {
+  char html[] = "<html><head><style>.a { color: blue; }</style></head><body><h1 class=\"a\">Test</h1></body></html>";
+  CssInlinerOptions options = css_inliner_default_options();
+  options.keep_classes = false;
+  char output[MAX_SIZE];
+  assert(css_inline_to(&options, html, output, sizeof(output)) == CSS_RESULT_OK);
+  assert(strcmp(output, "<html><head></head><body><h1 style=\"color: blue;\">Test</h1></body></html>") == 0);
+}
+
 static void test_resolve_css_variables(void) {
   char html[] = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
   CssInlinerOptions options = css_inliner_default_options();
@@ -184,6 +193,7 @@ int main(void) {
   test_inline_fragment();
   test_inline_fragment_keep_at_rules();
   test_remove_inlined_selectors();
+  test_keep_classes();
   test_resolve_css_variables();
   test_media_type();
   return 0;
