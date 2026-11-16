@@ -49,6 +49,8 @@ export interface Options {
   applyHeightAttributes?: boolean
   /** Substitute `var()` references with the values of the custom properties they refer to and drop the `--*` declarations. */
   resolveCssVariables?: boolean
+  /** Inline rules from `@media` blocks that apply to this media type, e.g. `print`. Queries with media features never apply. */
+  mediaType?: string
 }
 
 export interface StylesheetCache {

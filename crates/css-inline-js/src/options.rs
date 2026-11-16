@@ -73,6 +73,10 @@ pub struct Options {
     ///
     /// Email clients do not support custom properties; this makes the output work without them.
     pub resolve_css_variables: Option<bool>,
+    /// Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
+    ///
+    /// Queries with media features, such as `(min-width: 600px)`, never apply.
+    pub media_type: Option<String>,
 }
 
 impl TryFrom<Options> for css_inline::InlineOptions<'_> {
@@ -163,6 +167,7 @@ impl TryFrom<Options> for css_inline::InlineOptions<'_> {
             apply_width_attributes: value.apply_width_attributes.unwrap_or(false),
             apply_height_attributes: value.apply_height_attributes.unwrap_or(false),
             resolve_css_variables: value.resolve_css_variables.unwrap_or(false),
+            media_type: value.media_type,
         })
     }
 }

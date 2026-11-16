@@ -164,6 +164,15 @@ class CssInlineTest {
   }
 
   @Test
+  void mediaType() {
+      String html = "<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>";
+
+      CssInlineConfig cfg = new CssInlineConfig.Builder().setMediaType("print").build();
+
+      assertEquals("<html><head></head><body><h1 style=\"color: red;\">Test</h1></body></html>", CssInline.inline(html, cfg));
+  }
+
+  @Test
   void resolveCssVariables() {
       String html = "<html><head><style>:root{--c:red} h1{color:var(--c)}</style></head><body><h1>Test</h1></body></html>";
 

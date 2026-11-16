@@ -269,6 +269,13 @@ def test_resolve_css_variables_inliner():
     assert result == '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>'
 
 
+def test_media_type():
+    html = "<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>"
+    result = css_inline.inline(html, media_type="print")
+    assert result == '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>'
+    assert css_inline.CSSInliner(media_type="print").inline(html) == result
+
+
 @given(
     document=st.text(),
     keep_style_tags=st.booleans() | st.none(),

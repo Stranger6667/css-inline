@@ -305,6 +305,20 @@ class CssInlineTest extends TestCase
         $this->assertStringContainsString('height="50"', $result);
     }
 
+    public function testMediaType(): void
+    {
+        $inliner = new CssInliner(
+            mediaType: 'print',
+        );
+
+        $html = '<html><head><style>@media print { h1 { color: red } } @media screen { h1 { color: blue } }</style></head><body><h1>Test</h1></body></html>';
+
+        $this->assertEquals(
+            '<html><head></head><body><h1 style="color: red;">Test</h1></body></html>',
+            $inliner->inline($html)
+        );
+    }
+
     public function testResolveCssVariablesDefault(): void
     {
         $inliner = new CssInliner();

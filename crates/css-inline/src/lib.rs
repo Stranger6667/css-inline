@@ -101,6 +101,10 @@ pub struct InlineOptions<'a> {
     ///
     /// Email clients do not support custom properties; this makes the output work without them.
     pub resolve_css_variables: bool,
+    /// Inline rules from `@media` blocks that apply to this media type, e.g. `print`.
+    ///
+    /// Queries with media features, such as `(min-width: 600px)`, never apply.
+    pub media_type: Option<String>,
 }
 
 impl std::fmt::Debug for InlineOptions<'_> {
@@ -123,6 +127,7 @@ impl std::fmt::Debug for InlineOptions<'_> {
             .field("apply_width_attributes", &self.apply_width_attributes)
             .field("apply_height_attributes", &self.apply_height_attributes)
             .field("resolve_css_variables", &self.resolve_css_variables)
+            .field("media_type", &self.media_type)
             .finish_non_exhaustive()
     }
 }
@@ -652,6 +657,15 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
+    /// Inline rules from `@media` blocks that apply to the given media type, e.g. `print`.
+    ///
+    /// Queries with media features, such as `(min-width: 600px)`, never apply.
+    #[must_use]
+    pub fn media_type(mut self, media_type: impl Into<String>) -> Self {
+        self.media_type = Some(media_type.into());
+        self
+    }
+
     /// Create a new `CSSInliner` instance from this options.
     #[must_use]
     pub const fn build(self) -> CSSInliner<'a> {
@@ -679,6 +693,7 @@ impl Default for InlineOptions<'_> {
             apply_width_attributes: false,
             apply_height_attributes: false,
             resolve_css_variables: false,
+            media_type: None,
         }
     }
 }
@@ -1068,11 +1083,17 @@ impl<'a> CSSInliner<'a> {
         // `@`-rules are not inlined. `keep_at_rules` moves them to a new `<style>` and selector
         // cleanup keeps them in the rewritten ones, so both need their spans.
         let mut spans = (self.options.keep_at_rules || track_selector_cleanup).then(Vec::new);
+        // The styles are collected only for their `@`-rules, which stay as they are.
+        let at_rules_only = self.options.keep_at_rules && !self.options.inline_style_tags;
         let mut rule_parser = parser::RuleParser::new(
             &raw_styles,
             &mut declarations,
             &mut rule_list,
             spans.as_mut(),
+            self.options
+                .media_type
+                .as_deref()
+                .filter(|_| !at_rules_only),
         );
         if !raw_styles.is_empty() {
             let mut parser = cssparser::Parser::new(&raw_styles);
@@ -1081,7 +1102,7 @@ impl<'a> CSSInliner<'a> {
         }
         let layers = rule_parser.into_layers();
         let spans = spans.unwrap_or_default();
-        if self.options.keep_at_rules && !self.options.inline_style_tags {
+        if at_rules_only {
             // The `<style>` tags were collected only for their `@`-rules.
             let rest = raw_styles[styles_end..].as_ptr();
             rule_list.retain(|rule| rule.selectors.as_ptr() >= rest);
