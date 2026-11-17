@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [0.25.0] - 2026-11-17
+
 ### Added
 
 - `media_type` option to inline rules from `@media` blocks that apply to the given media type. [#410](https://github.com/Stranger6667/css-inline/issues/410)
@@ -664,7 +666,8 @@
 
 - Initial public release
 
-[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.24.0...HEAD
+[Unreleased]: https://github.com/Stranger6667/css-inline/compare/rust-v0.25.0...HEAD
+[0.25.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.24.0...rust-v0.25.0
 [0.24.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.23.1...rust-v0.24.0
 [0.23.1]: https://github.com/Stranger6667/css-inline/compare/rust-v0.23.0...rust-v0.23.1
 [0.23.0]: https://github.com/Stranger6667/css-inline/compare/rust-v0.22.1...rust-v0.23.0
