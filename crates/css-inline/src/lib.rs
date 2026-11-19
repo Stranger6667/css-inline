@@ -69,7 +69,9 @@ pub struct InlineOptions<'a> {
     pub minify_css: bool,
     /// Used for loading external stylesheets via relative URLs.
     pub base_url: Option<Url>,
-    /// Whether remote stylesheets should be loaded or not.
+    /// Whether to load stylesheets from `link` tags, over the network or from local files.
+    /// A `link` tag can point to any URL the process can reach or any file it can read,
+    /// so disable this for untrusted HTML.
     pub load_remote_stylesheets: bool,
     /// External stylesheet cache.
     #[cfg(feature = "stylesheet-cache")]
@@ -605,7 +607,7 @@ impl<'a> InlineOptions<'a> {
         self
     }
 
-    /// Override whether remote stylesheets should be loaded.
+    /// Override whether stylesheets from `link` tags are loaded. Disable for untrusted HTML.
     #[must_use]
     pub fn load_remote_stylesheets(mut self, load_remote_stylesheets: bool) -> Self {
         self.load_remote_stylesheets = load_remote_stylesheets;

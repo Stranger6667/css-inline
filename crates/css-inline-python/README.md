@@ -158,7 +158,7 @@ inliner.inline("...")
 - `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Errors in fragment inlining. Default: `False`
 - `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `False`
 - `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `None`
-- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `True`
+- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from local files. A `link` tag can point to any URL the process can reach or any file it can read, so disable this for untrusted HTML. Default: `True`
 - `cache`. Cache for external stylesheets, for example `StylesheetCache(size=5)`. Default: `None`
 - `extra_css`. Extra CSS to inline. Default: `None`
 - `preallocate_node_capacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`

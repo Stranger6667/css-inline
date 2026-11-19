@@ -73,6 +73,7 @@ Try `css-inline` in the WebAssembly-powered [playground](https://css-inline.org/
 
 `inlineAsync` and `inlineFragmentAsync` return a `Promise` and load remote `link` stylesheets with `fetch`.
 In browsers, the server hosting a stylesheet must allow cross-origin requests (CORS).
+On a server, pass `loadRemoteStylesheets: false` for untrusted HTML: a `link` tag can point to any URL the process can reach.
 
 ```javascript
 const inlined = await inlineAsync(html, { baseUrl: "https://example.com/" });

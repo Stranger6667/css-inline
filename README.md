@@ -176,7 +176,7 @@ fn main() -> css_inline::Result<()> {
 - `keep_at_rules`. Keep at-rules (starting with `@`) after inlining. Errors in fragment inlining. Default: `false`
 - `minify_css`. Remove trailing semicolons and spaces between properties and values. Default: `false`
 - `base_url`. Base URL for resolving relative URLs. Use the `file://` scheme to load stylesheets from the filesystem. Default: `None`
-- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from `file://` paths. Default: `true`
+- `load_remote_stylesheets`. Load stylesheets from `link` tags, over the network or from local files. A `link` tag can point to any URL the process can reach or any file it can read, so disable this for untrusted HTML or restrict it with a custom `StylesheetResolver`. Default: `true`
 - `cache`. Cache for external stylesheets. Default: `None`
 - `extra_css`. Extra CSS to inline. Default: `None`
 - `preallocate_node_capacity`. **Advanced**. Number of HTML nodes to preallocate during parsing. Set it to your expected node count to avoid reallocations. Default: `32`

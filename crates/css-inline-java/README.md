@@ -172,7 +172,7 @@ public class ConfigExample {
 - **`setKeepAtRules(boolean)`** - Keep `at-rules` (starting with `@`) after inlining; errors in fragment inlining (default: `false`)
 - **`setMinifyCss(boolean)`** - Remove trailing semicolons and spaces between properties and values (default: `false`)
 - **`setBaseUrl(String)`** - Base URL for resolving relative URLs (default: `null`)
-- **`setLoadRemoteStylesheets(boolean)`** - Load stylesheets from `link` tags, over the network or from `file://` paths (default: `true`)
+- **`setLoadRemoteStylesheets(boolean)`** - Load stylesheets from `link` tags, over the network or from local files. A `link` tag can point to any URL the process can reach or any file it can read, so disable this for untrusted HTML (default: `true`)
 - **`setExtraCss(String)`** - Extra CSS to inline (default: `null`)
 - **`setCacheSize(int)`** - External stylesheet cache size, `0` disables the cache; the setter throws `IllegalArgumentException` on negative values (default: `0`)
 - **`setPreallocateNodeCapacity(int)`** - HTML node capacity; the setter throws `IllegalArgumentException` on values ≤ 0 (default: `32`)
