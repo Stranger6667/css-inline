@@ -13,7 +13,7 @@ name = "css_inline"
 crate-type = ["cdylib"]
 
 [build-dependencies]
-built = { version = "0.8.0", features = ["cargo-lock", "chrono"] }
+built = { version = "0.9.0", features = ["cargo-lock", "chrono"] }
 
 [dependencies]
 pyo3 = { version = "0.30.1", features = ["extension-module", "abi3-py310"] }
